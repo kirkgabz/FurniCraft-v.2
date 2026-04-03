@@ -3,644 +3,558 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Export Area - FurniCraft</title>
+  <title>Export Area - Modern Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
 
   <style>
-    :root{
-      --primary-brown:#8B4513;
-      --dark-brown:#5d2e0d;
-      --accent-gold:#CD853F;
-      --bg:#f6f7f9;
-      --card:#ffffff;
-      --text:#243040;
-      --muted:#6c757d;
-      --border: rgba(139,69,19,0.14);
-      --shadow: 0 18px 40px rgba(30,40,60,0.12);
-      --pill: rgba(139,69,19,0.10);
-      --green:#1f7a3a;
-      --orange:#b4691a;
-      --graybtn:#6b7280;
+    :root {
+      --app-bg: #6366f1;
+      --panel-bg: #ffffff;
+      --sidebar-bg: #fdfdfd;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      
+      --grad-purple: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+      --grad-blue: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      --grad-dark: linear-gradient(135deg, #334155 0%, #1e1e1e 100%);
+      
+      --shadow-soft: 0 10px 25px rgba(0,0,0,0.03);
+      --shadow-heavy: 0 25px 50px rgba(0,0,0,0.15);
+      --radius-lg: 30px;
+      --radius-md: 16px;
     }
 
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:'Inter',sans-serif;
-      background: linear-gradient(135deg,#ffffff 0%, #eef1f5 60%, #e9edf3 100%);
-      color:var(--text);
-      min-height:100vh;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--app-bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
     }
 
-    /* HEADER */
-    header{
-      background: linear-gradient(135deg, var(--primary-brown) 0%, #A0522D 100%);
-      color:#fff;
-      padding: 1rem 1.5rem;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      box-shadow: 0 6px 22px rgba(139,69,19,0.25);
-      position: sticky;
-      top:0;
-      z-index:50;
-    }
-    .hdr-left{
-      display:flex; align-items:center; gap:10px;
-      font-family:'Playfair Display',serif;
-      font-size: 1.2rem;
-      letter-spacing:0.3px;
-    }
-    .hdr-left i{font-size:1rem}
-    .hdr-actions{
-      display:flex; gap:10px; align-items:center;
-    }
-    .hdr-btn{
-      border: 1px solid rgba(255,255,255,0.35);
-      background: rgba(255,255,255,0.15);
-      color:#fff;
-      padding: 0.6rem 0.9rem;
-      border-radius: 999px;
-      cursor:pointer;
-      font-weight:600;
-      display:flex;
-      gap:8px;
-      align-items:center;
-      transition: 0.2s;
-      text-decoration:none;
-      font-size:0.9rem;
-      backdrop-filter: blur(10px);
-    }
-    .hdr-btn:hover{ background: rgba(255,255,255,0.22); transform: translateY(-1px); }
-
-    /* LAYOUT */
-    .wrap{
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 3rem;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.25rem;
-      align-items:start;
-    }
-    @media (max-width: 980px){
-      .grid{ grid-template-columns: 1fr; }
-    }
-
-    /* CARDS */
-    .card{
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .card-hdr{
-      padding: 1rem 1.1rem;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .card-title{
-      font-family:'Playfair Display',serif;
-      font-size: 1.25rem;
-      color:#1f2a37;
-    }
-    .pill{
-      background: var(--pill);
-      border: 1px solid rgba(139,69,19,0.18);
-      color: var(--dark-brown);
-      padding: 0.35rem 0.65rem;
-      border-radius: 999px;
-      font-weight:700;
-      font-size:0.78rem;
-      white-space:nowrap;
-    }
-    .card-body{
-      padding: 1.1rem;
-    }
-
-    /* PREVIEW */
-    .preview{
-      border-radius: 14px;
+    .app-container {
+      background: var(--panel-bg);
       width: 100%;
-      aspect-ratio: 16/10;
-      background: #111;
-      border: 1px solid rgba(0,0,0,0.08);
-      overflow:hidden;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      margin-bottom: 1rem;
-    }
-    .preview img{
-      width:100%;
-      height:100%;
-      object-fit: cover;
-      display:block;
-    }
-    .preview .fallback{
-      color: rgba(255,255,255,0.75);
-      font-weight:600;
-      font-size:0.95rem;
-      text-align:center;
-      padding: 1rem;
+      max-width: 1400px;
+      height: 90vh;
+      min-height: 800px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-heavy);
+      display: grid;
+      grid-template-columns: 240px 1fr 380px;
+      overflow: hidden;
     }
 
-    /* INFO GRID */
-    .info-grid{
-      display:grid;
-      grid-template-columns: 120px 1fr;
-      gap: 0.55rem 1rem;
-      font-size: 0.95rem;
-      margin-bottom: 1rem;
+    /* --- LEFT SIDEBAR --- */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid #f1f5f9;
+      padding: 2.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
     }
-    .info-k{ color: var(--muted); }
-    .info-v{ font-weight:700; color:#1f2a37; }
-
-    .section-title{
-      margin-top: 0.9rem;
-      font-family:'Playfair Display',serif;
-      font-size: 1.05rem;
-      color:#1f2a37;
-      display:flex;
-      justify-content:space-between;
-      align-items:baseline;
-      gap:10px;
-    }
-    .section-sub{
-      font-size:0.82rem;
-      color: var(--muted);
-      margin-top: 0.2rem;
-    }
-
-    /* DIMENSIONS TABLE */
-    .dim-wrap{
-      margin-top: 0.8rem;
-      border: 1px solid rgba(0,0,0,0.06);
-      border-radius: 12px;
-      overflow:hidden;
-    }
-    table{
-      width:100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-    }
-    thead th{
-      background: rgba(139,69,19,0.07);
-      color:#3b2a1a;
-      text-align:left;
-      padding: 0.7rem 0.8rem;
-      font-size: 0.78rem;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-    tbody td{
-      padding: 0.7rem 0.8rem;
-      border-top: 1px solid rgba(0,0,0,0.06);
-      vertical-align: top;
-    }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-
-    /* CHAT */
-    .chat-meta{
-      color: var(--muted);
-      font-size: 0.86rem;
-      text-align:right;
-      white-space:nowrap;
-    }
-    .chat-box{
-      border: 1px solid rgba(0,0,0,0.08);
-      border-radius: 14px;
-      height: 310px;
-      overflow:auto;
-      padding: 0.9rem;
-      background: #fbfbfc;
-    }
-    .msg{
-      max-width: 80%;
-      padding: 0.6rem 0.75rem;
-      border-radius: 12px;
-      margin: 0.45rem 0;
-      line-height: 1.35;
-      font-size: 0.92rem;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    .msg.user{
-      margin-left:auto;
-      background: #e5e7eb;
-      color:#111827;
-      border-top-right-radius: 6px;
-    }
-    .msg.shop{
-      margin-right:auto;
-      background: #8B4513;
-      color:#fff;
-      border-top-left-radius: 6px;
-    }
-    .chat-input-row{
-      display:flex;
-      gap: 0.6rem;
-      margin-top: 0.8rem;
-      align-items:center;
-    }
-    .chat-input{
-      flex:1;
-      border: 1px solid rgba(0,0,0,0.12);
-      border-radius: 12px;
-      padding: 0.7rem 0.85rem;
-      outline:none;
-      font-size: 0.95rem;
-      background:#fff;
-    }
-    .btn{
-      border:none;
-      border-radius: 999px;
-      padding: 0.65rem 1.05rem;
+    .brand {
       font-weight: 800;
-      cursor:pointer;
-      transition: 0.15s;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      font-size: 0.9rem;
-      white-space:nowrap;
+      font-size: 1.4rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 3rem;
     }
-    .btn:hover{ transform: translateY(-1px); }
-    .btn-send{
-      background: #b56a1a;
-      color:#fff;
-    }
-    .btn-send:hover{ filter: brightness(0.95); }
-
-    .btn-row{
-      margin-top: 0.75rem;
-      display:flex;
-      gap: 0.6rem;
-      flex-wrap:wrap;
-    }
-    .btn-green{ background: #1f7a3a; color:#fff; }
-    .btn-gray{ background: var(--graybtn); color:#fff; }
-    .btn-brown{ background: #8B4513; color:#fff; }
-
-    /* ORDER STATUS */
-    .status-row{
-      margin-top: 0.8rem;
-      display:flex;
-      align-items:center;
-      gap: 0.6rem;
-      flex-wrap:wrap;
-    }
-    .status-pill{
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      font-weight: 900;
-      font-size: 0.78rem;
-      text-transform: lowercase;
-      border: 1px solid rgba(0,0,0,0.08);
-    }
-    .st-pending{ background: rgba(180,105,26,0.12); color: #8b4d10; }
-    .st-success{ background: rgba(31,122,58,0.12); color: #135a2a; }
-    .st-cancel{ background: rgba(220,38,38,0.12); color: #991b1b; }
-
-    .small-note{
-      font-size:0.82rem;
-      color: var(--muted);
-      margin-top: 0.6rem;
-      line-height:1.45;
-    }
-
-    /* SHOP PICKER (clean, no ugly paragraph) */
-    .shop-picker{
-      display:flex;
-      gap:0.6rem;
-      margin-top: 0.9rem;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    select{
-      flex:1;
-      min-width: 240px;
-      border:1px solid rgba(0,0,0,0.12);
+    .brand-icon {
+      background: var(--grad-purple);
+      color: #fff;
+      width: 40px; height: 40px;
       border-radius: 12px;
-      padding: 0.65rem 0.75rem;
-      outline:none;
-      background:#fff;
-      font-size:0.95rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
     }
+    .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    .nav-link {
+      display: flex; align-items: center; gap: 12px;
+      padding: 1rem 1.2rem;
+      border-radius: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .nav-link:hover, .nav-link.active { background: #eff6ff; color: #4f46e5; }
+    .nav-link i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+    .profile-card {
+      margin-top: auto;
+      background: #fff;
+      border: 1px solid #f1f5f9;
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+    .profile-card i { font-size: 2rem; color: var(--text-muted); }
+    .profile-info h4 { font-size: 0.9rem; margin-bottom: 2px; }
+    .profile-info p { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* --- CENTER COLUMN (Main Content) --- */
+    .main-content { padding: 2.5rem 3rem; overflow-y: auto; background: #fcfcfd; }
+    
+    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    h1 { font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px;}
+    .sub-heading { color: var(--text-muted); font-size: 0.95rem; font-weight: 600; }
+    
+    .price-tag {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #f59e0b;
+    }
+
+    /* Top Stats */
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    .stat-card { background: #fff; border: 1px solid #f1f5f9; border-radius: var(--radius-md); padding: 1.2rem 1.5rem; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; }
+    .stat-card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .stat-card .val { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
+    
+    .analysis-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+    .analysis-bar-fill { height: 100%; border-radius: 4px; }
+
+    /* Preview Image */
+    .preview-box {
+      background: var(--grad-dark);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-soft);
+      height: 380px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      margin-bottom: 2.5rem;
+    }
+    .preview-box img { width: 100%; height: 100%; object-fit: contain; }
+    .preview-fallback { color: #94a3b8; font-weight: 600; text-align: center;}
+
+    /* Data Table */
+    .section-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.2rem; }
+    h2 { font-size: 1.3rem; font-weight: 700; color: var(--text-main); }
+    
+    .data-card {
+      background: #fff;
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid #f1f5f9;
+      margin-bottom: 2rem;
+    }
+    table { width: 100%; border-collapse: collapse; font-family: 'Inter', sans-serif;}
+    th { text-align: left; padding: 1rem 0; color: var(--text-muted); font-size: 0.8rem; border-bottom: 1px solid #eee; text-transform: uppercase; letter-spacing: 0.5px;}
+    td { padding: 1rem 0; font-size: 0.95rem; border-bottom: 1px solid #f8fafc; font-weight: 600;}
+    .mono { font-family: monospace; color: #4f46e5; font-weight: 800; font-size: 1rem;}
+    
+    /* MATERIAL BADGE STYLING */
+    .mat-badge {
+        background: #e0e7ff;
+        color: #4f46e5;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    /* --- RIGHT COLUMN (Summary) --- */
+    .right-panel {
+      background: #fff;
+      border-left: 1px solid #f1f5f9;
+      padding: 2.5rem 2rem;
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .status-card {
+      background: #fff;
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+      border: 1px solid #f8fafc;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .status-card h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;}
+    .status-badge {
+      display: inline-block; padding: 0.4rem 1.2rem; border-radius: 50px; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;
+    }
+    .st-pending { background: #fef3c7; color: #d97706; }
+    .st-progress { background: #e0e7ff; color: #4f46e5; }
+    .st-success { background: #d1fae5; color: #059669; }
+    .st-cancelled { background: #fee2e2; color: #dc2626; }
+    
+    .status-note { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4; }
+
+    .btn {
+      width: 100%; padding: 0.8rem; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 0.8rem;
+    }
+    .btn-primary { background: var(--grad-purple); color: #fff; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
+    .btn-gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);}
+    .btn-gold:hover { transform: translateY(-2px); }
+
+    .progress-container { background: #f8fafc; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; text-align: left; display: none; }
+    .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700;}
+    .progress-bar-wrap { width: 100%; height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: var(--grad-blue); width: 0%; transition: width 0.8s ease; }
+
+    /* Chat Area */
+    .chat-section { flex: 1; display: flex; flex-direction: column; }
+    .chat-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; }
+    .chat-box { flex: 1; background: #f8fafc; border-radius: var(--radius-md); padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 250px; border: 1px solid #f1f5f9; }
+    .msg { padding: 0.7rem 1rem; border-radius: 12px; font-size: 0.85rem; max-width: 85%; font-family: 'Inter', sans-serif;}
+    .msg.shop { background: #e0e7ff; color: #3730a3; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .msg.user { background: var(--grad-purple); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    
+    .chat-input-row { display: flex; gap: 10px; margin-top: 1rem; }
+    .chat-input-row input { flex: 1; padding: 0.8rem 1rem; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; font-family: 'Inter', sans-serif; font-size: 0.9rem;}
+    .chat-input-row input:focus { border-color: #6366f1; }
+    .btn-send { width: auto; padding: 0 1.2rem; margin: 0; background: #6366f1; color: white; border-radius: 12px;}
+
+    /* PAYMENT MODAL */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-box { background: #fff; border-radius: 24px; width: 100%; max-width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden; font-family: 'Inter', sans-serif;}
+    .modal-header { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9;}
+    .modal-header h2 { font-family: 'Nunito', sans-serif; font-size: 1.3rem; margin: 0;}
+    .close-btn { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: var(--text-muted); display:flex; align-items:center; justify-content:center;}
+    
+    .modal-body { padding: 1.5rem; max-height: 60vh; overflow-y: auto; }
+    .dp-amount-box { background: #f8fafc; border-radius: 16px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem; border: 1px dashed #cbd5e1; }
+    .dp-amount-box span { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+    .dp-amount-box h1 { color: #4f46e5; font-size: 2.5rem; margin-top: 0.5rem; font-family: 'Nunito', sans-serif; }
+    
+    .wallet-card { border: 1px solid #f1f5f9; border-radius: 12px; margin-bottom: 1rem; overflow: hidden; }
+    .wallet-header { padding: 1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;}
+    .wallet-header.gcash { background: #007DFE; }
+    .wallet-header.maya { background: #1A1A1A; color: #00E463; }
+    .wallet-details { padding: 1rem; font-size: 0.85rem; line-height: 1.6; background: #fff;}
+    
+    .modal-footer { padding: 1.5rem; background: #f8fafc; border-top: 1px solid #f1f5f9; }
+    .modal-footer input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #cbd5e1; border-radius: 10px; margin-top: 5px; margin-bottom: 15px; outline:none; }
+    .modal-footer input:focus { border-color: #4f46e5; }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="hdr-left">
-      <i class="fas fa-wrench"></i>
-      <span>Export Area</span>
-    </div>
-    <div class="hdr-actions">
-      <a class="hdr-btn" href="furniture-builder.html"><i class="fas fa-arrow-left"></i> Back to Builder</a>
-      <a class="hdr-btn" href="main.html"><i class="fas fa-home"></i> Back to main.html</a>
-    </div>
-  </header>
 
-  <div class="wrap">
-    <div class="grid">
-      <!-- LEFT: DESIGN PACKAGE -->
-      <section class="card">
-        <div class="card-hdr">
-          <div class="card-title">Design Package</div>
-          <div class="pill" id="selectedShopPill">Selected: —</div>
+  <div class="app-container">
+    
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon"><i class="fas fa-layer-group"></i></div>
+        FurniCraft
+      </div>
+      
+      <ul class="nav-menu">
+        <li><a href="furniture-builder.html" class="nav-link"><i class="fas fa-cube"></i> 3D Builder</a></li>
+        <li><a href="main.html" class="nav-link"><i class="fas fa-home"></i> Main Site</a></li>
+        <li><a href="#" class="nav-link active"><i class="fas fa-file-export"></i> Active Export</a></li>
+      </ul>
+
+      <div class="profile-card">
+        <i class="fas fa-user-circle"></i>
+        <div class="profile-info">
+          <h4>Customer View</h4>
+          <p id="clientExportIdLabel">ID: —</p>
         </div>
+      </div>
+    </aside>
 
-        <div class="card-body">
-          <div class="preview" id="previewBox">
-            <div class="fallback">
-              Preview not available.<br/>
-              (Export from builder first)
+    <main class="main-content">
+      
+      <div class="header-row">
+        <div>
+            <h1 id="projName">Custom Design</h1>
+            <div class="sub-heading" id="projType">Furniture Type</div>
+        </div>
+        <div class="price-tag" id="projPrice">₱0</div>
+      </div>
+
+      <div class="preview-box" id="previewBox">
+        <div class="preview-fallback">
+          <i class="fas fa-camera" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+          Preview not captured.<br/>(Ensure your Builder exports a canvas image)
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h3>Durability</h3>
+              <span id="durabilityVal" style="font-weight: 800; color: #10b981; font-size: 1.1rem;">0%</span>
+          </div>
+          <div class="analysis-bar-bg">
+            <div id="durabilityFill" class="analysis-bar-fill" style="width: 0%; background: #10b981;"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h3>Material Quality</h3>
+              <span id="qualityVal" style="font-weight: 800; color: #f59e0b; font-size: 1.1rem;">0%</span>
+          </div>
+          <div class="analysis-bar-bg">
+            <div id="qualityFill" class="analysis-bar-fill" style="width: 0%; background: #f59e0b;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+          <h2>Dimension & Material Specifications</h2>
+          <span id="scaleLabel" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Scale: —</span>
+      </div>
+      
+      <div class="data-card">
+        <table>
+          <thead>
+            <tr>
+                <th style="width:20%;">Component Part</th>
+                <th style="width:28%;">Material Used</th>
+                <th style="width:16%;">Width (cm)</th>
+                <th style="width:16%;">Height (cm)</th>
+                <th style="width:16%;">Depth (cm)</th>
+            </tr>
+          </thead>
+          <tbody id="dimsTbody">
+            <tr><td colspan="5" style="color:var(--text-muted); text-align:center;">No specification data found.</td></tr>
+          </tbody>
+        </table>
+        <div id="overallNote" style="margin-top: 1.2rem; font-size: 0.85rem; color: var(--text-muted);"></div>
+      </div>
+      
+      <select id="shopSelect" style="display:none;"></select>
+    </main>
+
+    <aside class="right-panel">
+      
+      <div class="status-card">
+        <h3>Order Status</h3>
+        <div class="status-badge st-pending" id="statusPill">Pending</div>
+        <div class="status-note" id="statusNote">No order created yet.</div>
+        
+        <div id="progressContainer" class="progress-container">
+            <div class="progress-header">
+                <span id="progressText" style="color: #4f46e5;">Preparing...</span>
+                <span id="progressPercentNum" style="color: var(--text-main);">0%</span>
             </div>
-          </div>
-
-          <div class="info-grid">
-            <div class="info-k">Project</div><div class="info-v" id="projName">—</div>
-            <div class="info-k">Type</div><div class="info-v" id="projType">—</div>
-            <div class="info-k">Estimated</div><div class="info-v" id="projPrice">—</div>
-            <div class="info-k">Export ID</div><div class="info-v mono" id="exportId">—</div>
-          </div>
-
-          <div class="section-title">
-            <span>Order Details</span>
-            <span class="section-sub" id="scaleLabel">Scale: —</span>
-          </div>
-          <div class="section-sub">Dimensions below are in <b>cm</b> (includes global scale).</div>
-
-          <div class="dim-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:35%;">Part</th>
-                  <th style="width:21%;">W</th>
-                  <th style="width:21%;">H</th>
-                  <th style="width:21%;">D</th>
-                </tr>
-              </thead>
-              <tbody id="dimsTbody">
-                <tr><td colspan="4" style="color:var(--muted);">No dimension data found.</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="small-note" id="overallNote"></div>
-
-          <div class="section-title" style="margin-top:1.2rem;">
-            <span>Target Shop</span>
-          </div>
-          <div class="section-sub">Choose which workshop receives this design.</div>
-
-          <div class="shop-picker">
-            <select id="shopSelect"></select>
-            <button class="btn btn-brown" onclick="useSelectedShop()"><i class="fas fa-check"></i> Use Shop</button>
-            <button class="btn btn-gray" onclick="clearShop()"><i class="fas fa-eraser"></i> Clear</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- RIGHT: CHAT + STATUS -->
-      <section class="card">
-        <div class="card-hdr">
-          <div class="card-title">Shop Chat</div>
-          <div class="chat-meta" id="chatMeta">—</div>
+            <div class="progress-bar-wrap">
+                <div id="progressBarFill" class="progress-bar-fill"></div>
+            </div>
         </div>
 
-        <div class="card-body">
-          <div class="chat-box" id="chatBox"></div>
+        <button id="btnPlaceOrder" class="btn btn-primary" onclick="placeOrder()"><i class="fas fa-paper-plane"></i> Place Order</button>
+        <button id="btnPayDp" class="btn btn-gold" style="display:none;" onclick="openPaymentModal()"><i class="fas fa-wallet"></i> Pay Downpayment</button>
+      </div>
 
-          <div class="chat-input-row">
-            <input class="chat-input" id="chatInput" placeholder="Type your message..." />
-            <button class="btn btn-send" onclick="sendMsg()"><i class="fas fa-paper-plane"></i> Send</button>
-          </div>
+      <div class="chat-section">
+        <div class="chat-header">
+          <h2>Shop Activity</h2>
+          <span style="font-size: 0.8rem; color: #10b981; font-weight: 700;"><i class="fas fa-circle"></i> Online</span>
+        </div>
+        
+        <div class="chat-box" id="chatBox"></div>
+        
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Write a message..." />
+          <button class="btn btn-send" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
 
-          <div class="btn-row">
-            <button class="btn btn-green" onclick="placeOrder()"><i class="fas fa-bag-shopping"></i> Place Order</button>
-            <button class="btn btn-gray" onclick="openChatLater()"><i class="fas fa-bookmark"></i> Open this chat later</button>
-          </div>
+    </aside>
+  </div>
 
-          <div style="height:14px;"></div>
-
-          <div class="card-title" style="font-size:1.15rem;">Order Status</div>
-          <div class="section-sub">This is what you show in <b>main.html</b> later.</div>
-
-          <div class="status-row">
-            <span class="info-k">Current:</span>
-            <span class="status-pill st-pending" id="statusPill">pending</span>
-          </div>
-
-          <div class="small-note" id="statusNote">No order created yet.</div>
-
-          <div class="btn-row">
-            <a class="btn btn-gray" href="main.html"><i class="fas fa-arrow-left"></i> Go to main.html</a>
-            <button class="btn btn-brown" onclick="scrollToChat()"><i class="fas fa-comments"></i> Go back to this chat</button>
+  <div id="paymentModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Secure Payment</h2>
+        <button class="close-btn" onclick="closePaymentModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="dp-amount-box">
+          <span>Required Downpayment</span>
+          <h1 id="modalDpAmount">₱0.00</h1>
+        </div>
+        <p style="margin-bottom: 1.5rem; font-size: 0.9rem; text-align:center; color: var(--text-muted);">Please send the exact amount to one of the trusted e-wallets below to start production.</p>
+        
+        <div class="wallet-card">
+          <div class="wallet-header gcash"><i class="fas fa-mobile-alt"></i> GCash Transfer</div>
+          <div class="wallet-details">
+            <strong>Account Name:</strong> Irawan Woodworks<br>
+            <strong>Mobile:</strong> 0912 345 6789<br>
+            <ol style="margin-left: 1.2rem; margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+              <li>Open GCash and tap "Send Money".</li>
+              <li>Enter mobile number and exact amount.</li>
+              <li>Keep the Reference Number for verification.</li>
+            </ol>
           </div>
         </div>
-      </section>
 
+        <div class="wallet-card">
+          <div class="wallet-header maya"><i class="fas fa-wallet"></i> Maya Transfer</div>
+          <div class="wallet-details">
+            <strong>Account Name:</strong> Irawan Woodworks<br>
+            <strong>Mobile:</strong> 0912 345 6789<br>
+            <ol style="margin-left: 1.2rem; margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+              <li>Open Maya and tap "Send Money".</li>
+              <li>Enter mobile number and confirm amount.</li>
+              <li>Keep the Reference Number for verification.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-main); text-transform: uppercase;">Transaction Reference Number</label>
+        <input type="text" id="refNumberInput" placeholder="e.g. 10023948572">
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" style="flex:1; background: #f1f5f9; color: var(--text-main);" onclick="closePaymentModal()">Cancel</button>
+            <button class="btn btn-primary" style="flex:2; margin: 0;" onclick="submitPaymentProof()">Submit Proof</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    // --- Demo shops (fallback list) ---
-    const fallbackShops = [
-      { id: 1, name: "WoodCraft Masters" },
-      { id: 2, name: "Heritage Woodworks" },
-      { id: 3, name: "EcoWood Creations" },
-      { id: 4, name: "The Joinery Lab" },
-      { id: 5, name: "Urban Timber Co." }
-    ];
-
-    // Keys for storage
-    function chatKey(exportId, shopId){ return `shopChat_${exportId}_${shopId}`; }
-    function orderKey(exportId){ return `order_${exportId}`; }
-
+    const activeShopId = 1;
+    const activeShopName = "Irawan Custom Woodworks";
     let exportDraft = null;
     let activeItem = null;
-    let activeShopId = null;
-    let activeShopName = null;
 
-    function moneySafe(txt){
-      const s = String(txt || '').trim();
-      return s ? s : "₱0";
+    function getCustName() {
+      const expId = exportDraft?.exportId || sessionStorage.getItem('currentExportId') || 'exp_unknown';
+      return 'Client (' + expId.substring(0,6) + ')';
     }
+
+    function moneySafe(txt){ const s = String(txt || '').trim(); return s ? s : "₱0"; }
 
     function loadExportDraft(){
       const currentExportId = sessionStorage.getItem('currentExportId') || '';
       const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
-
       exportDraft = drafts.find(d => d.exportId === currentExportId) || drafts[0] || null;
 
-      // Populate basics
-      document.getElementById('exportId').innerText = exportDraft?.exportId || '—';
-      document.getElementById('projName').innerText = exportDraft?.projectName || '—';
-      document.getElementById('projType').innerText = exportDraft?.furnitureType || '—';
+      // Update Top Texts
+      document.getElementById('clientExportIdLabel').innerText = 'ID: ' + (exportDraft?.exportId || '—').substring(0,6);
+      document.getElementById('projName').innerText = exportDraft?.projectName || 'Custom Design';
+      document.getElementById('projType').innerText = exportDraft?.furnitureType || 'Furniture Piece';
       document.getElementById('projPrice').innerText = moneySafe(exportDraft?.estimatedPriceText);
 
-      // Preview
+      // --- 3D VISUALIZATION SNAPSHOT ---
       const previewBox = document.getElementById('previewBox');
       previewBox.innerHTML = '';
       if (exportDraft?.previewDataUrl) {
-        const img = document.createElement('img');
-        img.src = exportDraft.previewDataUrl;
-        img.alt = 'Design Preview';
+        const img = document.createElement('img'); 
+        img.src = exportDraft.previewDataUrl; 
         previewBox.appendChild(img);
       } else {
-        previewBox.innerHTML = '<div class="fallback">Preview not available.<br/>(Export from builder first)</div>';
+        previewBox.innerHTML = '<div class="preview-fallback"><i class="fas fa-camera" style="font-size: 2rem; margin-bottom: 10px;"></i><br>Preview not captured.<br/>(Ensure your Builder exports a canvas image)</div>';
       }
 
-      // Parse cadState for item + dimensions
+      // --- PROCESS DATA ---
       const cadStateStr = exportDraft?.cadState || sessionStorage.getItem('cadState') || '';
       let parsed = null;
-
-      try { parsed = cadStateStr ? JSON.parse(cadStateStr) : null; } catch(e){ parsed = null; }
+      try { parsed = cadStateStr ? JSON.parse(cadStateStr) : null; } catch(e){}
 
       if (parsed && parsed.items && parsed.items.length) {
-        const id = exportDraft?.activeItemId;
-        activeItem = parsed.items.find(i => i.id === id) || parsed.items[0];
-
-        // scale label
+        activeItem = parsed.items.find(i => i.id === exportDraft?.activeItemId) || parsed.items[0];
+        
+        // Scale Setup
         const gs = activeItem?.globalScale || {x:1,y:1,z:1};
-        document.getElementById('scaleLabel').innerText = `Scale: ${Math.round(gs.x*100)}% / ${Math.round(gs.y*100)}% / ${Math.round(gs.z*100)}% (W/H/D)`;
+        document.getElementById('scaleLabel').innerText = `Scale: ${Math.round(gs.x*100)}% / ${Math.round(gs.y*100)}% / ${Math.round(gs.z*100)}%`;
+        
+        // Analysis Scores Setup
+        const durability = activeItem?.analysis?.durability || 0;
+        const quality = activeItem?.analysis?.quality || 0;
+        document.getElementById('durabilityVal').innerText = durability + '%';
+        document.getElementById('durabilityFill').style.width = durability + '%';
+        document.getElementById('qualityVal').innerText = quality + '%';
+        document.getElementById('qualityFill').style.width = quality + '%';
 
+        // Build the Material & Dimensions Table
         renderDims(activeItem);
-      } else {
-        document.getElementById('scaleLabel').innerText = 'Scale: —';
-        document.getElementById('overallNote').innerText = '';
       }
     }
 
     function renderDims(item){
       const tbody = document.getElementById('dimsTbody');
       tbody.innerHTML = '';
-
+      
       const dims = item?.dims || {};
+      const materials = item?.materials || {}; // Retrieves materials from your chair.html export script
       const parts = Object.keys(dims);
-
       const gs = item?.globalScale || {x:1,y:1,z:1};
-      const sx = gs.x || 1, sy = gs.y || 1, sz = gs.z || 1;
 
-      if (!parts.length) {
-        tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);">No dimension data found.</td></tr>';
-        return;
+      if (!parts.length) { 
+        tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted); text-align:center;">No specification data found.</td></tr>'; 
+        return; 
       }
 
-      // Overall estimate (simple, safe): max W/D across parts; sum H across parts
       let maxW = 0, maxD = 0, sumH = 0;
-
+      
       parts.forEach(part => {
         const d = dims[part] || {w:0,h:0,d:0};
+        const w = (Number(d.w)||0) * gs.x;
+        const h = (Number(d.h)||0) * gs.y;
+        const dep = (Number(d.d)||0) * gs.z;
+        const mat = materials[part] || 'Standard Wood'; // Assigns the correct material
 
-        const w = (Number(d.w)||0) * sx;
-        const h = (Number(d.h)||0) * sy;
-        const dep = (Number(d.d)||0) * sz;
-
-        maxW = Math.max(maxW, w);
-        maxD = Math.max(maxD, dep);
+        maxW = Math.max(maxW, w); 
+        maxD = Math.max(maxD, dep); 
         sumH += h;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><b>${part}</b></td>
-          <td class="mono">${w.toFixed(0)}</td>
-          <td class="mono">${h.toFixed(0)}</td>
-          <td class="mono">${dep.toFixed(0)}</td>
+            <td><b>${part}</b></td>
+            <td><span class="mat-badge">${mat}</span></td>
+            <td class="mono">${w.toFixed(0)}</td>
+            <td class="mono">${h.toFixed(0)}</td>
+            <td class="mono">${dep.toFixed(0)}</td>
         `;
         tbody.appendChild(tr);
       });
-
-      document.getElementById('overallNote').innerHTML =
-        `Overall estimate: <b>${maxW.toFixed(0)}cm</b> (max width) × <b>${maxD.toFixed(0)}cm</b> (max depth), total stacked height approx <b>${sumH.toFixed(0)}cm</b>.`;
+      
+      document.getElementById('overallNote').innerHTML = `<i class="fas fa-info-circle"></i> Overall footprint estimate: <b>${maxW.toFixed(0)}cm</b> (W) × <b>${maxD.toFixed(0)}cm</b> (D), stacked height approx <b>${sumH.toFixed(0)}cm</b>.`;
     }
 
     function loadShopPicker(){
       const sel = document.getElementById('shopSelect');
-
-      // You can replace this later if you have a shop API/list elsewhere.
-      sel.innerHTML = fallbackShops.map(s => `<option value="${s.id}">${s.name} (ID: ${s.id})</option>`).join('');
-
-      // Try sessionStorage selection first
-      const storedId = sessionStorage.getItem('selectedShopId');
-      const storedName = sessionStorage.getItem('selectedShopName');
-
-      if (storedId) sel.value = storedId;
-
-      activeShopId = storedId ? Number(storedId) : Number(sel.value);
-      activeShopName = storedName || (fallbackShops.find(s => s.id === activeShopId)?.name || '—');
-
-      updateShopUI();
+      sel.innerHTML = `<option value="1">${activeShopName}</option>`;
+      sel.disabled = true; 
       loadChat();
       loadOrderStatus();
     }
 
-    function updateShopUI(){
-      const pill = document.getElementById('selectedShopPill');
-      pill.innerText = `Selected: ${activeShopName || '—'}`;
-
-      document.getElementById('chatMeta').innerText =
-        activeShopName ? `Chatting with ${activeShopName}` : 'Select a shop';
-    }
-
-    function useSelectedShop(){
-      const sel = document.getElementById('shopSelect');
-      activeShopId = Number(sel.value);
-      activeShopName = fallbackShops.find(s => s.id === activeShopId)?.name || `Shop #${activeShopId}`;
-
-      sessionStorage.setItem('selectedShopId', String(activeShopId));
-      sessionStorage.setItem('selectedShopName', String(activeShopName));
-
-      updateShopUI();
-      loadChat();
-      loadOrderStatus();
-    }
-
-    function clearShop(){
-      sessionStorage.removeItem('selectedShopId');
-      sessionStorage.removeItem('selectedShopName');
-      activeShopId = Number(document.getElementById('shopSelect').value);
-      activeShopName = fallbackShops.find(s => s.id === activeShopId)?.name || '—';
-      updateShopUI();
-      loadChat();
-      loadOrderStatus();
-    }
-
-    // --- CHAT (simple "progressing" assistant replies demo) ---
+    // --- CHAT SYNC ---
+    function getDashChatKey() { return `chatMessages_shop_${activeShopId}`; }
     function loadChat(){
       const chatBox = document.getElementById('chatBox');
       chatBox.innerHTML = '';
+      const messages = JSON.parse(localStorage.getItem(getDashChatKey()) || '[]');
+      const myMessages = messages.filter(m => m.customerName === getCustName());
 
-      const expId = exportDraft?.exportId || sessionStorage.getItem('currentExportId') || 'exp_unknown';
-      const sId = activeShopId || 0;
-
-      const history = JSON.parse(localStorage.getItem(chatKey(expId, sId)) || '[]');
-
-      if (!history.length){
-        // seed welcome
-        const seed = [
-          { role:'shop', text:`You are now connected to ${activeShopName}.` },
-          { role:'shop', text:`Send a message to start the chat.` }
-        ];
-        localStorage.setItem(chatKey(expId, sId), JSON.stringify(seed));
-        seed.forEach(m => appendMsg(m.role, m.text));
-      } else {
-        history.forEach(m => appendMsg(m.role, m.text));
+      if (!myMessages.length){ 
+        appendMsg('shop', `Hello! You are connected to ${activeShopName}. Send us a message if you have questions about your design.`); 
+      } 
+      else { 
+        myMessages.forEach(m => appendMsg(m.sender, m.text)); 
       }
-
       chatBox.scrollTop = chatBox.scrollHeight;
     }
-
+    
     function appendMsg(role, text){
       const chatBox = document.getElementById('chatBox');
       const div = document.createElement('div');
@@ -648,129 +562,142 @@
       div.textContent = text;
       chatBox.appendChild(div);
     }
-
+    
     function sendMsg(){
       const input = document.getElementById('chatInput');
       const msg = (input.value || '').trim();
       if(!msg) return;
-
-      const expId = exportDraft?.exportId || sessionStorage.getItem('currentExportId') || 'exp_unknown';
-      const sId = activeShopId || 0;
-
-      const history = JSON.parse(localStorage.getItem(chatKey(expId, sId)) || '[]');
-
-      history.push({ role:'user', text: msg });
-      localStorage.setItem(chatKey(expId, sId), JSON.stringify(history));
-
+      const messages = JSON.parse(localStorage.getItem(getDashChatKey()) || '[]');
+      messages.push({ id: Date.now(), sender: 'user', customerName: getCustName(), text: msg, timestamp: new Date().toISOString() });
+      localStorage.setItem(getDashChatKey(), JSON.stringify(messages));
       appendMsg('user', msg);
       input.value = '';
-
-      // demo progressive reply
-      setTimeout(() => {
-        const reply = makeShopReply(msg);
-        const h2 = JSON.parse(localStorage.getItem(chatKey(expId, sId)) || '[]');
-        h2.push({ role:'shop', text: reply });
-        localStorage.setItem(chatKey(expId, sId), JSON.stringify(h2));
-        appendMsg('shop', reply);
-
-        const chatBox = document.getElementById('chatBox');
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }, 500);
+      document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
     }
 
-    function makeShopReply(userText){
-      const name = exportDraft?.projectName || 'your design';
-      const type = exportDraft?.furnitureType || 'item';
+    // --- ORDER & PROGRESS SYNC ---
+    function getDashCommissionsKey() { return `projectProposals_shop_${activeShopId}`; }
 
-      // Lightweight "progressing" flow
-      const u = userText.toLowerCase();
-      if (u.includes('hi') || u.includes('hello')) {
-        return `Hello! Thanks for messaging ${activeShopName}. I can help with ${name} (${type}). Do you prefer matte or glossy finish?`;
-      }
-      if (u.includes('matte')) {
-        return `Matte finish noted. Next: confirm if you want any edge rounding or keep sharp edges.`;
-      }
-      if (u.includes('gloss')) {
-        return `Gloss finish noted. Next: do you want the wood grain visible or a solid stain look?`;
-      }
-      if (u.includes('yes')) {
-        return `Got it. If you're ready, tap "Place Order" and we’ll mark it as pending, then confirm once accepted.`;
-      }
-      return `Noted. For ${name}, we can proceed as a custom commission. If you're ready, press "Place Order" to start.`;
-    }
-
-    // --- ORDER STATUS (stored for main.html later) ---
     function loadOrderStatus(){
-      const expId = exportDraft?.exportId || sessionStorage.getItem('currentExportId') || 'exp_unknown';
-      const order = JSON.parse(localStorage.getItem(orderKey(expId)) || 'null');
+      const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
+      const myOrder = commissions.find(c => c.customerName === getCustName());
 
-      const status = order?.status || 'pending';
-      setStatus(status, order?.note || 'No order created yet.');
+      const btnPlaceOrder = document.getElementById('btnPlaceOrder');
+      const btnPayDp = document.getElementById('btnPayDp');
+      const progressContainer = document.getElementById('progressContainer');
+
+      if (myOrder) {
+        btnPlaceOrder.style.display = 'none'; 
+        const st = myOrder.status; 
+        let note = "Waiting for shop review.";
+        let uiStatus = 'pending';
+        progressContainer.style.display = 'none';
+
+        if(st === 'approved') { 
+            uiStatus = 'progress'; 
+            note = "Order accepted! Please pay the required downpayment."; 
+            btnPayDp.style.display = 'flex'; 
+        }
+        else if (st === 'payment_verifying') { 
+            uiStatus = 'progress'; 
+            note = "Payment proof submitted! Waiting for shop verification."; 
+            btnPayDp.style.display = 'none'; 
+        }
+        else if (st === 'in_progress') {
+          uiStatus = 'progress'; 
+          note = "Payment verified! Your order is currently in production."; 
+          btnPayDp.style.display = 'none';
+          
+          progressContainer.style.display = 'block';
+          const pVal = myOrder.progressValue || 10;
+          const pLbl = myOrder.progressLabel || 'Sourcing Materials';
+          document.getElementById('progressText').textContent = pLbl;
+          document.getElementById('progressPercentNum').textContent = pVal + '%';
+          document.getElementById('progressBarFill').style.width = pVal + '%';
+          document.getElementById('progressBarFill').style.background = 'var(--grad-blue)';
+        }
+        else if (st === 'completed') {
+          uiStatus = 'success'; 
+          note = "Order is completed and ready!"; 
+          btnPayDp.style.display = 'none';
+          
+          progressContainer.style.display = 'block';
+          document.getElementById('progressText').textContent = "Completed & Ready";
+          document.getElementById('progressPercentNum').textContent = '100%';
+          document.getElementById('progressBarFill').style.width = '100%';
+          document.getElementById('progressBarFill').style.background = '#10b981'; 
+        }
+        else if (st === 'declined') { 
+            uiStatus = 'cancelled'; 
+            note = "Order was declined by the shop."; 
+            btnPayDp.style.display = 'none'; 
+        }
+
+        setStatus(uiStatus, note);
+      } else {
+        btnPlaceOrder.style.display = 'flex'; 
+        btnPayDp.style.display = 'none'; 
+        progressContainer.style.display = 'none';
+        setStatus('pending', 'No order created yet. Submit to shop for review.');
+      }
     }
 
     function setStatus(status, note){
       const pill = document.getElementById('statusPill');
-      const noteEl = document.getElementById('statusNote');
-
-      pill.className = 'status-pill ' + (
-        status === 'successful' ? 'st-success' :
-        status === 'cancelled' ? 'st-cancel' :
-        'st-pending'
-      );
-      pill.textContent = status;
-
-      noteEl.textContent = note || '';
+      let statusLabel = status;
+      if (status === 'progress') statusLabel = 'In Progress';
+      if (status === 'success') statusLabel = 'Success';
+      if (status === 'cancelled') statusLabel = 'Cancelled';
+      pill.className = 'status-badge st-' + status;
+      pill.textContent = statusLabel;
+      document.getElementById('statusNote').textContent = note || '';
     }
 
     function placeOrder(){
-      const expId = exportDraft?.exportId || sessionStorage.getItem('currentExportId') || 'exp_unknown';
+      const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
+      if (commissions.find(c => c.customerName === getCustName())) { alert("You have already placed this order!"); return; }
+      let numericPrice = parseFloat((exportDraft?.estimatedPriceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
 
-      const payload = {
-        exportId: expId,
-        shopId: activeShopId,
-        shopName: activeShopName,
-        projectName: exportDraft?.projectName || '',
-        type: exportDraft?.furnitureType || '',
-        estimated: exportDraft?.estimatedPriceText || '',
-        status: 'pending',
-        note: `Order sent to ${activeShopName}. Waiting for acceptance.`
-      };
-
-      localStorage.setItem(orderKey(expId), JSON.stringify(payload));
-      setStatus('pending', payload.note);
-
-      // OPTIONAL demo: auto-mark successful after a bit (remove this later if you want real shop action)
-      setTimeout(() => {
-        const o = JSON.parse(localStorage.getItem(orderKey(expId)) || 'null');
-        if (!o) return;
-        o.status = 'successful';
-        o.note = `Accepted by ${activeShopName}. Proceeding to production.`;
-        localStorage.setItem(orderKey(expId), JSON.stringify(o));
-        setStatus('successful', o.note);
-      }, 2500);
+      commissions.push({
+        id: Date.now(), customerName: getCustName(),
+        description: `Design: ${exportDraft?.projectName || 'Custom'} (${exportDraft?.furnitureType || 'Item'})`,
+        duration: 14, price: numericPrice, status: 'pending', submittedAt: new Date().toISOString()
+      });
+      localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
+      loadOrderStatus(); 
     }
 
-    function openChatLater(){
-      // This is just a UX button. Since we store chat in localStorage already, it’s "saved".
-      alert("Saved. You can return here anytime; the chat is stored.");
+    // --- PAYMENT MODAL ---
+    function openPaymentModal() {
+      const settings = JSON.parse(localStorage.getItem(`shop_settings_${activeShopId}`) || '{"dpRate": 20}');
+      let numericPrice = parseFloat((exportDraft?.estimatedPriceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
+      let calculatedDp = numericPrice * (parseInt(settings.dpRate, 10) / 100);
+      document.getElementById('modalDpAmount').innerText = '₱' + calculatedDp.toLocaleString('en-US', {minimumFractionDigits: 2});
+      document.getElementById('paymentModal').style.display = 'flex';
     }
-
-    function scrollToChat(){
-      document.getElementById('chatBox').scrollIntoView({ behavior:'smooth', block:'start' });
-    }
-
-    // Enter to send
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        const active = document.activeElement;
-        if (active && active.id === 'chatInput') sendMsg();
+    
+    function closePaymentModal() { document.getElementById('paymentModal').style.display = 'none'; }
+    
+    function submitPaymentProof() {
+      const refInput = document.getElementById('refNumberInput').value.trim();
+      if (!refInput) { alert("Please enter the Reference Number."); return; }
+      const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
+      const index = commissions.findIndex(c => c.customerName === getCustName());
+      if (index !== -1) {
+        commissions[index].status = 'payment_verifying'; commissions[index].referenceNumber = refInput;
+        localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
+        closePaymentModal(); loadOrderStatus(); 
       }
-    });
+    }
 
-    // Init
-    window.onload = () => {
-      loadExportDraft();
-      loadShopPicker();
+    document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && document.activeElement.id === 'chatInput') sendMsg(); });
+    
+    window.onload = () => { 
+        loadExportDraft(); 
+        loadChat(); 
+        loadOrderStatus(); 
+        setInterval(loadOrderStatus, 2000); 
+        setInterval(loadChat, 2000); 
     };
   </script>
 </body>

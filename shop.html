@@ -3,123 +3,388 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Select Furniture Workshop</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
+<title>Select Furniture Workshop - FurniCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-  body{
-    font-family:'Inter',sans-serif;
-    background:linear-gradient(135deg,#f8f9fa,#e9ecef);
-    margin:0;
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
 
-  header{
-    background:linear-gradient(135deg,#8B4513,#A0522D);
-    color:white;
-    padding:1.3rem 2rem;
-    font-family:'Playfair Display',serif;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    font-size:1.5rem;
+  :root {
+    --bg-color: #FAF8F5;
+    --text-main: #2A1B14;
+    --text-muted: #7A6960;
+    --accent-color: #B26A38;
+    --accent-hover: #8E5229;
+    --nav-bg: #FFFFFF;
+    --shadow-sm: 0 4px 12px rgba(42, 27, 20, 0.05);
+    --shadow-md: 0 12px 30px rgba(42, 27, 20, 0.08);
   }
 
-  header a{
-    color:white;
-    text-decoration:none;
-    background:rgba(255,255,255,0.2);
-    padding:6px 14px;
-    border-radius:20px;
-    font-size:0.9rem;
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
   }
 
-  main{
-    max-width:1200px;
-    margin:auto;
-    padding:2rem;
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23000000" stroke-width="0.5" opacity="0.015"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23000000" stroke-width="0.3" opacity="0.01"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
+    z-index: 0;
   }
 
-  .page-title{
-    text-align:center;
-    margin-bottom:2rem;
+  header {
+    padding: 1.5rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), transparent);
+    position: relative;
+    z-index: 10;
   }
 
-  .page-title h1{
-    font-family:'Playfair Display',serif;
-    color:#8B4513;
-    margin-bottom:10px;
+  .header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
   }
 
-  .page-title p{
-    color:#6c757d;
+  .back-btn {
+    background: var(--nav-bg);
+    border: none;
+    color: var(--text-muted);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
   }
 
-  .shop-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-    gap:1.8rem;
+  .back-btn:hover {
+    color: var(--accent-color);
+    transform: translateX(-4px);
+    box-shadow: var(--shadow-md);
   }
 
-  .shop-card{
-    background:white;
-    border-radius:18px;
-    padding:1.5rem;
-    box-shadow:0 10px 25px rgba(0,0,0,0.08);
-    border:1px solid rgba(139,69,19,0.15);
-    transition:0.3s;
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
-  .shop-card:hover{
-    transform:translateY(-6px);
-    box-shadow:0 15px 30px rgba(0,0,0,0.12);
+  .logo i {
+    color: var(--accent-color);
+    font-size: 0.9em;
   }
 
-  .shop-header{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin-bottom:10px;
+  .skip-btn {
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid rgba(178, 106, 56, 0.4);
+    padding: 10px 24px;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Inter', sans-serif;
   }
 
-  .shop-icon{ font-size:2.5rem; }
-
-  .shop-name{
-    font-family:'Playfair Display',serif;
-    font-size:1.4rem;
-    color:#2c3e50;
+  .skip-btn:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    box-shadow: var(--shadow-md);
+    transform: translateX(4px);
   }
 
-  .rating{ color:#CD853F; font-size:0.9rem; }
-
-  .section{
-    margin-top:10px;
-    font-size:0.9rem;
-    color:#444;
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+    width: 100%;
   }
 
-  .section b{ color:#8B4513; }
-
-  .materials{
-    margin-top:5px;
-    font-size:0.85rem;
-    color:#555;
+  .page-title {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    animation: fadeDown 0.8s ease-out;
   }
 
-  .select-btn{
-    margin-top:15px;
-    background:linear-gradient(135deg,#8B4513,#CD853F);
-    color:white;
-    border:none;
-    padding:9px 18px;
-    border-radius:20px;
-    cursor:pointer;
-    font-weight:600;
+  .page-title h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--text-main);
+    font-size: 2.8rem;
+    margin-bottom: 10px;
   }
 
-  .select-btn:hover{
-    background:linear-gradient(135deg,#A0522D,#D2691E);
+  .page-title p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .search-filter-wrapper {
+    max-width: 700px;
+    margin: 0 auto 3rem;
+    display: flex;
+    gap: 15px;
+    animation: fadeUp 0.8s ease-out;
+  }
+
+  .search-container {
+    position: relative;
+    flex: 1;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 16px 20px 16px 50px;
+    border-radius: 30px;
+    border: 1px solid rgba(178, 106, 56, 0.2);
+    background: var(--nav-bg);
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    color: var(--text-main);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    outline: none;
+  }
+
+  .search-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px rgba(178, 106, 56, 0.1);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+
+  .filter-btn {
+    background: var(--nav-bg);
+    border: 1px solid rgba(178, 106, 56, 0.2);
+    color: var(--text-muted);
+    padding: 0 24px;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+  }
+
+  .filter-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-hover);
+  }
+
+  .filter-btn.active {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 15px rgba(178, 106, 56, 0.3);
+  }
+
+  .shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 2rem;
+    animation: fadeUp 1s ease-out;
+  }
+
+  .shop-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(178, 106, 56, 0.1);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .shop-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(178, 106, 56, 0.3);
+  }
+
+  .distance-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--bg-color);
+    color: var(--accent-hover);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid rgba(178, 106, 56, 0.2);
+    display: none;
+  }
+
+  .shop-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .shop-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--bg-color);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: var(--accent-color);
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+  }
+
+  .shop-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--text-main);
+    font-weight: 600;
+    margin-bottom: 4px;
+    padding-right: 10px;
+  }
+
+  .location {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .section {
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-main);
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .materials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .material-tag {
+    background: var(--bg-color);
+    border: 1px solid rgba(178, 106, 56, 0.2);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: var(--accent-hover);
+    font-weight: 500;
+  }
+
+  .select-btn {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    width: 100%;
+  }
+  
+  .select-btn button {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(178, 106, 56, 0.2);
+    font-family: 'Inter', sans-serif;
+  }
+
+  .select-btn button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(178, 106, 56, 0.3);
+  }
+
+  .no-results {
+    text-align: center;
+    grid-column: 1 / -1;
+    padding: 3rem;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    display: none;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    header { padding: 1.5rem; flex-direction: column; gap: 15px; }
+    .page-title h1 { font-size: 2.2rem; }
+    .search-filter-wrapper { flex-direction: column; }
+    .filter-btn { padding: 16px; justify-content: center; }
+    .shop-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -127,92 +392,303 @@
 <body>
 
 <header>
-  Choose a Furniture Workshop
-  <a href="steps.html">Back</a>
+  <div class="header-left">
+    <button class="back-btn" onclick="window.history.back()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <div class="logo">
+      <i class="fas fa-hammer"></i>FurniCraft
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="skip-btn" onclick="window.location.href='craft.html'">
+      Skip Shop Selection <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
 </header>
 
 <main>
 
   <div class="page-title">
-    <h1>Select a Furniture Shop</h1>
-    <p>Choose a professional workshop that will craft your furniture.</p>
+    <h1>Select a Workshop</h1>
+    <p>Choose a verified craftsman nationwide or let us find the closest builders near you to bring your design to life.</p>
   </div>
 
-  <div class="shop-grid">
+  <div class="search-filter-wrapper">
+    <div class="search-container">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search nationwide shops by name...">
+    </div>
+    <button id="nearMeBtn" class="filter-btn">
+      <i class="fas fa-location-crosshairs"></i> Find Near Me
+    </button>
+  </div>
 
-    <div class="shop-card">
+  <div class="shop-grid" id="shopGrid">
+
+    <div class="shop-card" data-is-ppc="true" data-lat="9.816" data-lng="118.722">
+      <div class="distance-badge"></div>
       <div class="shop-header">
-        <div class="shop-icon">🪵</div>
+        <div class="shop-icon"><i class="fas fa-tree"></i></div>
         <div>
-          <div class="shop-name">Heritage Woodworks</div>
-          <div class="rating">★★★★★ 4.9</div>
+          <div class="shop-name">Irawan Custom Woodworks</div>
+          <div class="location"><i class="fas fa-map-marker-alt"></i> Brgy. Irawan, PPC</div>
         </div>
       </div>
-      <div class="section"><b>Description:</b> Traditional furniture craftsmen specializing in handcrafted hardwood furniture built using time-tested joinery techniques.</div>
-      <div class="section"><b>Credentials:</b> Certified Master Woodworkers • 18 years experience</div>
-      <div class="section"><b>Specialization:</b> Dining tables, cabinets, handcrafted chairs</div>
-      <div class="section"><b>Materials Used:</b><div class="materials">Mahogany • Narra • Acacia • Oak • Walnut</div></div>
-      <button class="select-btn" onclick="selectShop(1,'Heritage Woodworks')">Select Shop</button>
+      <div class="section">
+        <span class="section-title">Specialty</span>
+        Heavy solid wood furniture, traditional dining sets, and custom doors.
+      </div>
+      <div class="section" style="margin-bottom: 0;">
+        <span class="section-title">Common Materials</span>
+        <div class="materials">
+          <span class="material-tag">Mahogany</span>
+          <span class="material-tag">Gmelina</span>
+          <span class="material-tag">Acacia</span>
+        </div>
+      </div>
+      <div class="select-btn">
+        <button onclick="selectShop(1,'Irawan Custom Woodworks')">Select Workshop</button>
+      </div>
     </div>
 
-    <div class="shop-card">
+    <div class="shop-card" data-is-ppc="false" data-lat="14.975" data-lng="120.638">
+      <div class="distance-badge"></div>
       <div class="shop-header">
-        <div class="shop-icon">🌳</div>
+        <div class="shop-icon"><i class="fas fa-hammer"></i></div>
         <div>
-          <div class="shop-name">EcoWood Creations</div>
-          <div class="rating">★★★★☆ 4.7</div>
+          <div class="shop-name">Pampanga Carved Classics</div>
+          <div class="location"><i class="fas fa-map-marker-alt"></i> Betis, Pampanga</div>
         </div>
       </div>
-      <div class="section"><b>Description:</b> Eco-friendly furniture makers focused on sustainable wood sourcing and modern minimalist furniture.</div>
-      <div class="section"><b>Credentials:</b> Green Wood Certification • 12 years experience</div>
-      <div class="section"><b>Specialization:</b> Modern living room furniture and eco furniture</div>
-      <div class="section"><b>Materials Used:</b><div class="materials">Bamboo • Reclaimed Wood • Pine • Birch</div></div>
-      <button class="select-btn" onclick="selectShop(2,'EcoWood Creations')">Select Shop</button>
+      <div class="section">
+        <span class="section-title">Specialty</span>
+        Intricate, highly detailed hand-carved classical furniture and ornate bed frames.
+      </div>
+      <div class="section" style="margin-bottom: 0;">
+        <span class="section-title">Common Materials</span>
+        <div class="materials">
+          <span class="material-tag">Narra</span>
+          <span class="material-tag">Kamagong</span>
+          <span class="material-tag">Tindalo</span>
+        </div>
+      </div>
+      <div class="select-btn">
+        <button onclick="selectShop(7,'Pampanga Carved Classics')">Select Workshop</button>
+      </div>
     </div>
 
-    <div class="shop-card">
+    <div class="shop-card" data-is-ppc="true" data-lat="9.771" data-lng="118.752">
+      <div class="distance-badge"></div>
       <div class="shop-header">
-        <div class="shop-icon">🪑</div>
+        <div class="shop-icon"><i class="fas fa-chair"></i></div>
         <div>
-          <div class="shop-name">Urban Timber Co.</div>
-          <div class="rating">★★★★☆ 4.6</div>
+          <div class="shop-name">San Jose Native Crafts</div>
+          <div class="location"><i class="fas fa-map-marker-alt"></i> Brgy. San Jose, PPC</div>
         </div>
       </div>
-      <div class="section"><b>Description:</b> Contemporary furniture workshop combining modern design with durable hardwood construction.</div>
-      <div class="section"><b>Credentials:</b> Professional Furniture Designers Guild</div>
-      <div class="section"><b>Specialization:</b> Tables, desks, and modern home furniture</div>
-      <div class="section"><b>Materials Used:</b><div class="materials">Oak • Walnut • Maple • Engineered Wood</div></div>
-      <button class="select-btn" onclick="selectShop(3,'Urban Timber Co.')">Select Shop</button>
+      <div class="section">
+        <span class="section-title">Specialty</span>
+        Custom woven tropical furniture, lounge chairs, and resort-style patio sets bent by hand.
+      </div>
+      <div class="section" style="margin-bottom: 0;">
+        <span class="section-title">Common Materials</span>
+        <div class="materials">
+          <span class="material-tag">Rattan</span>
+          <span class="material-tag">Abaca</span>
+          <span class="material-tag">Thin Bamboo</span>
+        </div>
+      </div>
+      <div class="select-btn">
+        <button onclick="selectShop(2,'San Jose Native Crafts')">Select Workshop</button>
+      </div>
     </div>
 
-    <div class="shop-card">
+    <div class="shop-card" data-is-ppc="false" data-lat="10.323" data-lng="123.931">
+      <div class="distance-badge"></div>
       <div class="shop-header">
-        <div class="shop-icon">🛠️</div>
+        <div class="shop-icon"><i class="fas fa-couch"></i></div>
         <div>
-          <div class="shop-name">The Joinery Lab</div>
-          <div class="rating">★★★★★ 5.0</div>
+          <div class="shop-name">Cebu Rattan Innovations</div>
+          <div class="location"><i class="fas fa-map-marker-alt"></i> Mandaue City, Cebu</div>
         </div>
       </div>
-      <div class="section"><b>Description:</b> Precision woodworking lab specializing in advanced joinery and custom furniture fabrication.</div>
-      <div class="section"><b>Credentials:</b> Advanced Joinery Certification • 20 years experience</div>
-      <div class="section"><b>Specialization:</b> Custom commissions and complex wood structures</div>
-      <div class="section"><b>Materials Used:</b><div class="materials">Mahogany • Teak • Walnut • Hard Maple</div></div>
-      <button class="select-btn" onclick="selectShop(4,'The Joinery Lab')">Select Shop</button>
+      <div class="section">
+        <span class="section-title">Specialty</span>
+        Export-quality modern rattan weaves integrated with sleek steel frames for luxury homes.
+      </div>
+      <div class="section" style="margin-bottom: 0;">
+        <span class="section-title">Common Materials</span>
+        <div class="materials">
+          <span class="material-tag">Synthetic Rattan</span>
+          <span class="material-tag">Wicker</span>
+          <span class="material-tag">Aluminum</span>
+        </div>
+      </div>
+      <div class="select-btn">
+        <button onclick="selectShop(8,'Cebu Rattan Innovations')">Select Workshop</button>
+      </div>
     </div>
 
-    <div class="shop-card">
+    <div class="shop-card" data-is-ppc="true" data-lat="9.739" data-lng="118.734">
+      <div class="distance-badge"></div>
       <div class="shop-header">
-        <div class="shop-icon">🏡</div>
+        <div class="shop-icon"><i class="fas fa-couch"></i></div>
         <div>
-          <div class="shop-name">FurniCraft Studio</div>
-          <div class="rating">★★★★☆ 4.8</div>
+          <div class="shop-name">Manalo Upholstery Makers</div>
+          <div class="location"><i class="fas fa-map-marker-alt"></i> Manalo Ext., PPC</div>
         </div>
       </div>
-      <div class="section"><b>Description:</b> Specialists in residential furniture production, delivering affordable and durable furniture.</div>
-      <div class="section"><b>Credentials:</b> Licensed Furniture Manufacturing Workshop</div>
-      <div class="section"><b>Specialization:</b> Bedroom furniture and home interiors</div>
-      <div class="section"><b>Materials Used:</b><div class="materials">Pine • Mahogany • MDF • Laminated Wood</div></div>
-      <button class="select-btn" onclick="selectShop(5,'FurniCraft Studio')">Select Shop</button>
+      <div class="section">
+        <span class="section-title">Specialty</span>
+        Custom sofas, sectionals, and cushioned chairs focusing on exact foam cutting and fabric.
+      </div>
+      <div class="section" style="margin-bottom: 0;">
+        <span class="section-title">Common Materials</span>
+        <div class="materials">
+          <span class="material-tag">Leather</span>
+          <span class="material-tag">Linen Fabric</span>
+          <span class="material-tag">High-Density Foam</span>
+        </div>
+      </div>
+      <div class="select-btn">
+        <button onclick="selectShop(3,'Manalo Upholstery Makers')">Select Workshop</button>
+      </div>
+    </div>
+
+    <div class="shop-card" data-is-ppc="false" data-lat="14.554" data-lng="121.024">
+      <div class="distance-badge"></div>
+      <div class="shop-header">
+        <div class="shop-icon"><i class="fas fa-cube"></i></div>
+        <div>
+          <div class="shop-name">Manila Modern Metals</div>
+          <div class="location"><i class="fas fa-map-marker-alt"></i> Makati City, Metro Manila</div>
+        </div>
+      </div>
+      <div class="section">
+        <span class="section-title">Specialty</span>
+        Industrial aesthetic, custom metal framing, glass integration, and modern minimalist tables.
+      </div>
+      <div class="section" style="margin-bottom: 0;">
+        <span class="section-title">Common Materials</span>
+        <div class="materials">
+          <span class="material-tag">Steel Base</span>
+          <span class="material-tag">Tempered Glass</span>
+          <span class="material-tag">Matte Black Iron</span>
+        </div>
+      </div>
+      <div class="select-btn">
+        <button onclick="selectShop(9,'Manila Modern Metals')">Select Workshop</button>
+      </div>
+    </div>
+
+    <div class="shop-card" data-is-ppc="true" data-lat="9.833" data-lng="118.733">
+      <div class="distance-badge"></div>
+      <div class="shop-header">
+        <div class="shop-icon"><i class="fas fa-hammer"></i></div>
+        <div>
+          <div class="shop-name">Sta. Lourdes Cabinetry</div>
+          <div class="location"><i class="fas fa-map-marker-alt"></i> Brgy. Sta. Lourdes, PPC</div>
+        </div>
+      </div>
+      <div class="section">
+        <span class="section-title">Specialty</span>
+        Precision woodworking for modern minimalist pieces, modular kitchen cabinets, and shelving.
+      </div>
+      <div class="section" style="margin-bottom: 0;">
+        <span class="section-title">Common Materials</span>
+        <div class="materials">
+          <span class="material-tag">Marine Plywood</span>
+          <span class="material-tag">Laminated Wood</span>
+          <span class="material-tag">MDF</span>
+        </div>
+      </div>
+      <div class="select-btn">
+        <button onclick="selectShop(4,'Sta. Lourdes Cabinetry')">Select Workshop</button>
+      </div>
+    </div>
+
+    <div class="shop-card" data-is-ppc="false" data-lat="7.054" data-lng="125.565">
+      <div class="distance-badge"></div>
+      <div class="shop-header">
+        <div class="shop-icon"><i class="fas fa-tree"></i></div>
+        <div>
+          <div class="shop-name">Davao Hardwood Masters</div>
+          <div class="location"><i class="fas fa-map-marker-alt"></i> Ecoland, Davao City</div>
+        </div>
+      </div>
+      <div class="section">
+        <span class="section-title">Specialty</span>
+        Massive live-edge dining tables and heavy heritage pieces carved from Mindanao Ironwood.
+      </div>
+      <div class="section" style="margin-bottom: 0;">
+        <span class="section-title">Common Materials</span>
+        <div class="materials">
+          <span class="material-tag">Ironwood</span>
+          <span class="material-tag">Yakal</span>
+          <span class="material-tag">Molave</span>
+        </div>
+      </div>
+      <div class="select-btn">
+        <button onclick="selectShop(10,'Davao Hardwood Masters')">Select Workshop</button>
+      </div>
+    </div>
+
+    <div class="shop-card" data-is-ppc="true" data-lat="9.728" data-lng="118.751">
+      <div class="distance-badge"></div>
+      <div class="shop-header">
+        <div class="shop-icon"><i class="fas fa-anchor"></i></div>
+        <div>
+          <div class="shop-name">Bancao-Bancao Epoxy Crafters</div>
+          <div class="location"><i class="fas fa-map-marker-alt"></i> Brgy. Bancao-Bancao, PPC</div>
+        </div>
+      </div>
+      <div class="section">
+        <span class="section-title">Specialty</span>
+        Coastal-resilient outdoor furniture and stunning resin river tables built to withstand salt air.
+      </div>
+      <div class="section" style="margin-bottom: 0;">
+        <span class="section-title">Common Materials</span>
+        <div class="materials">
+          <span class="material-tag">Epoxy Resin</span>
+          <span class="material-tag">Live Edge Slabs</span>
+          <span class="material-tag">Marine Grade Poly</span>
+        </div>
+      </div>
+      <div class="select-btn">
+        <button onclick="selectShop(6,'Bancao-Bancao Epoxy Crafters')">Select Workshop</button>
+      </div>
+    </div>
+
+    <div class="shop-card" data-is-ppc="false" data-lat="16.411" data-lng="120.596">
+      <div class="distance-badge"></div>
+      <div class="shop-header">
+        <div class="shop-icon"><i class="fas fa-pallet"></i></div>
+        <div>
+          <div class="shop-name">Baguio Pine Crafters</div>
+          <div class="location"><i class="fas fa-map-marker-alt"></i> Session Road, Baguio City</div>
+        </div>
+      </div>
+      <div class="section">
+        <span class="section-title">Specialty</span>
+        Rustic, cabin-style furniture and cozy home decor crafted entirely from local pine wood.
+      </div>
+      <div class="section" style="margin-bottom: 0;">
+        <span class="section-title">Common Materials</span>
+        <div class="materials">
+          <span class="material-tag">Benguet Pine</span>
+          <span class="material-tag">Clear Varnish</span>
+          <span class="material-tag">Wrought Iron</span>
+        </div>
+      </div>
+      <div class="select-btn">
+        <button onclick="selectShop(11,'Baguio Pine Crafters')">Select Workshop</button>
+      </div>
+    </div>
+
+    <div id="noResults" class="no-results">
+      <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px; color: #D3CDC9;"></i><br>
+      No workshops found matching your search.
     </div>
 
   </div>
@@ -221,15 +697,116 @@
 
 <script>
   function selectShop(id, name) {
-    // Save shop selection (export_area.html can still read this later)
     sessionStorage.setItem("selectedShopId", String(id));
     sessionStorage.setItem("selectedShopName", String(name));
-
-    alert("Selected shop: " + name);
-
-    // ✅ REQUIRED: go to main.html after selecting a shop
     window.location.href = "main.html";
   }
+
+  const searchInput = document.getElementById('searchInput');
+  const shopCards = Array.from(document.querySelectorAll('.shop-card'));
+  const noResults = document.getElementById('noResults');
+  const shopGrid = document.getElementById('shopGrid');
+  const nearMeBtn = document.getElementById('nearMeBtn');
+
+  function initDefaultView() {
+    shopCards.forEach(card => {
+      if (card.getAttribute('data-is-ppc') === 'true') {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  initDefaultView();
+
+  searchInput.addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    
+    if (searchTerm === "") {
+      initDefaultView();
+      noResults.style.display = 'none';
+      return;
+    }
+
+    let visibleCount = 0;
+
+    shopCards.forEach(card => {
+      const shopName = card.querySelector('.shop-name').innerText.toLowerCase();
+      
+      if (shopName.includes(searchTerm)) {
+        card.style.display = 'flex';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    if (visibleCount === 0) {
+      noResults.style.display = 'block';
+    } else {
+      noResults.style.display = 'none';
+    }
+  });
+
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; 
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; 
+  }
+
+  nearMeBtn.addEventListener('click', () => {
+    const icon = nearMeBtn.querySelector('i');
+    icon.className = 'fas fa-spinner fa-spin';
+    nearMeBtn.innerText = ' Locating...';
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+
+        shopCards.forEach(card => {
+          const shopLat = parseFloat(card.getAttribute('data-lat'));
+          const shopLng = parseFloat(card.getAttribute('data-lng'));
+          const dist = calculateDistance(userLat, userLng, shopLat, shopLng);
+          
+          card.dataset.distance = dist;
+          
+          const badge = card.querySelector('.distance-badge');
+          badge.style.display = 'block';
+          
+          if (dist < 1) {
+            badge.innerText = `${(dist * 1000).toFixed(0)} m away`;
+          } else {
+            badge.innerText = `${dist.toFixed(1)} km away`;
+          }
+          
+          card.style.display = 'flex';
+        });
+
+        shopCards.sort((a, b) => parseFloat(a.dataset.distance) - parseFloat(b.dataset.distance));
+
+        shopCards.forEach(card => shopGrid.appendChild(card));
+
+        nearMeBtn.innerHTML = '<i class="fas fa-check"></i> Sorted by Distance';
+        nearMeBtn.classList.add('active');
+        searchInput.value = "";
+        noResults.style.display = 'none';
+
+      }, (error) => {
+        alert("Unable to retrieve your location. Please check your browser permissions.");
+        nearMeBtn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Find Near Me';
+      });
+    } else {
+      alert("Geolocation is not supported by your browser.");
+      nearMeBtn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Find Near Me';
+    }
+  });
 </script>
 
 </body>

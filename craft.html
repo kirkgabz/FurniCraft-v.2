@@ -1,333 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FurniCraft - Craft Furniture</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FurniCraft - Choose Furniture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      min-height: 100vh;
-      color: #2c3e50;
-      line-height: 1.6;
-    }
+  :root {
+    --bg-color: #FAF8F5;
+    --text-main: #2A1B14;
+    --text-muted: #7A6960;
+    --accent-color: #B26A38;
+    --accent-hover: #8E5229;
+    --nav-bg: #FFFFFF;
+    --shadow-sm: 0 4px 12px rgba(42, 27, 20, 0.05);
+    --shadow-md: 0 12px 30px rgba(42, 27, 20, 0.08);
+  }
 
-    /* Professional Header */
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23000000" stroke-width="0.5" opacity="0.015"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23000000" stroke-width="0.3" opacity="0.01"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    padding: 1.5rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), transparent);
+    position: relative;
+    z-index: 100;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .back-btn {
+    background: var(--nav-bg);
+    border: none;
+    color: var(--text-muted);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+  }
+
+  .back-btn:hover {
+    color: var(--accent-color);
+    transform: translateX(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo i {
+    color: var(--accent-color);
+    font-size: 0.9em;
+  }
+
+  .user-greeting {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--nav-bg);
+    padding: 8px 20px;
+    border-radius: 30px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 3rem 4rem;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    flex: 1;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 4rem;
+    animation: fadeDown 0.8s ease-out;
+  }
+
+  .page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.2rem;
+    color: var(--text-main);
+    margin-bottom: 12px;
+  }
+
+  .page-header p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .furniture-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2.5rem;
+    animation: fadeUp 1s ease-out;
+  }
+
+  .furniture-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 3rem 2rem;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(178, 106, 56, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    cursor: pointer;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .furniture-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-hover));
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+    transform-origin: left;
+  }
+
+  .furniture-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .furniture-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(178, 106, 56, 0.3);
+  }
+
+  .card-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    color: white;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 20px rgba(178, 106, 56, 0.25);
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .furniture-card:hover .card-icon {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  .furniture-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--text-main);
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  .furniture-card p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    flex-grow: 1;
+  }
+
+  .action-btn {
+    background: var(--text-main);
+    color: white;
+    border: none;
+    padding: 14px 35px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 220px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .furniture-card:hover .action-btn {
+    background: var(--accent-color);
+    box-shadow: 0 6px 15px rgba(178, 106, 56, 0.25);
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
     header {
-      background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #CD853F 100%);
-      color: white;
-      padding: 1.5rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1.5rem;
-      font-weight: 600;
-      font-family: 'Playfair Display', serif;
-      box-shadow: 0 4px 20px rgba(139, 69, 19, 0.3);
-      position: relative;
+      padding: 1.5rem;
     }
-
-    header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="wood" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="%23A0522D"/><path d="M0,10 Q5,8 10,10 T20,10" stroke="%23D2691E" stroke-width="0.5" fill="none"/><path d="M0,15 Q5,13 10,15 T20,15" stroke="%23CD853F" stroke-width="0.3" fill="none"/></pattern></defs><rect width="100" height="100" fill="url(%23wood)"/></svg>');
-      opacity: 0.1;
-      pointer-events: none;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 1.8rem;
-    }
-
-    .logo::before {
-      content: '🪑';
-      font-size: 2rem;
-    }
-
-    #user {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 0.5rem 1rem;
-      border-radius: 25px;
-      font-size: 0.9rem;
-      backdrop-filter: blur(10px);
-    }
-
-    /* Main Content */
     main {
-      padding: 3rem 2rem;
-      max-width: 1400px;
-      margin: 0 auto;
+      padding: 1rem 1.5rem 3rem;
     }
-
-    .page-header {
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-
     .page-header h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.5rem;
-      color: #8B4513;
-      margin-bottom: 1rem;
+      font-size: 2.4rem;
     }
-
-    .page-header p {
-      font-size: 1.1rem;
-      color: #6c757d;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    /* Furniture Grid */
     .furniture-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3rem;
+      grid-template-columns: 1fr;
     }
-
-    .furniture-card {
-      background: linear-gradient(145deg, #ffffff, #f8f9fa);
-      border-radius: 20px;
-      padding: 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      border: 1px solid rgba(139, 69, 19, 0.1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .furniture-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #8B4513, #CD853F, #A0522D);
-      transform: scaleX(0);
-      transition: transform 0.4s ease;
-    }
-
-    .furniture-card:hover::before {
-      transform: scaleX(1);
-    }
-
-    .furniture-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 20px 40px rgba(139, 69, 19, 0.15), 0 15px 25px rgba(0, 0, 0, 0.1);
-      border-color: rgba(139, 69, 19, 0.2);
-    }
-
-    .furniture-image {
-      width: 120px;
-      height: 120px;
-      margin: 0 auto 1.5rem;
-      background: linear-gradient(135deg, #8B4513, #CD853F);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 3rem;
-      color: white;
-      transition: all 0.3s ease;
-    }
-
-    .furniture-card:hover .furniture-image {
-      transform: scale(1.1) rotate(5deg);
-      background: linear-gradient(135deg, #A0522D, #D2691E);
-    }
-
-    .furniture-card h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #2c3e50;
-      margin-bottom: 1rem;
-    }
-
-    .furniture-card p {
-      color: #6c757d;
-      font-size: 0.95rem;
-      line-height: 1.6;
-      margin-bottom: 1.5rem;
-    }
-
-    .furniture-card .price {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #8B4513;
-      margin-bottom: 1rem;
-    }
-
-    .craft-button {
-      background: linear-gradient(135deg, #8B4513, #CD853F);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 25px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9rem;
-    }
-
-    .craft-button:hover {
-      background: linear-gradient(135deg, #A0522D, #D2691E);
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
-    }
-
-    /* Animations */
-    .fade-in {
-      animation: fadeIn 0.6s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
+
   <header>
-    <div style="display: flex; align-items: center;">
-      <button onclick="window.history.back()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; margin-right: 1rem;">← Back</button>
-      <div class="logo">FurniCraft</div>
+    <div class="header-left">
+      <button class="back-btn" onclick="window.history.back()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div class="logo">
+        <i class="fas fa-hammer"></i>FurniCraft
+      </div>
     </div>
-    <span id="user">Welcome!</span>
+    <div class="user-greeting" id="userGreeting">Welcome</div>
   </header>
 
   <main>
     <div class="page-header">
       <h1>Choose Your Furniture</h1>
-      <p>Select the perfect furniture piece to start your crafting journey. Each item can be customized with premium materials and finishes.</p>
+      <p>Select the perfect foundation to begin your crafting journey. Each piece can be deeply customized with premium materials, dimensions, and finishes.</p>
     </div>
 
     <div class="furniture-grid">
-      <div class="furniture-card fade-in" onclick="openMaterialModal('chair', 'Dining Chair', '₱2500', '🪑')">
-        <div class="furniture-image">🪑</div>
+
+      <div class="furniture-card" onclick="openBuilder('chair')">
+        <div class="card-icon">
+          <i class="fas fa-chair"></i>
+        </div>
         <h2>Dining Chair</h2>
-        <p>Comfortable and stylish dining chair perfect for any dining room setup. Ergonomic design with customizable upholstery options.</p>
-        <button class="craft-button">Customize Chair</button>
+        <p>Comfortable and stylish seating. Customize backrest height, leg style, and upholstery fabrics to match your dining room.</p>
+        <button class="action-btn">Customize Chair</button>
       </div>
 
-      <div class="furniture-card fade-in" onclick="openMaterialModal('table', 'Dining Table', '₱5000', '🍽️')">
-        <div class="furniture-image">🍽️</div>
+      <div class="furniture-card" onclick="openBuilder('table')">
+        <div class="card-icon">
+          <i class="fas fa-table"></i>
+        </div>
         <h2>Dining Table</h2>
-        <p>Beautiful dining table that seats 4-6 people. Available in various sizes and can accommodate extensions for larger gatherings.</p>
-        <button class="craft-button">Customize Table</button>
+        <p>The centerpiece of your home. Adjust dimensions for 4 to 8 seaters, choose heavy solid wood slabs or modern glass integrations.</p>
+        <button class="action-btn">Customize Table</button>
       </div>
 
-      <div class="furniture-card fade-in" onclick="openMaterialModal('sofa', 'Living Room Sofa', '₱8000', '🛋️')">
-        <div class="furniture-image">🛋️</div>
+      <div class="furniture-card" onclick="openBuilder('sofa')">
+        <div class="card-icon">
+          <i class="fas fa-couch"></i>
+        </div>
         <h2>Living Room Sofa</h2>
-        <p>Comfortable 3-seater sofa perfect for your living room. Deep seating with premium cushioning and multiple fabric options.</p>
-        <button class="craft-button">Customize Sofa</button>
+        <p>Deep seating comfort. Design custom sectionals, select premium foam densities, and wrap it in your choice of leather or linen.</p>
+        <button class="action-btn">Customize Sofa</button>
       </div>
 
-      <div class="furniture-card fade-in" onclick="openMaterialModal('cabinet', 'Storage Cabinet', '₱4000', '🗄️')">
-        <div class="furniture-image">🗄️</div>
+      <div class="furniture-card" onclick="openBuilder('cabinet')">
+        <div class="card-icon">
+          <i class="fas fa-box"></i>
+        </div>
         <h2>Storage Cabinet</h2>
-        <p>Versatile storage cabinet with adjustable shelves. Perfect for bedroom, office, or living room organization needs.</p>
-        <button class="craft-button">Customize Cabinet</button>
+        <p>Versatile modular storage. Design exact interior shelving layouts, select marine plywood or MDF, and choose modern hardware.</p>
+        <button class="action-btn">Customize Cabinet</button>
       </div>
 
-      <div class="furniture-card fade-in" onclick="openMaterialModal('bed', 'Queen Bed Frame', '₱6000', '🛏️')">
-        <div class="furniture-image">🛏️</div>
-        <h2>Queen Bed Frame</h2>
-        <p>Sturdy and elegant queen-size bed frame with headboard. Available with storage drawers or simple modern design.</p>
-        <button class="craft-button">Customize Bed</button>
+      <div class="furniture-card" onclick="openBuilder('bed')">
+        <div class="card-icon">
+          <i class="fas fa-bed"></i>
+        </div>
+        <h2>Bed</h2>
+        <p>Sturdy and elegant rest. Build a heavy hardwood frame, design an intricate headboard, or integrate seamless under-bed storage.</p>
+        <button class="action-btn">Customize Bed</button>
       </div>
 
-      <div class="furniture-card fade-in" onclick="openMaterialModal('bookshelf', 'Bookshelf', '₱3500', '📚')">
-        <div class="furniture-image">📚</div>
+      <div class="furniture-card" onclick="openBuilder('bookshelf')">
+        <div class="card-icon">
+          <i class="fas fa-book"></i>
+        </div>
         <h2>Bookshelf</h2>
         <p>5-tier bookshelf perfect for displaying books, decor, and collectibles. Adjustable shelves for maximum flexibility.</p>
-        <button class="craft-button">Customize Bookshelf</button>
+        <button class="action-btn">Customize Bookshelf</button>
       </div>
 
-      <div class="furniture-card fade-in" onclick="openMaterialModal('desk', 'Office Desk', '₱4500', '💻')">
-        <div class="furniture-image">💻</div>
+      <div class="furniture-card" onclick="openBuilder('desk')">
+        <div class="card-icon">
+          <i class="fas fa-laptop-house"></i>
+        </div>
         <h2>Office Desk</h2>
-        <p>Modern office desk with cable management and optional drawers. Perfect for home office or study space.</p>
-        <button class="craft-button">Customize Desk</button>
+        <p>Your perfect workspace. Define exact ergonomic heights, add hidden cable management, and select heavy-duty iron frames.</p>
+        <button class="action-btn">Customize Desk</button>
       </div>
 
-      <div class="furniture-card fade-in" onclick="openMaterialModal('stool', 'Bar Stool', '₱1500', '🪑')">
-        <div class="furniture-image">🪑</div>
+      <div class="furniture-card" onclick="openBuilder('stool')">
+        <div class="card-icon">
+          <i class="fas fa-chair"></i>
+        </div>
         <h2>Bar Stool</h2>
         <p>Contemporary bar stool with adjustable height. Perfect for kitchen islands or home bars with comfortable seating.</p>
-        <button class="craft-button">Customize Stool</button>
+        <button class="action-btn">Customize Stool</button>
       </div>
+
     </div>
   </main>
 
   <script>
-    // Set user name from session storage
-    const userName = sessionStorage.getItem('username');
-    if (userName) {
-      document.getElementById('user').textContent = `Welcome, ${userName}!`;
-    }
-
-    // REDIRECTION LOGIC
-    // Instead of opening a modal, we save the choice and go to the builder.
-    function openMaterialModal(type, name, price, icon) {
-      // 1. Save target furniture type
-      sessionStorage.setItem('targetFurniture', type);
-      
-      // 2. Redirect to the 3D Workstation
-      window.location.href = 'furniture-builder.html';
-    }
-
-    // Animation Observer (Visuals only)
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.animationPlayState = 'running';
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('.furniture-card').forEach(card => {
-      card.style.animationPlayState = 'paused';
-      observer.observe(card);
+    document.addEventListener('DOMContentLoaded', () => {
+      const userName = sessionStorage.getItem('username');
+      if (userName) {
+        document.getElementById('userGreeting').textContent = `Welcome, ${userName}!`;
+      }
     });
 
-    // Add click animation feedback
+    // Modified this function to route to specific HTML files based on the type passed
+    function openBuilder(type) {
+      sessionStorage.setItem('targetFurniture', type);
+      window.location.href = type + '.html';
+    }
+
     document.querySelectorAll('.furniture-card').forEach(card => {
       card.addEventListener('click', function() {
-        this.style.transform = 'scale(0.95)';
+        this.style.transform = 'scale(0.97)';
         setTimeout(() => {
           this.style.transform = '';
         }, 150);

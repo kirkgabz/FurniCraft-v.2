@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FurniCraft - Shop Partner Login</title>
+  <title>Irawan Woodworks - Shop Partner Login</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -120,7 +120,7 @@
 
   <div class="login-card">
     <div class="login-header">
-      <h1>FurniCraft</h1>
+      <h1>Irawan Woodworks</h1>
       <p>Partner Dashboard Login</p>
     </div>
 
@@ -155,18 +155,14 @@
       const user = document.getElementById('username').value;
       const pass = document.getElementById('password').value;
 
-      // Simple Logic for Demo: 
-      // In a real app, this would be an API call to your server.
-      if (user.toLowerCase() === "artisan" && pass === "password123") {
+      // Locked to Irawan Custom Woodworks
+      if (user.toLowerCase() === "irawan" && pass === "password123") {
         
-        // Setting up the session expected by your dashboard
         sessionStorage.setItem('isLoggedIn', 'true');
         sessionStorage.setItem('userType', 'shop');
-        sessionStorage.setItem('username', 'Artisan Woodworks');
-        sessionStorage.setItem('managedShopId', '101'); // Unique ID for this shop
+        sessionStorage.setItem('username', 'Irawan Custom Woodworks');
+        sessionStorage.setItem('managedShopId', '1'); // Locked to ID 1
         
-        // Redirect to your dashboard file
-        // Ensure the filename here matches your dashboard HTML file
         window.location.href = 'shop_dashboard.html'; 
         
       } else {

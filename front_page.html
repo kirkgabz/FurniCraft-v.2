@@ -5,221 +5,198 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>FurniCraft - Custom Furniture Design</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        /* Shared Theme Assets */
+        /* Light Brown / Scandi Wood Theme Assets */
         :root {
-            --wood-dark: #5D2906;
-            --wood-medium: #8B4513;
-            --wood-light: #D2691E;
-            --wood-accent: #CD853F;
-            --text-beige: #F5F5DC;
-            --text-wheat: #F5DEB3;
-            --gold-accent: #FFD700;
+            --bg-dark: #D7C4B1;   
+            --bg-mid: #EAD8C8;    
+            --bg-light: #F7EFE5;  
+            --accent-wood: #8B5A2B; 
+            --accent-wood-hover: #6B4226; 
+            --text-primary: #2C1E16; 
+            --text-secondary: #5C4A3D; 
+            --glass-bg: rgba(255, 255, 255, 0.45); 
+            --glass-border: rgba(255, 255, 255, 0.7);
         }
 
         body {
-            font-family: 'Roboto', Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
-            /* Exact gradient from Login Page */
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 25%, #D2691E 50%, #CD853F 75%, #DEB887 100%);
-            background-size: 400% 400%;
-            animation: woodGrainShift 15s ease-in-out infinite alternate;
-            color: var(--text-beige);
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-light) 100%);
+            background-size: 200% 200%;
+            animation: ambientDrift 20s ease-in-out infinite alternate;
+            color: var(--text-primary);
             overflow-x: hidden;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        /* Wood Grain Animation */
-        @keyframes woodGrainShift {
+        /* Subtler, ambient background shift */
+        @keyframes ambientDrift {
             0% { background-position: 0% 50%; }
             100% { background-position: 100% 50%; }
         }
 
-        /* Subtle Wood Texture Overlay (Matching Login Page) */
+        /* Refined Texture Overlay */
         body::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23FFFFFF" stroke-width="0.5" opacity="0.05"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23FFFFFF" stroke-width="0.3" opacity="0.03"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            inset: 0;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23000000" stroke-width="0.5" opacity="0.03"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23000000" stroke-width="0.3" opacity="0.02"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
             pointer-events: none;
             z-index: 0;
         }
 
         header {
-            /* darkened wood tone for header */
-            background: linear-gradient(to bottom, rgba(62, 39, 35, 0.95), rgba(93, 64, 55, 0.9));
-            color: var(--text-wheat);
-            padding: 20px;
-            text-align: center;
-            font-family: 'Playfair Display', serif;
-            font-weight: 700;
-            font-size: 2.8em;
-            letter-spacing: 1.5px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            border-bottom: 2px solid rgba(210, 105, 30, 0.6);
-            z-index: 2;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            padding: 25px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
             position: relative;
+            background: linear-gradient(to bottom, rgba(247, 239, 229, 0.8), transparent);
         }
 
-        /* Header Icon styling */
-        header i {
-            color: var(--wood-light);
-            margin-right: 15px;
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 2em;
+            letter-spacing: 1px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            color: var(--accent-wood);
+            font-size: 0.8em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95em;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-wood);
         }
 
         .container {
-            max-width: 1200px;
-            margin: 40px auto 80px;
-            padding: 20px;
+            max-width: 1300px;
+            margin: auto;
+            padding: 20px 40px;
+            flex: 1;
             display: flex;
             align-items: center;
-            gap: 60px;
-            animation: fadeInUp 1s ease forwards;
             position: relative;
             z-index: 1;
-            flex: 1; /* Pushes footer down */
+            animation: fadeInUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
-        /* Glassmorphism backing for the content area to match Login Box */
         .content-wrapper {
-            background: linear-gradient(145deg, rgba(139, 69, 19, 0.8) 0%, rgba(160, 82, 45, 0.8) 100%);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            border: 2px solid rgba(210, 105, 30, 0.6);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 60px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 50px rgba(139, 90, 43, 0.15), inset 0 2px 5px rgba(255,255,255,0.8);
             display: flex;
             align-items: center;
-            gap: 50px;
+            gap: 70px;
+            width: 100%;
         }
 
         .hero-image {
             flex: 1;
             position: relative;
-            text-align: center;
         }
 
         .hero-image img {
             width: 100%;
-            max-width: 520px;
             height: auto;
+            aspect-ratio: 4/5;
             object-fit: cover;
-            border-radius: 15px;
-            /* Bronze/Wood border for image */
-            border: 4px solid rgba(210, 105, 30, 0.5); 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            transition: transform 0.3s ease;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(44, 30, 22, 0.2);
+            transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         .hero-image img:hover {
-            transform: scale(1.02);
-            border-color: var(--gold-accent);
+            transform: translateY(-10px) scale(1.02);
         }
 
         .hero-content {
-            flex: 1;
-            position: relative;
+            flex: 1.2;
             text-align: left;
         }
 
         .hero h2 {
             font-family: 'Playfair Display', serif;
-            font-size: 38px;
-            margin-bottom: 25px;
-            color: var(--text-wheat); /* Light wheat color */
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            margin-top: 0;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .hero h2 span {
+            color: var(--accent-wood);
+            font-style: italic;
         }
 
         .hero p {
-            font-size: 19px;
-            line-height: 1.8;
+            font-size: 1.15rem;
+            line-height: 1.7;
             margin-bottom: 40px;
-            color: var(--text-beige); /* Off-white for readability */
-            max-width: 600px;
-            font-weight: 300;
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 90%;
         }
 
-        /* Adapted CTA Button to match Login Button */
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(145deg, #D2691E 0%, #CD853F 100%);
-            color: #F5F5DC;
-            padding: 18px 45px;
+        .cta-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--accent-wood) 0%, var(--accent-wood-hover) 100%);
+            color: #FFFFFF; 
+            padding: 18px 40px;
             text-decoration: none;
-            border-radius: 12px;
-            font-size: 1.3em;
-            font-weight: bold;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            box-shadow: 0 10px 20px rgba(139, 90, 43, 0.3);
             transition: all 0.3s ease;
-            letter-spacing: 1px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            border: none;
         }
 
-        .cta-button i {
-            margin-left: 10px;
+        .cta-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(139, 90, 43, 0.4);
+            background: linear-gradient(135deg, var(--accent-wood-hover) 0%, #4A2B1D 100%);
         }
 
-        .cta-button:hover {
-            background: linear-gradient(145deg, #CD853F 0%, #D2691E 100%);
-            box-shadow: 0 12px 20px rgba(210, 105, 30, 0.6);
-            transform: translateY(-3px) scale(1.02);
-            color: #FFF;
-        }
-
-        .cta-buttons {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .cta-button.secondary {
-            background: linear-gradient(145deg, #8B4513 0%, #A0522D 100%);
-        }
-
-        .cta-button.secondary:hover {
-            background: linear-gradient(145deg, #A0522D 0%, #8B4513 100%);
-        }
-
-        .cta-button.admin {
-            background: linear-gradient(145deg, #2c3e50 0%, #34495e 100%);
-        }
-
-        .cta-button.admin:hover {
-            background: linear-gradient(145deg, #34495e 0%, #2c3e50 100%);
-        }
-
-        footer {
-            background: linear-gradient(to top, rgba(62, 39, 35, 0.95), rgba(93, 64, 55, 0.9));
-            color: var(--text-beige);
-            text-align: center;
-            padding: 15px;
-            width: 100%;
-            font-family: 'Roboto', sans-serif;
-            font-weight: 300;
-            font-size: 0.9em;
-            letter-spacing: 0.5px;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
-            border-top: 2px solid rgba(210, 105, 30, 0.6);
-            z-index: 2;
-        }
-
-        /* Floating Particles (Simplified version of Login Page) */
+        /* --- NEW ATMOSPHERIC SAWDUST PARTICLES --- */
         .particles {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             pointer-events: none;
             z-index: 0;
             overflow: hidden;
@@ -227,37 +204,45 @@
         
         .particle {
             position: absolute;
-            color: rgba(255, 255, 255, 0.05);
-            animation: float 25s infinite linear;
+            background-color: var(--accent-wood);
+            border-radius: 50%;
+            filter: blur(1px); /* Gives it a soft, out-of-focus look */
+            opacity: 0;
+            animation: sawdustFall infinite linear;
         }
 
-        @keyframes float {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        /* Particles start at the top and drift slowly down with a slight sway */
+        @keyframes sawdustFall {
+            0% { transform: translateY(-5vh) translateX(0px) rotate(0deg); opacity: 0; }
+            15% { opacity: var(--max-opacity); }
+            85% { opacity: var(--max-opacity); }
+            100% { transform: translateY(105vh) translateX(30px) rotate(360deg); opacity: 0; }
         }
 
         @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(40px); }
+            0% { opacity: 0; transform: translateY(30px); }
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        @media (max-width: 900px) {
-            .content-wrapper {
+        @media (max-width: 992px) {
+            header {
                 flex-direction: column;
-                gap: 30px;
+                gap: 20px;
                 padding: 20px;
+            }
+            .content-wrapper {
+                flex-direction: column-reverse;
+                padding: 40px 30px;
+                gap: 40px;
             }
             .hero-content {
                 text-align: center;
             }
             .hero p {
-                margin-left: auto;
-                margin-right: auto;
+                margin: 0 auto 30px;
             }
-            .hero-image img {
-                max-width: 100%;
+            .hero h2 {
+                font-size: 2.8rem;
             }
         }
     </style>
@@ -267,44 +252,59 @@
     <div class="particles" id="particles"></div>
 
     <header>
-        <i class="fas fa-hammer"></i>FurniCraft
+        <div class="logo">
+            <i class="fas fa-hammer"></i>FurniCraft
+        </div>
+        <div class="nav-links">
+            <a href="shop_login.html" class="nav-link"><i class="fas fa-store"></i> Shop Owner</a>
+            <a href="admin_login.html" class="nav-link"><i class="fas fa-crown"></i> Admin</a>
+        </div>
     </header>
 
     <div class="container">
         <div class="content-wrapper">
+            <section class="hero-content hero">
+                <h2>Design Your <br><span>Dream Furniture</span></h2>
+                <p>FurniCraft is your ultimate platform for creating custom pieces. From rustic chairs to modern desks, bring your ideas to life with our intuitive design tools and experience the art of digital woodworking.</p>
+                <a href="login.html" class="cta-primary">Start Designing <i class="fas fa-arrow-right"></i></a>
+            </section>
             <section class="hero-image">
                 <img src="images/desk.jpg" alt="Custom Wood Desk" />
-            </section>
-            <section class="hero-content hero">
-                <h2>Design Your Dream Furniture</h2>
-                <p>FurniCraft is your ultimate platform for creating custom furniture pieces. From rustic chairs to modern desks, bring your ideas to life with our intuitive design tools. Experience the art of woodworking digitally.</p>
-                <div class="cta-buttons">
-                    <a href="login.html" class="cta-button">Get Started <i class="fas fa-arrow-right"></i></a>
-                    <a href="shop_login.html" class="cta-button secondary">Shop Owner Login <i class="fas fa-store"></i></a>
-                    <a href="admin_login.html" class="cta-button admin">Admin Login <i class="fas fa-crown"></i></a>
-                </div>
             </section>
         </div>
     </div>
 
-    <footer>
-        &copy; 2025 FurniCraft. All rights reserved. <br>
-        <span style="font-size: 0.8em; opacity: 0.7; font-style: italic;">Build, Design, Create – With Ease</span>
-    </footer>
-
     <script>
-        // Simple particle generator to match the login page vibe
+        // Generates atmospheric "sawdust" particles
         function createParticles() {
-            const particlesContainer = document.getElementById("particles");
-            const icons = ['\uf5c2', '\uf1fa', '\uf6bb', '\uf0e4']; // Font Awesome Codes
-            for (let i = 0; i < 8; i++) {
+            const container = document.getElementById("particles");
+            const particleCount = 25; // Number of dust particles
+            
+            for (let i = 0; i < particleCount; i++) { 
                 const particle = document.createElement("div");
                 particle.className = "particle";
-                particle.innerHTML = `<i class="fas" style="font-size: ${Math.random() * 3 + 2}rem;">${icons[Math.floor(Math.random() * icons.length)]}</i>`;
+                
+                // Randomize size to look like varying specs of dust/shavings (2px to 8px)
+                const size = Math.random() * 6 + 2; 
+                particle.style.width = `${size}px`;
+                
+                // Sometimes make them slightly elongated like tiny wood shavings
+                particle.style.height = Math.random() > 0.7 ? `${size * 2}px` : `${size}px`; 
+                
+                // Random horizontal start position
                 particle.style.left = Math.random() * 100 + "%";
-                particle.style.animationDelay = Math.random() * 5 + "s";
-                particle.style.animationDuration = (Math.random() * 10 + 20) + "s";
-                particlesContainer.appendChild(particle);
+                
+                // Stagger animations so they don't fall at once
+                particle.style.animationDelay = Math.random() * 15 + "s";
+                
+                // Randomize fall speed (slow and floaty)
+                particle.style.animationDuration = (Math.random() * 15 + 15) + "s";
+                
+                // Randomize max opacity so some look further away (depth of field)
+                const maxOpacity = Math.random() * 0.4 + 0.1; 
+                particle.style.setProperty('--max-opacity', maxOpacity);
+                
+                container.appendChild(particle);
             }
         }
         createParticles();

@@ -3,712 +3,967 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FurniCraft Login</title>
+  <title>FurniCraft — Secure Login</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg-dark: #D7C4B1;   
-      --bg-mid: #EAD8C8;    
-      --bg-light: #F7EFE5;  
-      --accent-wood: #8B5A2B; 
-      --accent-wood-hover: #6B4226; 
-      --text-primary: #2C1E16; 
-      --text-secondary: #5C4A3D; 
-      --glass-bg: rgba(255, 255, 255, 0.45); 
-      --glass-border: rgba(255, 255, 255, 0.7);
+      --bg-dark:        #C8B49E;
+      --bg-mid:         #E2CFBC;
+      --bg-light:       #F5EDE2;
+      --wood:           #7A4E2D;
+      --wood-hover:     #5C3820;
+      --wood-light:     #B07840;
+      --text-primary:   #271609;
+      --text-secondary: #5A4132;
+      --text-muted:     #9B7B66;
+      --glass:          rgba(255,255,255,0.52);
+      --glass-border:   rgba(255,255,255,0.75);
+      --error:          #C0392B;
+      --success:        #27AE60;
+      --warning:        #E67E22;
     }
-    
+
     body {
-      font-family: 'Inter', sans-serif;
-      height: 100vh;
-      width: 100vw;
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow: hidden; 
       background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-light) 100%);
-      background-size: 200% 200%;
-      animation: ambientDrift 20s ease-in-out infinite alternate;
+      background-size: 220% 220%;
+      animation: drift 22s ease-in-out infinite alternate;
       color: var(--text-primary);
       position: relative;
+      overflow-x: hidden;
+      padding: 20px;
     }
 
-    @keyframes ambientDrift {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 100% 50%; }
-    }
+    @keyframes drift { 0%{background-position:0% 50%} 100%{background-position:100% 50%} }
 
+    /* Wood grain overlay */
     body::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23000000" stroke-width="0.5" opacity="0.03"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23000000" stroke-width="0.3" opacity="0.02"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-      pointer-events: none;
-      z-index: 0;
+      content:'';
+      position:fixed; inset:0;
+      background-image: repeating-linear-gradient(
+        92deg,
+        transparent 0px, transparent 3px,
+        rgba(0,0,0,0.012) 3px, rgba(0,0,0,0.012) 4px
+      );
+      pointer-events:none; z-index:0;
     }
 
-    .particles {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        z-index: 0;
-        overflow: hidden;
-    }
-    
+    /* Floating dust particles */
+    .particles { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
     .particle {
-        position: absolute;
-        background-color: var(--accent-wood);
-        border-radius: 50%;
-        filter: blur(1px); 
-        opacity: 0;
-        animation: sawdustFall infinite linear;
+      position:absolute; background:var(--wood); border-radius:50%;
+      filter:blur(1px); opacity:0; animation:fall infinite linear;
+    }
+    @keyframes fall {
+      0%   { transform:translateY(-5vh) translateX(0) rotate(0deg); opacity:0; }
+      10%  { opacity:var(--op); }
+      90%  { opacity:var(--op); }
+      100% { transform:translateY(108vh) translateX(25px) rotate(400deg); opacity:0; }
     }
 
-    @keyframes sawdustFall {
-        0% { transform: translateY(-5vh) translateX(0px) rotate(0deg); opacity: 0; }
-        15% { opacity: var(--max-opacity); }
-        85% { opacity: var(--max-opacity); }
-        100% { transform: translateY(105vh) translateX(30px) rotate(360deg); opacity: 0; }
-    }
-
-    .language-container {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 100;
-    }
-
-    .language-btn {
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
+    /* ─── Card ─── */
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       border: 1px solid var(--glass-border);
-      border-radius: 8px;
-      color: var(--accent-wood);
-      width: 45px;
-      height: 45px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(139, 90, 43, 0.1);
-      transition: all 0.2s;
-      font-size: 1.2rem;
+      border-radius: 28px;
+      padding: 2.8rem 2.4rem 2.4rem;
+      width: 100%; max-width: 440px;
+      position: relative; z-index: 10;
+      box-shadow:
+        0 24px 60px rgba(122,78,45,0.18),
+        inset 0 2px 6px rgba(255,255,255,0.85);
+      animation: rise .85s cubic-bezier(.2,.8,.2,1);
     }
+    @keyframes rise { from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
 
-    .language-btn:hover { 
-      background: var(--accent-wood);
-      color: white;
-      transform: scale(1.05); 
+    /* ─── Header ─── */
+    .header { text-align:center; margin-bottom:1.6rem; }
+    .logo-wrap {
+      width:60px; height:60px; margin:0 auto 10px;
+      background: linear-gradient(135deg,var(--wood),var(--wood-light));
+      border-radius:18px;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow: 0 8px 24px rgba(122,78,45,0.35);
+      animation: hammer-anim 2.8s ease-in-out infinite;
     }
+    @keyframes hammer-anim {
+      0%,100%{transform:rotate(0)} 15%{transform:rotate(-12deg)} 30%{transform:rotate(8deg)}
+    }
+    .logo-wrap i { color:#fff; font-size:1.6rem; }
+    h1 { font-family:'Playfair Display',serif; font-size:1.9rem; color:var(--text-primary); }
+    .tagline { font-size:.88rem; color:var(--text-muted); font-style:italic; margin-top:2px; }
 
-    .language-dropdown {
-      display: none;
-      position: absolute;
-      top: 55px;
-      right: 0;
-      background: rgba(255, 255, 255, 0.9);
-      border: 1px solid var(--glass-border);
-      border-radius: 8px;
-      padding: 10px;
-      min-width: 120px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-      backdrop-filter: blur(10px);
+    /* ─── Tabs ─── */
+    .tabs {
+      display:flex; background:rgba(122,78,45,0.1);
+      border-radius:50px; padding:5px; margin-bottom:1.6rem; gap:4px;
     }
+    .tab {
+      flex:1; border:none; background:transparent;
+      color:var(--text-secondary); padding:10px 0;
+      border-radius:50px; cursor:pointer; font-family:'DM Sans',sans-serif;
+      font-size:.93rem; font-weight:500; transition:all .3s ease;
+    }
+    .tab.active { background:#fff; color:var(--wood); box-shadow:0 2px 12px rgba(0,0,0,.07); }
 
-    .language-dropdown.show { display: block; animation: fadeIn 0.2s ease-out; }
+    /* ─── Panels ─── */
+    .panel { display:none; }
+    .panel.active { display:block; animation:fade .3s ease; }
+    @keyframes fade { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
-    .language-option {
-      color: var(--text-secondary);
-      padding: 8px;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      transition: background 0.2s;
+    /* ─── Inputs ─── */
+    .field { position:relative; margin-bottom:1.1rem; text-align:left; }
+    .field label {
+      display:block; font-size:.82rem; font-weight:600;
+      color:var(--text-secondary); margin-bottom:6px; margin-left:4px;
+      text-transform:uppercase; letter-spacing:.04em;
     }
+    .field-icon {
+      position:absolute; left:14px; bottom:14px;
+      color:var(--text-muted); font-size:.95rem; pointer-events:none;
+      transition:color .2s;
+    }
+    .field input {
+      width:100%; padding:13px 42px 13px 42px;
+      border-radius:12px; border:1.5px solid rgba(122,78,45,0.2);
+      background:rgba(255,255,255,0.62); color:var(--text-primary);
+      font-family:'DM Sans',sans-serif; font-size:.94rem;
+      outline:none; transition:all .25s;
+    }
+    .field input:focus {
+      border-color:var(--wood); background:#fff;
+      box-shadow:0 0 0 3px rgba(122,78,45,0.12);
+    }
+    .field input.invalid { border-color:var(--error); }
+    .field input.valid   { border-color:var(--success); }
 
-    .language-option:hover { 
-      background: rgba(139, 90, 43, 0.1); 
-      color: var(--accent-wood);
+    /* gmail badge inside field */
+    .gmail-badge {
+      position:absolute; right:12px; bottom:11px;
+      background:#EA4335; color:#fff; font-size:.68rem;
+      font-weight:700; padding:2px 7px; border-radius:20px;
+      letter-spacing:.03em; pointer-events:none;
+      opacity:0; transition:opacity .2s;
     }
+    .field input:focus ~ .gmail-badge,
+    .field input.valid ~ .gmail-badge { opacity:1; }
 
-    .login-box {
-      background: var(--glass-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-radius: 24px;
-      padding: 2.5rem 2rem; 
-      width: 90%;
-      max-width: 420px;
-      color: var(--text-primary);
-      border: 1px solid var(--glass-border);
-      box-shadow: 0 20px 50px rgba(139, 90, 43, 0.15), inset 0 2px 5px rgba(255,255,255,0.8);
-      text-align: center;
-      position: relative;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      animation: formUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
+    .hint { font-size:.78rem; color:var(--text-muted); margin-top:4px; margin-left:4px; }
+    .hint.error { color:var(--error); }
+    .hint.success { color:var(--success); }
 
-    @keyframes formUp {
-        0% { opacity: 0; transform: translateY(30px); }
-        100% { opacity: 1; transform: translateY(0); }
+    /* ─── Password field with toggle ─── */
+    .pass-toggle {
+      position:absolute; right:12px; bottom:12px;
+      background:none; border:none; cursor:pointer;
+      color:var(--text-muted); font-size:.95rem;
+      transition:color .2s; padding:2px 4px;
     }
+    .pass-toggle:hover { color:var(--wood); }
 
-    .login-header {
-      margin-bottom: 25px;
+    /* ─── Strength bar ─── */
+    .strength-row { display:flex; gap:4px; margin-top:6px; }
+    .strength-seg {
+      flex:1; height:4px; border-radius:4px;
+      background:rgba(122,78,45,.15); transition:background .3s;
     }
+    .strength-label { font-size:.76rem; margin-top:4px; color:var(--text-muted); text-align:right; }
 
-    .login-header i {
-      font-size: 2.5rem;
-      color: var(--accent-wood);
-      margin-bottom: 10px;
-      display: inline-block;
-      animation: hammer 2.5s infinite;
+    /* ─── Terms checkbox ─── */
+    .terms-row {
+      display:flex; align-items:flex-start; gap:10px;
+      margin-bottom:1rem; font-size:.87rem; color:var(--text-secondary);
     }
+    .terms-row input[type=checkbox] { width:17px; height:17px; flex-shrink:0; margin-top:2px; accent-color:var(--wood); cursor:pointer; }
+    .terms-row a { color:var(--wood); font-weight:600; text-decoration:none; }
+    .terms-row a:hover { text-decoration:underline; }
 
-    @keyframes hammer {
-      0%, 100% { transform: rotate(0deg); }
-      15% { transform: rotate(-15deg); }
-      30% { transform: rotate(10deg); }
+    /* ─── Button ─── */
+    .btn {
+      width:100%; padding:14px;
+      background: linear-gradient(135deg,var(--wood),var(--wood-light));
+      color:#fff; border:none; border-radius:14px;
+      font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:600;
+      cursor:pointer; letter-spacing:.02em;
+      box-shadow:0 8px 22px rgba(122,78,45,0.35);
+      transition:all .25s; position:relative; overflow:hidden;
     }
+    .btn::after {
+      content:''; position:absolute; inset:0;
+      background:rgba(255,255,255,0); transition:background .2s;
+    }
+    .btn:hover:not(:disabled)::after { background:rgba(255,255,255,0.1); }
+    .btn:active:not(:disabled) { transform:scale(.98); box-shadow:0 4px 12px rgba(122,78,45,.25); }
+    .btn:disabled { opacity:.5; cursor:not-allowed; }
 
-    h1 {
-      font-family: 'Playfair Display', serif;
-      margin-bottom: 5px;
-      font-size: 2rem;
-      color: var(--text-primary);
+    .btn-outline {
+      background:transparent;
+      border:1.5px solid rgba(122,78,45,.35);
+      color:var(--wood); box-shadow:none;
+      font-size:.9rem; padding:10px; margin-top:8px;
     }
+    .btn-outline:hover:not(:disabled) { background:rgba(122,78,45,.06); }
 
-    .tagline {
-      font-size: 0.95rem;
-      color: var(--text-secondary);
-      font-style: italic;
-    }
+    /* ─── OTP boxes ─── */
+    .otp-label { text-align:center; margin-bottom:1.2rem; }
+    .otp-label h3 { font-family:'Playfair Display',serif; font-size:1.3rem; margin-bottom:4px; }
+    .otp-label p { font-size:.87rem; color:var(--text-muted); }
+    .otp-label strong { color:var(--wood); }
 
-    .tab-buttons {
-      display: flex;
-      background: rgba(139, 90, 43, 0.1);
-      border-radius: 50px;
-      padding: 5px;
-      margin-bottom: 25px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      padding: 10px 0;
-      border-radius: 50px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-
-    .tab-btn.active {
-      background: white;
-      color: var(--accent-wood);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-
-    .input-group {
-      position: relative;
-      margin-bottom: 18px;
-      text-align: left;
-    }
-
-    .input-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-left: 5px;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 14px 14px 14px 45px;
-      border-radius: 12px;
-      border: 1px solid rgba(139, 90, 43, 0.2);
-      background: rgba(255, 255, 255, 0.6);
-      color: var(--text-primary);
-      font-family: 'Inter', sans-serif;
-      font-size: 0.95rem;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-    
-    .input-group input:focus {
-      border-color: var(--accent-wood);
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(139, 90, 43, 0.1);
-    }
-
-    .input-group i {
-      position: absolute;
-      left: 16px;
-      top: 41px;
-      color: var(--accent-wood);
-      opacity: 0.7;
-    }
-
-    .action-btn {
-      width: 100%;
-      padding: 15px;
-      background: linear-gradient(135deg, var(--accent-wood) 0%, var(--accent-wood-hover) 100%);
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: all 0.3s ease;
-      box-shadow: 0 10px 20px rgba(139, 90, 43, 0.2);
-    }
-
-    .action-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 25px rgba(139, 90, 43, 0.3);
-    }
-    
-    .action-btn:disabled {
-      background: #D1C7BD;
-      box-shadow: none;
-      transform: none;
-      cursor: not-allowed;
-    }
-
-    .forgot-pass {
-      display: inline-block;
-      margin-top: 15px;
-      font-size: 0.85rem;
-      color: var(--accent-wood);
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-
-    .forgot-pass:hover { text-decoration: underline; color: var(--accent-wood-hover); }
-
-    .error-msg {
-      color: #D32F2F;
-      font-size: 0.85rem;
-      margin-bottom: 15px;
-      display: none;
-      background: rgba(211, 47, 47, 0.1);
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(211, 47, 47, 0.2);
-    }
-
-    .terms-group {
-      font-size: 0.85rem;
-      text-align: left;
-      margin-bottom: 20px;
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .terms-group input[type="checkbox"] {
-      accent-color: var(--accent-wood);
-      width: 16px;
-      height: 16px;
-    }
-
-    .terms-group a { 
-      color: var(--accent-wood); 
-      font-weight: 500;
-      text-decoration: none;
-    }
-    .terms-group a:hover { text-decoration: underline; }
-
-    .otp-section {
-      display: none;
-      animation: fadeIn 0.5s;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .otp-section h3 {
-        font-family: 'Playfair Display', serif;
-        margin-bottom: 5px;
-        color: var(--text-primary);
-    }
-
-    .otp-container {
-      display: flex;
-      justify-content: center;
-      gap: 8px; 
-      margin: 25px 0;
-      width: 100%;
-    }
-
+    .otp-wrap { display:flex; gap:8px; justify-content:center; margin-bottom:.8rem; }
     .otp-box {
-      flex: 1; 
-      width: 100%; 
-      max-width: 48px; 
-      aspect-ratio: 1/1; 
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: 600;
-      background: rgba(255, 255, 255, 0.7);
-      border: 1px solid rgba(139, 90, 43, 0.3);
-      border-radius: 10px;
-      color: var(--text-primary);
-      outline: none;
-      padding: 0;
-      transition: all 0.2s;
+      width:48px; height:56px;
+      border:1.5px solid rgba(122,78,45,.25);
+      border-radius:12px; background:rgba(255,255,255,.65);
+      text-align:center; font-size:1.4rem; font-weight:700;
+      color:var(--text-primary); font-family:'Playfair Display',serif;
+      outline:none; transition:all .2s;
+      caret-color:var(--wood);
+    }
+    .otp-box:focus { border-color:var(--wood); background:#fff; box-shadow:0 0 0 3px rgba(122,78,45,.12); }
+    .otp-box.filled { border-color:var(--success); background:rgba(39,174,96,.06); }
+
+    .otp-actions {
+      display:flex; justify-content:space-between; align-items:center;
+      font-size:.83rem; color:var(--text-muted); margin-bottom:1rem;
+    }
+    .otp-actions span { cursor:pointer; }
+    .otp-actions span:hover { color:var(--wood); }
+    .timer { font-variant-numeric:tabular-nums; }
+
+    .resend { font-size:.85rem; text-align:center; margin-top:.8rem; color:var(--text-muted); }
+    .resend b { color:var(--wood); cursor:pointer; }
+    .resend b:hover { text-decoration:underline; }
+
+    /* ─── Alert banners ─── */
+    .alert {
+      display:none; padding:10px 14px; border-radius:10px;
+      font-size:.85rem; margin-bottom:1rem;
+      display:flex; align-items:flex-start; gap:8px;
+    }
+    .alert.hidden { display:none !important; }
+    .alert-error  { background:rgba(192,57,43,.1); color:var(--error); border:1px solid rgba(192,57,43,.2); }
+    .alert-success{ background:rgba(39,174,96,.1); color:var(--success); border:1px solid rgba(39,174,96,.2); }
+    .alert-info   { background:rgba(122,78,45,.08); color:var(--wood); border:1px solid rgba(122,78,45,.2); }
+    .alert i { flex-shrink:0; margin-top:1px; }
+
+    /* ─── Gmail-only notice ─── */
+    .gmail-note {
+      display:flex; align-items:center; gap:8px;
+      background:rgba(234,67,53,.07); border:1px solid rgba(234,67,53,.2);
+      border-radius:10px; padding:9px 13px;
+      font-size:.82rem; color:#C0392B; margin-bottom:1.2rem;
+    }
+    .gmail-note i { color:#EA4335; flex-shrink:0; }
+
+    /* ─── Separator ─── */
+    .sep { display:flex; align-items:center; gap:10px; margin:1rem 0; }
+    .sep span { font-size:.8rem; color:var(--text-muted); white-space:nowrap; }
+    .sep::before, .sep::after {
+      content:''; flex:1; height:1px; background:rgba(122,78,45,.2);
     }
 
-    .otp-box:focus {
-      background: #fff;
-      border-color: var(--accent-wood);
-      box-shadow: 0 0 0 3px rgba(139, 90, 43, 0.1);
-      transform: translateY(-2px);
+    /* ─── Terms Modal ─── */
+    .overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,.45); backdrop-filter:blur(4px);
+      z-index:200; align-items:center; justify-content:center; padding:20px;
     }
-
-    .otp-controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 20px;
-      font-size: 0.9rem;
-    }
-
-    #fillOtp {
-        color: var(--accent-wood);
-        font-weight: 500;
-        transition: color 0.2s;
-    }
-    #fillOtp:hover { color: var(--accent-wood-hover); }
-
-    .toggle-visibility {
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      font-size: 1.1rem;
-      transition: color 0.2s;
-    }
-    
-    .toggle-visibility:hover { color: var(--accent-wood); }
-
-    .resend-link {
-      color: var(--text-secondary);
-      margin-top: 15px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: color 0.2s;
-    }
-    .resend-link:hover { color: var(--accent-wood); text-decoration: underline; }
+    .overlay.open { display:flex; animation:fadein .2s; }
+    @keyframes fadein { from{opacity:0} to{opacity:1} }
 
     .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(44, 30, 22, 0.6);
-      backdrop-filter: blur(5px);
-      z-index: 200;
-      justify-content: center;
-      align-items: center;
+      background:var(--bg-light); border-radius:22px;
+      width:100%; max-width:520px; max-height:82vh;
+      display:flex; flex-direction:column;
+      box-shadow:0 30px 80px rgba(0,0,0,.25);
+      animation:slideup .25s ease;
     }
-    .modal.show { display: flex; animation: fadeIn 0.2s; }
-    
-    .modal-content {
-      background: #F7EFE5;
-      padding: 30px;
-      border-radius: 16px;
-      max-width: 400px;
-      width: 90%;
-      color: var(--text-primary);
-      text-align: left;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    @keyframes slideup { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+    .modal-head {
+      padding:1.6rem 1.8rem 1rem;
+      border-bottom:1px solid rgba(122,78,45,.15);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .modal-head h2 { font-family:'Playfair Display',serif; font-size:1.4rem; }
+    .modal-close {
+      width:36px; height:36px; border-radius:50%; border:none;
+      background:rgba(122,78,45,.1); cursor:pointer; color:var(--wood);
+      font-size:1rem; display:flex; align-items:center; justify-content:center;
+      transition:background .2s;
+    }
+    .modal-close:hover { background:rgba(122,78,45,.2); }
+
+    .modal-body {
+      overflow-y:auto; padding:1.2rem 1.8rem; flex:1;
+      scrollbar-width:thin; scrollbar-color:var(--wood) transparent;
+    }
+    .modal-body::-webkit-scrollbar { width:5px; }
+    .modal-body::-webkit-scrollbar-thumb { background:var(--wood); border-radius:4px; }
+
+    .tos-section { margin-bottom:1.4rem; }
+    .tos-section h3 {
+      font-family:'Playfair Display',serif; font-size:1rem;
+      color:var(--wood); margin-bottom:.5rem;
+      display:flex; align-items:center; gap:7px;
+    }
+    .tos-section p, .tos-section li {
+      font-size:.87rem; color:var(--text-secondary);
+      line-height:1.7; margin-bottom:.4rem;
+    }
+    .tos-section ul { padding-left:1.2rem; }
+    .tos-badge {
+      font-size:.68rem; background:var(--wood); color:#fff;
+      padding:2px 8px; border-radius:20px; font-weight:700;
+      font-family:'DM Sans',sans-serif; letter-spacing:.04em;
     }
 
-    .modal-content h2 {
-        font-family: 'Playfair Display', serif;
-        margin-bottom: 15px;
-        color: var(--accent-wood);
+    .modal-foot {
+      padding:1rem 1.8rem 1.5rem;
+      border-top:1px solid rgba(122,78,45,.12);
     }
-    
-    .modal-content p {
-        margin-bottom: 10px;
-        font-size: 0.95rem;
-        color: var(--text-secondary);
-        line-height: 1.5;
+
+    /* ─── Language picker ─── */
+    .lang-wrap { position:absolute; top:18px; right:18px; z-index:20; }
+    .lang-btn {
+      background:var(--glass); backdrop-filter:blur(10px);
+      border:1px solid var(--glass-border); border-radius:9px;
+      width:42px; height:42px; cursor:pointer;
+      color:var(--wood); font-size:1.1rem;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .2s;
+    }
+    .lang-btn:hover { background:var(--wood); color:#fff; }
+    .lang-drop {
+      display:none; position:absolute; top:48px; right:0;
+      background:rgba(255,255,255,.95); border:1px solid var(--glass-border);
+      border-radius:10px; padding:8px; min-width:120px;
+      box-shadow:0 6px 22px rgba(0,0,0,.1); backdrop-filter:blur(10px);
+    }
+    .lang-drop.open { display:block; animation:fade .15s; }
+    .lang-opt {
+      padding:8px 10px; cursor:pointer; border-radius:6px;
+      font-size:.88rem; color:var(--text-secondary); transition:background .15s;
+    }
+    .lang-opt:hover { background:rgba(122,78,45,.1); color:var(--wood); }
+
+    /* ─── Success screen ─── */
+    .success-screen { text-align:center; padding:1rem 0; }
+    .success-icon {
+      width:70px; height:70px; margin:0 auto 1.2rem;
+      background:linear-gradient(135deg,#27AE60,#2ECC71);
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      animation:pop .4s cubic-bezier(.36,.07,.19,.97);
+      box-shadow:0 10px 28px rgba(39,174,96,.35);
+    }
+    @keyframes pop { 0%{transform:scale(0)} 70%{transform:scale(1.12)} 100%{transform:scale(1)} }
+    .success-icon i { color:#fff; font-size:2rem; }
+    .success-screen h3 { font-family:'Playfair Display',serif; font-size:1.5rem; margin-bottom:.4rem; }
+    .success-screen p { font-size:.9rem; color:var(--text-muted); }
+
+    /* ─── Responsive ─── */
+    @media (max-width:420px) {
+      .card { padding:2rem 1.4rem; }
+      .otp-box { width:40px; height:50px; font-size:1.2rem; }
     }
   </style>
 </head>
 <body>
 
-  <div class="particles" id="particles"></div>
+<div class="particles" id="particles"></div>
 
-  <div class="language-container">
-    <button class="language-btn" id="langBtn">
-      <i class="fas fa-globe"></i>
+<!-- Language picker -->
+<div class="lang-wrap">
+  <button class="lang-btn" id="langBtn" title="Language"><i class="fas fa-globe"></i></button>
+  <div class="lang-drop" id="langDrop">
+    <div class="lang-opt" onclick="setLang(this)">🇺🇸 English</div>
+    <div class="lang-opt" onclick="setLang(this)">🇵🇭 Filipino</div>
+    <div class="lang-opt" onclick="setLang(this)">🇪🇸 Español</div>
+    <div class="lang-opt" onclick="setLang(this)">🇫🇷 Français</div>
+  </div>
+</div>
+
+<!-- ═══ CARD ═══ -->
+<div class="card" id="mainCard">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-wrap"><i class="fas fa-hammer"></i></div>
+    <h1>FurniCraft</h1>
+    <p class="tagline">Craft Your Perfect Furniture</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabsRow">
+    <button class="tab active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+    <button class="tab" id="tabSignup" onclick="switchTab('signup')">Create Account</button>
+  </div>
+
+  <!-- ══ SIGN IN PANEL ══ -->
+  <div class="panel active" id="panelLogin">
+    <div class="gmail-note">
+      <i class="fab fa-google"></i>
+      <span>Only <strong>@gmail.com</strong> addresses are accepted for authentication.</span>
+    </div>
+
+    <div class="alert alert-error hidden" id="loginAlert"><i class="fas fa-circle-exclamation"></i><span id="loginAlertMsg"></span></div>
+
+    <div class="field">
+      <label>Gmail Address</label>
+      <i class="fas fa-envelope field-icon"></i>
+      <input type="email" id="loginEmail" placeholder="yourname@gmail.com" autocomplete="email"
+             oninput="validateGmail(this,'loginEmailHint')" onblur="validateGmail(this,'loginEmailHint')">
+      <span class="gmail-badge">GMAIL</span>
+    </div>
+    <div class="hint" id="loginEmailHint"></div>
+
+    <div class="field" style="margin-top:.9rem;">
+      <label>Password</label>
+      <i class="fas fa-lock field-icon"></i>
+      <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password">
+      <button type="button" class="pass-toggle" onclick="togglePass('loginPass',this)" tabindex="-1">
+        <i class="fas fa-eye"></i>
+      </button>
+    </div>
+
+    <div style="text-align:right;margin-bottom:1rem;">
+      <a href="#" style="font-size:.82rem;color:var(--wood);text-decoration:none;" onclick="showForgot(event)">Forgot password?</a>
+    </div>
+
+    <button class="btn" id="loginBtn" onclick="handleLogin()">
+      <i class="fas fa-paper-plane" style="margin-right:8px;"></i>Send Verification Code
     </button>
-    <div class="language-dropdown" id="langDropdown">
-      <div class="language-option">English</div>
-      <div class="language-option">Español</div>
-      <div class="language-option">Français</div>
-      <div class="language-option">Filipino</div>
+  </div>
+
+  <!-- ══ SIGN UP PANEL ══ -->
+  <div class="panel" id="panelSignup">
+    <div class="gmail-note">
+      <i class="fab fa-google"></i>
+      <span>Sign up requires a valid <strong>@gmail.com</strong> address. No other providers accepted.</span>
+    </div>
+
+    <div class="alert alert-error hidden" id="signupAlert"><i class="fas fa-circle-exclamation"></i><span id="signupAlertMsg"></span></div>
+
+    <div class="field">
+      <label>Full Name</label>
+      <i class="fas fa-user field-icon"></i>
+      <input type="text" id="signupName" placeholder="Juan dela Cruz" autocomplete="name"
+             oninput="validateName(this,'nameHint')">
+    </div>
+    <div class="hint" id="nameHint"></div>
+
+    <div class="field" style="margin-top:.9rem;">
+      <label>Gmail Address</label>
+      <i class="fas fa-envelope field-icon"></i>
+      <input type="email" id="signupEmail" placeholder="yourname@gmail.com" autocomplete="email"
+             oninput="validateGmail(this,'signupEmailHint')" onblur="validateGmail(this,'signupEmailHint')">
+      <span class="gmail-badge">GMAIL</span>
+    </div>
+    <div class="hint" id="signupEmailHint"></div>
+
+    <div class="field" style="margin-top:.9rem;">
+      <label>Password</label>
+      <i class="fas fa-lock field-icon"></i>
+      <input type="password" id="signupPass" placeholder="Min. 8 characters"
+             autocomplete="new-password" oninput="checkStrength(this)">
+      <button type="button" class="pass-toggle" onclick="togglePass('signupPass',this)" tabindex="-1">
+        <i class="fas fa-eye"></i>
+      </button>
+    </div>
+    <div class="strength-row" id="strengthBar">
+      <div class="strength-seg" id="seg1"></div>
+      <div class="strength-seg" id="seg2"></div>
+      <div class="strength-seg" id="seg3"></div>
+      <div class="strength-seg" id="seg4"></div>
+    </div>
+    <div class="strength-label" id="strengthLabel"></div>
+
+    <div class="field" style="margin-top:.9rem;">
+      <label>Confirm Password</label>
+      <i class="fas fa-lock field-icon"></i>
+      <input type="password" id="signupPassConfirm" placeholder="Repeat your password"
+             autocomplete="new-password" oninput="checkMatch()">
+      <button type="button" class="pass-toggle" onclick="togglePass('signupPassConfirm',this)" tabindex="-1">
+        <i class="fas fa-eye"></i>
+      </button>
+    </div>
+    <div class="hint" id="matchHint"></div>
+
+    <div class="terms-row" style="margin-top:1rem;">
+      <input type="checkbox" id="tosCheck" onchange="document.getElementById('signupBtn').disabled=!this.checked">
+      <span>I have read and agree to the
+        <a href="#" id="openTos">Terms &amp; Conditions</a>
+        and <a href="#" id="openPrivacy">Privacy Policy</a> of FurniCraft.
+      </span>
+    </div>
+
+    <button class="btn" id="signupBtn" disabled onclick="handleSignup()">
+      <i class="fas fa-paper-plane" style="margin-right:8px;"></i>Send Verification Code
+    </button>
+  </div>
+
+  <!-- ══ OTP PANEL ══ -->
+  <div class="panel" id="panelOtp">
+    <div class="otp-label">
+      <div style="font-size:2.2rem;margin-bottom:.4rem;">📧</div>
+      <h3>Check Your Gmail</h3>
+      <p>We sent a 6-digit code to<br><strong id="otpTarget" style="color:var(--wood);">—</strong></p>
+      <p style="margin-top:6px;font-size:.78rem;color:var(--text-muted);">
+        <i class="fas fa-shield-halved" style="color:var(--wood);margin-right:3px;"></i>
+        Code expires in <span class="timer" id="timerDisplay">05:00</span>
+      </p>
+    </div>
+
+    <div class="alert alert-error hidden" id="otpAlert"><i class="fas fa-circle-exclamation"></i><span id="otpAlertMsg"></span></div>
+
+    <div class="otp-wrap" id="otpWrap">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    </div>
+
+    <div class="otp-actions">
+      <span onclick="pasteDemo()"><i class="fas fa-wand-magic-sparkles" style="margin-right:4px;"></i>Fill demo code</span>
+      <span onclick="toggleAllOtp()"><i class="fas fa-eye" id="otpEyeIcon" style="margin-right:4px;"></i>Show / Hide</span>
+    </div>
+
+    <button class="btn" id="verifyBtn" onclick="verifyOtp()">
+      <i class="fas fa-check-circle" style="margin-right:8px;"></i>Verify Code
+    </button>
+
+    <div class="resend" id="resendRow">
+      Didn't receive it? <b id="resendBtn" onclick="resendOtp()">Resend Code</b>
+    </div>
+
+    <button class="btn btn-outline" onclick="backToForm()">
+      <i class="fas fa-arrow-left" style="margin-right:6px;"></i>Change Email
+    </button>
+  </div>
+
+  <!-- ══ SUCCESS PANEL ══ -->
+  <div class="panel" id="panelSuccess">
+    <div class="success-screen">
+      <div class="success-icon"><i class="fas fa-check"></i></div>
+      <h3 id="successTitle">Welcome to FurniCraft!</h3>
+      <p id="successMsg">Your identity has been verified. Redirecting you to your workspace…</p>
+      <div style="margin-top:1.4rem;">
+        <div style="height:4px;background:rgba(122,78,45,.12);border-radius:4px;overflow:hidden;">
+          <div id="progressBar" style="height:100%;background:linear-gradient(90deg,var(--wood),var(--wood-light));width:0%;transition:width 3s linear;border-radius:4px;"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="login-box">
-    
-    <div class="login-header">
-      <i class="fas fa-hammer"></i>
-      <h1>FurniCraft</h1>
-      <p class="tagline">Craft Your Perfect Furniture</p>
+</div><!-- /card -->
+
+
+<!-- ═══════════ TERMS & CONDITIONS MODAL ═══════════ -->
+<div class="overlay" id="tosOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2><i class="fas fa-scroll" style="color:var(--wood);margin-right:8px;font-size:1rem;"></i>Terms &amp; Conditions</h2>
+      <button class="modal-close" onclick="closeTos()"><i class="fas fa-xmark"></i></button>
     </div>
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:1.2rem;">
+        Last updated: <strong>January 2025</strong> &nbsp;·&nbsp; Effective immediately upon account creation.
+      </p>
 
-    <div class="tab-buttons">
-      <button class="tab-btn active" id="tabLogin">Log In</button>
-      <button class="tab-btn" id="tabSignup">Sign Up</button>
+      <div class="tos-section">
+        <h3><i class="fas fa-circle-info"></i> 1. Acceptance of Terms <span class="tos-badge">REQUIRED</span></h3>
+        <p>By creating an account or accessing FurniCraft's platform, you confirm that you have read, understood, and agree to be bound by these Terms and Conditions. If you disagree with any part, do not use our services.</p>
+      </div>
+
+      <div class="tos-section">
+        <h3><i class="fab fa-google"></i> 2. Gmail Authentication Requirement</h3>
+        <p>FurniCraft exclusively accepts <strong>@gmail.com</strong> addresses for account registration and authentication. This policy:</p>
+        <ul>
+          <li>Ensures deliverability of security codes and system notifications</li>
+          <li>Reduces fraudulent account creation</li>
+          <li>Is enforced at the technical level — no exceptions are made</li>
+        </ul>
+        <p>You are responsible for maintaining access to the Gmail address linked to your account.</p>
+      </div>
+
+      <div class="tos-section">
+        <h3><i class="fas fa-shield-halved"></i> 3. Account Security &amp; OTP</h3>
+        <p>FurniCraft uses one-time passwords (OTP) sent to your Gmail as a second layer of verification. You agree to:</p>
+        <ul>
+          <li>Never share your OTP with anyone, including FurniCraft staff</li>
+          <li>Report suspicious login attempts immediately to support</li>
+          <li>Keep your password unique and never reuse it across other services</li>
+          <li>Log out from shared or public devices after each session</li>
+        </ul>
+      </div>
+
+      <div class="tos-section">
+        <h3><i class="fas fa-user-shield"></i> 4. User Responsibilities</h3>
+        <p>You agree to use FurniCraft only for lawful purposes. Prohibited activities include:</p>
+        <ul>
+          <li>Creating multiple accounts to abuse promotions or circumvent bans</li>
+          <li>Attempting to reverse-engineer, scrape, or disrupt our platform</li>
+          <li>Impersonating another person or entity</li>
+          <li>Uploading malicious content, spam, or illegal material</li>
+          <li>Harassing, threatening, or defrauding other users or craftsmen</li>
+        </ul>
+      </div>
+
+      <div class="tos-section">
+        <h3><i class="fas fa-shopping-bag"></i> 5. Orders, Payments &amp; Customization</h3>
+        <p>All custom furniture orders are binding upon confirmation. Cancellations are accepted within 24 hours of order placement. After the 24-hour window, cancellation fees of up to 30% of the order value may apply. FurniCraft is not liable for delays caused by events beyond reasonable control.</p>
+      </div>
+
+      <div class="tos-section">
+        <h3><i class="fas fa-database"></i> 6. Data &amp; Privacy</h3>
+        <p>We collect your name, Gmail address, and usage data to provide and improve our services. We do <strong>not</strong> sell your personal data to third parties. Your Gmail address is used solely for:</p>
+        <ul>
+          <li>Authentication and security verification</li>
+          <li>Order confirmations and status updates</li>
+          <li>Support communications (when initiated by you)</li>
+        </ul>
+        <p>You may request deletion of your data at any time via <a href="mailto:privacy@furnicraft.ph" style="color:var(--wood);">privacy@furnicraft.ph</a>.</p>
+      </div>
+
+      <div class="tos-section">
+        <h3><i class="fas fa-images"></i> 7. Intellectual Property</h3>
+        <p>All content on FurniCraft — including designs, images, UI, and text — is the property of FurniCraft or its licensors. You may not reproduce, redistribute, or create derivative works without prior written consent.</p>
+      </div>
+
+      <div class="tos-section">
+        <h3><i class="fas fa-triangle-exclamation"></i> 8. Limitation of Liability</h3>
+        <p>FurniCraft is provided "as is." We do not warrant uninterrupted, error-free access. To the fullest extent permitted by Philippine law, FurniCraft shall not be liable for indirect, incidental, or consequential damages arising from your use of the platform.</p>
+      </div>
+
+      <div class="tos-section">
+        <h3><i class="fas fa-gavel"></i> 9. Governing Law</h3>
+        <p>These terms are governed by the laws of the Republic of the Philippines. Any dispute shall be subject to the exclusive jurisdiction of the courts of Quezon City, Metro Manila.</p>
+      </div>
+
+      <div class="tos-section">
+        <h3><i class="fas fa-pen-to-square"></i> 10. Amendments</h3>
+        <p>FurniCraft reserves the right to modify these Terms at any time. We will notify registered users via email. Continued use of the platform after such notification constitutes acceptance of the revised terms.</p>
+      </div>
+
+      <div style="background:rgba(122,78,45,.07);border-radius:10px;padding:12px 14px;font-size:.82rem;color:var(--text-secondary);margin-top:.5rem;">
+        <i class="fas fa-circle-info" style="color:var(--wood);margin-right:5px;"></i>
+        For questions about these Terms, contact us at
+        <a href="mailto:legal@furnicraft.ph" style="color:var(--wood);">legal@furnicraft.ph</a>
+      </div>
     </div>
-
-    <form id="loginForm">
-      <div class="error-msg" id="loginError"><i class="fas fa-exclamation-circle"></i> Please enter a valid Name and Mobile Number.</div>
-      
-      <div class="input-group">
-        <label>Name</label>
-        <i class="fas fa-user"></i>
-        <input type="text" id="loginName" placeholder="Enter your name" required>
-      </div>
-      
-      <div class="input-group">
-        <label>Mobile Number</label>
-        <i class="fas fa-mobile-alt"></i>
-        <input type="tel" id="loginMobile" placeholder="09XXXXXXXXX" pattern="[0-9]{11}" required>
-      </div>
-
-      <button type="submit" class="action-btn">Send OTP</button>
-      <a href="#" class="forgot-pass">Forgot Password?</a>
-    </form>
-
-    <form id="signupForm" style="display: none;">
-      <div class="error-msg" id="signupError"><i class="fas fa-exclamation-circle"></i> Please fill in all fields correctly.</div>
-
-      <div class="input-group">
-        <label>Full Name</label>
-        <i class="fas fa-user"></i>
-        <input type="text" id="signupName" placeholder="Enter your full name" required>
-      </div>
-
-      <div class="input-group">
-        <label>Mobile Number</label>
-        <i class="fas fa-mobile-alt"></i>
-        <input type="tel" id="signupMobile" placeholder="09XXXXXXXXX" pattern="[0-9]{11}" required>
-      </div>
-
-      <div class="input-group">
-        <label>Password</label>
-        <i class="fas fa-lock"></i>
-        <input type="password" id="signupPass" placeholder="Create a password" required>
-      </div>
-
-      <div class="terms-group">
-        <input type="checkbox" id="termsCheck"> 
-        <span>I agree to the <a href="#" id="openTerms">Terms & Conditions</a></span>
-      </div>
-
-      <button type="submit" class="action-btn" id="signupBtn" disabled>Create Account</button>
-    </form>
-
-    <div class="otp-section" id="otpSection">
-      <h3>Verify OTP</h3>
-      <p style="font-size:0.9rem; margin-bottom:10px; color: var(--text-secondary);">Enter the code sent to your mobile.</p>
-      <div class="error-msg" id="otpError"><i class="fas fa-exclamation-circle"></i> Invalid OTP. Try again.</div>
-
-      <div class="otp-container">
-        <input type="password" class="otp-box" maxlength="1">
-        <input type="password" class="otp-box" maxlength="1">
-        <input type="password" class="otp-box" maxlength="1">
-        <input type="password" class="otp-box" maxlength="1">
-        <input type="password" class="otp-box" maxlength="1">
-        <input type="password" class="otp-box" maxlength="1">
-      </div>
-
-      <div class="otp-controls">
-        <span id="fillOtp" style="cursor:pointer;">Fill Demo OTP</span>
-        <button type="button" class="toggle-visibility" id="toggleOtp" title="Toggle visibility">
-          <i class="fas fa-eye"></i>
-        </button>
-      </div>
-
-      <button type="button" class="action-btn" id="verifyBtn">Verify & Proceed</button>
-      <p class="resend-link" id="resendBtn">Didn't receive it? <b>Resend OTP</b></p>
+    <div class="modal-foot">
+      <button class="btn" onclick="acceptTos()">
+        <i class="fas fa-check" style="margin-right:8px;"></i>I Understand &amp; Accept
+      </button>
     </div>
-
   </div>
+</div>
 
-  <div class="modal" id="termsModal">
-    <div class="modal-content">
-      <h2>Terms & Conditions</h2>
-      <p>1. Don't break the furniture.</p>
-      <p>2. Have fun crafting.</p>
-      <button class="action-btn" id="closeTerms" style="margin-top:20px;">Close</button>
-    </div>
-  </div>
 
-  <script>
-    function createParticles() {
-        const container = document.getElementById("particles");
-        const particleCount = 20; 
-        
-        for (let i = 0; i < particleCount; i++) { 
-            const particle = document.createElement("div");
-            particle.className = "particle";
-            
-            const size = Math.random() * 6 + 2; 
-            particle.style.width = `${size}px`;
-            particle.style.height = Math.random() > 0.7 ? `${size * 2}px` : `${size}px`; 
-            
-            particle.style.left = Math.random() * 100 + "%";
-            particle.style.animationDelay = Math.random() * 15 + "s";
-            particle.style.animationDuration = (Math.random() * 15 + 15) + "s";
-            
-            const maxOpacity = Math.random() * 0.4 + 0.1; 
-            particle.style.setProperty('--max-opacity', maxOpacity);
-            
-            container.appendChild(particle);
-        }
+<script>
+/* ─── Particles ─── */
+(function(){
+  const c = document.getElementById('particles');
+  for(let i=0;i<22;i++){
+    const p=document.createElement('div'); p.className='particle';
+    const s=Math.random()*6+2;
+    p.style.cssText=`width:${s}px;height:${Math.random()>.7?s*2:s}px;
+      left:${Math.random()*100}%;
+      animation-delay:${Math.random()*18}s;
+      animation-duration:${Math.random()*14+16}s;
+      --op:${Math.random()*.35+.08}`;
+    c.appendChild(p);
+  }
+})();
+
+/* ─── Lang picker ─── */
+const langBtn=document.getElementById('langBtn');
+const langDrop=document.getElementById('langDrop');
+langBtn.addEventListener('click',e=>{e.stopPropagation();langDrop.classList.toggle('open');});
+document.addEventListener('click',()=>langDrop.classList.remove('open'));
+function setLang(el){langDrop.classList.remove('open');}
+
+/* ─── Tab switch ─── */
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  if(tab==='login'){
+    document.getElementById('tabLogin').classList.add('active');
+    document.getElementById('panelLogin').classList.add('active');
+  } else {
+    document.getElementById('tabSignup').classList.add('active');
+    document.getElementById('panelSignup').classList.add('active');
+  }
+}
+
+/* ─── Gmail validation ─── */
+function isGmail(email){ return /^[a-zA-Z0-9._%+\-]+@gmail\.com$/i.test(email.trim()); }
+
+function validateGmail(input, hintId){
+  const val = input.value.trim();
+  const hint = document.getElementById(hintId);
+  if(!val){ input.className=''; hint.textContent=''; hint.className='hint'; return false; }
+  if(!val.includes('@')){
+    input.className='invalid'; hint.textContent='Enter a complete email address.';
+    hint.className='hint error'; return false;
+  }
+  if(!val.toLowerCase().endsWith('@gmail.com')){
+    input.className='invalid';
+    hint.innerHTML='<i class="fas fa-circle-exclamation"></i> Only @gmail.com addresses are allowed.';
+    hint.className='hint error'; return false;
+  }
+  input.className='valid';
+  hint.innerHTML='<i class="fas fa-check-circle"></i> Valid Gmail address.';
+  hint.className='hint success'; return true;
+}
+
+function validateName(input, hintId){
+  const hint = document.getElementById(hintId);
+  if(input.value.trim().length < 2){
+    hint.textContent='Please enter your full name.'; hint.className='hint error';
+  } else {
+    hint.textContent=''; hint.className='hint';
+  }
+}
+
+/* ─── Password toggle ─── */
+function togglePass(id, btn){
+  const inp=document.getElementById(id);
+  const icon=btn.querySelector('i');
+  inp.type=inp.type==='password'?'text':'password';
+  icon.className=inp.type==='password'?'fas fa-eye':'fas fa-eye-slash';
+}
+
+/* ─── Strength meter ─── */
+function checkStrength(inp){
+  const v=inp.value;
+  let score=0;
+  if(v.length>=8) score++;
+  if(/[A-Z]/.test(v)) score++;
+  if(/[0-9]/.test(v)) score++;
+  if(/[^A-Za-z0-9]/.test(v)) score++;
+  const colors=['','#C0392B','#E67E22','#F1C40F','#27AE60'];
+  const labels=['','Weak','Fair','Good','Strong'];
+  for(let i=1;i<=4;i++){
+    document.getElementById('seg'+i).style.background=i<=score?colors[score]:'rgba(122,78,45,.15)';
+  }
+  document.getElementById('strengthLabel').textContent=v?labels[score]||'':'';
+  document.getElementById('strengthLabel').style.color=colors[score]||'var(--text-muted)';
+}
+
+/* ─── Confirm match ─── */
+function checkMatch(){
+  const p=document.getElementById('signupPass').value;
+  const c=document.getElementById('signupPassConfirm').value;
+  const h=document.getElementById('matchHint');
+  if(!c){h.textContent='';return;}
+  if(p===c){h.innerHTML='<i class="fas fa-check-circle"></i> Passwords match.';h.className='hint success';}
+  else{h.innerHTML='<i class="fas fa-circle-exclamation"></i> Passwords do not match.';h.className='hint error';}
+}
+
+/* ─── Alerts ─── */
+function showAlert(id, msgId, msg){ document.getElementById(id).classList.remove('hidden'); document.getElementById(msgId).textContent=' '+msg; }
+function hideAlert(id){ document.getElementById(id).classList.add('hidden'); }
+
+/* ─── OTP state ─── */
+let currentEmail='';
+let currentMode=''; // 'login' | 'signup'
+let demoOtp='';
+let timerInterval=null;
+
+/* ─── Send OTP (login) ─── */
+function handleLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  hideAlert('loginAlert');
+
+  if(!isGmail(email)){ showAlert('loginAlert','loginAlertMsg','Please enter a valid @gmail.com address.'); return; }
+  if(pass.length<6){ showAlert('loginAlert','loginAlertMsg','Password must be at least 6 characters.'); return; }
+
+  currentEmail=email; currentMode='login';
+  triggerOtp(email);
+}
+
+/* ─── Send OTP (signup) ─── */
+function handleSignup(){
+  const name=document.getElementById('signupName').value.trim();
+  const email=document.getElementById('signupEmail').value.trim();
+  const pass=document.getElementById('signupPass').value;
+  const passC=document.getElementById('signupPassConfirm').value;
+  hideAlert('signupAlert');
+
+  if(name.length<2){ showAlert('signupAlert','signupAlertMsg','Please enter your full name.'); return; }
+  if(!isGmail(email)){ showAlert('signupAlert','signupAlertMsg','Please enter a valid @gmail.com address.'); return; }
+  if(pass.length<8){ showAlert('signupAlert','signupAlertMsg','Password must be at least 8 characters.'); return; }
+  if(pass!==passC){ showAlert('signupAlert','signupAlertMsg','Passwords do not match.'); return; }
+  if(!document.getElementById('tosCheck').checked){ showAlert('signupAlert','signupAlertMsg','You must accept the Terms & Conditions.'); return; }
+
+  currentEmail=email; currentMode='signup';
+  triggerOtp(email);
+}
+
+/* ─── Show OTP panel ─── */
+function triggerOtp(email){
+  // Generate demo 6-digit code
+  demoOtp = String(Math.floor(100000 + Math.random()*900000));
+  console.log('%c[FurniCraft DEMO] OTP for '+email+': '+demoOtp,'color:#7A4E2D;font-size:14px;font-weight:bold;');
+
+  document.getElementById('otpTarget').textContent = email;
+  document.querySelectorAll('.otp-box').forEach(b=>{ b.value=''; b.type='password'; b.className='otp-box'; });
+  document.getElementById('otpEyeIcon').className='fas fa-eye';
+  hideAlert('otpAlert');
+
+  // Hide tabs + show OTP
+  document.getElementById('tabsRow').style.display='none';
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panelOtp').classList.add('active');
+
+  startTimer(300);
+  document.querySelectorAll('.otp-box')[0].focus();
+}
+
+/* ─── OTP keyboard nav ─── */
+const otpBoxes = document.querySelectorAll('.otp-box');
+otpBoxes.forEach((box,i)=>{
+  box.addEventListener('input',e=>{
+    box.value=box.value.replace(/\D/g,'').slice(-1);
+    if(box.value) box.classList.add('filled'); else box.classList.remove('filled');
+    if(box.value && i<otpBoxes.length-1) otpBoxes[i+1].focus();
+  });
+  box.addEventListener('keydown',e=>{
+    if(e.key==='Backspace'&&!box.value&&i>0) otpBoxes[i-1].focus();
+    if(e.key==='ArrowLeft'&&i>0) otpBoxes[i-1].focus();
+    if(e.key==='ArrowRight'&&i<otpBoxes.length-1) otpBoxes[i+1].focus();
+  });
+  box.addEventListener('paste',e=>{
+    e.preventDefault();
+    const paste=e.clipboardData.getData('text').replace(/\D/g,'');
+    paste.split('').slice(0,6).forEach((ch,j)=>{
+      if(otpBoxes[i+j]){ otpBoxes[i+j].value=ch; otpBoxes[i+j].classList.add('filled'); }
+    });
+    const next=Math.min(i+paste.length,5);
+    otpBoxes[next].focus();
+  });
+});
+
+function pasteDemo(){
+  demoOtp.split('').forEach((ch,i)=>{ otpBoxes[i].value=ch; otpBoxes[i].classList.add('filled'); });
+  otpBoxes[5].focus();
+}
+
+let otpVisible=false;
+function toggleAllOtp(){
+  otpVisible=!otpVisible;
+  otpBoxes.forEach(b=>b.type=otpVisible?'text':'password');
+  document.getElementById('otpEyeIcon').className=otpVisible?'fas fa-eye-slash':'fas fa-eye';
+}
+
+/* ─── Timer ─── */
+function startTimer(seconds){
+  clearInterval(timerInterval);
+  let t=seconds;
+  const el=document.getElementById('timerDisplay');
+  const rb=document.getElementById('resendBtn');
+  rb.style.opacity='.4'; rb.style.pointerEvents='none';
+
+  function tick(){
+    const m=String(Math.floor(t/60)).padStart(2,'0');
+    const s=String(t%60).padStart(2,'0');
+    el.textContent=m+':'+s;
+    if(t===0){
+      clearInterval(timerInterval);
+      el.style.color='var(--error)';
+      rb.style.opacity='1'; rb.style.pointerEvents='auto';
+    } else { t--; }
+  }
+  tick();
+  timerInterval=setInterval(tick,1000);
+}
+
+function resendOtp(){
+  demoOtp=String(Math.floor(100000+Math.random()*900000));
+  console.log('%c[FurniCraft DEMO] New OTP: '+demoOtp,'color:#7A4E2D;font-size:14px;font-weight:bold;');
+  otpBoxes.forEach(b=>{ b.value=''; b.classList.remove('filled'); });
+  hideAlert('otpAlert');
+  document.getElementById('timerDisplay').style.color='';
+  startTimer(300);
+  // mini feedback
+  const info=document.getElementById('otpAlert');
+  info.className='alert alert-info';
+  document.getElementById('otpAlertMsg').textContent=' A new verification code has been sent to '+currentEmail;
+  info.classList.remove('hidden');
+  setTimeout(()=>{ info.classList.add('hidden'); info.className='alert alert-error hidden'; },3000);
+}
+
+/* ─── Verify ─── */
+function verifyOtp(){
+  const entered=Array.from(otpBoxes).map(b=>b.value).join('');
+  hideAlert('otpAlert');
+
+  if(entered.length<6){ showAlert('otpAlert','otpAlertMsg','Please enter all 6 digits.'); return; }
+
+  if(entered===demoOtp){
+    clearInterval(timerInterval);
+    document.getElementById('tabsRow').style.display='none';
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    const s=document.getElementById('panelSuccess');
+    s.classList.add('active');
+    if(currentMode==='signup'){
+      document.getElementById('successTitle').textContent='Account Created!';
+      document.getElementById('successMsg').textContent='Welcome aboard! Your FurniCraft account is ready. Redirecting…';
     }
-    createParticles();
+    setTimeout(()=>{ document.getElementById('progressBar').style.width='100%'; },50);
+    setTimeout(()=>{ window.location.href='steps.html'; },3200);
+  } else {
+    otpBoxes.forEach(b=>{ b.value=''; b.classList.remove('filled'); });
+    otpBoxes[0].focus();
+    showAlert('otpAlert','otpAlertMsg','Incorrect code. Please try again or request a new one.');
+    document.querySelector('.otp-box').classList.add('invalid');
+    setTimeout(()=>document.querySelectorAll('.otp-box').forEach(b=>b.classList.remove('invalid')),600);
+  }
+}
 
-    const langBtn = document.getElementById('langBtn');
-    const langDropdown = document.getElementById('langDropdown');
-    langBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      langDropdown.classList.toggle('show');
-    });
-    document.addEventListener('click', () => langDropdown.classList.remove('show'));
+/* ─── Back ─── */
+function backToForm(){
+  clearInterval(timerInterval);
+  document.getElementById('tabsRow').style.display='flex';
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  if(currentMode==='login'){ document.getElementById('tabLogin').classList.add('active'); document.getElementById('panelLogin').classList.add('active'); }
+  else { document.getElementById('tabSignup').classList.add('active'); document.getElementById('panelSignup').classList.add('active'); }
+}
 
-    const tabLogin = document.getElementById('tabLogin');
-    const tabSignup = document.getElementById('tabSignup');
-    const loginForm = document.getElementById('loginForm');
-    const signupForm = document.getElementById('signupForm');
-    const otpSection = document.getElementById('otpSection');
+/* ─── Forgot password placeholder ─── */
+function showForgot(e){
+  e.preventDefault();
+  const email=document.getElementById('loginEmail').value.trim();
+  if(!isGmail(email)){ showAlert('loginAlert','loginAlertMsg','Enter your Gmail address above first.'); return; }
+  currentEmail=email; currentMode='login';
+  triggerOtp(email);
+}
 
-    tabLogin.addEventListener('click', () => {
-      tabLogin.classList.add('active');
-      tabSignup.classList.remove('active');
-      loginForm.style.display = 'block';
-      signupForm.style.display = 'none';
-      otpSection.style.display = 'none';
-    });
-
-    tabSignup.addEventListener('click', () => {
-      tabSignup.classList.add('active');
-      tabLogin.classList.remove('active');
-      signupForm.style.display = 'block';
-      loginForm.style.display = 'none';
-      otpSection.style.display = 'none';
-    });
-
-    const loginName = document.getElementById('loginName');
-    const loginMobile = document.getElementById('loginMobile');
-    const loginError = document.getElementById('loginError');
-
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if(loginName.value.trim() && loginMobile.value.length === 11){
-        loginError.style.display = 'none';
-        loginForm.style.display = 'none';
-        otpSection.style.display = 'block';
-      } else {
-        loginError.style.display = 'block';
-      }
-    });
-
-    const termsCheck = document.getElementById('termsCheck');
-    const signupBtn = document.getElementById('signupBtn');
-    termsCheck.addEventListener('change', () => {
-      signupBtn.disabled = !termsCheck.checked;
-    });
-
-    signupForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      document.getElementById('signupError').style.display = 'none';
-      signupForm.style.display = 'none';
-      otpSection.style.display = 'block';
-    });
-
-    const otpInputs = document.querySelectorAll('.otp-box');
-    const demoOTP = "123456";
-
-    otpInputs.forEach((input, index) => {
-      input.addEventListener('input', (e) => {
-        if(e.inputType === "insertText" && e.target.value.length > 1) {
-           e.target.value = e.target.value.slice(-1); 
-        }
-        if(input.value.length === 1 && index < otpInputs.length - 1){
-          otpInputs[index+1].focus();
-        }
-      });
-      input.addEventListener('keydown', (e) => {
-        if(e.key === "Backspace" && input.value === "" && index > 0){
-          otpInputs[index-1].focus();
-        }
-      });
-    });
-
-    document.getElementById('fillOtp').addEventListener('click', () => {
-      otpInputs.forEach((input, i) => input.value = demoOTP[i]);
-    });
-
-    const toggleOtpBtn = document.getElementById('toggleOtp');
-    toggleOtpBtn.addEventListener('click', () => {
-      const icon = toggleOtpBtn.querySelector('i');
-      const isPassword = otpInputs[0].type === "password";
-      
-      otpInputs.forEach(inp => inp.type = isPassword ? "text" : "password");
-      
-      if(isPassword) {
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-      } else {
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-      }
-    });
-
-    document.getElementById('verifyBtn').addEventListener('click', () => {
-      let code = "";
-      otpInputs.forEach(inp => code += inp.value);
-      if(code === demoOTP) {
-        window.location.href = "steps.html";
-      } else {
-        document.getElementById('otpError').style.display = 'block';
-      }
-    });
-
-    document.getElementById('resendBtn').addEventListener('click', () => {
-      alert("Demo OTP Resent!");
-    });
-
-    const modal = document.getElementById('termsModal');
-    document.getElementById('openTerms').addEventListener('click', (e) => {
-      e.preventDefault();
-      modal.classList.add('show');
-    });
-    document.getElementById('closeTerms').addEventListener('click', () => modal.classList.remove('show'));
-  </script>
+/* ─── Terms modal ─── */
+document.getElementById('openTos').addEventListener('click',e=>{ e.preventDefault(); document.getElementById('tosOverlay').classList.add('open'); });
+document.getElementById('openPrivacy') && document.getElementById('openPrivacy').addEventListener('click',e=>{ e.preventDefault(); document.getElementById('tosOverlay').classList.add('open'); });
+function closeTos(){ document.getElementById('tosOverlay').classList.remove('open'); }
+function acceptTos(){
+  document.getElementById('tosCheck').checked=true;
+  document.getElementById('signupBtn').disabled=false;
+  closeTos();
+}
+document.getElementById('tosOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('tosOverlay')) closeTos(); });
+</script>
 </body>
 </html>

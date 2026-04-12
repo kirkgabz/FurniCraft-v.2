@@ -3,479 +3,1091 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FurniCraft - Dashboard</title>
+<title>FurniCraft — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
 
-  :root {
-    --bg-color: #FAF8F5;
-    --text-main: #2A1B14;
-    --text-muted: #7A6960;
-    --accent-color: #B26A38;
-    --accent-hover: #8E5229;
-    --nav-bg: #FFFFFF;
-    --shadow-sm: 0 4px 12px rgba(42, 27, 20, 0.05);
-    --shadow-md: 0 12px 30px rgba(42, 27, 20, 0.08);
-  }
+:root {
+  --bg:          #FAF8F5;
+  --bg2:         #F2EDE6;
+  --panel:       #FFFFFF;
+  --accent:      #B26A38;
+  --accent2:     #8E5229;
+  --accent-pale: rgba(178,106,56,0.1);
+  --text:        #2A1B14;
+  --muted:       #7A6960;
+  --border:      rgba(178,106,56,0.12);
+  --shadow:      0 8px 28px rgba(42,27,20,0.07);
+  --shadow-lg:   0 20px 50px rgba(42,27,20,0.12);
+  --radius:      18px;
+  --radius-sm:   10px;
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow-x: hidden;
-  }
+  /* status colours */
+  --c-pending:   #F59E0B;
+  --c-progress:  #6366F1;
+  --c-success:   #10B981;
+  --c-cancelled: #EF4444;
+}
 
-  body::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23000000" stroke-width="0.5" opacity="0.015"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23000000" stroke-width="0.3" opacity="0.01"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    pointer-events: none;
-    z-index: 0;
-  }
+body {
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  overflow-x:hidden;
+}
+body::before {
+  content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background-image:repeating-linear-gradient(95deg,transparent 0,transparent 4px,rgba(0,0,0,.009) 4px,rgba(0,0,0,.009) 5px);
+}
 
-  header {
-    padding: 1.5rem 3rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.9), transparent);
-    position: relative;
-    z-index: 100;
-  }
+/* ─── Header ─── */
+header {
+  padding:1.4rem 2.5rem;
+  display:flex; justify-content:space-between; align-items:center;
+  background:rgba(255,255,255,.88); backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:100;
+}
+.header-left { display:flex; align-items:center; gap:16px; }
+.menu-btn {
+  background:none; border:none; font-size:1.3rem; color:var(--text);
+  cursor:pointer; width:42px; height:42px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .2s;
+}
+.menu-btn:hover { background:var(--accent-pale); color:var(--accent); }
+.logo {
+  font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700;
+  display:flex; align-items:center; gap:10px; color:var(--text);
+}
+.logo i { color:var(--accent); }
+.greeting-pill {
+  font-size:.88rem; font-weight:500; color:var(--muted);
+  background:var(--panel); padding:7px 18px; border-radius:30px;
+  box-shadow:var(--shadow); border:1px solid var(--border);
+}
 
-  .header-left { display: flex; align-items: center; gap: 20px; }
+/* ─── Sidebar ─── */
+.sidebar {
+  position:fixed; top:0; left:-310px; width:300px; height:100%;
+  background:rgba(255,255,255,.97); backdrop-filter:blur(20px);
+  box-shadow:4px 0 30px rgba(42,27,20,.12); z-index:2000;
+  transition:left .38s cubic-bezier(.2,.8,.2,1);
+  display:flex; flex-direction:column;
+  border-right:1px solid var(--border);
+}
+.sidebar.open { left:0; }
+.sidebar-head {
+  padding:1.8rem 1.6rem 1.4rem;
+  border-bottom:1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.close-btn { background:none; border:none; font-size:1.1rem; color:var(--muted); cursor:pointer; transition:color .2s; }
+.close-btn:hover { color:var(--accent); }
+.nav-links { padding:1.4rem 0; display:flex; flex-direction:column; }
+.nav-item {
+  padding:.9rem 1.6rem; color:var(--text); text-decoration:none;
+  font-weight:500; font-size:1rem; display:flex; align-items:center; gap:14px;
+  border-left:3px solid transparent; transition:all .25s;
+}
+.nav-item i { color:var(--muted); width:22px; text-align:center; transition:color .2s; }
+.nav-item:hover { background:var(--accent-pale); border-left-color:var(--accent); color:var(--accent); }
+.nav-item:hover i { color:var(--accent); }
 
-  .menu-btn {
-    background: none; border: none; font-size: 1.5rem; color: var(--text-main);
-    cursor: pointer; transition: color 0.3s ease; display: flex; align-items: center;
-    justify-content: center; width: 44px; height: 44px; border-radius: 50%;
-  }
-  .menu-btn:hover { color: var(--accent-color); background: rgba(178,106,56,0.1); }
+.scrim {
+  position:fixed; inset:0; background:rgba(42,27,20,.38);
+  backdrop-filter:blur(3px); z-index:1500;
+  opacity:0; visibility:hidden; transition:all .35s;
+}
+.scrim.open { opacity:1; visibility:visible; }
 
-  .logo {
-    font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.6rem;
-    letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px;
-  }
-  .logo i { color: var(--accent-color); font-size: 0.9em; }
+/* ─── Main content ─── */
+main {
+  max-width:1420px; margin:0 auto;
+  padding:2.2rem 2.5rem 4rem;
+  position:relative; z-index:1; width:100%; flex:1;
+}
+.page-title {
+  text-align:center; margin-bottom:3rem;
+  animation:fadeDown .7s ease both;
+}
+.page-title h1 {
+  font-family:'Playfair Display',serif; font-size:3rem;
+  color:var(--text); margin-bottom:8px;
+}
+.page-title p { color:var(--muted); font-size:1.05rem; max-width:560px; margin:0 auto; }
 
-  .user-greeting {
-    font-size: 0.95rem; font-weight: 500; color: var(--text-muted);
-    background: var(--nav-bg); padding: 8px 20px; border-radius: 30px;
-    box-shadow: var(--shadow-sm);
-  }
+/* ─── Grid ─── */
+.grid {
+  display:grid;
+  grid-template-columns: 1.25fr 1fr 1fr;
+  gap:2rem;
+  animation:fadeUp .9s ease both;
+}
+.orders-col { display:flex; flex-direction:column; gap:1.4rem; }
+.col-title {
+  font-family:'Playfair Display',serif; font-size:1.6rem;
+  color:var(--accent2); text-align:center; margin-bottom:.4rem;
+}
 
-  .side-panel {
-    position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
-    background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px); box-shadow: 4px 0 25px rgba(42,27,20,0.1);
-    z-index: 2000; transition: left 0.4s cubic-bezier(0.2,0.8,0.2,1);
-    display: flex; flex-direction: column; border-right: 1px solid rgba(178,106,56,0.1);
-  }
-  .side-panel.active { left: 0; }
+/* ─── Cards ─── */
+.card {
+  background:rgba(255,255,255,.88); backdrop-filter:blur(10px);
+  border-radius:var(--radius); padding:1.6rem;
+  box-shadow:var(--shadow); border:1px solid var(--border);
+  transition:transform .3s, box-shadow .3s;
+}
+.card:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); }
 
-  .panel-header {
-    padding: 2rem; display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid rgba(178,106,56,0.1);
-  }
+.card-head {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:1.2rem;
+}
+.card-head h3 {
+  font-size:1rem; font-weight:700; color:var(--text);
+  display:flex; align-items:center; gap:9px;
+}
+.card-head h3 i { color:var(--accent); }
+.badge-count {
+  background:var(--accent); color:#fff; font-size:.68rem; font-weight:700;
+  padding:2px 8px; border-radius:20px; min-width:20px; text-align:center;
+}
+.btn-clear {
+  background:none; border:1px solid rgba(178,106,56,.25); color:var(--muted);
+  font-size:.75rem; font-weight:600; padding:4px 12px; border-radius:20px;
+  cursor:pointer; display:flex; align-items:center; gap:5px;
+  transition:all .2s; font-family:'DM Sans',sans-serif;
+}
+.btn-clear:hover { background:#fff0f0; border-color:#e57373; color:#c62828; }
 
-  .close-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; transition: color 0.3s; }
-  .close-btn:hover { color: var(--accent-color); }
+/* ─── Transaction rows ─── */
+.tx-row {
+  padding:1rem; border-radius:var(--radius-sm);
+  border:1px solid var(--border); margin-bottom:.8rem;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  background:var(--bg); animation:slideIn .3s ease both;
+  gap:10px;
+}
+.tx-row:last-child { margin-bottom:0; }
+.tx-info b { font-size:.97rem; color:var(--text); display:block; margin-bottom:3px; }
+.tx-info small { font-size:.8rem; color:var(--muted); display:block; line-height:1.7; }
+.tx-info small i { width:13px; text-align:center; margin-right:4px; }
+.tx-right { display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; }
 
-  .nav-links { padding: 2rem 0; display: flex; flex-direction: column; gap: 5px; }
+.pill {
+  padding:4px 12px; border-radius:20px;
+  font-size:.72rem; font-weight:700; letter-spacing:.4px; white-space:nowrap;
+}
+.pill-pending   { background:#FEF3C7; color:#D97706; border:1px solid #FDE68A; }
+.pill-progress  { background:#E0E7FF; color:#4F46E5; border:1px solid #C7D2FE; }
+.pill-success   { background:#D1FAE5; color:#059669; border:1px solid #A7F3D0; }
+.pill-cancelled { background:#FEE2E2; color:#DC2626; border:1px solid #FECACA; }
+.pill-unknown   { background:#F1F5F9; color:#64748B; border:1px solid #E2E8F0; }
 
-  .nav-item {
-    padding: 1rem 2rem; color: var(--text-main); text-decoration: none;
-    font-weight: 500; font-size: 1.05rem; display: flex; align-items: center;
-    gap: 15px; transition: all 0.3s ease; border-left: 4px solid transparent;
-  }
-  .nav-item i { color: var(--text-muted); font-size: 1.2rem; transition: color 0.3s ease; width: 24px; text-align: center; }
-  .nav-item:hover { background: rgba(178,106,56,0.05); border-left-color: var(--accent-color); color: var(--accent-color); }
-  .nav-item:hover i { color: var(--accent-color); }
+.continue-btn {
+  background:var(--accent); color:#fff; border:none;
+  padding:6px 14px; border-radius:18px; font-size:.78rem;
+  cursor:pointer; font-weight:600; transition:all .2s;
+  font-family:'DM Sans',sans-serif;
+}
+.continue-btn:hover { background:var(--accent2); transform:translateY(-1px); }
 
-  .overlay {
-    position: fixed; inset: 0; background: rgba(42,27,20,0.4);
-    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
-    z-index: 1500; opacity: 0; visibility: hidden; transition: all 0.4s ease;
-  }
-  .overlay.active { opacity: 1; visibility: visible; }
+.empty { font-size:.93rem; color:var(--muted); font-style:italic; padding:.4rem 0; }
 
-  main {
-    max-width: 1400px; margin: 0 auto; padding: 2rem 3rem 4rem;
-    position: relative; z-index: 1; width: 100%; flex: 1;
-  }
+/* ─── View-All button ─── */
+.btn-view-all {
+  width:100%; margin-top:.8rem; padding:10px;
+  background:transparent; border:1.5px solid rgba(178,106,56,.3);
+  color:var(--accent); font-family:'DM Sans',sans-serif; font-size:.88rem;
+  font-weight:700; border-radius:var(--radius-sm); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:all .2s;
+}
+.btn-view-all:hover { background:var(--accent-pale); border-color:var(--accent); }
 
-  .page-header { text-align: center; margin-bottom: 4rem; animation: fadeDown 0.8s ease-out; }
-  .page-header h1 { font-family: 'Playfair Display', serif; font-size: 3.2rem; color: var(--text-main); margin-bottom: 12px; }
-  .page-header p { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
+/* ─── Action cards ─── */
+.action-card {
+  background:rgba(255,255,255,.92); border-radius:22px;
+  padding:2.6rem 1.8rem; text-align:center;
+  box-shadow:var(--shadow); border:1px solid var(--border);
+  display:flex; flex-direction:column; align-items:center;
+  transition:all .4s cubic-bezier(.2,.8,.2,1); cursor:pointer; height:100%;
+}
+.action-card:hover { transform:translateY(-8px); box-shadow:var(--shadow-lg); border-color:rgba(178,106,56,.28); }
+.action-icon {
+  width:80px; height:80px; border-radius:50%; margin-bottom:1.6rem;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex; align-items:center; justify-content:center;
+  font-size:2rem; color:#fff;
+  box-shadow:0 10px 22px rgba(178,106,56,.28);
+  transition:transform .4s cubic-bezier(.2,.8,.2,1);
+}
+.action-card:hover .action-icon { transform:scale(1.1) rotate(6deg); }
+.action-card h2 {
+  font-family:'Playfair Display',serif; font-size:1.65rem;
+  color:var(--text); margin-bottom:.8rem;
+}
+.action-card p { color:var(--muted); font-size:.95rem; line-height:1.65; margin-bottom:1.8rem; flex:1; }
+.action-btn {
+  background:var(--text); color:#fff; border:none;
+  padding:13px 32px; border-radius:30px;
+  font-size:.95rem; font-weight:600; cursor:pointer;
+  transition:all .3s; font-family:'DM Sans',sans-serif;
+  width:100%; max-width:200px;
+}
+.action-card:hover .action-btn { background:var(--accent); box-shadow:0 6px 16px rgba(178,106,56,.3); }
 
-  .dashboard-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 2.5rem; animation: fadeUp 1s ease-out; }
+/* ══════════════════════════════════════
+   FULL TRANSACTION MODAL
+══════════════════════════════════════ */
+.modal-scrim {
+  position:fixed; inset:0; background:rgba(42,27,20,.5);
+  backdrop-filter:blur(6px); z-index:3000;
+  display:none; align-items:center; justify-content:center; padding:20px;
+}
+.modal-scrim.open { display:flex; animation:fadein .2s; }
 
-  .orders-column { display: flex; flex-direction: column; gap: 1.5rem; }
+.modal-box {
+  background:var(--bg); width:100%; max-width:900px;
+  border-radius:24px; overflow:hidden;
+  box-shadow:0 30px 80px rgba(42,27,20,.2);
+  display:flex; flex-direction:column; max-height:90vh;
+  animation:slideup .25s ease;
+}
+.modal-header {
+  padding:1.4rem 1.8rem;
+  background:var(--panel); border-bottom:1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:center;
+  flex-shrink:0;
+}
+.modal-header h2 { font-family:'Playfair Display',serif; font-size:1.4rem; display:flex; align-items:center; gap:10px; }
+.modal-header h2 i { color:var(--accent); font-size:1rem; }
+.modal-close {
+  width:36px; height:36px; border-radius:50%;
+  border:none; background:var(--accent-pale); cursor:pointer;
+  color:var(--accent); font-size:.95rem;
+  display:flex; align-items:center; justify-content:center; transition:background .2s;
+}
+.modal-close:hover { background:rgba(178,106,56,.2); }
 
-  .column-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--accent-hover); text-align: center; margin-bottom: 1rem; }
+.modal-toolbar {
+  padding:.9rem 1.8rem; background:var(--panel);
+  border-bottom:1px solid var(--border);
+  display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+  flex-shrink:0;
+}
+.filter-btn {
+  padding:6px 16px; border-radius:20px; border:1.5px solid var(--border);
+  background:transparent; font-family:'DM Sans',sans-serif; font-size:.82rem;
+  font-weight:600; cursor:pointer; color:var(--muted); transition:all .2s;
+}
+.filter-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.filter-btn:hover:not(.active) { background:var(--accent-pale); color:var(--accent); border-color:rgba(178,106,56,.35); }
+.search-box {
+  margin-left:auto; padding:7px 14px 7px 36px;
+  border:1.5px solid var(--border); border-radius:20px;
+  font-family:'DM Sans',sans-serif; font-size:.85rem; background:var(--bg);
+  color:var(--text); outline:none; transition:border-color .2s; width:200px;
+  position:relative;
+}
+.search-box:focus { border-color:var(--accent); }
+.search-wrap { position:relative; }
+.search-wrap i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:.8rem; pointer-events:none; }
 
-  .sub-card {
-    background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-radius: 20px;
-    padding: 1.8rem; box-shadow: var(--shadow-sm); border: 1px solid rgba(178,106,56,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  .sub-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.modal-body { overflow-y:auto; padding:1.6rem 1.8rem; flex:1; }
 
-  .sub-card h3 {
-    font-size: 1.1rem; font-weight: 600; color: var(--text-main);
-    margin-bottom: 1.2rem; display: flex; align-items: center; gap: 10px;
-  }
+/* Big table */
+.tx-table { width:100%; border-collapse:collapse; }
+.tx-table th {
+  text-align:left; padding:.8rem 1rem;
+  color:var(--muted); font-size:.75rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:.6px;
+  border-bottom:2px solid var(--border); white-space:nowrap;
+}
+.tx-table td {
+  padding:.9rem 1rem; font-size:.9rem;
+  border-bottom:1px solid var(--border); vertical-align:middle;
+}
+.tx-table tr:last-child td { border-bottom:none; }
+.tx-table tr:hover td { background:var(--accent-pale); }
+.tx-name { font-weight:600; color:var(--text); }
+.tx-shop { font-size:.82rem; color:var(--muted); margin-top:2px; }
+.tx-price { font-weight:700; color:var(--accent2); font-size:.95rem; }
+.tx-date  { color:var(--muted); font-size:.82rem; white-space:nowrap; }
+.tx-ref   { font-family:monospace; font-size:.82rem; color:var(--c-progress); }
+.no-results { text-align:center; padding:3rem; color:var(--muted); font-style:italic; }
 
-  /* Sub-card header row (title + clear button) */
-  .sub-card-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;
-  }
-  .sub-card-header h3 { margin-bottom: 0; }
+.modal-footer {
+  padding:1rem 1.8rem; background:var(--panel);
+  border-top:1px solid var(--border); display:flex;
+  justify-content:space-between; align-items:center; flex-shrink:0;
+  font-size:.85rem; color:var(--muted);
+}
 
-  .clear-btn {
-    background: none; border: 1px solid rgba(178,106,56,0.3); color: var(--text-muted);
-    font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 20px;
-    cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s ease;
-    display: flex; align-items: center; gap: 5px; white-space: nowrap;
-  }
-  .clear-btn:hover { background: #fdecea; border-color: #e57373; color: #c62828; }
+/* ══════════════════════════════════════
+   LIVE CHAT MODAL  (same as export_area)
+══════════════════════════════════════ */
+.chat-scrim {
+  position:fixed; inset:0; background:rgba(42,27,20,.45);
+  backdrop-filter:blur(5px); z-index:3100;
+  display:none; align-items:flex-end; justify-content:flex-end;
+  padding:20px;
+}
+.chat-scrim.open { display:flex; animation:fadein .2s; }
 
-  .history-count {
-    display: inline-flex; align-items: center; justify-content: center;
-    background: var(--accent-color); color: white; font-size: 0.7rem; font-weight: 700;
-    min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; margin-left: 6px;
-  }
+.chat-panel {
+  background:#fff; width:380px; max-width:100%;
+  border-radius:20px; box-shadow:0 25px 60px rgba(42,27,20,.2);
+  display:flex; flex-direction:column;
+  height:520px; overflow:hidden;
+  animation:slideup .25s ease;
+}
+.chat-panel-head {
+  padding:1.1rem 1.4rem;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff; display:flex; justify-content:space-between; align-items:center;
+  flex-shrink:0;
+}
+.chat-panel-head h3 { font-family:'Playfair Display',serif; font-size:1.1rem; }
+.chat-online { font-size:.78rem; opacity:.85; display:flex; align-items:center; gap:5px; }
+.chat-panel-close {
+  background:rgba(255,255,255,.2); border:none; color:#fff;
+  width:30px; height:30px; border-radius:50%; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:background .2s;
+}
+.chat-panel-close:hover { background:rgba(255,255,255,.35); }
+.chat-shop-row {
+  padding:.7rem 1.2rem; border-bottom:1px solid var(--border);
+  font-size:.8rem; color:var(--muted); flex-shrink:0;
+  display:flex; align-items:center; gap:6px;
+}
+.chat-messages {
+  flex:1; padding:1rem; overflow-y:auto;
+  display:flex; flex-direction:column; gap:8px;
+  background:#f8fafc;
+}
+.msg {
+  padding:.65rem 1rem; border-radius:14px;
+  font-size:.85rem; max-width:82%;
+  line-height:1.5;
+}
+.msg.shop {
+  background:#E0E7FF; color:#3730A3;
+  align-self:flex-start; border-bottom-left-radius:4px;
+}
+.msg.user {
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff; align-self:flex-end; border-bottom-right-radius:4px;
+}
+.chat-input-row {
+  padding:.8rem 1rem; display:flex; gap:8px;
+  border-top:1px solid var(--border); background:#fff; flex-shrink:0;
+}
+.chat-input {
+  flex:1; padding:.7rem 1rem; border:1.5px solid var(--border);
+  border-radius:12px; font-family:'DM Sans',sans-serif; font-size:.88rem;
+  outline:none; background:var(--bg); transition:border-color .2s;
+}
+.chat-input:focus { border-color:var(--accent); }
+.btn-send {
+  width:40px; height:40px; border:none; border-radius:12px;
+  background:var(--accent); color:#fff; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .2s; flex-shrink:0;
+}
+.btn-send:hover { background:var(--accent2); transform:translateY(-1px); }
 
-  .empty-state { font-size: 0.95rem; color: var(--text-muted); font-style: italic; }
+/* Floating chat button */
+.fab-chat {
+  position:fixed; bottom:24px; right:24px; z-index:500;
+  width:56px; height:56px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff; border:none; cursor:pointer; font-size:1.3rem;
+  box-shadow:0 8px 24px rgba(178,106,56,.4);
+  display:flex; align-items:center; justify-content:center;
+  transition:all .25s;
+}
+.fab-chat:hover { transform:scale(1.1); box-shadow:0 12px 30px rgba(178,106,56,.5); }
+.fab-badge {
+  position:absolute; top:-4px; right:-4px;
+  background:#EF4444; color:#fff; font-size:.65rem; font-weight:700;
+  width:18px; height:18px; border-radius:50%; display:none;
+  align-items:center; justify-content:center; border:2px solid var(--bg);
+}
+.fab-badge.show { display:flex; }
 
-  .action-card {
-    background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-radius: 24px;
-    padding: 3rem 2rem; text-align: center; box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(178,106,56,0.1); display: flex; flex-direction: column;
-    align-items: center; transition: all 0.4s cubic-bezier(0.2,0.8,0.2,1); cursor: pointer; height: 100%;
-  }
-  .action-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-md); border-color: rgba(178,106,56,0.3); }
+/* ─── Template card locked state ─── */
+.action-card.locked {
+  cursor: not-allowed;
+  opacity: .72;
+  background: rgba(240,236,230,.7);
+  border-color: rgba(178,106,56,.08);
+}
+.action-card.locked:hover {
+  transform: none;
+  box-shadow: var(--shadow);
+  border-color: rgba(178,106,56,.08);
+}
+.action-card.locked .action-icon {
+  background: #C0AFA4;
+  box-shadow: none;
+}
+.action-card.locked:hover .action-icon { transform: none; }
+.action-card.locked .action-btn {
+  background: #2A1B14;
+  cursor: not-allowed;
+  opacity: .45;
+  box-shadow: none;
+}
+.action-card.locked:hover .action-btn {
+  background: #2A1B14;
+  box-shadow: none;
+}
+.no-shop-notice {
+  display: none;
+  margin-top: .6rem;
+  font-size: .8rem;
+  color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.no-shop-notice i { color: #C0AFA4; }
+.action-card:not(.locked) .no-shop-notice { display: none !important; }
 
-  .card-icon {
-    width: 90px; height: 90px;
-    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 2.2rem; color: white; margin-bottom: 2rem;
-    box-shadow: 0 10px 20px rgba(178,106,56,0.25);
-    transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1);
-  }
-  .action-card:hover .card-icon { transform: scale(1.1) rotate(5deg); }
+.shop-name-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-pale); color: var(--accent2);
+  border: 1px solid rgba(178,106,56,.25);
+  font-size: .75rem; font-weight: 700; padding: 3px 10px;
+  border-radius: 20px; margin-bottom: .5rem;
+  letter-spacing: .02em;
+}
 
-  .action-card h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--text-main); margin-bottom: 1rem; font-weight: 600; }
-  .action-card p  { color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin-bottom: 2rem; flex-grow: 1; }
+/* ─── Animations ─── */
+@keyframes fadeDown { from{opacity:0;transform:translateY(-18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeUp   { from{opacity:0;transform:translateY(18px)}  to{opacity:1;transform:translateY(0)} }
+@keyframes slideIn  { from{opacity:0;transform:translateX(-8px)}  to{opacity:1;transform:translateX(0)} }
+@keyframes fadein   { from{opacity:0} to{opacity:1} }
+@keyframes slideup  { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-  .action-btn {
-    background: var(--text-main); color: white; border: none; padding: 14px 35px;
-    border-radius: 30px; font-size: 1rem; font-weight: 500; cursor: pointer;
-    transition: all 0.3s ease; width: 100%; max-width: 200px; font-family: 'Inter', sans-serif;
-  }
-  .action-card:hover .action-btn { background: var(--accent-color); box-shadow: 0 6px 15px rgba(178,106,56,0.25); }
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(178,106,56,.3); border-radius:4px; }
 
-  .order-card {
-    border: 1px solid rgba(178,106,56,0.2); padding: 1.2rem; border-radius: 12px;
-    margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;
-    background: var(--bg-color); animation: slideIn 0.3s ease-out;
-  }
-  .order-card:last-child { margin-bottom: 0; }
-
-  .order-details b   { color: var(--text-main); font-size: 1.05rem; display: block; margin-bottom: 4px; }
-  .order-details small { color: var(--text-muted); display: block; font-size: 0.85rem; line-height: 1.6; }
-  .order-details small i { width: 14px; text-align: center; margin-right: 4px; }
-
-  .status-badge  { padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; }
-  .status-success { background: #E8F5E9; color: #2E7D32; border: 1px solid #C8E6C9; }
-  .status-pending { background: #FFF8E1; color: #F57F17; border: 1px solid #FFE082; }
-
-  .continue-btn {
-    background: var(--accent-color); color: white; border: none;
-    padding: 8px 16px; border-radius: 20px; font-size: 0.8rem;
-    cursor: pointer; font-weight: 600; transition: all 0.2s;
-  }
-  .continue-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
-
-  @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes fadeUp   { from { opacity:0; transform:translateY(20px);  } to { opacity:1; transform:translateY(0); } }
-  @keyframes slideIn  { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:translateX(0); } }
-
-  @media (max-width: 1024px) {
-    .dashboard-grid { grid-template-columns: 1fr 1fr; }
-    .orders-column  { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .column-title   { grid-column: 1 / -1; }
-  }
-  @media (max-width: 768px) {
-    header { padding: 1.5rem; }
-    main   { padding: 1rem 1.5rem 3rem; }
-    .page-header h1    { font-size: 2.4rem; }
-    .dashboard-grid    { grid-template-columns: 1fr; }
-    .orders-column     { grid-template-columns: 1fr; }
-    .side-panel        { width: 280px; left: -280px; }
-  }
+/* ─── Responsive ─── */
+@media(max-width:1100px) {
+  .grid { grid-template-columns:1fr 1fr; }
+  .orders-col { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; }
+  .col-title { grid-column:1/-1; }
+}
+@media(max-width:700px) {
+  header { padding:1rem 1.2rem; }
+  main   { padding:1.2rem 1.2rem 3rem; }
+  .page-title h1 { font-size:2.2rem; }
+  .grid  { grid-template-columns:1fr; }
+  .orders-col { grid-template-columns:1fr; }
+  .sidebar { width:270px; left:-270px; }
+  .chat-panel { width:100%; }
+  .chat-scrim { padding:0; align-items:flex-end; }
+}
 </style>
 </head>
 <body>
 
-  <header>
-    <div class="header-left">
-      <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
-      <div class="logo"><i class="fas fa-hammer"></i>FurniCraft</div>
-    </div>
-    <div class="user-greeting" id="userGreeting">Welcome</div>
-  </header>
+<!-- ─── Header ─── -->
+<header>
+  <div class="header-left">
+    <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+    <div class="logo"><i class="fas fa-hammer"></i>FurniCraft</div>
+  </div>
+  <div class="greeting-pill" id="greetingPill">Welcome</div>
+</header>
 
-  <nav class="side-panel" id="sidePanel">
-    <div class="panel-header">
-      <div class="logo"><i class="fas fa-hammer"></i>FurniCraft</div>
-      <button class="close-btn" id="closeBtn"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="nav-links">
-      <a href="craft.html"      class="nav-item"><i class="fas fa-tools"></i> Craft a Furniture</a>
-      <a href="templates.html"  class="nav-item"><i class="fas fa-images"></i> View Templates</a>
-      <a href="createshop.html" class="nav-item"><i class="fas fa-store"></i> Create a Shop</a>
-      <a href="#"               class="nav-item"><i class="fas fa-cog"></i> Settings</a>
-      <a href="#"               class="nav-item"><i class="fas fa-comments"></i> Feedbacks</a>
-    </div>
-  </nav>
+<!-- ─── Sidebar ─── -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="logo"><i class="fas fa-hammer"></i>FurniCraft</div>
+    <button class="close-btn" id="closeBtn"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="nav-links">
+    <a href="craft.html"       class="nav-item"><i class="fas fa-tools"></i> Craft a Furniture</a>
+    <a href="export_area.html" class="nav-item"><i class="fas fa-file-export"></i> Export Area</a>
+    <a href="shop.html"        class="nav-item"><i class="fas fa-store"></i> Select a Workshop</a>
+    <a href="#" class="nav-item" id="navTemplates" onclick="navToTemplates(event)"><i class="fas fa-images"></i> <span id="navTemplatesLabel">Pre-made Templates</span></a>
+    <a href="createshop.html"  class="nav-item"><i class="fas fa-hammer"></i> Create a Shop</a>
+    <a href="#"                class="nav-item"><i class="fas fa-cog"></i> Settings</a>
+    <a href="#"                class="nav-item" onclick="openChat(event)"><i class="fas fa-comments"></i> Live Chat</a>
+  </div>
+</nav>
+<div class="scrim" id="scrim"></div>
 
-  <div class="overlay" id="overlay"></div>
+<!-- ─── Main ─── -->
+<main>
+  <div class="page-title">
+    <h1>Your Dashboard</h1>
+    <p>Track your active orders and production status, or start a new craft.</p>
+  </div>
 
-  <main>
-    <div class="page-header">
-      <h1>Choose Your Dashboard</h1>
-      <p>Select the perfect dashboard to start your FurniCraft journey. Customize furniture, manage orders, or oversee production.</p>
-    </div>
+  <div class="grid">
 
-    <div class="dashboard-grid">
+    <!-- ORDERS COLUMN -->
+    <div class="orders-col">
+      <h2 class="col-title">Your Orders</h2>
 
-      <div class="orders-column">
-        <h2 class="column-title">Your Orders</h2>
-
-        <!-- CURRENT / PENDING ORDERS -->
-        <div class="sub-card">
-          <h3><i class="fas fa-box-open" style="color:var(--accent-color);"></i> Current Orders</h3>
-          <div id="currentOrders"><div class="empty-state">No active orders yet.</div></div>
+      <!-- Current / Pending -->
+      <div class="card">
+        <div class="card-head">
+          <h3><i class="fas fa-box-open"></i> Current Orders <span class="badge-count" id="pendingCount" style="display:none"></span></h3>
         </div>
+        <div id="currentOrders"><div class="empty">No active orders yet.</div></div>
+      </div>
 
-        <!-- TRANSACTION HISTORY — live, based on real placed orders -->
-        <div class="sub-card">
-          <div class="sub-card-header">
-            <h3>
-              <i class="fas fa-history" style="color:var(--accent-color);"></i>
-              Transaction History
-              <span class="history-count" id="historyCount" style="display:none;"></span>
-            </h3>
-            <button class="clear-btn" id="clearHistoryBtn" style="display:none;" onclick="clearHistory()">
-              <i class="fas fa-trash-alt"></i> Clear
-            </button>
-          </div>
-          <div id="orderHistory"><div class="empty-state">No previous transactions.</div></div>
+      <!-- Transaction History -->
+      <div class="card">
+        <div class="card-head">
+          <h3><i class="fas fa-receipt"></i> Transactions <span class="badge-count" id="txCount" style="display:none"></span></h3>
+          <button class="btn-clear" id="clearBtn" style="display:none" onclick="clearHistory()">
+            <i class="fas fa-trash-alt"></i> Clear
+          </button>
         </div>
-      </div>
+        <div id="txHistory"><div class="empty">No previous transactions.</div></div>
 
-      <div class="action-card" onclick="location.href='craft.html'">
-        <div class="card-icon"><i class="fas fa-tools"></i></div>
-        <h2>Craft a Furniture</h2>
-        <p>Customize and create your own furniture designs from scratch.</p>
-        <button class="action-btn">Craft Furniture</button>
+        <!-- VIEW ALL button -->
+        <button class="btn-view-all" id="viewAllBtn" style="display:none" onclick="openTxModal()">
+          <i class="fas fa-table-list"></i> View All Transactions
+        </button>
       </div>
-
-      <div class="action-card" onclick="location.href='templates.html'">
-        <div class="card-icon"><i class="fas fa-clipboard-list"></i></div>
-        <h2>View Templates</h2>
-        <p>Browse and select from our pre-designed, ready-to-build furniture templates.</p>
-        <button class="action-btn">View Templates</button>
-      </div>
-
     </div>
-  </main>
 
-  <script>
-    // ═══════════════════════════════════════════════════════════════
-    //  FURNICRAFT ORDER HELPERS
-    //  Exposed as window.FurniCraft so craft.html can call saveOrder()
-    //
-    //  How to save an order from craft.html when user confirms:
-    //
-    //    window.FurniCraft.saveOrder({
-    //      projectName : "Custom Sofa",
-    //      shopName    : sessionStorage.getItem("selectedShopName") || "Unknown Shop",
-    //      shopId      : sessionStorage.getItem("selectedShopId")   || "0",
-    //      estimated   : "₱3,200",
-    //      status      : "pending"      // or "successful" once fulfilled
-    //    });
-    //
-    //  To mark an existing order as successful (e.g. from a shop dashboard):
-    //
-    //    window.FurniCraft.updateOrderStatus(key, "successful");
-    // ═══════════════════════════════════════════════════════════════
-    window.FurniCraft = {
+    <!-- Craft card -->
+    <div class="action-card" onclick="location.href='craft.html'">
+      <div class="action-icon"><i class="fas fa-tools"></i></div>
+      <h2>Craft a Furniture</h2>
+      <p>Customize and create your own furniture designs from scratch with our 3D builder.</p>
+      <button class="action-btn">Start Crafting</button>
+    </div>
 
-      /** Save a new order; returns its localStorage key */
-      saveOrder(order) {
-        const key = 'order_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-        localStorage.setItem(key, JSON.stringify({
-          ...order,
-          placedAt: new Date().toISOString()
-        }));
-        return key;
-      },
+    <!-- Shop Templates card — dynamic, disabled if no shop selected -->
+    <div class="action-card" id="templateCard" onclick="goToTemplates()">
+      <div class="action-icon" id="templateIcon"><i class="fas fa-store"></i></div>
+      <h2 id="templateTitle">View Templates</h2>
+      <p id="templateDesc">Select a workshop in Shop Selection to browse that shop's pre-made 3D furniture designs.</p>
+      <button class="action-btn" id="templateBtn">Browse Templates</button>
+      <div class="no-shop-notice" id="noShopNotice">
+        <i class="fas fa-lock"></i> Select a shop first
+      </div>
+    </div>
 
-      /** Update the status of an existing order by key */
-      updateOrderStatus(key, newStatus) {
-        try {
-          const order = JSON.parse(localStorage.getItem(key));
-          if (order) {
-            order.status = newStatus;
-            localStorage.setItem(key, JSON.stringify(order));
-          }
-        } catch(e) {}
-      },
+  </div>
+</main>
 
-      /** Return all orders sorted newest-first */
-      getAllOrders() {
-        return Object.keys(localStorage)
-          .filter(k => k.startsWith('order_'))
-          .map(k => { try { return { key: k, ...JSON.parse(localStorage.getItem(k)) }; } catch(e) { return null; } })
-          .filter(Boolean)
-          .sort((a, b) => new Date(b.placedAt || 0) - new Date(a.placedAt || 0));
-      },
 
-      /** Remove all non-pending orders from localStorage */
-      clearCompletedOrders() {
-        Object.keys(localStorage)
-          .filter(k => k.startsWith('order_'))
-          .forEach(k => {
-            try {
-              const o = JSON.parse(localStorage.getItem(k));
-              if (!o.status || o.status.toLowerCase() !== 'pending') localStorage.removeItem(k);
-            } catch(e) {}
-          });
-      }
-    };
+<!-- ══════════════════════════════════════
+     FULL TRANSACTION MODAL
+══════════════════════════════════════ -->
+<div class="modal-scrim" id="txModalScrim" onclick="closeTxModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2><i class="fas fa-table-list"></i> All Transactions</h2>
+      <button class="modal-close" onclick="closeTxModal()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-toolbar">
+      <button class="filter-btn active" data-filter="all"        onclick="filterTx(this)">All</button>
+      <button class="filter-btn"        data-filter="pending"    onclick="filterTx(this)">Pending</button>
+      <button class="filter-btn"        data-filter="in_progress" onclick="filterTx(this)">In Progress</button>
+      <button class="filter-btn"        data-filter="completed"  onclick="filterTx(this)">Completed</button>
+      <button class="filter-btn"        data-filter="declined"   onclick="filterTx(this)">Declined</button>
+      <div class="search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" class="search-box" id="txSearch" placeholder="Search…" oninput="renderTxTable()">
+      </div>
+    </div>
+    <div class="modal-body">
+      <table class="tx-table">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Shop</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Ref #</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="txTableBody"></tbody>
+      </table>
+      <div class="no-results" id="txNoResults" style="display:none">No transactions found.</div>
+    </div>
+    <div class="modal-footer">
+      <span id="txFooterCount">— items</span>
+      <button class="btn-clear" onclick="clearHistory(true)"><i class="fas fa-trash-alt"></i> Clear Completed</button>
+    </div>
+  </div>
+</div>
 
-    // ═══════════════════════════════════════════════════════════════
-    //  INIT
-    // ═══════════════════════════════════════════════════════════════
-    document.addEventListener('DOMContentLoaded', () => {
-      const userName = sessionStorage.getItem('username');
-      if (userName) document.getElementById('userGreeting').textContent = `Welcome, ${userName}!`;
 
-      // ⚠️  NO demo seeding — history reflects only real orders placed by the user
-      loadOrdersDashboard();
+<!-- ══════════════════════════════════════
+     LIVE CHAT MODAL  (mirrors export_area)
+══════════════════════════════════════ -->
+<div class="chat-scrim" id="chatScrim" onclick="closeChatOnScrim(event)">
+  <div class="chat-panel" onclick="event.stopPropagation()">
+    <div class="chat-panel-head">
+      <div>
+        <h3><i class="fas fa-comments" style="margin-right:8px;"></i>Shop Live Chat</h3>
+        <div class="chat-online"><i class="fas fa-circle" style="font-size:.5rem;"></i> Online</div>
+      </div>
+      <button class="chat-panel-close" onclick="closeChat()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="chat-shop-row" id="chatShopLabel">
+      <i class="fas fa-store"></i> Connected to: <strong id="chatShopName">—</strong>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-row">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Type a message…">
+      <button class="btn-send" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating chat button -->
+<button class="fab-chat" onclick="openChat()" title="Open Live Chat">
+  <i class="fas fa-comments"></i>
+  <span class="fab-badge" id="fabBadge"></span>
+</button>
+
+
+<script>
+/* ══════════════════════════════════════
+   CONSTANTS — must match export_area.html
+══════════════════════════════════════ */
+const SHOP_ID   = 1;
+const SHOP_NAME = 'Irawan Custom Woodworks';
+const COMM_KEY  = `projectProposals_shop_${SHOP_ID}`;
+const CHAT_KEY  = `chatMessages_shop_${SHOP_ID}`;
+
+/* ── helpers ── */
+function fmtDate(iso){
+  if(!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtTime(iso){
+  if(!iso) return '';
+  return new Date(iso).toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+}
+function money(txt){ const s=String(txt||'').trim(); return s||'₱0'; }
+
+function pillClass(st){
+  const map={pending:'pill-pending',approved:'pill-progress',payment_verifying:'pill-progress',
+    in_progress:'pill-progress',completed:'pill-success',declined:'pill-cancelled'};
+  return map[st]||'pill-unknown';
+}
+function pillLabel(st){
+  const map={pending:'Pending',approved:'Approved',payment_verifying:'Verifying',
+    in_progress:'In Progress',completed:'Completed',declined:'Declined'};
+  return map[st]||st?.toUpperCase()||'Unknown';
+}
+
+/* ── customer identity (mirrors export_area's getCustName logic) ── */
+function getCustName(){
+  const expId = sessionStorage.getItem('currentExportId')||'exp_unknown';
+  return 'Client ('+expId.substring(0,6)+')';
+}
+
+/* ══════════════════════════════════════
+   LOAD ALL TRANSACTIONS  
+   Sources:
+    1. localStorage projectProposals_shop_X  (export_area commissions)
+    2. localStorage order_*                  (FurniCraft.saveOrder keys)
+══════════════════════════════════════ */
+function getAllTx(){
+  const rows = [];
+
+  /* Source 1 — export_area proposals */
+  try {
+    const proposals = JSON.parse(localStorage.getItem(COMM_KEY)||'[]');
+    proposals.forEach(p=>{
+      rows.push({
+        id:       p.id,
+        name:     p.description || 'Custom Design',
+        shop:     SHOP_NAME,
+        price:    p.price ? '₱'+Number(p.price).toLocaleString() : '₱0',
+        status:   p.status || 'pending',
+        ref:      p.referenceNumber || '',
+        date:     p.submittedAt || '',
+        source:   'export'
+      });
+    });
+  } catch(e){}
+
+  /* Source 2 — order_* keys */
+  Object.keys(localStorage)
+    .filter(k=>k.startsWith('order_'))
+    .forEach(k=>{
+      try{
+        const o = JSON.parse(localStorage.getItem(k));
+        rows.push({
+          id:     k,
+          name:   o.projectName || 'Custom Furniture',
+          shop:   o.shopName    || 'Unknown Shop',
+          price:  o.estimated   || '₱0',
+          status: o.status      || 'pending',
+          ref:    '',
+          date:   o.placedAt    || '',
+          source: 'order'
+        });
+      } catch(e){}
     });
 
-    // ═══════════════════════════════════════════════════════════════
-    //  SIDE PANEL
-    // ═══════════════════════════════════════════════════════════════
-    const menuBtn   = document.getElementById('menuBtn');
-    const closeBtn  = document.getElementById('closeBtn');
-    const sidePanel = document.getElementById('sidePanel');
-    const overlay   = document.getElementById('overlay');
+  /* newest first */
+  return rows.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+}
 
-    menuBtn.addEventListener('click',  () => { sidePanel.classList.add('active');    overlay.classList.add('active');    });
-    closeBtn.addEventListener('click', () => { sidePanel.classList.remove('active'); overlay.classList.remove('active'); });
-    overlay.addEventListener('click',  () => { sidePanel.classList.remove('active'); overlay.classList.remove('active'); });
+/* ══════════════════════════════════════
+   RENDER DASHBOARD PANELS
+══════════════════════════════════════ */
+function renderDashboard(){
+  const all   = getAllTx();
+  const curEl = document.getElementById('currentOrders');
+  const hisEl = document.getElementById('txHistory');
+  const pBadge= document.getElementById('pendingCount');
+  const tBadge= document.getElementById('txCount');
+  const clrBtn= document.getElementById('clearBtn');
+  const vaBtn = document.getElementById('viewAllBtn');
 
-    // ═══════════════════════════════════════════════════════════════
-    //  LOAD ORDERS DASHBOARD
-    //  Sources:
-    //    1. sessionStorage "selectedShopName" → draft card (shop chosen, not yet ordered)
-    //    2. localStorage order_* keys         → real placed orders (via FurniCraft.saveOrder)
-    // ═══════════════════════════════════════════════════════════════
-    function loadOrdersDashboard() {
-      const currentBox = document.getElementById('currentOrders');
-      const historyBox = document.getElementById('orderHistory');
-      const countBadge = document.getElementById('historyCount');
-      const clearBtn   = document.getElementById('clearHistoryBtn');
+  let curHTML='', hisHTML='', pCount=0, tCount=0;
 
-      let currentHTML  = '';
-      let historyHTML  = '';
-      let hasCurrent   = false;
-      let historyCount = 0;
+  /* Draft: shop chosen but not yet ordered */
+  const shopDraft = sessionStorage.getItem('selectedShopName');
+  if(shopDraft){
+    curHTML += txRow({name:'Custom Furniture Draft',shop:shopDraft,status:'draft',date:''}, true);
+    pCount++;
+  }
 
-      // ── 1. Draft: shop selected in shops.html, order not placed yet ──
-      const selectedShop = sessionStorage.getItem('selectedShopName');
-      if (selectedShop) {
-        currentHTML += `
-          <div class="order-card">
-            <div class="order-details">
-              <b>Custom Furniture Draft</b>
-              <small><i class="fas fa-store"></i> ${selectedShop}</small>
-              <small><i class="fas fa-info-circle"></i> Ready to Craft</small>
-            </div>
-            <button class="continue-btn" onclick="location.href='craft.html'">CONTINUE</button>
-          </div>`;
-        hasCurrent = true;
-      }
-
-      // ── 2. Real orders saved via window.FurniCraft.saveOrder() ──
-      const orders = window.FurniCraft.getAllOrders();
-
-      orders.forEach(order => {
-        const status     = (order.status || 'unknown').toLowerCase();
-        const isPending  = status === 'pending';
-        const badgeClass = isPending ? 'status-pending' : 'status-success';
-        const statusText = status.toUpperCase();
-        const placedDate = order.placedAt
-          ? new Date(order.placedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
-          : '';
-
-        const card = `
-          <div class="order-card">
-            <div class="order-details">
-              <b>${order.projectName || 'Custom Furniture'}</b>
-              <small><i class="fas fa-store"></i> ${order.shopName || 'Unknown Shop'}</small>
-              <small><i class="fas fa-clock"></i> Est: ${order.estimated || '₱0'}</small>
-              ${placedDate ? `<small><i class="fas fa-calendar-alt"></i> ${placedDate}</small>` : ''}
-            </div>
-            <span class="status-badge ${badgeClass}">${statusText}</span>
-          </div>`;
-
-        if (isPending) {
-          currentHTML += card;
-          hasCurrent = true;
-        } else {
-          historyHTML += card;
-          historyCount++;
-        }
-      });
-
-      // ── Render ──
-      currentBox.innerHTML = hasCurrent ? currentHTML : '<div class="empty-state">No active orders yet.</div>';
-
-      if (historyCount > 0) {
-        historyBox.innerHTML     = historyHTML;
-        countBadge.textContent   = historyCount;
-        countBadge.style.display = 'inline-flex';
-        clearBtn.style.display   = 'flex';
-      } else {
-        historyBox.innerHTML     = '<div class="empty-state">No previous transactions.</div>';
-        countBadge.style.display = 'none';
-        clearBtn.style.display   = 'none';
-      }
+  all.forEach(tx=>{
+    const st = (tx.status||'').toLowerCase();
+    const isPending = ['pending','approved','payment_verifying','in_progress'].includes(st);
+    if(isPending){
+      curHTML += txRow(tx, false);
+      pCount++;
+    } else {
+      hisHTML += txRow(tx, false);
+      tCount++;
     }
+  });
 
-    // ═══════════════════════════════════════════════════════════════
-    //  CLEAR COMPLETED HISTORY
-    // ═══════════════════════════════════════════════════════════════
-    function clearHistory() {
-      if (!confirm('Clear all completed transactions? This cannot be undone.')) return;
-      window.FurniCraft.clearCompletedOrders();
-      loadOrdersDashboard();
-    }
-  </script>
+  curEl.innerHTML = curHTML || '<div class="empty">No active orders yet.</div>';
+
+  if(tCount>0){
+    hisEl.innerHTML       = hisHTML;
+    tBadge.textContent    = tCount;
+    tBadge.style.display  = 'inline-flex';
+    clrBtn.style.display  = 'flex';
+    vaBtn.style.display   = 'flex';
+  } else {
+    hisEl.innerHTML      = '<div class="empty">No previous transactions.</div>';
+    tBadge.style.display = 'none';
+    clrBtn.style.display = 'none';
+    vaBtn.style.display  = 'none';
+  }
+
+  if(pCount>0){ pBadge.textContent=pCount; pBadge.style.display='inline-flex'; }
+  else pBadge.style.display='none';
+}
+
+function txRow(tx, isDraft){
+  const st = isDraft ? 'draft' : (tx.status||'pending').toLowerCase();
+  const pill = isDraft
+    ? '<span class="pill pill-pending">DRAFT</span>'
+    : `<span class="pill ${pillClass(st)}">${pillLabel(st)}</span>`;
+  const btn = isDraft
+    ? `<button class="continue-btn" onclick="location.href='craft.html'">CONTINUE</button>`
+    : (st==='pending'||st==='approved'
+        ? `<button class="continue-btn" onclick="location.href='export_area.html'">VIEW</button>`
+        : '');
+
+  return `<div class="tx-row">
+    <div class="tx-info">
+      <b>${tx.name}</b>
+      <small><i class="fas fa-store"></i> ${tx.shop||'—'}</small>
+      ${tx.price ? `<small><i class="fas fa-tag"></i> ${money(tx.price)}</small>` : ''}
+      ${tx.date  ? `<small><i class="fas fa-calendar-alt"></i> ${fmtDate(tx.date)}</small>` : ''}
+    </div>
+    <div class="tx-right">${pill}${btn}</div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════
+   CLEAR HISTORY
+══════════════════════════════════════ */
+function clearHistory(fromModal=false){
+  if(!confirm('Clear all completed transactions? This cannot be undone.')) return;
+  /* Clear completed export proposals */
+  try{
+    const props = JSON.parse(localStorage.getItem(COMM_KEY)||'[]')
+      .filter(p=>!['completed','declined'].includes(p.status));
+    localStorage.setItem(COMM_KEY,JSON.stringify(props));
+  }catch(e){}
+  /* Clear completed order_* keys */
+  Object.keys(localStorage).filter(k=>k.startsWith('order_')).forEach(k=>{
+    try{
+      const o=JSON.parse(localStorage.getItem(k));
+      if(o.status && !['pending'].includes(o.status.toLowerCase()))
+        localStorage.removeItem(k);
+    }catch(e){}
+  });
+  renderDashboard();
+  if(fromModal) renderTxTable();
+}
+
+/* ══════════════════════════════════════
+   FULL TRANSACTION MODAL
+══════════════════════════════════════ */
+let txFilter = 'all';
+
+function openTxModal(){
+  document.getElementById('txModalScrim').classList.add('open');
+  document.getElementById('txSearch').value='';
+  txFilter='all';
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+  renderTxTable();
+}
+function closeTxModal(e){
+  if(!e || e.target===document.getElementById('txModalScrim'))
+    document.getElementById('txModalScrim').classList.remove('open');
+}
+function filterTx(btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  txFilter = btn.dataset.filter;
+  renderTxTable();
+}
+
+function renderTxTable(){
+  const q  = (document.getElementById('txSearch').value||'').toLowerCase();
+  let rows = getAllTx();
+
+  if(txFilter !== 'all'){
+    const map={pending:['pending'],in_progress:['approved','payment_verifying','in_progress'],
+               completed:['completed'],declined:['declined']};
+    const allowed = map[txFilter]||[txFilter];
+    rows = rows.filter(r=>allowed.includes((r.status||'').toLowerCase()));
+  }
+  if(q) rows = rows.filter(r=>(r.name+r.shop+r.ref).toLowerCase().includes(q));
+
+  const tbody = document.getElementById('txTableBody');
+  const noRes = document.getElementById('txNoResults');
+  const count = document.getElementById('txFooterCount');
+
+  if(!rows.length){
+    tbody.innerHTML=''; noRes.style.display='block';
+    count.textContent='0 items'; return;
+  }
+  noRes.style.display='none';
+  count.textContent = rows.length+' item'+(rows.length!==1?'s':'');
+
+  tbody.innerHTML = rows.map(tx=>{
+    const st = (tx.status||'pending').toLowerCase();
+    return `<tr>
+      <td>
+        <div class="tx-name">${tx.name}</div>
+      </td>
+      <td><div class="tx-shop"><i class="fas fa-store" style="margin-right:5px;opacity:.5;"></i>${tx.shop}</div></td>
+      <td class="tx-price">${money(tx.price)}</td>
+      <td><span class="pill ${pillClass(st)}">${pillLabel(st)}</span></td>
+      <td class="tx-ref">${tx.ref||'—'}</td>
+      <td class="tx-date">${fmtDate(tx.date)}<br><span style="font-size:.75rem;color:var(--muted);">${fmtTime(tx.date)}</span></td>
+      <td>
+        ${st==='completed'||st==='declined'?''
+          :`<button class="continue-btn" onclick="location.href='export_area.html'">View</button>`}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   LIVE CHAT  (same localStorage as export_area)
+══════════════════════════════════════ */
+let chatOpen = false;
+
+function openChat(e){ if(e) e.preventDefault(); chatOpen=true; document.getElementById('chatScrim').classList.add('open'); loadChat(); document.getElementById('chatInput').focus(); resetBadge(); }
+function closeChat(){ chatOpen=false; document.getElementById('chatScrim').classList.remove('open'); }
+function closeChatOnScrim(e){ if(e.target===document.getElementById('chatScrim')) closeChat(); }
+
+function loadChat(){
+  const box = document.getElementById('chatMessages');
+  box.innerHTML='';
+  const msgs = JSON.parse(localStorage.getItem(CHAT_KEY)||'[]');
+  const myMsgs = msgs.filter(m=>m.customerName===getCustName());
+  document.getElementById('chatShopName').textContent = SHOP_NAME;
+
+  if(!myMsgs.length){
+    appendChat('shop',`Hello! You're connected to ${SHOP_NAME}. Ask us anything about your order.`);
+  } else {
+    myMsgs.forEach(m=>appendChat(m.sender,m.text));
+  }
+  box.scrollTop=box.scrollHeight;
+}
+
+function appendChat(role,text){
+  const box=document.getElementById('chatMessages');
+  const d=document.createElement('div');
+  d.className='msg '+(role==='user'?'user':'shop');
+  d.textContent=text;
+  box.appendChild(d);
+  box.scrollTop=box.scrollHeight;
+}
+
+function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const msg=(inp.value||'').trim();
+  if(!msg) return;
+  const msgs=JSON.parse(localStorage.getItem(CHAT_KEY)||'[]');
+  msgs.push({id:Date.now(),sender:'user',customerName:getCustName(),text:msg,timestamp:new Date().toISOString()});
+  localStorage.setItem(CHAT_KEY,JSON.stringify(msgs));
+  appendChat('user',msg);
+  inp.value='';
+}
+
+/* Badge logic — show unread shop messages */
+let lastSeenCount=0;
+function checkUnread(){
+  if(chatOpen) return;
+  const msgs=JSON.parse(localStorage.getItem(CHAT_KEY)||'[]');
+  const shopMsgs=msgs.filter(m=>m.customerName===getCustName()&&m.sender==='shop');
+  if(shopMsgs.length>lastSeenCount){
+    const badge=document.getElementById('fabBadge');
+    badge.textContent=shopMsgs.length-lastSeenCount;
+    badge.classList.add('show');
+  }
+}
+function resetBadge(){
+  const msgs=JSON.parse(localStorage.getItem(CHAT_KEY)||'[]');
+  lastSeenCount=msgs.filter(m=>m.customerName===getCustName()&&m.sender==='shop').length;
+  const badge=document.getElementById('fabBadge');
+  badge.classList.remove('show');
+}
+
+/* ══════════════════════════════════════
+   TEMPLATE CARD — dynamic per selected shop
+══════════════════════════════════════ */
+function updateTemplateCard(){
+  const shopName = sessionStorage.getItem('selectedShopName');
+  const card     = document.getElementById('templateCard');
+  const icon     = document.getElementById('templateIcon');
+  const title    = document.getElementById('templateTitle');
+  const desc     = document.getElementById('templateDesc');
+  const btn      = document.getElementById('templateBtn');
+  const notice   = document.getElementById('noShopNotice');
+
+  /* Update sidebar nav label too */
+  const navLabel = document.getElementById('navTemplatesLabel');
+  if(navLabel) navLabel.textContent = shopName ? `${shopName} Templates` : 'Pre-made Templates';
+
+  if(shopName){
+    /* Shop IS selected — active state */
+    card.classList.remove('locked');
+    icon.innerHTML = '<i class="fas fa-store"></i>';
+
+    /* Show shop name tag above the title */
+    const existing = card.querySelector('.shop-name-tag');
+    if(existing) existing.remove();
+    const tag = document.createElement('div');
+    tag.className = 'shop-name-tag';
+    tag.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${shopName}`;
+    title.parentNode.insertBefore(tag, title);
+
+    title.textContent = 'Pre-made Templates';
+    desc.textContent  = `Browse ${shopName}'s curated 3D furniture designs — ready-to-build pieces crafted by their workshop.`;
+    btn.textContent   = `View ${shopName} Templates`;
+    btn.disabled      = false;
+    notice.style.display = 'none';
+  } else {
+    /* No shop selected — locked state */
+    card.classList.add('locked');
+    icon.innerHTML = '<i class="fas fa-ban"></i>';
+
+    const existing = card.querySelector('.shop-name-tag');
+    if(existing) existing.remove();
+
+    title.textContent = 'Pre-made Templates';
+    desc.textContent  = 'Choose a verified workshop in Shop Selection to unlock and browse that shop\'s exclusive 3D furniture designs.';
+    btn.textContent   = 'Browse Templates';
+    btn.disabled      = true;
+    notice.style.display = 'flex';
+  }
+}
+
+function goToTemplates(){
+  const shopName = sessionStorage.getItem('selectedShopName');
+  if(!shopName) return; /* locked — do nothing */
+  window.location.href = 'templates.html';
+}
+
+function navToTemplates(e){
+  e.preventDefault();
+  const shopName = sessionStorage.getItem('selectedShopName');
+  if(!shopName){
+    alert('Please select a workshop first from Shop Selection.');
+    closeNav();
+    return;
+  }
+  window.location.href='templates.html';
+}
+
+/* ══════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════ */
+document.getElementById('menuBtn').addEventListener('click',()=>{
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('scrim').classList.add('open');
+});
+document.getElementById('closeBtn').addEventListener('click',closeNav);
+document.getElementById('scrim').addEventListener('click',closeNav);
+function closeNav(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('scrim').classList.remove('open'); }
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  const name=sessionStorage.getItem('username');
+  if(name) document.getElementById('greetingPill').textContent=`Welcome, ${name}!`;
+  renderDashboard();
+  updateTemplateCard();
+  setInterval(renderDashboard, 3000);   // poll for updates from export_area
+  setInterval(checkUnread,    4000);    // poll chat badge
+});
+
+document.getElementById('chatInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter') sendChat();
+});
+
+/* ── expose FurniCraft helper for craft.html compatibility ── */
+window.FurniCraft = {
+  saveOrder(order){
+    const key='order_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+    localStorage.setItem(key,JSON.stringify({...order,placedAt:new Date().toISOString()}));
+    return key;
+  },
+  updateOrderStatus(key,status){
+    try{ const o=JSON.parse(localStorage.getItem(key)); if(o){o.status=status;localStorage.setItem(key,JSON.stringify(o));} }catch(e){}
+  },
+  getAllOrders(){
+    return Object.keys(localStorage).filter(k=>k.startsWith('order_'))
+      .map(k=>{try{return{key:k,...JSON.parse(localStorage.getItem(k))};}catch(e){return null;}})
+      .filter(Boolean).sort((a,b)=>new Date(b.placedAt||0)-new Date(a.placedAt||0));
+  }
+};
+</script>
 </body>
 </html>

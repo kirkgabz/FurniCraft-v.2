@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FurniCraft - Crafting Steps</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * {
@@ -207,7 +210,7 @@
       left: -100%;
       width: 50%;
       height: 100%;
-      background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+      background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
       transform: skewX(-25deg);
       transition: left 0.5s ease;
       z-index: 1;
@@ -332,7 +335,7 @@
 
     .start-btn-container {
       margin-top: 2rem;
-      height: 60px; 
+      height: 60px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -371,28 +374,70 @@
     }
 
     @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-30px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @media (max-width: 768px) {
-      header { padding: 1.5rem; }
-      .hero-text h1 { font-size: 2.5rem; }
-      .slider-wrapper { height: 460px; }
-      .slide-inner { padding: 2rem; }
-      .slide-inner h2 { font-size: 1.8rem; }
-      .slide-inner p { font-size: 1rem; }
-      .controls-container { padding: 12px 20px; gap: 20px; }
-      .progress-pill { width: 25px; }
-      .progress-pill.active { width: 35px; }
+      header {
+        padding: 1.5rem;
+      }
+
+      .hero-text h1 {
+        font-size: 2.5rem;
+      }
+
+      .slider-wrapper {
+        height: 460px;
+      }
+
+      .slide-inner {
+        padding: 2rem;
+      }
+
+      .slide-inner h2 {
+        font-size: 1.8rem;
+      }
+
+      .slide-inner p {
+        font-size: 1rem;
+      }
+
+      .controls-container {
+        padding: 12px 20px;
+        gap: 20px;
+      }
+
+      .progress-pill {
+        width: 25px;
+      }
+
+      .progress-pill.active {
+        width: 35px;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <header>
@@ -414,7 +459,7 @@
     </div>
 
     <div class="slider-wrapper" id="sliderWrapper">
-      
+
       <div class="slide active">
         <div class="slide-inner">
           <div class="icon-ring">
@@ -422,7 +467,8 @@
             <div class="step-badge">1</div>
           </div>
           <h2>Choose a Shop</h2>
-          <p>Browse our verified network of skilled local craftsmen and furniture shops. Send them your exported design directly to receive quotes and begin the build process.</p>
+          <p>Browse our verified network of skilled local craftsmen and furniture shops. Send them your exported design
+            directly to receive quotes and begin the build process.</p>
         </div>
       </div>
 
@@ -433,7 +479,8 @@
             <div class="step-badge">2</div>
           </div>
           <h2>Choose Your Furniture</h2>
-          <p>Select from our wide range of furniture pieces including chairs, tables, sofas, beds, cabinets, bookshelves, desks, and stools. Each foundation is designed for durability.</p>
+          <p>Select from our wide range of furniture pieces including chairs, tables, sofas, beds, cabinets,
+            bookshelves, desks, and stools. Each foundation is designed for durability.</p>
         </div>
       </div>
 
@@ -444,7 +491,8 @@
             <div class="step-badge">3</div>
           </div>
           <h2>Select Materials</h2>
-          <p>Choose from premium materials like narra wood, mahogany, steel, fabric, and leather. You can use a single material or combine different textures for specific parts.</p>
+          <p>Choose from premium materials like narra wood, mahogany, steel, fabric, and leather. You can use a single
+            material or combine different textures for specific parts.</p>
         </div>
       </div>
 
@@ -455,7 +503,8 @@
             <div class="step-badge">4</div>
           </div>
           <h2>Customize Details</h2>
-          <p>Personalize your furniture with custom color palettes, specialized finishes, exact dimensions, and quantities. Add personal design notes to make the piece truly yours.</p>
+          <p>Personalize your furniture with custom color palettes, specialized finishes, exact dimensions, and
+            quantities. Add personal design notes to make the piece truly yours.</p>
         </div>
       </div>
 
@@ -466,7 +515,20 @@
             <div class="step-badge">5</div>
           </div>
           <h2>Export Design</h2>
-          <p>Save your fully customized furniture design as a high-fidelity 3D model or image file. Keep it for personal reference or prepare it for professional crafting.</p>
+          <p>Save your fully customized furniture design as a high-fidelity 3D model or image file. Keep it for personal
+            reference or prepare it for professional crafting.</p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-inner">
+          <div class="icon-ring">
+            <i class="fas fa-handshake"></i>
+            <div class="step-badge">6</div>
+          </div>
+          <h2>Finalize Transaction</h2>
+          <p>Review your final order details, confirm the quote with your chosen craftsman, and complete your secure
+            payment to initiate the build process.</p>
         </div>
       </div>
 
@@ -476,13 +538,14 @@
       <button class="nav-arrow" id="prevBtn" disabled>
         <i class="fas fa-chevron-left"></i>
       </button>
-      
+
       <div class="progress-track" id="progressTrack">
         <div class="progress-pill active" data-index="0"></div>
         <div class="progress-pill" data-index="1"></div>
         <div class="progress-pill" data-index="2"></div>
         <div class="progress-pill" data-index="3"></div>
         <div class="progress-pill" data-index="4"></div>
+        <div class="progress-pill" data-index="5"></div>
       </div>
 
       <button class="nav-arrow" id="nextBtn">
@@ -574,19 +637,19 @@
     inners.forEach((inner) => {
       inner.addEventListener('mousemove', (e) => {
         if (!inner.parentElement.classList.contains('active') || isDragging) return;
-        
+
         const rect = inner.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        
+
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        
+
         const rotateX = ((y - centerY) / centerY) * -8;
         const rotateY = ((x - centerX) / centerX) * 8;
-        
+
         inner.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        
+
         const shadowX = rotateY * -2;
         const shadowY = rotateX * 2;
         inner.style.boxShadow = `${shadowX}px ${shadowY + 20}px 40px rgba(42, 27, 20, 0.15)`;
@@ -599,9 +662,9 @@
     });
 
     wrapper.addEventListener('mousedown', dragStart);
-    wrapper.addEventListener('touchstart', dragStart, {passive: true});
+    wrapper.addEventListener('touchstart', dragStart, { passive: true });
     window.addEventListener('mousemove', dragMove);
-    window.addEventListener('touchmove', dragMove, {passive: true});
+    window.addEventListener('touchmove', dragMove, { passive: true });
     window.addEventListener('mouseup', dragEnd);
     window.addEventListener('touchend', dragEnd);
 
@@ -615,7 +678,7 @@
       if (!isDragging) return;
       currentX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
       const diffX = currentX - startX;
-      
+
       if (Math.abs(diffX) > 10) {
         const activeSlide = slides[currentIndex];
         activeSlide.style.transform = `translateZ(0) translateY(0) translateX(${diffX * 0.5}px)`;
@@ -625,7 +688,7 @@
     function dragEnd() {
       if (!isDragging) return;
       isDragging = false;
-      
+
       const diffX = currentX - startX;
       inners.forEach(inner => {
         inner.style.transition = 'transform 0.1s ease-out, box-shadow 0.1s ease-out';
@@ -640,7 +703,7 @@
           currentIndex++;
         }
       }
-      
+
       updateSlider();
       startX = 0;
       currentX = 0;
@@ -650,4 +713,5 @@
 
   </script>
 </body>
+
 </html>

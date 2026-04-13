@@ -308,10 +308,60 @@
 /* ═══ NAVIGATION ═══ */
 function goToExport(){
   if(!activeTemplate) return;
-  const canvas=document.querySelector('#canvas-container canvas');
-  const prev=canvas?canvas.toDataURL('image/png'):'';
   const price=document.getElementById('total-price').innerText.replace(/[^0-9.-]+/g,'');
-  const exp={exportId:'EXP-'+Date.now().toString().slice(-6),projectName:activeTemplate.name,furnitureType:'Pre-Made Template',estimatedPriceText:'₱'+parseFloat(price).toLocaleString(),previewDataUrl:prev,cadState:JSON.stringify({items:[{id:activeTemplate.id,type:activeTemplate.type,name:activeTemplate.name}]})};
+  
+  const iframe = document.getElementById('fidelity-iframe');
+  let targetWin = window;
+  if (activeTemplate.id > 10000 && iframe && iframe.style.display !== 'none') {
+      try { if(iframe.contentWindow && iframe.contentWindow.scene) targetWin = iframe.contentWindow; } catch(e){}
+  }
+
+  let prevImageUrl = '';
+  if (targetWin.scene && targetWin.camera && targetWin.renderer && targetWin.THREE) {
+      const sc = targetWin.scene;
+      const cam = targetWin.camera;
+      const ren = targetWin.renderer;
+      const ctrl = targetWin.controls;
+      
+      const oldPos = cam.position.clone();
+      const oldTarget = ctrl ? ctrl.target.clone() : new targetWin.THREE.Vector3(0,0,0);
+      const oldAuto = ctrl ? ctrl.autoRotate : false;
+      const oldBg = sc.background;
+      
+      // Make background clean for export
+      sc.background = new targetWin.THREE.Color(0x1e1e24);
+
+      let obj3D = targetWin.currentGroup;
+      if (!obj3D) obj3D = sc;
+      const box = new targetWin.THREE.Box3().setFromObject(obj3D);
+      const size = box.getSize(new targetWin.THREE.Vector3());
+      const center = box.getCenter(new targetWin.THREE.Vector3());
+      
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const fov = cam.fov * (Math.PI / 180);
+      let cameraZ = Math.abs((maxDim / 2) / Math.tan(fov / 2)) * 1.6;
+      if (cameraZ < 5) cameraZ = 12; // ensure it's not too tight
+      
+      if (ctrl) ctrl.autoRotate = false;
+      
+      // Perfect front view angle (slightly elevated front)
+      cam.position.set(center.x, center.y + size.y*0.15, center.z + cameraZ);
+      if (ctrl) { ctrl.target.set(center.x, center.y, center.z); ctrl.update(); }
+      else cam.lookAt(center);
+      
+      ren.render(sc, cam);
+      prevImageUrl = ren.domElement.toDataURL('image/png');
+      
+      // Restore
+      sc.background = oldBg;
+      cam.position.copy(oldPos);
+      if (ctrl) { ctrl.target.copy(oldTarget); ctrl.autoRotate = oldAuto; ctrl.update(); }
+  } else {
+      const canvas=document.querySelector('#canvas-container canvas');
+      prevImageUrl=canvas?canvas.toDataURL('image/png'):'';
+  }
+
+  const exp={exportId:'EXP-'+Date.now().toString().slice(-6),projectName:activeTemplate.name,furnitureType:'Pre-Made Template',estimatedPriceText:'₱'+parseFloat(price).toLocaleString(),previewDataUrl:prevImageUrl,cadState:JSON.stringify({items:[{id:activeTemplate.id,type:activeTemplate.type,name:activeTemplate.name}]})};
   const drafts=JSON.parse(localStorage.getItem('exportDrafts')||'[]');
   drafts.unshift(exp); localStorage.setItem('exportDrafts',JSON.stringify(drafts));
   sessionStorage.setItem('currentExportId',exp.exportId);
@@ -505,24 +555,60 @@ function cancelEdit(){
 }
 function applyEdit(type,args){
   if(!activeTemplate)return;
+  
+  let win = null;
+  const iframe = document.getElementById('fidelity-iframe');
+  if (activeTemplate.id > 10000 && iframe) {
+      try { win = iframe.contentWindow; } catch(e){}
+  }
+
   if(type==='scale'){
     const[axis,val]=args;
     activeTemplate.scale[axis]=val/100;
     document.getElementById('gs-'+axis).innerText=val;
     if(currentGroup)currentGroup.scale.set(activeTemplate.scale.x,activeTemplate.scale.y,activeTemplate.scale.z);
+    
+    if (win && win.appState && win.appState.items && win.appState.items[0]) {
+        if(!win.appState.items[0].globalScale) win.appState.items[0].globalScale = {x:1,y:1,z:1};
+        win.appState.items[0].globalScale[axis] = val/100;
+        if(typeof win.updateScale === 'function') win.updateScale();
+        else if (typeof win.buildFurniture === 'function') win.buildFurniture();
+    }
     calculateCost();
   }else if(type==='color'){
     const[part,hexC]=args;
     activeTemplate.selections[part]=hexC;
+    
+    if (win && win.appState && win.appState.items && win.appState.items[0]) {
+        if(!win.appState.items[0].selections) win.appState.items[0].selections = {};
+        win.appState.items[0].selections[part] = hexC;
+        if(typeof win.buildFurniture === 'function') win.buildFurniture();
+    }
+    
     build3DScene();calculateScore();calculateCost();renderLayers();
   }else if(type==='dim'){
     const[part,axis,val]=args;
     if(!activeTemplate.dims[part])activeTemplate.dims[part]={w:100,h:50,d:100};
     activeTemplate.dims[part][axis]=Math.max(parseInt(val)||1,1);
+    
+    if (win && win.appState && win.appState.items && win.appState.items[0]) {
+        if(!win.appState.items[0].dims) win.appState.items[0].dims = {};
+        if(!win.appState.items[0].dims[part]) win.appState.items[0].dims[part] = {w:100,h:50,d:100};
+        win.appState.items[0].dims[part][axis] = Math.max(parseInt(val)||1,1);
+        if(typeof win.buildFurniture === 'function') win.buildFurniture();
+    }
+
     build3DScene();calculateCost();
   }else if(type==='carving'){
     const[part,style]=args;
     activeTemplate.carvings[part]=style;
+    
+    if (win && win.appState && win.appState.items && win.appState.items[0]) {
+        if(!win.appState.items[0].carvings) win.appState.items[0].carvings = {};
+        win.appState.items[0].carvings[part] = style;
+        if(typeof win.buildFurniture === 'function') win.buildFurniture();
+    }
+
     build3DScene();renderLayers();
   }
 }
@@ -538,6 +624,15 @@ function syncSliders(){
 
 /* ═══ INIT ═══ */
 window.onload=function(){
+  // Load custom shop designs
+  try {
+    const shopTemplates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+    if(shopTemplates.length) {
+       // Prepend custom designs
+       TEMPLATES.unshift(...shopTemplates);
+    }
+  } catch(e) {}
+  
   buildTemplateList();
   loadTemplate(TEMPLATES[0].id);
   setTimeout(()=>init3D(),80);
@@ -768,10 +863,14 @@ function calculateCost(){
 /* ═══ VIEWPORT CONTROLS ═══ */
 function toggleRotation(){
   isRotating=!isRotating;if(controls)controls.autoRotate=isRotating;
+  const iframe = document.getElementById('fidelity-iframe');
+  if (iframe && iframe.style.display !== 'none') { try { const win = iframe.contentWindow; if (win) { win.isRotating = isRotating; if(win.controls) win.controls.autoRotate = isRotating; } } catch(e) {} }
   document.getElementById('btn-rotate').innerHTML=isRotating?'<i class="fas fa-pause"></i> Stop Rotate':'<i class="fas fa-play"></i> Auto Rotate';
 }
 function toggleDimensions(){
   showDimensions=!showDimensions;build3DScene();
+  const iframe = document.getElementById('fidelity-iframe');
+  if (iframe && iframe.style.display !== 'none') { try { const win = iframe.contentWindow; if (win && typeof win.buildFurniture === 'function') { win.showDimensions = showDimensions; win.buildFurniture(); } } catch(e) {} }
   document.getElementById('btn-dims').innerHTML=showDimensions?'<i class="fas fa-ruler-combined"></i> Hide Ruler':'<i class="fas fa-ruler-combined"></i> Show Ruler';
 }
 function toggleCabinetDoor(){
@@ -779,8 +878,14 @@ function toggleCabinetDoor(){
   const btn=document.getElementById('btn-cabinet-door');
   btn.innerHTML=cabinetOpen?'<i class="fas fa-door-open"></i> Close Doors':'<i class="fas fa-door-closed"></i> Open Doors';
   build3DScene();
+  const iframe = document.getElementById('fidelity-iframe');
+  if (iframe && iframe.style.display !== 'none') { try { const win = iframe.contentWindow; if (win && typeof win.buildFurniture === 'function') { win.cabinetOpen = cabinetOpen; win.buildFurniture(); } } catch(e) {} }
 }
-function resetView(){resetCamera();if(scene)build3DScene();}
+function resetView(){
+  resetCamera();if(scene)build3DScene();
+  const iframe = document.getElementById('fidelity-iframe');
+  if (iframe && iframe.style.display !== 'none') { try { const win = iframe.contentWindow; if (win && typeof win.resetCamera === 'function') win.resetCamera(); } catch(e) {} }
+}
 
 /* ═══ TEXTURE ═══ */
 function createTexture(style){
@@ -851,6 +956,69 @@ function addDimLabel(start,end,text,offset){
 
 /* ═══ 3D SCENE BUILD ═══ */
 function build3DScene(){
+  const containerContainer = document.getElementById('canvas-container');
+  
+  if (activeTemplate && activeTemplate.id > 10000) {
+      if(currentGroup && scene) { scene.remove(currentGroup); }
+      if(renderer && renderer.domElement) renderer.domElement.style.display = 'none';
+      if(dimGroup) dimGroup.clear();
+      
+      let iframe = document.getElementById('fidelity-iframe');
+      if (!iframe) {
+          iframe = document.createElement('iframe');
+          iframe.id = 'fidelity-iframe';
+          iframe.style.width = '100%';
+          iframe.style.height = '100%';
+          iframe.style.minHeight = '400px';
+          iframe.style.border = 'none';
+          iframe.style.borderRadius = '8px';
+          containerContainer.appendChild(iframe);
+      }
+      
+      // If src is already correct, do not reload! We just update via applyEdit
+      if (!iframe.src.includes(activeTemplate.type + '.html')) {
+          const keyMap = { chair: 'cadState_chair_v6', table: 'cadState_table_v10', bed: 'cadState_bed_v1', sofa: 'cadState_sofa_v1', cabinet: 'cadState_cabinet_v1', stool: 'cadState_stool_v3', desk: 'cadState_desk_v1', bookshelf: 'cadState_bookshelf_v1' };
+          const sessionKey = keyMap[activeTemplate.type] || 'cadState_' + activeTemplate.type + '_v1';
+          
+          const restoredState = {
+               items: [{
+                   id: 1, type: activeTemplate.type, name: activeTemplate.name,
+                   selections: activeTemplate.selections || {}, carvings: activeTemplate.carvings || {}, shapes: activeTemplate.shapes || {}, dims: activeTemplate.dims || {}, globalScale: activeTemplate.scale || {x:1, y:1, z:1}
+               }],
+               activeItemId: 1,
+               activeLayer: (activeTemplate.parts && activeTemplate.parts.length) ? activeTemplate.parts[0] : 'Body'
+          };
+          sessionStorage.setItem(sessionKey, JSON.stringify(restoredState));
+          
+          iframe.onload = () => {
+             try {
+               const win = iframe.contentWindow;
+               const doc = win.document;
+               const style = doc.createElement('style');
+               style.innerHTML = `
+                  .panel-left { display: none !important; }
+                  .panel-right { display: none !important; }
+                  header { display: none !important; }
+                  .viewport { width: 100% !important; border:none !important; margin:0 !important; border-radius:8px !important; }
+                  .footer-bar { display: none !important; }
+                  .workspace { padding: 0 !important; }
+                  body { background: transparent !important; overflow: hidden; }
+               `;
+               doc.head.appendChild(style);
+               if(typeof win.init3D === 'function' && !win.scene) win.init3D();
+             } catch(e){}
+          };
+          
+          iframe.src = activeTemplate.type + '.html';
+      }
+      iframe.style.display = 'block';
+      return;
+  }
+  
+  let iframe = document.getElementById('fidelity-iframe');
+  if (iframe) iframe.style.display = 'none';
+  if (renderer && renderer.domElement) renderer.domElement.style.display = 'block';
+
   if(!scene)return;
   if(currentGroup)scene.remove(currentGroup);
   currentGroup=new THREE.Group();

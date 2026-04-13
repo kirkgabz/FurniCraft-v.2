@@ -270,8 +270,8 @@
       <div class="profile-card">
         <i class="fas fa-user-circle"></i>
         <div class="profile-info">
-          <h4>Customer View</h4>
-          <p id="clientExportIdLabel">ID: —</p>
+          <h4 id="customerNameLabel">Customer View</h4>
+          <p id="clientExportEmailLabel">Not signed in via Gmail</p>
         </div>
       </div>
     </aside>
@@ -436,6 +436,11 @@
     let activeItem = null;
 
     function getCustName() {
+      const email = localStorage.getItem('currentUserEmail');
+      const name = localStorage.getItem('currentUserName');
+      if (name) return name;
+      if (email) return email.split('@')[0];
+      
       const expId = exportDraft?.exportId || sessionStorage.getItem('currentExportId') || 'exp_unknown';
       return 'Client (' + expId.substring(0,6) + ')';
     }
@@ -448,7 +453,10 @@
       exportDraft = drafts.find(d => d.exportId === currentExportId) || drafts[0] || null;
 
       // Update Top Texts
-      document.getElementById('clientExportIdLabel').innerText = 'ID: ' + (exportDraft?.exportId || '—').substring(0,6);
+      const email = localStorage.getItem('currentUserEmail');
+      document.getElementById('customerNameLabel').innerText = getCustName();
+      document.getElementById('clientExportEmailLabel').innerText = email ? email : ('ID: ' + (exportDraft?.exportId || '—').substring(0,6));
+      
       document.getElementById('projName').innerText = exportDraft?.projectName || 'Custom Design';
       document.getElementById('projType').innerText = exportDraft?.furnitureType || 'Furniture Piece';
       document.getElementById('projPrice').innerText = moneySafe(exportDraft?.estimatedPriceText);
@@ -684,7 +692,14 @@
       const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
       const index = commissions.findIndex(c => c.customerName === getCustName());
       if (index !== -1) {
-        commissions[index].status = 'payment_verifying'; commissions[index].referenceNumber = refInput;
+        commissions[index].status = 'payment_verifying'; 
+        commissions[index].referenceNumber = refInput;
+        
+        const settings = JSON.parse(localStorage.getItem(`shop_settings_${activeShopId}`) || '{"dpRate": 20}');
+        let numericPrice = parseFloat((exportDraft?.estimatedPriceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
+        let pIdp = numericPrice * (parseInt(settings.dpRate, 10) / 100);
+        commissions[index].paidDpAmount = pIdp;
+        
         localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
         closePaymentModal(); loadOrderStatus(); 
       }

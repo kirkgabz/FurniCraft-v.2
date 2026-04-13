@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,19 +8,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
-  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
   <style>
     :root {
       --bg-light: #f4f7fc;
       --text-main: #333333;
       --text-muted: #888888;
-      
+
       --color-red: #ea5455;
       --color-orange: #ff9f43;
       --color-blue: #00cfe8;
       --color-purple: #7367f0;
-      
+
       --badge-success-bg: #dcf6e8;
       --badge-success-text: #28c76f;
       --badge-warning-bg: #fff1d6;
@@ -31,9 +32,13 @@
       --badge-secondary-bg: #ebe9f1;
       --badge-secondary-text: #82868b;
     }
-    
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg-light);
@@ -48,104 +53,420 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       position: sticky;
       top: 0;
       z-index: 100;
     }
-    
-    .brand { font-size: 1.4rem; font-weight: 700; color: var(--color-purple); display: flex; align-items: center; gap: 0.8rem; }
-    .brand i { font-size: 1.5rem; }
-    
-    .header-actions { display: flex; gap: 1rem; align-items: center; }
-    .pill { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); }
-    
-    .btn { border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s ease; font-family: inherit; }
-    .btn-primary { background: var(--color-purple); color: #fff; }
-    .btn-primary:hover { box-shadow: 0 4px 10px rgba(115, 103, 240, 0.4); transform: translateY(-1px); }
-    .btn-secondary { background: #f8f8f8; color: var(--text-main); border: 1px solid #ddd; }
-    .btn-danger { background: var(--color-red); color: #fff; }
 
-    .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+    .brand {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--color-purple);
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
 
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-    .stat-card { border-radius: 8px; padding: 1.5rem; color: #fff; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    .stat-card.red { background: var(--color-red); }
-    .stat-card.orange { background: var(--color-orange); }
-    .stat-card.blue { background: var(--color-blue); }
-    .stat-card.purple { background: var(--color-purple); }
-    .stat-card .v { font-size: 2.5rem; font-weight: 700; line-height: 1.1; margin-top: 0.5rem; }
-    .stat-card .k { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; }
-    .stat-icon { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 2.5rem; opacity: 0.2; }
+    .brand i {
+      font-size: 1.5rem;
+    }
 
-    .row { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-    @media (max-width: 992px) { .row { grid-template-columns: 1fr; } }
+    .header-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
 
-    .card { background: #ffffff; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-    .card-header { font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0; }
-    .muted-text { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; }
+    .pill {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
 
-    .toolbar { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    input, select { padding: 0.6rem 0.8rem; border: 1px solid #d8d6de; border-radius: 6px; font-family: inherit; color: var(--text-main); outline: none; }
-    input:focus, select:focus { border-color: var(--color-purple); }
+    .btn {
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
 
-    .list { list-style: none; display: flex; flex-direction: column; }
-    .list-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.2rem 0; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; gap: 1rem; }
-    .list-item:last-child { border-bottom: none; }
-    
-    .item-info { flex: 1; min-width: 200px; }
-    .item-title { font-weight: 600; color: var(--text-main); font-size: 1rem; margin-bottom: 0.2rem;}
-    .item-sub { font-size: 0.85rem; color: var(--text-muted); }
-    
-    .badge { padding: 0.4rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-    .badge-pending { background: var(--badge-secondary-bg); color: var(--badge-secondary-text); }
-    .badge-approved { background: var(--badge-info-bg); color: var(--badge-info-text); }
-    .badge-verifying { background: var(--badge-warning-bg); color: var(--badge-warning-text); }
-    .badge-progress { background: var(--badge-warning-bg); color: var(--badge-warning-text); }
-    .badge-completed { background: var(--badge-success-bg); color: var(--badge-success-text); }
-    .badge-declined { background: var(--badge-danger-bg); color: var(--badge-danger-text); }
+    .btn-primary {
+      background: var(--color-purple);
+      color: #fff;
+    }
 
-    .item-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; min-width: 200px; }
-    .status-select { background: #f8f9fa; border: 1px solid #ddd; font-weight: 500; font-size: 0.85rem; width: 100%;}
+    .btn-primary:hover {
+      box-shadow: 0 4px 10px rgba(115, 103, 240, 0.4);
+      transform: translateY(-1px);
+    }
 
-    .progress-control { background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; width: 100%; margin-top: 10px; animation: fadeIn 0.3s ease; }
-    .progress-bar-bg { width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 8px; }
-    .progress-bar-fill { height: 100%; background: var(--color-blue); transition: width 0.4s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    .btn-secondary {
+      background: #f8f8f8;
+      color: var(--text-main);
+      border: 1px solid #ddd;
+    }
 
-    .messages { border: 1px solid #f0f0f0; border-radius: 8px; background: #fdfdfd; padding: 1rem; height: 300px; overflow-y: auto; margin-bottom: 1rem; display: flex; flex-direction: column; }
-    .msg { padding: 0.6rem 0.8rem; border-radius: 8px; margin-bottom: 0.6rem; max-width: 85%; font-size: 0.9rem; line-height: 1.4; }
-    .msg.user { background: #f0f0f0; align-self: flex-start; color: var(--text-main); }
-    .msg.shop { background: var(--color-purple); color: #fff; align-self: flex-end; }
+    .btn-danger {
+      background: var(--color-red);
+      color: #fff;
+    }
 
-    .slider-header { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;}
-    .slider-val { color: var(--color-purple); }
-    input[type=range] { width: 100%; accent-color: var(--color-purple); cursor: pointer; margin-bottom: 0.5rem;}
-    
-    .ref-box { background: #f8f9fa; border: 1px dashed #d8d6de; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; margin-top: 8px; color: var(--text-main); }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      border-radius: 8px;
+      padding: 1.5rem;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card.red {
+      background: var(--color-red);
+    }
+
+    .stat-card.orange {
+      background: var(--color-orange);
+    }
+
+    .stat-card.blue {
+      background: var(--color-blue);
+    }
+
+    .stat-card.purple {
+      background: var(--color-purple);
+    }
+
+    .stat-card .v {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-top: 0.5rem;
+    }
+
+    .stat-card .k {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.9;
+    }
+
+    .stat-icon {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 2.5rem;
+      opacity: 0.2;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 992px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    .card-header {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 1.2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .muted-text {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    input,
+    select {
+      padding: 0.6rem 0.8rem;
+      border: 1px solid #d8d6de;
+      border-radius: 6px;
+      font-family: inherit;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--color-purple);
+    }
+
+    .list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 1.2rem 0;
+      border-bottom: 1px solid #f0f0f0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .list-item:last-child {
+      border-bottom: none;
+    }
+
+    .item-info {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .item-title {
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 1rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .item-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      padding: 0.4rem 0.8rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .badge-pending {
+      background: var(--badge-secondary-bg);
+      color: var(--badge-secondary-text);
+    }
+
+    .badge-approved {
+      background: var(--badge-info-bg);
+      color: var(--badge-info-text);
+    }
+
+    .badge-verifying {
+      background: var(--badge-warning-bg);
+      color: var(--badge-warning-text);
+    }
+
+    .badge-progress {
+      background: var(--badge-warning-bg);
+      color: var(--badge-warning-text);
+    }
+
+    .badge-completed {
+      background: var(--badge-success-bg);
+      color: var(--badge-success-text);
+    }
+
+    .badge-declined {
+      background: var(--badge-danger-bg);
+      color: var(--badge-danger-text);
+    }
+
+    .item-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+      min-width: 200px;
+    }
+
+    .status-select {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      font-weight: 500;
+      font-size: 0.85rem;
+      width: 100%;
+    }
+
+    .progress-control {
+      background: #f8f9fa;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--color-blue);
+      transition: width 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .messages {
+      border: 1px solid #f0f0f0;
+      border-radius: 8px;
+      background: #fdfdfd;
+      padding: 1rem;
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .msg {
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+      max-width: 85%;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .msg.user {
+      background: #f0f0f0;
+      align-self: flex-start;
+      color: var(--text-main);
+    }
+
+    .msg.shop {
+      background: var(--color-purple);
+      color: #fff;
+      align-self: flex-end;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .slider-val {
+      color: var(--color-purple);
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--color-purple);
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+    }
+
+    .ref-box {
+      background: #f8f9fa;
+      border: 1px dashed #d8d6de;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-top: 8px;
+      color: var(--text-main);
+    }
   </style>
 </head>
+
 <body>
-  
+
   <header>
     <div class="brand">
-      <i class="fas fa-layer-group"></i> 
+      <i class="fas fa-layer-group"></i>
       <span>Irawan Woodworks</span>
     </div>
     <div class="header-actions">
-      <span class="pill" id="welcomeText">Welcome!</span>
-      <button class="btn btn-secondary" onclick="window.location.href='front_page.html'">Website</button>
-      <button class="btn btn-secondary" style="color:var(--color-red); border-color:var(--color-red);" onclick="logoutShop()">Logout</button>
+      <span class="pill" id="dpText">DP Required: 20%</span>
+      <span class="pill" id="permitStatusText" style="color:var(--color-orange);"><i class="fas fa-shield-alt"></i> Unverified</span>
+      <button class="btn btn-outline" onclick="openPermitModal()"><i class="fas fa-file-contract"></i> Verification</button>
+      <button class="btn btn-outline" onclick="openSettingsModal()"><i class="fas fa-cog"></i> Settings</button>
+      <button class="btn btn-primary" onclick="goToMain()"><i class="fas fa-home"></i> Main Site</button>
+      <button class="btn btn-secondary" style="color:var(--color-red); border-color:var(--color-red);"
+        onclick="logoutShop()">Logout</button>
     </div>
   </header>
 
   <div class="container">
-    
+
     <section class="stats-grid">
-      <article class="stat-card red"><i class="fas fa-cube stat-icon"></i><div class="k">Imported Models</div><div class="v" id="statModels">0</div></article>
-      <article class="stat-card orange"><i class="fas fa-shopping-bag stat-icon"></i><div class="k">Total Commissions</div><div class="v" id="statCommissions">0</div></article>
-      <article class="stat-card blue"><i class="fas fa-clock stat-icon"></i><div class="k">Pending Requests</div><div class="v" id="statPending">0</div></article>
-      <article class="stat-card purple"><i class="fas fa-comment-dots stat-icon"></i><div class="k">Chat Messages</div><div class="v" id="statMessages">0</div></article>
+      <article class="stat-card red"><i class="fas fa-cube stat-icon"></i>
+        <div class="k">Imported Models</div>
+        <div class="v" id="statModels">0</div>
+      </article>
+      <article class="stat-card orange"><i class="fas fa-shopping-bag stat-icon"></i>
+        <div class="k">Total Commissions</div>
+        <div class="v" id="statCommissions">0</div>
+      </article>
+      <article class="stat-card blue"><i class="fas fa-clock stat-icon"></i>
+        <div class="k">Pending Requests</div>
+        <div class="v" id="statPending">0</div>
+      </article>
+      <article class="stat-card purple"><i class="fas fa-comment-dots stat-icon"></i>
+        <div class="k">Chat Messages</div>
+        <div class="v" id="statMessages">0</div>
+      </article>
     </section>
 
     <div class="row">
@@ -158,9 +479,11 @@
       <div style="display: flex; flex-direction: column; gap: 1.5rem;">
         <section class="card">
           <div class="card-header">Payment Settings</div>
-          <div class="slider-header"><span>Required Downpayment</span><span class="slider-val" id="dpValueDisplay">20%</span></div>
+          <div class="slider-header"><span>Required Downpayment</span><span class="slider-val"
+              id="dpValueDisplay">20%</span></div>
           <input type="range" id="dpSlider" min="5" max="50" step="5" value="20" oninput="updateDpRate(this.value)">
-          <p class="muted-text" style="font-size: 0.8rem; margin-top: 0.5rem; margin-bottom: 0;">Customers will be asked to pay this percentage to begin production.</p>
+          <p class="muted-text" style="font-size: 0.8rem; margin-top: 0.5rem; margin-bottom: 0;">Customers will be asked
+            to pay this percentage to begin production.</p>
         </section>
 
         <section class="card" style="flex: 1;">
@@ -171,7 +494,8 @@
           </div>
           <div id="messagesBox" class="messages"></div>
           <div style="display: flex; gap: 0.5rem;">
-            <input id="replyInput" type="text" placeholder="Type a message..." style="flex: 1;" onkeypress="if(event.key === 'Enter') sendReply()">
+            <input id="replyInput" type="text" placeholder="Type a message..." style="flex: 1;"
+              onkeypress="if(event.key === 'Enter') sendReply()">
             <button class="btn btn-primary" onclick="sendReply()"><i class="fas fa-paper-plane"></i></button>
           </div>
         </section>
@@ -179,28 +503,77 @@
     </div>
 
     <div class="row" style="grid-template-columns: 1fr;">
-        <section class="card">
-          <div class="card-header">Design & Asset Management</div>
-          <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 300px;">
-                <p class="muted-text" style="font-weight: 600; margin-bottom: 0.5rem;">3D Tools</p>
-                <div class="toolbar">
-                  <button class="btn btn-secondary" onclick="window.location.href='furniture-builder.html'"><i class="fas fa-cube"></i> Open 3D Builder</button>
-                  <button class="btn btn-secondary" onclick="window.location.href='craft.html'"><i class="fas fa-hammer"></i> Open Craft Page</button>
-                </div>
-            </div>
-            <div style="flex: 1; min-width: 300px;">
-                <p class="muted-text" style="font-weight: 600; margin-bottom: 0.5rem;">Import 3D Models (.obj, .gltf)</p>
-                <div class="toolbar" style="margin-bottom: 0;">
-                  <input type="file" id="modelFile" accept=".obj,.fbx,.gltf,.glb,.dae,.3ds,.blend" style="flex: 1;">
-                  <button class="btn btn-primary" onclick="importModel()">Upload</button>
-                </div>
-                <ul id="modelsList" class="list" style="max-height: 100px; margin-top: 10px;"></ul>
+      <section class="card">
+        <div class="card-header">Design & Asset Management</div>
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 300px;">
+            <p class="muted-text" style="font-weight: 600; margin-bottom: 0.5rem;">3D Tools</p>
+            <div class="toolbar">
+              <button class="btn btn-secondary" onclick="window.location.href='furniture-builder.html'"><i
+                  class="fas fa-cube"></i> Open 3D Builder</button>
+              <button class="btn btn-secondary" onclick="window.location.href='craft.html'"><i
+                  class="fas fa-hammer"></i> Open Craft Page</button>
             </div>
           </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PRE-MADE DESIGNS MANAGER -->
+    <div class="row" style="grid-template-columns: 1fr;">
+        <section class="card" id="preMadeManager">
+          <div class="card-header">Pre-Made Designs Manager</div>
+          <p class="muted-text">Create and publish custom designs directly to the templates gallery.</p>
+          
+          <div class="toolbar" style="margin-bottom:1.5rem;">
+             <input type="text" id="tdName" placeholder="Design Name (e.g. Minimalist Oak Chair)" style="flex:2;">
+             <select id="tdType" style="flex:1;">
+                <option value="chair">Chair</option>
+                <option value="table">Table</option>
+                <option value="bed">Bed</option>
+                <option value="sofa">Sofa</option>
+                <option value="cabinet">Cabinet</option>
+                <option value="stool">Stool</option>
+                <option value="desk">Desk</option>
+                <option value="bookshelf">Bookshelf</option>
+             </select>
+             <select id="tdGender" style="flex:1;">
+                <option value="neutral">Unisex</option>
+                <option value="boy">Boy</option>
+                <option value="girl">Girl</option>
+             </select>
+             <button class="btn btn-primary" onclick="startCustomization()"><i class="fas fa-external-link-alt"></i> Customize Design</button>
+          </div>
+          
+          <div id="customizationContainer" style="display:none; margin-bottom:1.5rem; border:1px solid #ddd; border-radius:8px; padding:10px; background:#fafafa;">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span class="muted-text" style="font-weight:600;"><i class="fas fa-pencil-ruler"></i> Customizing in Dashboard</span>
+                <div style="display:flex; gap:10px; align-items:center;">
+                   <button class="btn btn-success" onclick="saveCustomTemplate()"><i class="fas fa-upload"></i> Push to Templates (Pre-made)</button>
+                </div>
+             </div>
+             <iframe id="customizationFrame" style="width:100%; height:750px; border:none; border-radius:6px; background:#fff;"></iframe>
+          </div>
+
+          <ul id="shopTemplatesList" class="list"></ul>
         </section>
     </div>
 
+  </div>
+
+  <!-- Submit Permit Modal -->
+  <div class="settings-modal" id="permitModal">
+    <div class="modal-content" style="max-width: 500px;">
+      <h3 style="margin-bottom: 1rem;"><i class="fas fa-file-contract"></i> Submit Business Permit</h3>
+      <p class="muted-text" style="margin-bottom: 1.5rem; font-size: 0.85rem;">To verify your shop and prove credibility to customers, please submit a link to your DTI, SEC, or Mayor's Business Permit.</p>
+      <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display:block; margin-bottom: 5px;">Permit Document Link (Google Drive, Image Host, etc.)</label>
+      <input type="text" id="permitLinkInput" placeholder="https://..." style="width: 100%; margin-bottom: 1.5rem;" />
+      
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+        <button class="btn btn-outline" onclick="closePermitModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitPermit()">Submit for Review</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -209,7 +582,8 @@
     const username = sessionStorage.getItem('username') || 'Shop Admin';
     document.getElementById('welcomeText').textContent = `Admin: ${username}`;
 
-    let managedShopId = 1; 
+    let managedShopId = 1;
+    const activeShopId = 1;
     let activeCustomer = '';
     let currentDpRate = 20;
 
@@ -225,46 +599,79 @@
     function getCommissionsKey() { return `projectProposals_shop_${managedShopId}`; }
     function getMessagesKey() { return `chatMessages_shop_${managedShopId}`; }
     function getSettingsKey() { return `shop_settings_${managedShopId}`; }
+    function getPermitsKey() { return `shop_permits`; }
+
+    function openPermitModal() { document.getElementById('permitModal').style.display = 'flex'; }
+    function closePermitModal() { document.getElementById('permitModal').style.display = 'none'; }
+    
+    function loadPermitStatus() {
+        const permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '{}');
+        const st = permits[activeShopId];
+        const statusEl = document.getElementById('permitStatusText');
+        if (st && st.status === 'approved') {
+            statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Verified';
+            statusEl.style.color = 'var(--badge-success-text)';
+        } else if (st && st.status === 'pending') {
+            statusEl.innerHTML = '<i class="fas fa-clock"></i> Pending Review';
+            statusEl.style.color = 'var(--color-orange)';
+        } else {
+            statusEl.innerHTML = '<i class="fas fa-shield-alt"></i> Unverified';
+            statusEl.style.color = '#888';
+        }
+    }
+
+    function submitPermit() {
+        const link = document.getElementById('permitLinkInput').value.trim();
+        if (!link) return alert('Please enter a link to your permit document.');
+        const permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '{}');
+        permits[activeShopId] = { link: link, status: 'pending', submittedAt: new Date().toISOString() };
+        localStorage.setItem(getPermitsKey(), JSON.stringify(permits));
+        closePermitModal();
+        alert('Permit submitted successfully! Waiting for admin approval.');
+        loadPermitStatus();
+    }
 
     function loadSettings() {
       const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{"dpRate": 20}');
       currentDpRate = parseInt(settings.dpRate, 10);
       dpSlider.value = currentDpRate;
       dpValueDisplay.textContent = currentDpRate + '%';
+      document.getElementById('dpText').textContent = `DP Required: ${currentDpRate}%`;
     }
 
     function updateDpRate(val) {
       currentDpRate = parseInt(val, 10);
       dpValueDisplay.textContent = currentDpRate + '%';
+      document.getElementById('dpText').textContent = `DP Required: ${currentDpRate}%`;
       const settings = { dpRate: currentDpRate };
       localStorage.setItem(getSettingsKey(), JSON.stringify(settings));
-      loadCommissions(); 
+      loadCommissions();
     }
 
     function loadCommissions() {
       const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
       commissionsList.innerHTML = '';
-      
+
       if (!commissions.length) {
         commissionsList.innerHTML = '<li class="muted-text" style="padding: 1rem 0;">No active commissions.</li>';
         return;
       }
-      
+
       commissions.slice().reverse().forEach((commission, idx) => {
         const st = commission.status || 'pending';
         const price = commission.price || 0;
         const downpayment = (price * (currentDpRate / 100));
-        
+
         // Progress defaults
         const progVal = commission.progressValue || 10;
 
         let badgeClass = 'badge-pending';
         let badgeText = 'Pending';
-        if(st === 'approved') { badgeClass = 'badge-info'; badgeText = 'Awaiting Pay'; }
-        if(st === 'payment_verifying') { badgeClass = 'badge-warning'; badgeText = 'Verifying Ref'; }
-        if(st === 'in_progress') { badgeClass = 'badge-progress'; badgeText = 'In Production'; }
-        if(st === 'completed') { badgeClass = 'badge-success'; badgeText = 'Completed'; }
-        if(st === 'declined') { badgeClass = 'badge-danger'; badgeText = 'Declined'; }
+        if (st === 'approved') { badgeClass = 'badge-info'; badgeText = 'Awaiting Pay'; }
+        if (st === 'payment_verifying') { badgeClass = 'badge-warning'; badgeText = 'Verifying Ref'; }
+        if (st === 'in_progress') { badgeClass = 'badge-progress'; badgeText = 'In Production'; }
+        if (st === 'completed') { badgeClass = 'badge-success'; badgeText = 'Completed'; }
+        if (st === 'declined') { badgeClass = 'badge-danger'; badgeText = 'Declined'; }
 
         const statusOptions = [
           { value: 'pending', label: '1. Pending Review' },
@@ -277,7 +684,7 @@
 
         const li = document.createElement('li');
         li.className = 'list-item';
-        
+
         li.innerHTML = `
           <div class="item-info">
             <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 5px;">
@@ -289,11 +696,16 @@
                 &nbsp;|&nbsp; <b>₱${price.toLocaleString('en-US')}</b> Total
             </div>
             ${commission.referenceNumber ? `
-                <div class="ref-box">
-                    <i class="fas fa-receipt" style="color:var(--color-purple);"></i> 
-                    <b>Customer Paid! Ref:</b> ${commission.referenceNumber}
+                <div class="ref-box" style="margin-top: 10px; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 6px;">
+                    <i class="fas fa-receipt" style="color:#10b981;"></i> 
+                    <b>Paid DP: ₱${Math.round(commission.paidDpAmount || downpayment).toLocaleString('en-US')}</b><br>
+                    <span style="font-size:0.75rem; color:var(--text-muted); margin-left: 18px;">Reference: <span style="font-family: monospace; font-weight: bold; color: var(--text-main);">${commission.referenceNumber}</span></span>
                 </div>
-            ` : ''}
+            ` : `
+                <div class="ref-box" style="margin-top: 10px; padding: 10px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; color: var(--text-muted);">
+                    <i class="fas fa-clock"></i> <b>Required DP (${currentDpRate}%):</b> <span style="color:var(--text-main); font-weight:800;">₱${Math.round(downpayment).toLocaleString('en-US')}</span>
+                </div>
+            `}
           </div>
           
           <div class="item-actions">
@@ -326,15 +738,15 @@
       const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
       const index = commissions.findIndex(c => c.id === id);
       if (index === -1) return;
-      
+
       commissions[index].status = newStatus;
-      
+
       // Auto-set progress when status changes
-      if(newStatus === 'in_progress' && !commissions[index].progressValue) {
+      if (newStatus === 'in_progress' && !commissions[index].progressValue) {
         commissions[index].progressValue = 10;
         commissions[index].progressLabel = "Sourcing Materials";
       }
-      if(newStatus === 'completed') {
+      if (newStatus === 'completed') {
         commissions[index].progressValue = 100;
         commissions[index].progressLabel = "Completed";
       }
@@ -362,7 +774,15 @@
     function loadCustomerThreads() {
       const messages = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
       const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const registeredUsers = JSON.parse(localStorage.getItem('users') || '[]');
       const names = new Set();
+      
+      // Get all signed up customers
+      registeredUsers.forEach(u => {
+        if (u.name && (!u.role || u.role.toLowerCase() === 'user' || u.role.toLowerCase() === 'customer')) {
+          names.add(u.name);
+        }
+      });
       messages.forEach(msg => { if (msg.customerName) names.add(msg.customerName); });
       commissions.forEach(c => { if (c.customerName) names.add(c.customerName); });
       const customers = Array.from(names).sort((a, b) => a.localeCompare(b));
@@ -412,52 +832,264 @@
       updateStats();
     }
 
-    function loadModels() {
-      const models = JSON.parse(localStorage.getItem(getModelsKey()) || '[]');
-      modelsList.innerHTML = '';
-      if (!models.length) { modelsList.innerHTML = '<li class="muted-text" style="font-size:0.85rem;">No files uploaded.</li>'; return; }
-      models.forEach(model => {
-        const li = document.createElement('li');
-        li.style.cssText = "font-size:0.85rem; padding: 4px 0; border-bottom: 1px dashed #eee;";
-        li.innerHTML = `<i class="fas fa-file-alt" style="color:var(--text-muted);"></i> <b>${model.name}</b> (${model.size})`;
-        modelsList.appendChild(li);
-      });
-    }
-
-    function importModel() {
-      const input = document.getElementById('modelFile');
-      if (!input.files.length) return alert('Select a 3D model file first.');
-      const file = input.files[0];
-      const models = JSON.parse(localStorage.getItem(getModelsKey()) || '[]');
-      models.unshift({ id: Date.now(), name: file.name, type: file.type || '3d-model', size: `${(file.size / 1024 / 1024).toFixed(2)} MB`, uploadedAt: new Date().toISOString() });
-      localStorage.setItem(getModelsKey(), JSON.stringify(models));
-      input.value = '';
-      loadModels();
-      updateStats();
-    }
-
     function updateStats() {
-      const models = JSON.parse(localStorage.getItem(getModelsKey()) || '[]');
       const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
       const messages = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
       const pending = commissions.filter(c => (c.status || 'pending') === 'pending').length;
-      document.getElementById('statModels').textContent = String(models.length);
+      document.getElementById('statModels').textContent = '—'; // Removed models KPI
       document.getElementById('statCommissions').textContent = String(commissions.length);
       document.getElementById('statPending').textContent = String(pending);
       document.getElementById('statMessages').textContent = String(messages.length);
     }
 
+    let activeEditTemplateId = null;
+    let tempOverridePrice = null;
+
+    function setupIframe(frame) {
+      frame.onload = function() {
+        try {
+          const win = frame.contentWindow;
+          const doc = win.document;
+          
+          const style = doc.createElement('style');
+          style.innerHTML = `
+             .btn-export { display: none !important; }
+             .btn-add { display: none !important; }
+             .header-controls { display: none !important; }
+          `;
+          doc.head.appendChild(style);
+
+          // Make the Estimated Cost editable
+          const tp = doc.getElementById('total-price');
+          if (tp) {
+              tp.contentEditable = 'true';
+              tp.style.border = '1px dashed #6abf6a';
+              tp.style.padding = '2px 8px';
+              tp.style.borderRadius = '4px';
+              tp.style.outline = 'none';
+              tp.title = "Click to manually adjust estimated cost (₱)";
+              
+              let isManuallySet = false;
+              if (tempOverridePrice !== null) {
+                  tp.innerHTML = '&#8369;' + Number(tempOverridePrice).toLocaleString('en-US');
+                  isManuallySet = true;
+              }
+              
+              let originalUpdate = win.updatePrice;
+              if (typeof originalUpdate === 'function') {
+                  win.updatePrice = function() {
+                      if (!isManuallySet) originalUpdate.apply(win, arguments);
+                  };
+                  if (!isManuallySet) win.updatePrice();
+              }
+              tp.addEventListener('input', () => { isManuallySet = true; });
+          }
+        } catch(e) {
+          console.error("Could not inject styles into iframe:", e);
+        }
+      };
+    }
+
+    function startCustomization() {
+      activeEditTemplateId = null; // Clear edit mode
+      tempOverridePrice = null;
+
+      const name = document.getElementById('tdName').value.trim();
+      const type = document.getElementById('tdType').value;
+      if(!name) return alert("Please enter a Design Name first.");
+      document.getElementById('customizationContainer').style.display = 'block';
+      const frame = document.getElementById('customizationFrame');
+      
+      setupIframe(frame);
+      
+      frame.src = type + '.html'; // open the customized platform
+      frame.focus();
+      // Scroll smoothly to iframe
+      document.getElementById('customizationContainer').scrollIntoView({behavior:'smooth'});
+    }
+
+    function saveCustomTemplate() {
+      const iframe = document.getElementById('customizationFrame');
+      const win = iframe.contentWindow;
+      
+      const type = document.getElementById('tdType').value;
+      const name = document.getElementById('tdName').value.trim();
+      const gender = document.getElementById('tdGender').value;
+
+      try {
+         // Because let variables in scripts belong to block scope, win.appState is undefined.
+         // We must read the synced saved state from sessionStorage.
+         const keyMap = {
+            chair: 'cadState_chair_v6',
+            table: 'cadState_table_v10',
+            bed: 'cadState_bed_v1',
+            sofa: 'cadState_sofa_v1',
+            cabinet: 'cadState_cabinet_v1',
+            stool: 'cadState_stool_v3',
+            desk: 'cadState_desk_v1',
+            bookshelf: 'cadState_bookshelf_v1'
+         };
+         
+         const sessionKey = keyMap[type] || 'cadState_' + type + '_v1';
+         const savedStateStr = sessionStorage.getItem(sessionKey);
+         let items = [];
+         let activeItemId = null;
+         
+         if (savedStateStr) {
+             const parsed = JSON.parse(savedStateStr);
+             items = parsed.items || [];
+             activeItemId = parsed.activeItemId;
+         }
+
+         if (!items || !items.length) {
+            return alert("Could not fetch 3D design data from the session. Ensure you have made changes inside the builder.");
+         }
+         
+         const activeItem = items.find(i => i.id === activeItemId) || items[0];
+         
+         let priceStr = '0';
+         const pElem = win.document.getElementById('total-price');
+         if(pElem) priceStr = pElem.innerText.replace(/[^0-9.-]+/g, "");
+         const price = parseInt(priceStr) || 0;
+
+         let parts = ['Body'];
+         if (win.assetsDB && win.assetsDB[type] && win.assetsDB[type].parts) {
+             parts = win.assetsDB[type].parts;
+         } else {
+             if(type==='chair') parts=['Seat','Back','Legs','Armrests'];
+             if(type==='table' || type==='desk') parts=['Top','Legs'];
+             if(type==='bed') parts=['Headboard','Frame','Legs'];
+             if(type==='sofa') parts=['Frame','Cushions','Arms'];
+             if(type==='cabinet' || type==='bookshelf') parts=['Body','Doors'];
+             if(type==='stool') parts=['Seat','Legs'];
+         }
+
+         const icons = {chair:'fa-chair', table:'fa-utensils', bed:'fa-bed', sofa:'fa-couch', cabinet:'fa-door-closed', stool:'fa-chair', desk:'fa-desktop', bookshelf:'fa-book'};
+
+         const newTemplate = {
+             id: Date.now(),
+             type: type,
+             name: name,
+             icon: icons[type] || 'fa-cube',
+             badge: 'new',
+             gender: gender,
+             description: 'Shop customized design by Irawan Woodworks.',
+             tags: ['Custom', type.charAt(0).toUpperCase() + type.slice(1)],
+             parts: parts,
+             selections: activeItem.selections || {},
+             carvings: activeItem.carvings || {},
+             shapes: activeItem.shapes || {},
+             dims: activeItem.dims || {},
+             scale: activeItem.globalScale || {x:1, y:1, z:1},
+             basePrice: price
+         };
+
+         const templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+         
+         if (activeEditTemplateId) {
+             const idx = templates.findIndex(t => t.id === activeEditTemplateId);
+             if (idx > -1) {
+                 newTemplate.id = activeEditTemplateId; // keep old ID
+                 templates[idx] = newTemplate;
+             } else {
+                 templates.unshift(newTemplate);
+             }
+             activeEditTemplateId = null;
+         } else {
+             templates.unshift(newTemplate);
+         }
+         
+         localStorage.setItem('shop_templates_global', JSON.stringify(templates));
+
+         document.getElementById('customizationContainer').style.display = 'none';
+         document.getElementById('tdName').value = '';
+         loadShopTemplates();
+         alert("Successfully Pushed Design to Templates (Pre-made)!");
+
+      } catch(e) {
+         console.error("Save custom template error:", e);
+         alert("Error reading design from iframe. Platform might be protected or not fully loaded.");
+      }
+    }
+
+    function loadShopTemplates() {
+      const templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      const list = document.getElementById('shopTemplatesList');
+      list.innerHTML = '';
+      if(!templates.length) {
+         list.innerHTML = '<li class="muted-text" style="padding:1rem 0;">No templates published yet.</li>'; return;
+      }
+      templates.forEach(t => {
+         const li = document.createElement('li');
+         li.className = 'list-item';
+         li.innerHTML = `
+           <div class="item-info">
+             <div class="item-title"><i class="fas ${t.icon}"></i> ${t.name}</div>
+             <div class="item-sub">Type: <b style="text-transform:capitalize">${t.type}</b> &nbsp;|&nbsp; Gender: <b style="text-transform:capitalize">${t.gender}</b> &nbsp;|&nbsp; Price: <b>₱${(t.basePrice||0).toLocaleString()}</b></div>
+           </div>
+           <div class="item-actions">
+             <button class="btn btn-secondary" onclick="editShopTemplate(${t.id})" style="margin-right: 5px;"><i class="fas fa-edit"></i> Edit</button>
+             <button class="btn btn-secondary" style="color:var(--color-red);" onclick="deleteShopTemplate(${t.id})">Remove</button>
+           </div>
+         `;
+         list.appendChild(li);
+      });
+    }
+
+    function editShopTemplate(id) {
+       const templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+       const t = templates.find(temp => temp.id === id);
+       if (!t) return;
+       
+       document.getElementById('tdName').value = t.name;
+       document.getElementById('tdType').value = t.type;
+       document.getElementById('tdGender').value = t.gender;
+       
+       activeEditTemplateId = id;
+       tempOverridePrice = t.basePrice || null;
+       
+       const keyMap = { chair: 'cadState_chair_v6', table: 'cadState_table_v10', bed: 'cadState_bed_v1', sofa: 'cadState_sofa_v1', cabinet: 'cadState_cabinet_v1', stool: 'cadState_stool_v3', desk: 'cadState_desk_v1', bookshelf: 'cadState_bookshelf_v1' };
+       const sessionKey = keyMap[t.type] || 'cadState_' + t.type + '_v1';
+       
+       const restoredState = {
+           items: [{
+               id: 1, type: t.type, name: t.name,
+               selections: t.selections || {}, carvings: t.carvings || {}, shapes: t.shapes || {}, dims: t.dims || {}, globalScale: t.scale
+           }],
+           activeItemId: 1,
+           activeLayer: (t.parts && t.parts.length) ? t.parts[0] : 'Body'
+       };
+       sessionStorage.setItem(sessionKey, JSON.stringify(restoredState));
+       
+       document.getElementById('customizationContainer').style.display = 'block';
+       const frame = document.getElementById('customizationFrame');
+       
+       setupIframe(frame);
+
+       frame.src = t.type + '.html';
+       document.getElementById('customizationContainer').scrollIntoView({behavior:'smooth'});
+    }
+
+    function deleteShopTemplate(id) {
+       if(!confirm("Remove this custom design?")) return;
+       const templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+       const filtered = templates.filter(t => t.id !== id);
+       localStorage.setItem('shop_templates_global', JSON.stringify(filtered));
+       loadShopTemplates();
+    }
+
     function logoutShop() { sessionStorage.clear(); window.location.href = 'shop_login.html'; }
 
     function loadAll() {
-      loadSettings(); 
-      loadModels();
+      loadSettings();
       loadCommissions();
       loadCustomerThreads();
+      loadShopTemplates();
       updateStats();
     }
 
     window.onload = loadAll;
   </script>
 </body>
+
 </html>

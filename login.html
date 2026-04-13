@@ -917,6 +917,33 @@ function verifyOtp(){
 
   if(entered===demoOtp){
     clearInterval(timerInterval);
+    
+    // Manage Users Database & Authentication state
+    let usersDb = JSON.parse(localStorage.getItem('users') || '[]');
+    if(!Array.isArray(usersDb)) usersDb = [];
+    
+    localStorage.setItem('currentUserEmail', currentEmail);
+    
+    if(currentMode === 'signup'){
+        const name = document.getElementById('signupName').value.trim();
+        if(name) {
+            localStorage.setItem('currentUserName', name);
+            // push/update to db
+            const existing = usersDb.find(u => u.email === currentEmail);
+            if(existing) existing.name = name;
+            else usersDb.push({ email: currentEmail, name: name });
+            localStorage.setItem('users', JSON.stringify(usersDb));
+        }
+    } else {
+        // Retrieve name if they just logged in
+        const existing = usersDb.find(u => u.email === currentEmail);
+        if(existing && existing.name) {
+            localStorage.setItem('currentUserName', existing.name);
+        } else {
+            localStorage.removeItem('currentUserName');
+        }
+    }
+    
     document.getElementById('tabsRow').style.display='none';
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     const s=document.getElementById('panelSuccess');

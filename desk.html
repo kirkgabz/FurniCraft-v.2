@@ -10,16 +10,17 @@
   <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
   <style>
     :root {
-      --bg-dark: #1e1e1e; --bg-panel: #252526; --bg-header: #333333;
-      --accent: #e64a19; --select-blue: #ff5722; --text-main: #e0e0e0;
-      --text-dim: #999; --border: #3e3e42; --gold: #f1c40f; --rec-bg: #2e1004;
+      --bg-dark:#1e1e1e; --bg-panel:#252526; --bg-header:#333333;
+      --accent:#8e44ad; --accent2:#6c3483; --select-blue:#007acc;
+      --text-main:#e0e0e0; --text-dim:#999; --border:#3e3e42;
+      --gold:#f1c40f; --rec-bg:#2a1a35;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
     header { height: 45px; background-color: var(--bg-header); display: flex; align-items: center; padding: 0 1rem; border-bottom: 1px solid var(--border); justify-content: space-between; }
     .brand { font-weight: 600; color: white; display: flex; align-items: center; gap: 8px; }
-    .btn-export { background: #d84315 !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
-    .btn-export:hover { background: #bf360c !important; }
+    .btn-export { background: var(--accent) !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
+    .btn-export:hover { background: var(--accent2) !important; }
     .workspace { display: flex; flex: 1; height: calc(100vh - 45px); }
     .panel-left { width: 280px; background-color: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 5; }
     .panel-header { padding: 14px 16px; font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #e0e0e0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #2a2a2e 0%, #252526 100%); }
@@ -30,7 +31,7 @@
     .btn-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
     .btn-delete:hover { color: #c0392b; background: rgba(192,57,43,0.1); }
     .btn-add { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.02em; transition: 0.2s; }
-    .btn-add:hover { background: #bf360c; }
+    .btn-add:hover { background: var(--accent2); }
     .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); }
     #canvas-container { width: 100%; height: 100%; outline: none; }
     .viewport-controls { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 5px; border-radius: 20px; border: 1px solid #555; display: flex; gap: 5px; z-index: 10; }
@@ -49,7 +50,7 @@
     .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
     .design-card { background: #333; border: 1px solid #444; border-radius: 4px; padding: 10px; text-align: center; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; height: 80px; position: relative; overflow: hidden; }
     .design-card:hover { transform: translateY(-2px); background: #3e3e42; border-color:white; }
-    .design-card.active { border-color: var(--accent); background: rgba(230, 74, 25, 0.1); }
+    .design-card.active { border-color: var(--accent); background: rgba(142, 68, 173, 0.1); }
     .design-icon { font-size: 1.4rem; color: #aaa; }
     .design-name { font-size: 0.7rem; color: #ccc; line-height: 1.1; }
     .render-legend { display: flex; gap: 14px; align-items: center; padding: 8px 12px; background: #1c1c1e; border: 1px solid #333; border-radius: 6px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -69,10 +70,10 @@
     .prop-scroll { flex: 1; overflow-y: auto; }
     .prop-group { padding: 20px 18px; border-bottom: 1px solid var(--border); }
     .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; min-width: 0; }
-    .section-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; background: rgba(230, 74, 25, 0.15); color: var(--accent); border: 1px solid rgba(230, 74, 25, 0.25); }
+    .section-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; background: rgba(142, 68, 173, 0.15); color: var(--accent); border: 1px solid rgba(142, 68, 173, 0.25); }
     .prop-label { font-size: 0.78rem; font-weight: 800; color: #d0d0d0; display: inline; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; line-height: 1.2; flex-shrink: 0; }
     .info-btn { width: 18px; height: 18px; border-radius: 50%; background: #2e2e2e; border: 1px solid #4a4a4a; color: #777; font-size: 0.65rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s; }
-    .info-btn:hover { background: var(--select-blue); border-color: var(--select-blue); color: white; transform: scale(1.2); box-shadow: 0 0 8px rgba(255, 87, 34, 0.45); }
+    .info-btn:hover { background: var(--select-blue); border-color: var(--select-blue); color: white; transform: scale(1.2); box-shadow: 0 0 8px rgba(142, 68, 173, 0.45); }
     .info-tooltip { position: fixed; z-index: 9999; background: #1a1a1e; border: 1px solid var(--select-blue); border-radius: 10px; padding: 16px 18px; width: 300px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); pointer-events: none; opacity: 0; transform: translateY(6px) scale(0.97); transition: opacity 0.18s ease, transform 0.18s ease; }
     .info-tooltip.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
     .info-tooltip-title { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--select-blue); margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
@@ -88,7 +89,7 @@
     .mat-grid-large { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
     .mat-card-lg { background: #333; border: 1px solid var(--border); border-radius: 6px; padding: 12px 8px; text-align: center; cursor: pointer; transition: 0.15s; }
     .mat-card-lg:hover { transform: translateY(-2px); background: #3e3e42; border-color: white; }
-    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #554a1f; }
+    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #5a2a7a; }
     .mat-card-icon { font-size: 1.8rem; margin-bottom: 6px; }
     .mat-card-name { font-size: 0.82rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; font-size: 1rem; flex-wrap: wrap; }
@@ -96,7 +97,7 @@
     .toggle-btn { padding: 7px 14px; font-size: 0.88rem; background: #333; border: 1px solid #444; border-radius: 15px; cursor: pointer; color: #ccc; transition: 0.15s; }
     .toggle-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
     .layer-item { background: #2b2b2b; border-radius: 6px; margin-bottom: 10px; border: 1px solid #333; transition: all 0.2s; }
-    .layer-item.active-layer { border: 1px solid var(--select-blue); box-shadow: 0 0 10px rgba(255, 87, 34, 0.25); }
+    .layer-item.active-layer { border: 1px solid var(--select-blue); box-shadow: 0 0 10px rgba(142, 68, 173, 0.25); }
     .layer-header { padding: 13px 12px; font-size: 1rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #333; border-radius: 6px 6px 0 0; }
     .layer-header:hover { background: #3c3c3c; }
     .color-preview { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #777; flex-shrink: 0; }
@@ -128,11 +129,11 @@
     .accessory-item.enabled { border-color:var(--accent); }
     .accessory-header { display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; background:#2a2a2e; }
     .accessory-header:hover { background:#313136; }
-    .accessory-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; background:rgba(230, 74, 25,0.1); color:var(--accent); border:1px solid rgba(230, 74, 25,0.2); }
+    .accessory-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; background:rgba(142,68,173,0.1); color:var(--accent); border:1px solid rgba(142,68,173,0.2); }
     .accessory-icon.enabled { background:rgba(230, 74, 25,0.25); border-color:var(--accent); }
     .accessory-title { flex:1; font-size:0.9rem; font-weight:700; color:#ddd; }
     .accessory-badge { font-size:0.7rem; padding:2px 7px; border-radius:8px; background:#333; color:#888; border:1px solid #444; }
-    .accessory-badge.on { background:rgba(230, 74, 25,0.2); color:var(--accent); border-color:var(--accent); }
+    .accessory-badge.on { background:rgba(142,68,173,0.2); color:var(--accent); border-color:var(--accent); }
     .accessory-toggle { width:36px; height:20px; background:#333; border-radius:10px; position:relative; cursor:pointer; border:none; flex-shrink:0; transition:background 0.2s; }
     .accessory-toggle.on { background:var(--accent); }
     .accessory-toggle::after { content:''; position:absolute; width:14px; height:14px; border-radius:50%; background:white; top:3px; left:3px; transition:left 0.2s; }
@@ -143,7 +144,7 @@
     .acc-mat-grid { display:flex; flex-wrap:wrap; gap:5px; }
     .acc-mat-chip { padding:5px 10px; border-radius:10px; border:1px solid #3a3a3a; background:#2a2a2a; color:#bbb; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; gap:5px; transition:0.15s; }
     .acc-mat-chip:hover { border-color:#aaa; color:white; }
-    .acc-mat-chip.active { border-color:var(--accent); background:rgba(230, 74, 25,0.15); color:white; }
+    .acc-mat-chip.active { border-color:var(--accent); background:rgba(142,68,173,0.15); color:white; }
     .acc-mat-dot { width:10px; height:10px; border-radius:50%; border:1px solid rgba(255,255,255,0.2); flex-shrink:0; }
     .acc-range-row { display:flex; align-items:center; gap:8px; }
     .acc-range-row label { font-size:0.78rem; color:#777; width:40px; flex-shrink:0; }
@@ -157,7 +158,7 @@
     .catalog-modal { background:#1e1e20; border:1px solid var(--border); border-radius:14px; width:720px; max-width:95vw; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.8); overflow:hidden; }
     .catalog-header { padding:22px 28px 16px; border-bottom:1px solid #333; display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg,#252528,#1e1e20); flex-shrink:0; }
     .catalog-header-left { display:flex; align-items:center; gap:12px; }
-    .catalog-header-icon { width:38px; height:38px; background:rgba(230, 74, 25,0.15); border:1px solid rgba(230, 74, 25,0.35); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:1rem; flex-shrink:0; }
+    .catalog-header-icon { width:38px; height:38px; background:rgba(142,68,173,0.15); border:1px solid rgba(142,68,173,0.35); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:1rem; flex-shrink:0; }
     .catalog-header h2 { font-size:1.05rem; font-weight:800; color:white; margin:0; }
     .catalog-header p { font-size:0.78rem; color:#888; margin:2px 0 0; }
     .catalog-close { background:none; border:none; color:#777; font-size:1.4rem; cursor:pointer; line-height:1; padding:4px 8px; border-radius:6px; transition:0.15s; }
@@ -171,13 +172,13 @@
     .catalog-section-title { font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.12em; color:#666; margin:0 0 14px; }
     .catalog-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px; }
     .cat-card { background:#252528; border:1.5px solid #333; border-radius:12px; padding:20px 14px; text-align:center; cursor:pointer; transition:all 0.18s; display:flex; flex-direction:column; align-items:center; gap:10px; position:relative; }
-    .cat-card:hover { transform:translateY(-3px); border-color:var(--accent); background:#2a2a2e; box-shadow:0 8px 24px rgba(230, 74, 25,0.15); }
-    .cat-card.current { border-color:var(--select-blue); background:rgba(255, 87, 34,0.07); }
-    .cat-card-icon { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; background:rgba(230, 74, 25,0.1); border:1px solid rgba(230, 74, 25,0.2); }
-    .cat-card.current .cat-card-icon { background:rgba(255, 87, 34,0.12); border-color:rgba(255, 87, 34,0.3); }
+    .cat-card:hover { transform:translateY(-3px); border-color:var(--accent); background:#2a2a2e; box-shadow:0 8px 24px rgba(142,68,173,0.15); }
+    .cat-card.current { border-color:var(--select-blue); background:rgba(142, 68, 173,0.07); }
+    .cat-card-icon { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; background:rgba(142, 68, 173,0.1); border:1px solid rgba(142, 68, 173,0.2); }
+    .cat-card.current .cat-card-icon { background:rgba(142, 68, 173,0.12); border-color:rgba(142, 68, 173,0.3); }
     .cat-card-name { font-size:0.9rem; font-weight:700; color:#ddd; }
     .cat-card-desc { font-size:0.72rem; color:#777; line-height:1.4; }
-    .cat-card-badge { position:absolute; top:8px; right:8px; font-size:0.62rem; font-weight:700; padding:2px 7px; border-radius:8px; background:rgba(255, 87, 34,0.2); color:var(--select-blue); border:1px solid rgba(255, 87, 34,0.35); text-transform:uppercase; }
+    .cat-card-badge { position:absolute; top:8px; right:8px; font-size:0.62rem; font-weight:700; padding:2px 7px; border-radius:8px; background:rgba(142, 68, 173,0.2); color:var(--select-blue); border:1px solid rgba(142, 68, 173,0.35); text-transform:uppercase; }
 
     /* ── Previous project mini-card in left panel ── */
     .prev-project-bar { margin:8px 8px 0; background:#1a1a1c; border:1px solid #2e2e32; border-radius:8px; overflow:hidden; }
@@ -211,7 +212,7 @@
           <span class="prev-project-link"><i class="fas fa-external-link-alt"></i> Open</span>
         </div>
       </div>
-      <button class="btn-add" onclick="openFurnitureCatalog()"><i class="fas fa-plus"></i> Add New Desk Project</button>
+      <button class="btn-add" onclick="goToCraft()"><i class="fas fa-plus"></i> Add New Desk Project</button>
     </aside>
     <main class="viewport">
       <div class="viewport-controls">
@@ -307,91 +308,18 @@
     <div class="info-tooltip-tip" id="tt-tip"></div>
   </div>
 
-  <div id="catalog-overlay" onclick="closeCatalogBg(event)">
-    <div class="catalog-modal" onclick="event.stopPropagation()">
-      <div class="catalog-header">
-        <div class="catalog-header-left">
-          <div class="catalog-header-icon"><i class="fas fa-th-large"></i></div>
-          <div>
-            <h2>Furniture Catalog</h2>
-            <p>Select a category to start a new project</p>
-          </div>
-        </div>
-        <button class="catalog-close" onclick="closeCatalog()">×</button>
-      </div>
-      <div class="catalog-back-row">
-        <button class="catalog-back-btn" onclick="goToCraft()">
-          <i class="fas fa-arrow-left"></i> Back to FurniCraft Home
-        </button>
-        <span class="catalog-back-label">or choose a furniture category below</span>
-      </div>
-      <div class="catalog-body">
-        <div class="catalog-section-title">Workspace</div>
-        <div class="catalog-grid">
-          <div class="cat-card current" onclick="selectCategory('desk')">
-            <div class="cat-card-badge">Current</div>
-            <div class="cat-card-icon"><i class="fas fa-desktop" style="color:var(--select-blue)"></i></div>
-            <div class="cat-card-name">Office Desk</div>
-            <div class="cat-card-desc">Design modern and executive workspaces.</div>
-          </div>
-          <div class="cat-card" onclick="selectCategory('bookshelf')">
-            <div class="cat-card-icon"><i class="fas fa-book"></i></div>
-            <div class="cat-card-name">Bookshelf</div>
-            <div class="cat-card-desc">Freestanding & wall-mount shelving units</div>
-          </div>
-        </div>
-        <div class="catalog-section-title">Seating & Tables</div>
-        <div class="catalog-grid">
-          <div class="cat-card" onclick="selectCategory('dining_table')">
-            <div class="cat-card-icon"><i class="fas fa-table"></i></div>
-            <div class="cat-card-name">Dining Table</div>
-            <div class="cat-card-desc">Custom dining tables with extensions.</div>
-          </div>
-          <div class="cat-card" onclick="selectCategory('coffee_table')">
-            <div class="cat-card-icon"><i class="fas fa-coffee"></i></div>
-            <div class="cat-card-name">Coffee Table</div>
-            <div class="cat-card-desc">Low center tables for living room spaces</div>
-          </div>
-          <div class="cat-card" onclick="selectCategory('chair')">
-            <div class="cat-card-icon"><i class="fas fa-chair"></i></div>
-            <div class="cat-card-name">Chair</div>
-            <div class="cat-card-desc">Dining, accent & lounge chair designs</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+
 
 <script>
 /* ============================================================
    NAVIGATION & CATALOG
    ============================================================ */
 function goToExport(){ saveState(); window.location.href = 'export_area.html'; }
-function goToCraft(){ closeCatalog(); window.location.href = 'craft.html'; }
-function openFurnitureCatalog(){ document.getElementById('catalog-overlay').classList.add('open'); }
-function closeCatalog(){ document.getElementById('catalog-overlay').classList.remove('open'); }
-function closeCatalogBg(e){ if(e.target===document.getElementById('catalog-overlay')) closeCatalog(); }
-
-const CATEGORY_ROUTES = {
-  desk: null,
-  dining_table: 'table.html',
-  coffee_table: 'coffee_table.html',
-  chair: 'chair.html',
-  bookshelf: 'bookshelf.html'
-};
-
-function selectCategory(catId){
-  closeCatalog();
-  if(catId === 'desk'){ createNewDesk(true); return; }
-  const route = CATEGORY_ROUTES[catId];
-  if(route){
-    const ai = getActiveItem();
-    if(ai){
-      sessionStorage.setItem('prevProjectName', ai.name);
-      sessionStorage.setItem('prevProjectPage', 'desk.html');
-    }
-    window.location.href = route;
-  }
+function goToCraft(){ 
+  saveState();
+  const ai=getActiveItem();
+  if(ai){ sessionStorage.setItem('prevProjectName',ai.name); sessionStorage.setItem('prevProjectPage','desk.html'); }
+  window.location.href = 'craft.html'; 
 }
 
 function goToPrevProject(){
@@ -526,7 +454,12 @@ let textureCache={}, modalState={partName:null,type:null};
 
 window.onload=function(){
   try{ const s=sessionStorage.getItem('cadState_desk_v1'); if(s){appState=JSON.parse(s);if(!appState.items)appState.items=[];} }catch(e){appState.items=[];}
-  if(appState.items.length===0) createNewDesk(false);
+  
+  const shouldAdd = sessionStorage.getItem('addNew');
+  if(appState.items.length===0 || shouldAdd === 'true'){
+    createNewDesk(false);
+    sessionStorage.removeItem('addNew');
+  }
   if(!appState.activeLayer) appState.activeLayer='Desktop';
   renderUI(); updatePrice();
   loadPrevProjectBar();
@@ -975,9 +908,12 @@ function createDimensionLine(start,end,label,offset){
   const p1=start.clone().add(off),p2=end.clone().add(off);
   dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),new THREE.LineBasicMaterial({color:0xaaaaaa,transparent:true,opacity:0.5})));
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
-  const ctx=canvas.getContext('2d');ctx.font='Bold 60px Segoe UI';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=4;ctx.fillText(label,256,64);
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0, 0, 512, 128);
+  ctx.font='Bold 80px Segoe UI';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=4;ctx.fillText(label,256,64);
   const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(canvas),transparent:true,depthTest:false}));
-  sprite.position.copy(p1).lerp(p2,0.5);sprite.position.y+=0.05;sprite.scale.set(0.8,0.2,1);
+  sprite.position.copy(p1).lerp(p2,0.5);sprite.position.y+=0.05;
+  sprite.scale.set(1.2,0.3,1);
   dimGroup.add(sprite);
 }
 
@@ -1203,9 +1139,9 @@ function build3DScene(){
 
   if(showDimensions){
     const gx=gs.x||1, gy=gs.y||1, gz=gs.z||1;
-    createDimensionLine(new THREE.Vector3(-deskW/2*gx, 0, deskD/2*gz), new THREE.Vector3(deskW/2*gx, 0, deskD/2*gz), Math.round(deskW*SCALE*gx)+'cm', new THREE.Vector3(0,0,0.3*gz));
-    createDimensionLine(new THREE.Vector3(-deskW/2*gx - 0.2, 0, 0), new THREE.Vector3(-deskW/2*gx - 0.2, (legH+dTop.h)*gy, 0), Math.round((legH+dTop.h)*SCALE*gy)+'cm', new THREE.Vector3(-0.1*gx,0,0));
-    createDimensionLine(new THREE.Vector3(deskW/2*gx + 0.2, (legH+dTop.h)*gy, -deskD/2*gz), new THREE.Vector3(deskW/2*gx + 0.2, (legH+dTop.h)*gy, deskD/2*gz), Math.round(deskD*SCALE*gz)+'cm', new THREE.Vector3(0.1*gx,0,0));
+    createDimensionLine(new THREE.Vector3(-deskW/2*gx, 0, deskD/2*gz), new THREE.Vector3(deskW/2*gx, 0, deskD/2*gz), Math.round(deskW*SCALE*gx)+'cm W', new THREE.Vector3(0,0,0.3*gz));
+    createDimensionLine(new THREE.Vector3(-deskW/2*gx - 0.2, 0, 0), new THREE.Vector3(-deskW/2*gx - 0.2, (legH+dTop.h)*gy, 0), Math.round((legH+dTop.h)*SCALE*gy)+'cm H', new THREE.Vector3(-0.1*gx,0,0));
+    createDimensionLine(new THREE.Vector3(deskW/2*gx + 0.2, (legH+dTop.h)*gy, -deskD/2*gz), new THREE.Vector3(deskW/2*gx + 0.2, (legH+dTop.h)*gy, deskD/2*gz), Math.round(deskD*SCALE*gz)+'cm D', new THREE.Vector3(0.1*gx,0,0));
   }
 }
 

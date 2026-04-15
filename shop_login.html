@@ -1,175 +1,632 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Irawan Woodworks - Shop Partner Login</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>Shop Partner Login — FurniCraft</title>
+  <meta name="description" content="Shop partner login for Irawan Custom Woodworks on the FurniCraft platform.">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap"
+    rel="stylesheet">
+
   <style>
-    :root {
-      --wood-700: #8B4513;
-      --wood-600: #A0522D;
-      --wood-500: #CD853F;
-      --text-main: #2c3e50;
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --dark-900: #0a0c10;
+      --dark-800: #111318;
+      --dark-700: #1a1d24;
+      --dark-600: #23272f;
+      --accent: #c9a84c;
+      --accent-2: #e8c87a;
+      --accent-glow: rgba(201, 168, 76, 0.25);
+      --slate: #8892a4;
+      --text: #e8eaf0;
+      --text-muted: #6b7280;
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --radius: 16px;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background: #f4f1ee;
-      background-image: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), 
-                        url('https://www.transparenttextures.com/patterns/wood-pattern.png');
-      height: 100vh;
+      font-family: 'Outfit', sans-serif;
+      background: var(--dark-900);
+      display: flex;
+      align-items: stretch;
+      color: var(--text);
+    }
+
+    /* ── LEFT PANEL ─────────────────────────────── */
+    .left-panel {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 3rem;
+      overflow: hidden;
+      background: linear-gradient(160deg, #0f1117 0%, #1a1530 40%, #0f1117 100%);
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 30% 30%, rgba(201, 168, 76, 0.14) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 70% 80%, rgba(120, 80, 200, 0.10) 0%, transparent 70%);
+      z-index: 0;
+    }
+
+    /* animated mesh grid */
+    .mesh-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201, 168, 76, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201, 168, 76, 0.04) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: gridScroll 20s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes gridScroll {
+      0% {
+        transform: translate(0, 0);
+      }
+
+      100% {
+        transform: translate(50px, 50px);
+      }
+    }
+
+    #starCanvas {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .panel-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 420px;
+    }
+
+    .brand-logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-radius: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--text-main);
+      margin: 0 auto 2rem;
+      box-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(201, 168, 76, 0.10);
+      animation: logoPulse 3s ease-in-out infinite;
     }
 
-    .login-card {
-      background: white;
-      padding: 2.5rem;
-      border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-      border-top: 5px solid var(--wood-700);
+    @keyframes logoPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(201, 168, 76, 0.10);
+      }
+
+      50% {
+        box-shadow: 0 0 60px rgba(201, 168, 76, 0.40), 0 0 100px rgba(201, 168, 76, 0.15);
+      }
     }
 
-    .login-header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .login-header h1 {
-      font-family: 'Playfair Display', serif;
+    .brand-logo i {
       font-size: 2rem;
-      color: var(--wood-700);
-      margin-bottom: 0.5rem;
+      color: var(--dark-900);
     }
 
-    .form-group {
+    .panel-content h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 0%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    .panel-content p {
+      color: var(--slate);
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+
+    .stat-pills {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      background: rgba(201, 168, 76, 0.10);
+      border: 1px solid rgba(201, 168, 76, 0.20);
+      border-radius: 100px;
+      padding: 0.5rem 1.1rem;
+      font-size: 0.82rem;
+      color: var(--accent-2);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      backdrop-filter: blur(6px);
+    }
+
+    .stat-pill i {
+      font-size: 0.75rem;
+    }
+
+    /* ── RIGHT PANEL — LOGIN CARD ──────────────── */
+    .right-panel {
+      width: 480px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: var(--dark-800);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .right-panel::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201, 168, 76, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 380px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .card-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(201, 168, 76, 0.12);
+      border: 1px solid rgba(201, 168, 76, 0.25);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.9rem;
+      border-radius: 100px;
       margin-bottom: 1.2rem;
     }
 
-    label {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 500;
+    .card-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
       margin-bottom: 0.4rem;
-      color: var(--text-main);
     }
 
-    input {
+    .card-header p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── FORM ELEMENTS ──────────────────────────── */
+    .field {
+      margin-bottom: 1.25rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--slate);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.03em;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap i.icon-left {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      transition: color 0.3s;
+      pointer-events: none;
+    }
+
+    .input-wrap input {
       width: 100%;
-      padding: 0.8rem 1rem;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-family: inherit;
-      transition: border-color 0.3s;
-    }
-
-    input:focus {
+      background: var(--dark-700);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      padding: 0.85rem 1rem 0.85rem 2.9rem;
+      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
       outline: none;
-      border-color: var(--wood-500);
     }
 
+    .input-wrap input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .input-wrap input:focus {
+      border-color: var(--accent);
+      background: var(--dark-600);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .input-wrap:focus-within i.icon-left {
+      color: var(--accent);
+    }
+
+    /* eye toggle */
+    .eye-btn {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: color 0.3s;
+      padding: 0;
+    }
+
+    .eye-btn:hover {
+      color: var(--accent);
+    }
+
+    /* ── ERROR ──────────────────────────────────── */
+    .error-bar {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--danger-bg);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      margin-bottom: 1.25rem;
+      color: #fca5a5;
+      font-size: 0.88rem;
+    }
+
+    .error-bar.show {
+      display: flex;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      20% {
+        transform: translateX(-6px);
+      }
+
+      40% {
+        transform: translateX(6px);
+      }
+
+      60% {
+        transform: translateX(-4px);
+      }
+
+      80% {
+        transform: translateX(4px);
+      }
+    }
+
+    /* ── SUBMIT BUTTON ──────────────────────────── */
     .btn-login {
       width: 100%;
-      background: linear-gradient(135deg, var(--wood-700), var(--wood-500));
-      color: white;
+      padding: 0.95rem;
       border: none;
-      padding: 1rem;
-      border-radius: 8px;
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
       font-size: 1rem;
       font-weight: 600;
+      color: var(--dark-900);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      margin-top: 1rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.3s;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+
+    .btn-login::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.18) 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
     }
 
     .btn-login:hover {
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+      box-shadow: 0 10px 30px rgba(201, 168, 76, 0.35);
     }
 
-    .footer-links {
-      margin-top: 1.5rem;
-      text-align: center;
-      font-size: 0.85rem;
+    .btn-login:hover::after {
+      opacity: 1;
     }
 
-    .footer-links a {
-      color: var(--wood-600);
-      text-decoration: none;
+    .btn-login:active {
+      transform: translateY(0);
     }
 
-    .error-msg {
-      color: #c0392b;
-      font-size: 0.85rem;
-      text-align: center;
-      margin-bottom: 1rem;
+    .btn-login .spinner {
       display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0, 0, 0, 0.3);
+      border-top-color: var(--dark-900);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── FOOTER LINKS ───────────────────────────── */
+    .card-footer {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .card-footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: color 0.3s;
+    }
+
+    .card-footer a:hover {
+      color: var(--accent);
+    }
+
+    /* ── RESPONSIVE ─────────────────────────────── */
+    @media (max-width: 820px) {
+      .left-panel {
+        display: none;
+      }
+
+      .right-panel {
+        width: 100%;
+        border-left: none;
+      }
     }
   </style>
 </head>
+
 <body>
 
-  <div class="login-card">
-    <div class="login-header">
-      <h1>Irawan Woodworks</h1>
-      <p>Partner Dashboard Login</p>
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="mesh-grid"></div>
+    <canvas id="starCanvas"></canvas>
+    <div class="panel-content">
+      <div class="brand-logo"><i class="fas fa-store"></i></div>
+      <h2>Irawan<br>Woodworks</h2>
+      <p>Access your dedicated partner dashboard to manage orders, customize furniture designs, and track your catalog
+        performance.</p>
+      <div class="stat-pills">
+        <span class="stat-pill"><i class="fas fa-box-open"></i> Order Management</span>
+        <span class="stat-pill"><i class="fas fa-palette"></i> Design Studio</span>
+        <span class="stat-pill"><i class="fas fa-chart-bar"></i> Sales Analytics</span>
+      </div>
     </div>
+  </div>
 
-    <div id="errorBox" class="error-msg">Invalid credentials. Please try again.</div>
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="card">
 
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="username">Shop Username</label>
-        <input type="text" id="username" placeholder="Enter shop name" required>
-      </div>
-      
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="••••••••" required>
+      <div class="card-header">
+        <div class="card-tag"><i class="fas fa-handshake"></i> Shop Partner</div>
+        <h1>Welcome Back</h1>
+        <p>Sign in to your partner dashboard</p>
       </div>
 
-      <button type="submit" class="btn-login">Access Dashboard</button>
-    </form>
+      <!-- Error Bar -->
+      <div class="error-bar" id="errorBox">
+        <i class="fas fa-circle-exclamation"></i>
+        <span>Invalid credentials. Please try again.</span>
+      </div>
 
-    <div class="footer-links">
-      <a href="front_page.html">← Back to Main Website</a>
+      <form id="loginForm" autocomplete="off">
+        <div class="field">
+          <label for="username">Shop Username</label>
+          <div class="input-wrap">
+            <i class="icon-left fas fa-store"></i>
+            <input type="text" id="username" placeholder="Enter your shop name" required autocomplete="username">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <i class="icon-left fas fa-lock"></i>
+            <input type="password" id="password" placeholder="Enter password" required autocomplete="current-password">
+            <button type="button" class="eye-btn" id="eyeBtn" aria-label="Toggle password visibility">
+              <i class="fas fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-login" id="loginBtn">
+          <div class="spinner" id="spinner"></div>
+          <i class="fas fa-arrow-right-to-bracket" id="btnIcon"></i>
+          <span id="btnText">Access Dashboard</span>
+        </button>
+      </form>
+
+      <div class="card-footer">
+        <a href="front_page.html"><i class="fas fa-house"></i> Back to Home</a>
+      </div>
+
     </div>
   </div>
 
   <script>
+    /* ── STAR CANVAS ─────────────────────────────── */
+    const canvas = document.getElementById('starCanvas');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+
+    function resizeCanvas() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+
+    function initStars() {
+      stars = [];
+      for (let i = 0; i < 80; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 1.4 + 0.3,
+          o: Math.random(),
+          d: (Math.random() - 0.5) * 0.005
+        });
+      }
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(s => {
+        s.o += s.d;
+        if (s.o <= 0 || s.o >= 1) s.d *= -1;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(201,168,76,${s.o * 0.6})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(drawStars);
+    }
+
+    resizeCanvas();
+    initStars();
+    drawStars();
+    window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
+
+    /* ── EYE TOGGLE ──────────────────────────────── */
+    const eyeBtn = document.getElementById('eyeBtn');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const passInput = document.getElementById('password');
+
+    eyeBtn.addEventListener('click', () => {
+      const show = passInput.type === 'password';
+      passInput.type = show ? 'text' : 'password';
+      eyeIcon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+    });
+
+    /* ── LOGIN LOGIC ─────────────────────────────── */
     const loginForm = document.getElementById('loginForm');
     const errorBox = document.getElementById('errorBox');
+    const loginBtn = document.getElementById('loginBtn');
+    const spinner = document.getElementById('spinner');
+    const btnIcon = document.getElementById('btnIcon');
+    const btnText = document.getElementById('btnText');
 
     loginForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      
+      errorBox.classList.remove('show');
+
       const user = document.getElementById('username').value;
       const pass = document.getElementById('password').value;
 
-      // Locked to Irawan Custom Woodworks
-      if (user.toLowerCase() === "irawan" && pass === "password123") {
-        
-        sessionStorage.setItem('isLoggedIn', 'true');
-        sessionStorage.setItem('userType', 'shop');
-        sessionStorage.setItem('username', 'Irawan Custom Woodworks');
-        sessionStorage.setItem('managedShopId', '1'); // Locked to ID 1
-        
-        window.location.href = 'shop_dashboard.html'; 
-        
-      } else {
-        errorBox.style.display = 'block';
-      }
+      // Show spinner
+      spinner.style.display = 'block';
+      btnIcon.style.display = 'none';
+      btnText.textContent = 'Verifying…';
+      loginBtn.disabled = true;
+
+      setTimeout(() => {
+        // Locked to Irawan Custom Woodworks
+        if (user.toLowerCase() === "irawan" && pass === "password123") {
+          sessionStorage.setItem('isLoggedIn', 'true');
+          sessionStorage.setItem('userType', 'shop');
+          sessionStorage.setItem('username', 'Irawan Custom Woodworks');
+          sessionStorage.setItem('managedShopId', '1');
+          btnText.textContent = 'Welcome back!';
+          setTimeout(() => { window.location.href = 'shop_dashboard.html'; }, 700);
+        } else {
+          spinner.style.display = 'none';
+          btnIcon.style.display = 'inline';
+          btnText.textContent = 'Access Dashboard';
+          loginBtn.disabled = false;
+          errorBox.classList.add('show');
+          setTimeout(() => errorBox.classList.remove('show'), 4000);
+        }
+      }, 900);
     });
   </script>
 
 </body>
+
 </html>

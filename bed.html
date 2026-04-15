@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,687 +11,1789 @@
   <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
   <style>
     :root {
-      --bg-dark:#1e1e1e;--bg-panel:#252526;--bg-header:#333333;
-      --accent:#1a7abf;--accent2:#0e5a8a;--select-blue:#007acc;
-      --text-main:#e0e0e0;--text-dim:#999;--border:#3e3e42;
-      --gold:#f1c40f;--rec-bg:#0d1a26;
+      --bg-dark: #1e1e1e;
+      --bg-panel: #252526;
+      --bg-header: #333333;
+      --accent: #8e44ad;
+      --accent2: #6c3483;
+      --select-blue: #007acc;
+      --text-main: #e0e0e0;
+      --text-dim: #999;
+      --border: #3e3e42;
+      --gold: #f1c40f;
+      --rec-bg: #2a1a35;
     }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg-dark);color:var(--text-main);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
-    header{height:45px;background:var(--bg-header);display:flex;align-items:center;padding:0 1rem;border-bottom:1px solid var(--border);justify-content:space-between;}
-    .brand{font-weight:600;color:white;display:flex;align-items:center;gap:8px;}
-    .brand i{color:var(--accent);}
-    .btn-export{background:var(--accent)!important;color:white!important;padding:5px 12px;border-radius:4px;font-weight:600;transition:.2s;display:flex;align-items:center;gap:6px;cursor:pointer;border:none;font-size:.9rem;}
-    .btn-export:hover{background:var(--accent2)!important;}
-    .workspace{display:flex;flex:1;height:calc(100vh - 45px);}
-    .panel-left{width:280px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:5;}
-    .panel-header{padding:14px 16px;font-size:.82rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#e0e0e0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#2a2a2e 0%,#252526 100%);}
-    .scene-list{flex:1;overflow-y:auto;padding:8px;}
-    .scene-item{padding:13px 12px;margin-bottom:4px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:.95rem;}
-    .scene-item:hover{background:#333;}
-    .scene-item.active{background:#37373d;border-left:3px solid var(--accent);padding-left:10px;}
-    .btn-delete{background:none;border:none;color:#666;cursor:pointer;font-size:1rem;padding:4px 6px;border-radius:4px;}
-    .btn-delete:hover{color:#c0392b;background:rgba(192,57,43,.1);}
-    .btn-add{width:100%;padding:14px;background:var(--accent);color:white;border:none;cursor:pointer;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.02em;transition:.2s;}
-    .btn-add:hover{background:var(--accent2);}
-    .viewport{flex:1;position:relative;background:radial-gradient(circle at center,#2d2d30 0%,#1e1e1e 100%);}
-    #canvas-container{width:100%;height:100%;outline:none;}
-    .viewport-controls{position:absolute;top:15px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);backdrop-filter:blur(4px);padding:5px;border-radius:20px;border:1px solid #555;display:flex;gap:5px;z-index:10;}
-    .vp-btn{background:transparent;border:none;color:#ddd;padding:8px 15px;border-radius:15px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:.2s;}
-    .vp-btn:hover{background:rgba(255,255,255,.1);color:white;}
-    .vp-btn.active{color:var(--accent);}
-    .modal-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;color:white;}
-    .design-modal-overlay.open{display:flex;}
-    .design-modal{background:#252526;border:1px solid var(--border);padding:20px;border-radius:8px;width:600px;max-height:85%;box-shadow:0 10px 30px rgba(0,0,0,.5);position:relative;display:flex;flex-direction:column;}
-    .btn-close-modal{position:absolute;top:10px;right:15px;background:none;border:none;color:#aaa;font-size:1.5rem;cursor:pointer;z-index:2;}
-    .btn-close-modal:hover{color:white;}
-    .modal-title{font-size:1.1rem;color:white;margin-bottom:15px;font-weight:600;flex-shrink:0;}
-    .modal-scroll-area{flex:1;overflow-y:auto;padding-right:10px;}
-    .modal-section-title{width:100%;color:var(--select-blue);font-size:.8rem;font-weight:700;text-transform:uppercase;margin:15px 0 10px;border-bottom:1px solid #444;padding-bottom:5px;}
-    .modal-section-title:first-child{margin-top:0;}
-    .design-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;}
-    .design-card{background:#333;border:1px solid #444;border-radius:4px;padding:10px;text-align:center;cursor:pointer;transition:.1s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;height:80px;position:relative;overflow:hidden;}
-    .design-card:hover{transform:translateY(-2px);background:#3e3e42;border-color:white;}
-    .design-card.active{border-color:var(--accent);background:rgba(26,122,191,.15);}
-    .design-icon{font-size:1.4rem;color:#aaa;}
-    .design-name{font-size:.7rem;color:#ccc;line-height:1.1;}
-    .render-legend{display:flex;gap:14px;align-items:center;padding:8px 12px;background:#1c1c1e;border:1px solid #333;border-radius:6px;margin-bottom:14px;flex-wrap:wrap;}
-    .render-legend-item{display:flex;align-items:center;gap:5px;font-size:.72rem;color:#999;}
-    .legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
-    .legend-dot.ok{background:#2ecc71;border:1px solid #27ae60;}
-    .legend-dot.warn{background:#f1c40f;border:1px solid #d4ac0d;}
-    .legend-dot.bad{background:#e74c3c;border:1px solid #c0392b;}
-    .score-card{position:absolute;top:60px;right:10px;background:rgba(18,18,20,.92);backdrop-filter:blur(6px);padding:18px 20px;border-radius:10px;width:260px;border:1px solid #444;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.5);}
-    .score-title{font-size:.82rem;font-weight:800;color:#e8e8e8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;border-bottom:1px solid #333;padding-bottom:10px;display:flex;align-items:center;gap:6px;}
-    .score-info-btn{width:17px;height:17px;border-radius:50%;background:#2e2e2e;border:1px solid #4a4a4a;color:#777;font-size:.6rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .18s;pointer-events:auto;flex-shrink:0;margin-left:4px;}
-    .score-info-btn:hover{background:var(--select-blue);border-color:var(--select-blue);color:white;transform:scale(1.2);}
-    .score-metric-label{font-size:.85rem;color:#ccc;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;}
-    .score-metric-label span:last-child{font-size:.95rem;font-weight:700;color:white;}
-    .score-bar-bg{width:100%;height:7px;background:#333;margin-bottom:14px;border-radius:4px;overflow:hidden;}
-    .score-bar-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .5s ease;}
-    #rec-status{margin-top:6px;font-size:.82rem;color:#aaa;display:flex;align-items:center;gap:6px;padding-top:8px;border-top:1px solid #333;}
-    .panel-right{width:560px;background:var(--bg-panel);border-left:1px solid var(--border);display:flex;flex-direction:column;z-index:5;}
-    .prop-scroll{flex:1;overflow-y:auto;}
-    .prop-group{padding:20px 18px;border-bottom:1px solid var(--border);}
-    .section-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;min-width:0;}
-    .section-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.78rem;flex-shrink:0;background:rgba(26,122,191,.15);color:var(--accent);border:1px solid rgba(26,122,191,.25);}
-    .prop-label{font-size:.78rem;font-weight:800;color:#d0d0d0;display:inline;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;line-height:1.2;flex-shrink:0;}
-    .info-btn{width:18px;height:18px;border-radius:50%;background:#2e2e2e;border:1px solid #4a4a4a;color:#777;font-size:.65rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;}
-    .info-btn:hover{background:var(--select-blue);border-color:var(--select-blue);color:white;transform:scale(1.2);box-shadow:0 0 8px rgba(0,122,204,.45);}
-    .info-tooltip{position:fixed;z-index:9999;background:#1a1a1e;border:1px solid var(--select-blue);border-radius:10px;padding:16px 18px;width:300px;box-shadow:0 8px 32px rgba(0,0,0,.7),0 0 0 1px rgba(0,122,204,.15);pointer-events:none;opacity:0;transform:translateY(6px) scale(.97);transition:opacity .18s ease,transform .18s ease;}
-    .info-tooltip.visible{opacity:1;transform:translateY(0) scale(1);pointer-events:auto;}
-    .info-tooltip-title{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--select-blue);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
-    .info-tooltip-body{font-size:.88rem;color:#c0c0c0;line-height:1.6;}
-    .info-tooltip-tip{margin-top:10px;padding-top:10px;border-top:1px solid #2d2d33;font-size:.8rem;color:#f1c40f;display:flex;align-items:flex-start;gap:6px;}
-    .info-tooltip-tip i{margin-top:2px;flex-shrink:0;}
-    input[type="text"],select{width:100%;background:#3c3c3c;border:1px solid var(--border);color:white;padding:11px 12px;border-radius:4px;font-family:inherit;margin-bottom:5px;font-size:1.05rem;}
-    .range-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:1rem;}
-    .range-row label{width:55px;color:#aaa;font-size:.95rem;}
-    input[type="range"]{flex:1;accent-color:var(--accent);height:6px;}
-    .val-display{width:48px;text-align:right;color:var(--accent);font-size:1rem;font-weight:600;}
-    .mat-section-title{color:var(--gold);font-size:1rem;font-weight:bold;margin:0 0 10px;display:flex;align-items:center;gap:6px;}
-    .mat-grid-large{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
-    .mat-card-lg{background:#333;border:1px solid var(--border);border-radius:6px;padding:12px 8px;text-align:center;cursor:pointer;transition:.15s;position:relative;}
-    .mat-card-lg:hover{transform:translateY(-2px);background:#3e3e42;border-color:white;}
-    .mat-card-lg.recommended{background:var(--rec-bg);border-color:#0e3a5a;}
-    .mat-card-icon{font-size:1.8rem;margin-bottom:6px;}
-    .mat-card-name{font-size:.88rem;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .layer-item{background:#2b2b2b;border-radius:6px;margin-bottom:10px;border:1px solid #333;transition:all .2s;}
-    .layer-item.active-layer{border:1px solid var(--select-blue);box-shadow:0 0 10px rgba(0,122,204,.25);}
-    .layer-header{padding:13px 12px;font-size:1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:#333;border-radius:6px 6px 0 0;}
-    .layer-header:hover{background:#3c3c3c;}
-    .color-preview{width:22px;height:22px;border-radius:50%;border:1px solid #777;flex-shrink:0;}
-    .layer-content{display:none;padding:16px;background:#222;border-top:1px solid #444;border-radius:0 0 6px 6px;}
-    .layer-item.open .layer-content{display:block;}
-    .part-control-row{margin-bottom:16px;}
-    .part-control-label{font-size:.72rem;font-weight:700;color:#888;margin-bottom:7px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.08em;}
-    .part-control-label .lbl-info-btn{width:15px;height:15px;border-radius:50%;background:#2a2a2a;border:1px solid #484848;color:#666;font-size:.6rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;margin-left:2px;}
-    .part-control-label .lbl-info-btn:hover{background:var(--select-blue);border-color:var(--select-blue);color:white;transform:scale(1.2);}
-    .clickable-design-val{font-size:1rem;color:var(--text-dim);padding:10px 12px;background:#111;border-radius:4px;border:1px solid #444;cursor:pointer;transition:.1s;display:inline-flex;align-items:center;gap:5px;width:100%;justify-content:space-between;}
-    .clickable-design-val:hover{background:#000;border-color:var(--select-blue);color:white;}
-    .clickable-design-val i{color:#666;font-size:.9rem;}
-    .hex-wrapper{display:flex;align-items:center;gap:10px;}
-    input[type="color"]{-webkit-appearance:none;border:none;width:44px;height:44px;cursor:pointer;background:none;padding:0;border-radius:4px;}
-    .hex-text-input{width:110px!important;margin:0!important;font-family:monospace;text-transform:uppercase;font-size:1rem;}
-    .dim-row{display:flex;gap:8px;margin-top:6px;}
-    .dim-group{flex:1;}
-    .dim-input{width:100%;background:#111;border:1px solid #444;color:var(--accent);padding:10px;text-align:center;font-size:1.05rem;border-radius:3px;}
-    .dim-label{font-size:.82rem;color:#666;text-align:center;margin-top:5px;}
-    .footer-bar{padding:18px 20px;background:#202020;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-    .footer-bar span{font-size:.88rem;color:#888;text-transform:uppercase;letter-spacing:.05em;}
-    .total-price{font-size:1.6rem;font-weight:bold;color:var(--accent);}
-    .instruction-text{font-size:.88rem;color:var(--select-blue);margin-bottom:12px;font-style:italic;}
-    .view-focus-btn{background:none;border:none;color:#666;cursor:pointer;font-size:1rem;margin-left:auto;margin-right:10px;}
-    .view-focus-btn:hover{color:var(--select-blue);}
-    .prev-project-bar{margin:8px 8px 0;background:#1a1a1c;border:1px solid #2e2e32;border-radius:8px;overflow:hidden;}
-    .prev-project-label{padding:6px 10px 4px;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#555;}
-    .prev-project-item{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.15s;}
-    .prev-project-item:hover{background:#222;}
-    .prev-project-name{font-size:.82rem;color:#aaa;display:flex;align-items:center;gap:7px;}
-    .prev-project-name i{color:#555;font-size:.75rem;}
-    .prev-project-link{font-size:.7rem;color:#555;display:flex;align-items:center;gap:4px;}
-    .prev-project-link:hover{color:var(--select-blue);}
-    .prev-project-divider{height:1px;background:#2a2a2a;margin:0 10px;}
-    /* style quick-start buttons */
-    .style-btn{margin:4px 0;padding:10px 12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:.82rem;transition:.15s;border:1px dashed;}
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 45px;
+      background: var(--bg-header);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      border-bottom: 1px solid var(--border);
+      justify-content: space-between;
+    }
+
+    .brand {
+      font-weight: 600;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand i {
+      color: var(--accent);
+    }
+
+    .btn-export {
+      background: var(--accent) !important;
+      color: white !important;
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      transition: .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border: none;
+      font-size: .9rem;
+    }
+
+    .btn-export:hover {
+      background: var(--accent2) !important;
+    }
+
+    .workspace {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 45px);
+    }
+
+    .panel-left {
+      width: 280px;
+      background-color: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #e0e0e0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #2a2a2e 0%, #252526 100%);
+    }
+
+    .scene-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .scene-item {
+      padding: 13px 12px;
+      margin-bottom: 4px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.95rem;
+    }
+
+    .scene-item:hover {
+      background-color: #333;
+    }
+
+    .scene-item.active {
+      background-color: #37373d;
+      border-left: 3px solid var(--accent);
+      padding-left: 10px;
+    }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-delete:hover {
+      color: #c0392b;
+      background: rgba(192, 57, 43, 0.1);
+    }
+
+    .btn-add {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: 0.02em;
+      transition: 0.2s;
+    }
+
+    .btn-add:hover {
+      background: var(--accent2);
+    }
+
+    .viewport {
+      flex: 1;
+      position: relative;
+      background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%);
+    }
+
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      outline: none;
+    }
+
+    .viewport-controls {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .6);
+      backdrop-filter: blur(4px);
+      padding: 5px;
+      border-radius: 20px;
+      border: 1px solid #555;
+      display: flex;
+      gap: 5px;
+      z-index: 10;
+    }
+
+    .vp-btn {
+      background: transparent;
+      border: none;
+      color: #ddd;
+      padding: 8px 15px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: .85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: .2s;
+    }
+
+    .vp-btn:hover {
+      background: rgba(255, 255, 255, .1);
+      color: white;
+    }
+
+    .vp-btn.active {
+      color: var(--accent);
+    }
+
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, .85);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .design-modal-overlay.open {
+      display: flex;
+    }
+
+    .design-modal {
+      background: #252526;
+      border: 1px solid var(--border);
+      padding: 20px;
+      border-radius: 8px;
+      width: 600px;
+      max-height: 85%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .btn-close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .btn-close-modal:hover {
+      color: white;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      color: white;
+      margin-bottom: 15px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .modal-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+
+    .modal-section-title {
+      width: 100%;
+      color: var(--select-blue);
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin: 15px 0 10px;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
+    }
+
+    .modal-section-title:first-child {
+      margin-top: 0;
+    }
+
+    .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+    .dim-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+    .dim-group { display: flex; flex-direction: column; align-items: center; }
+    .dim-input { width: 100%; background: #111; border: 1px solid #444; color: var(--accent); padding: 10px; text-align: center; font-size: 1.4rem; border-radius: 3px; font-weight: 700; }
+    .dim-label { font-size: 0.85rem; color: #777; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .design-card {
+      background: #333;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: .1s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      height: 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .design-card:hover {
+      transform: translateY(-2px);
+      background: #3e3e42;
+      border-color: white;
+    }
+
+    .design-card.active {
+      border-color: var(--accent);
+      background: rgba(142, 68, 173, .15);
+    }
+
+    .design-icon {
+      font-size: 1.4rem;
+      color: #aaa;
+    }
+
+    .design-name {
+      font-size: .7rem;
+      color: #ccc;
+      line-height: 1.1;
+    }
+
+    .render-legend {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      padding: 8px 12px;
+      background: #1c1c1e;
+      border: 1px solid #333;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .render-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .72rem;
+      color: #999;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .legend-dot.ok {
+      background: #2ecc71;
+      border: 1px solid #27ae60;
+    }
+
+    .legend-dot.warn {
+      background: #f1c40f;
+      border: 1px solid #d4ac0d;
+    }
+
+    .legend-dot.bad {
+      background: #e74c3c;
+      border: 1px solid #c0392b;
+    }
+
+    .score-card {
+      position: absolute;
+      top: 60px;
+      right: 10px;
+      background: rgba(18, 18, 20, .92);
+      backdrop-filter: blur(6px);
+      padding: 18px 20px;
+      border-radius: 10px;
+      width: 260px;
+      border: 1px solid #444;
+      pointer-events: none;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .5);
+    }
+
+    .score-title {
+      font-size: .82rem;
+      font-weight: 800;
+      color: #e8e8e8;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .score-info-btn {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: #2e2e2e;
+      border: 1px solid #4a4a4a;
+      color: #777;
+      font-size: .6rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .18s;
+      pointer-events: auto;
+      flex-shrink: 0;
+      margin-left: 4px;
+    }
+
+    .score-info-btn:hover {
+      background: var(--select-blue);
+      border-color: var(--select-blue);
+      color: white;
+      transform: scale(1.2);
+    }
+
+    .score-metric-label {
+      font-size: .85rem;
+      color: #ccc;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .score-metric-label span:last-child {
+      font-size: .95rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .score-bar-bg {
+      width: 100%;
+      height: 7px;
+      background: #333;
+      margin-bottom: 14px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .score-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width .5s ease;
+    }
+
+    #rec-status {
+      margin-top: 6px;
+      font-size: .82rem;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-top: 8px;
+      border-top: 1px solid #333;
+    }
+
+    .panel-right {
+      width: 560px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+    }
+
+    .prop-scroll {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .prop-group {
+      padding: 20px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      min-width: 0;
+    }
+
+    .section-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .78rem;
+      flex-shrink: 0;
+      background: rgba(142, 68, 173, .15);
+      color: var(--accent);
+      border: 1px solid rgba(142, 68, 173, .25);
+    }
+
+    .prop-label {
+      font-size: .78rem;
+      font-weight: 800;
+      color: #d0d0d0;
+      display: inline;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      white-space: nowrap;
+      line-height: 1.2;
+      flex-shrink: 0;
+    }
+
+    .info-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #2e2e2e;
+      border: 1px solid #4a4a4a;
+      color: #777;
+      font-size: .65rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all .18s;
+    }
+
+    .info-btn:hover {
+      background: var(--select-blue);
+      border-color: var(--select-blue);
+      color: white;
+      transform: scale(1.2);
+      box-shadow: 0 0 8px rgba(0, 122, 204, .45);
+    }
+
+    .info-tooltip {
+      position: fixed;
+      z-index: 9999;
+      background: #1a1a1e;
+      border: 1px solid var(--select-blue);
+      border-radius: 10px;
+      padding: 16px 18px;
+      width: 300px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .7), 0 0 0 1px rgba(0, 122, 204, .15);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px) scale(.97);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .info-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .info-tooltip-title {
+      font-size: .78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--select-blue);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .info-tooltip-body {
+      font-size: .88rem;
+      color: #c0c0c0;
+      line-height: 1.6;
+    }
+
+    .info-tooltip-tip {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #2d2d33;
+      font-size: .8rem;
+      color: #f1c40f;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .info-tooltip-tip i {
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      background: #3c3c3c;
+      border: 1px solid var(--border);
+      color: white;
+      padding: 11px 12px;
+      border-radius: 4px;
+      font-family: inherit;
+      margin-bottom: 5px;
+      font-size: 1.05rem;
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    .range-row label {
+      width: 55px;
+      color: #aaa;
+      font-size: .95rem;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+      height: 6px;
+    }
+
+    .val-display {
+      width: 48px;
+      text-align: right;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .mat-section-title {
+      color: var(--gold);
+      font-size: 1rem;
+      font-weight: bold;
+      margin: 0 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mat-grid-large {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .mat-card-lg {
+      background: #333;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: .15s;
+      position: relative;
+    }
+
+    .mat-card-lg:hover {
+      transform: translateY(-2px);
+      background: #3e3e42;
+      border-color: white;
+    }
+
+    .mat-card-lg.recommended {
+      background: var(--rec-bg);
+      border-color: #5a2a7a;
+    }
+
+    .mat-card-icon {
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+    }
+
+    .mat-card-name {
+      font-size: .88rem;
+      color: #ccc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .layer-item {
+      background: #2b2b2b;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border: 1px solid #333;
+      transition: all .2s;
+    }
+
+    .layer-item.active-layer {
+      border: 1px solid var(--select-blue);
+      box-shadow: 0 0 10px rgba(142, 68, 173, .25);
+    }
+
+    .layer-header {
+      padding: 13px 12px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      background: #333;
+      border-radius: 6px 6px 0 0;
+    }
+
+    .layer-header:hover {
+      background: #3c3c3c;
+    }
+
+    .color-preview {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1px solid #777;
+      flex-shrink: 0;
+    }
+
+    .layer-content {
+      display: none;
+      padding: 16px;
+      background: #222;
+      border-top: 1px solid #444;
+      border-radius: 0 0 6px 6px;
+    }
+
+    .layer-item.open .layer-content {
+      display: block;
+    }
+
+    .part-control-row {
+      margin-bottom: 16px;
+    }
+
+    .part-control-label {
+      font-size: .72rem;
+      font-weight: 700;
+      color: #888;
+      margin-bottom: 7px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .part-control-label .lbl-info-btn {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #2a2a2a;
+      border: 1px solid #484848;
+      color: #666;
+      font-size: .6rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all .18s;
+      margin-left: 2px;
+    }
+
+    .part-control-label .lbl-info-btn:hover {
+      background: var(--select-blue);
+      border-color: var(--select-blue);
+      color: white;
+      transform: scale(1.2);
+    }
+
+    .clickable-design-val {
+      font-size: 1rem;
+      color: var(--text-dim);
+      padding: 10px 12px;
+      background: #111;
+      border-radius: 4px;
+      border: 1px solid #444;
+      cursor: pointer;
+      transition: .1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .clickable-design-val:hover {
+      background: #000;
+      border-color: var(--select-blue);
+      color: white;
+    }
+
+    .clickable-design-val i {
+      color: #666;
+      font-size: .9rem;
+    }
+
+    .hex-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      background: none;
+      padding: 0;
+      border-radius: 4px;
+    }
+
+    .hex-text-input {
+      width: 110px !important;
+      margin: 0 !important;
+      font-family: monospace;
+      text-transform: uppercase;
+      font-size: 1rem;
+    }
+
+    .dim-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .dim-group {
+      flex: 1;
+    }
+
+    .dim-input {
+      width: 100%;
+      background: #111;
+      border: 1px solid #444;
+      color: var(--accent);
+      padding: 10px;
+      text-align: center;
+      font-size: 1.2rem;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    .dim-label {
+      font-size: .9rem;
+      color: #666;
+      text-align: center;
+      margin-top: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .footer-bar {
+      padding: 18px 20px;
+      background: #202020;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-bar span {
+      font-size: .88rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .total-price {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    .instruction-text {
+      font-size: .88rem;
+      color: var(--select-blue);
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    .view-focus-btn {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-left: auto;
+      margin-right: 10px;
+    }
+
+    .view-focus-btn:hover {
+      color: var(--select-blue);
+    }
+
+    .prev-project-bar {
+      margin: 8px 8px 0;
+      background: #1a1a1c;
+      border: 1px solid #2e2e32;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .prev-project-label {
+      padding: 6px 10px 4px;
+      font-size: .62rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #555;
+    }
+
+    .prev-project-item {
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: .15s;
+    }
+
+    .prev-project-item:hover {
+      background: #222;
+    }
+
+    .prev-project-name {
+      font-size: .82rem;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .prev-project-name i {
+      color: #555;
+      font-size: .75rem;
+    }
+
+    .prev-project-link {
+      font-size: .7rem;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .prev-project-link:hover {
+      color: var(--select-blue);
+    }
+
+    .prev-project-divider {
+      height: 1px;
+      background: #2a2a2a;
+      margin: 0 10px;
+    }
+
     /* bed size pills */
-    .bed-size-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
-    .bed-size-btn{padding:7px 14px;font-size:.82rem;background:#333;border:1px solid #444;border-radius:15px;cursor:pointer;color:#ccc;transition:.15s;}
-    .bed-size-btn:hover{background:#3e3e42;border-color:white;}
-    .bed-size-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
+    .bed-size-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .bed-size-btn {
+      padding: 7px 14px;
+      font-size: .82rem;
+      background: #333;
+      border: 1px solid #444;
+      border-radius: 15px;
+      cursor: pointer;
+      color: #ccc;
+      transition: .15s;
+    }
+
+    .bed-size-btn:hover {
+      background: #3e3e42;
+      border-color: white;
+    }
+
+    .bed-size-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* Scratch info block */
+    .scratch-info {
+      padding: 18px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    .scratch-icon-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 24px 16px;
+      background: rgba(142, 68, 173, .08);
+      border: 1px dashed rgba(142, 68, 173, .3);
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .scratch-big-icon {
+      font-size: 2.8rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 8px rgba(142, 68, 173, .5));
+    }
+
+    .scratch-label {
+      font-size: .78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #b07fe8;
+    }
+
+    .scratch-sub {
+      font-size: .76rem;
+      color: #666;
+      line-height: 1.55;
+      margin-top: 2px;
+    }
+
+    .scratch-tip {
+      background: #1c1c1e;
+      border: 1px solid #2e2e32;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .scratch-tip-title {
+      font-size: .65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #555;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .scratch-tip-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 7px;
+      font-size: .76rem;
+      color: #888;
+      line-height: 1.4;
+    }
+
+    .scratch-tip-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-num {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(142, 68, 173, .25);
+      color: var(--accent);
+      font-size: .65rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .btn-add-furniture {
+      width: calc(100% - 32px);
+      margin: 0 16px 16px;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: .04em;
+      transition: .2s;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(142, 68, 173, .35);
+    }
+
+    .btn-add-furniture:hover {
+      background: linear-gradient(135deg, #a05bc4, var(--accent));
+      box-shadow: 0 6px 20px rgba(142, 68, 173, .5);
+      transform: translateY(-1px);
+    }
+
+    .panel-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #3a3a40, transparent);
+      margin: 8px 12px;
+    }
   </style>
 </head>
+
 <body>
 
-<header>
-  <div class="brand">
-    <i class="fas fa-bed"></i> FurniCraft Studio - Bed Designer Pro
+  <header>
+    <div class="brand">
+      <i class="fas fa-bed"></i> FurniCraft Studio - Bed Designer Pro
+    </div>
+    <div class="header-controls">
+      <button class="btn-export" onclick="goToExport()">
+        <i class="fas fa-file-export"></i> Export
+      </button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- LEFT PANEL -->
+    <aside class="panel-left">
+      <div class="panel-header">
+        <span><i class="fas fa-folder-open" style="color:var(--accent);margin-right:8px;"></i>Design Projects</span>
+        <button class="info-btn" onclick="showTooltip(event,'left-panel-info')" title="About Design Projects"><i
+            class="fas fa-info"></i></button>
+      </div>
+      <div class="scene-list" id="scene-list"></div>
+      <div id="prev-project-bar" class="prev-project-bar" style="display:none">
+        <div class="prev-project-label">Previous Project</div>
+        <div class="prev-project-divider"></div>
+        <div class="prev-project-item" onclick="goToPrevProject()">
+          <span class="prev-project-name"><i class="fas fa-history"></i><span
+              id="prev-project-name-text">—</span></span>
+          <span class="prev-project-link"><i class="fas fa-external-link-alt"></i> Open</span>
+        </div>
+      </div>
+      <button class="btn-add" onclick="goToCraft()">
+        <i class="fas fa-plus"></i> Add New Furniture Design
+      </button>
+    </aside>
+
+    <!-- VIEWPORT -->
+    <main class="viewport">
+      <div class="viewport-controls">
+        <button class="vp-btn" id="btn-rotate" onclick="toggleRotation()">
+          <i class="fas fa-pause"></i> Stop Rotate
+        </button>
+        <button class="vp-btn" id="btn-dims" onclick="toggleDimensions()">
+          <i class="fas fa-ruler-combined"></i> Hide Ruler
+        </button>
+        <button class="vp-btn" onclick="resetView()">
+          <i class="fas fa-sync"></i> Full View
+        </button>
+      </div>
+      <div id="canvas-container"></div>
+
+      <div class="score-card">
+        <div class="score-title">
+          <span><i class="fas fa-chart-bar" style="color:var(--accent);margin-right:7px;"></i> Design Analysis</span>
+          <button class="score-info-btn" onclick="showTooltip(event,'score-info')"><i class="fas fa-info"></i></button>
+        </div>
+        <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
+        <div class="score-bar-bg">
+          <div id="bar-dura" class="score-bar-fill" style="width:0%"></div>
+        </div>
+        <div class="score-metric-label"><span>Material Quality</span><span id="score-qual-val">0%</span></div>
+        <div class="score-bar-bg">
+          <div id="bar-qual" class="score-bar-fill" style="width:0%"></div>
+        </div>
+        <div id="rec-status"></div>
+      </div>
+
+      <div id="design-modal-overlay" class="modal-overlay design-modal-overlay" onclick="closeDesignModal(event)">
+        <div class="design-modal" onclick="event.stopPropagation()">
+          <button class="btn-close-modal" onclick="closeDesignModal()">×</button>
+          <div id="design-modal-title" class="modal-title">Select Design</div>
+          <div id="design-modal-scroll" class="modal-scroll-area"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT PANEL -->
+    <aside class="panel-right">
+      <div class="panel-header">
+        <span><i class="fas fa-sliders-h" style="color:var(--accent);margin-right:8px;"></i>Properties</span>
+        <button class="info-btn" onclick="showTooltip(event,'right-panel-info')"><i class="fas fa-info"></i></button>
+      </div>
+      <div class="prop-scroll">
+        <!-- Project Name -->
+        <div class="prop-group">
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-tag"></i></div>
+            <label class="prop-label">Project Name</label>
+            <button class="info-btn" onclick="showTooltip(event,'proj-name-info')"><i class="fas fa-info"></i></button>
+          </div>
+          <input type="text" id="project-name" placeholder="Project Name" oninput="updateProjectName(this.value)">
+        </div>
+
+        <!-- Bed Size -->
+        <div class="prop-group">
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-expand-arrows-alt"></i></div>
+            <label class="prop-label">Bed Size</label>
+            <button class="info-btn" onclick="showTooltip(event,'size-info')"><i class="fas fa-info"></i></button>
+          </div>
+          <div class="bed-size-row" id="bed-size-row">
+            <button class="bed-size-btn" onclick="applyBedSize('twin')">Twin</button>
+            <button class="bed-size-btn" onclick="applyBedSize('full')">Full</button>
+            <button class="bed-size-btn" onclick="applyBedSize('queen')">Queen</button>
+            <button class="bed-size-btn active" onclick="applyBedSize('king')">King</button>
+          </div>
+        </div>
+
+        <!-- Global Scale -->
+        <div class="prop-group">
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-expand-arrows-alt"></i></div>
+            <label class="prop-label">Global Scale</label>
+            <button class="info-btn" onclick="showTooltip(event,'scale-info')"><i class="fas fa-info"></i></button>
+          </div>
+          <div class="range-row"><label>Width</label><input type="range" id="inp-scale-x" min="50" max="200" value="100"
+              oninput="updateGlobalScale('x',this.value)"><span class="val-display" id="gs-x">100</span></div>
+          <div class="range-row"><label>Height</label><input type="range" id="inp-scale-y" min="50" max="200"
+              value="100" oninput="updateGlobalScale('y',this.value)"><span class="val-display" id="gs-y">100</span>
+          </div>
+          <div class="range-row"><label>Depth</label><input type="range" id="inp-scale-z" min="50" max="200" value="100"
+              oninput="updateGlobalScale('z',this.value)"><span class="val-display" id="gs-z">100</span></div>
+        </div>
+
+        <!-- Material Library -->
+        <div class="prop-group">
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-palette"></i></div>
+            <label class="prop-label">Material Library</label>
+            <button class="info-btn" onclick="showTooltip(event,'material-info')"><i class="fas fa-info"></i></button>
+          </div>
+          <div class="instruction-text">Select a Layer below, then click a Material here to apply.</div>
+          <div id="rec-mat-container" style="display:none">
+            <div class="mat-section-title"><i class="fas fa-star"></i> Recommended</div>
+            <div class="mat-grid-large" id="rec-mat-grid"></div>
+          </div>
+          <div class="mat-section-title" style="color:#777;margin-top:10px;">All Materials</div>
+          <div class="mat-grid-large" id="all-mat-grid"></div>
+        </div>
+
+        <!-- Layers -->
+        <div class="prop-group">
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-layer-group"></i></div>
+            <label class="prop-label">Layers</label>
+            <button class="info-btn" onclick="showTooltip(event,'layers-info')"><i class="fas fa-info"></i></button>
+          </div>
+          <div id="layers-container"></div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span>Estimated Cost</span>
+        <div class="total-price" id="total-price">&#8369;0.00</div>
+      </div>
+    </aside>
   </div>
-  <div class="header-controls">
-    <button class="btn-export" onclick="goToExport()">
-      <i class="fas fa-file-export"></i> Export
-    </button>
+
+  <div id="info-tooltip" class="info-tooltip">
+    <div class="info-tooltip-title" id="tt-title"></div>
+    <div class="info-tooltip-body" id="tt-body"></div>
+    <div class="info-tooltip-tip" id="tt-tip"></div>
   </div>
-</header>
 
-<div class="workspace">
-  <!-- LEFT PANEL -->
-  <aside class="panel-left">
-    <div class="panel-header">
-      <span><i class="fas fa-folder-open" style="color:var(--accent);margin-right:8px;"></i>Design Projects</span>
-      <button class="info-btn" onclick="showTooltip(event,'left-panel-info')"><i class="fas fa-info"></i></button>
-    </div>
-    <div class="scene-list" id="scene-list"></div>
-    <div id="prev-project-bar" class="prev-project-bar" style="display:none">
-      <div class="prev-project-label">Previous Project</div>
-      <div class="prev-project-divider"></div>
-      <div class="prev-project-item" onclick="goToPrevProject()">
-        <span class="prev-project-name"><i class="fas fa-history"></i><span id="prev-project-name-text">—</span></span>
-        <span class="prev-project-link"><i class="fas fa-external-link-alt"></i> Open</span>
-      </div>
-    </div>
-    <button class="btn-add" onclick="goToCraft()">
-      <i class="fas fa-plus"></i> Add New Furniture Design
-    </button>
-  </aside>
+  <script>
+    /* ═══════════════════════════════════════════════
+       NAVIGATION
+    ═══════════════════════════════════════════════ */
+    function goToExport() {
+      const wasRotating = controls.autoRotate;
+      const wereDimsShowing = showDimensions;
+      if (wasRotating) controls.autoRotate = false;
+      if (wereDimsShowing) { showDimensions = false; build3DScene(); }
+      renderer.render(scene, camera);
+      const canvas = document.querySelector('#canvas-container canvas');
+      const previewImageURL = canvas ? canvas.toDataURL("image/png") : "";
+      if (wasRotating) controls.autoRotate = true;
+      if (wereDimsShowing) { showDimensions = true; build3DScene(); }
+      const activeItem = getActiveItem();
+      if (!activeItem) return;
+      const priceText = document.getElementById('total-price').innerText.replace(/[^0-9.-]+/g, "");
+      const numericPrice = parseFloat(priceText) || 0;
+      const durabilityText = document.getElementById('score-dura-val').innerText.replace('%', '');
+      const qualityText = document.getElementById('score-qual-val').innerText.replace('%', '');
+      const formattedMaterials = {};
+      const selections = activeItem.selections || {};
+      Object.keys(selections).forEach(partName => {
+        const hex = selections[partName];
+        const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
+        formattedMaterials[partName] = matKey ? materialDB[matKey].name : 'Custom Material';
+      });
+      const exportData = {
+        exportId: 'EXP-' + Date.now().toString().slice(-6),
+        projectName: activeItem.name || 'Custom Bed Design',
+        furnitureType: 'Bed Designer Pro',
+        estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
+        previewDataUrl: previewImageURL,
+        cadState: JSON.stringify({
+          items: [{
+            id: activeItem.id,
+            globalScale: activeItem.globalScale || { x: 1, y: 1, z: 1 },
+            materials: formattedMaterials,
+            dims: activeItem.dims || {},
+            analysis: {
+              durability: parseInt(durabilityText) || 90,
+              quality: parseInt(qualityText) || 90
+            }
+          }]
+        })
+      };
+      const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
+      drafts.unshift(exportData);
+      localStorage.setItem('exportDrafts', JSON.stringify(drafts));
+      sessionStorage.setItem('currentExportId', exportData.exportId);
+      saveState();
+      window.location.href = 'export_area.html';
+    }
 
-  <!-- VIEWPORT -->
-  <main class="viewport">
-    <div class="viewport-controls">
-      <button class="vp-btn" id="btn-rotate" onclick="toggleRotation()">
-        <i class="fas fa-pause"></i> Stop Rotate
-      </button>
-      <button class="vp-btn" id="btn-dims" onclick="toggleDimensions()">
-        <i class="fas fa-ruler-combined"></i> Hide Ruler
-      </button>
-      <button class="vp-btn" onclick="resetView()">
-        <i class="fas fa-sync"></i> Full View
-      </button>
-    </div>
-    <div id="canvas-container"></div>
+    function goToCraft() {
+      saveState();
+      const ai = getActiveItem();
+      if (ai) { sessionStorage.setItem('prevProjectName', ai.name); sessionStorage.setItem('prevProjectPage', 'bed.html'); }
+      window.location.href = 'craft.html';
+    }
+    function goToPrevProject() { const p = sessionStorage.getItem('prevProjectPage'); if (p) window.location.href = p; }
+    function loadPrevProjectBar() {
+      const prevName = sessionStorage.getItem('prevProjectName');
+      const prevPage = sessionStorage.getItem('prevProjectPage');
+      const bar = document.getElementById('prev-project-bar');
+      const nameEl = document.getElementById('prev-project-name-text');
+      if (prevName && prevPage && bar && nameEl) { nameEl.textContent = prevName; bar.style.display = 'block'; }
+    }
 
-    <div class="score-card">
-      <div class="score-title">
-        <span><i class="fas fa-chart-bar" style="color:var(--accent);margin-right:7px;"></i> Design Analysis</span>
-        <button class="score-info-btn" onclick="showTooltip(event,'score-info')"><i class="fas fa-info"></i></button>
-      </div>
-      <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
-      <div class="score-bar-bg"><div id="bar-dura" class="score-bar-fill" style="width:0%"></div></div>
-      <div class="score-metric-label"><span>Material Quality</span><span id="score-qual-val">0%</span></div>
-      <div class="score-bar-bg"><div id="bar-qual" class="score-bar-fill" style="width:0%"></div></div>
-      <div id="rec-status"></div>
-    </div>
-
-    <div id="design-modal-overlay" class="modal-overlay design-modal-overlay" onclick="closeDesignModal(event)">
-      <div class="design-modal" onclick="event.stopPropagation()">
-        <button class="btn-close-modal" onclick="closeDesignModal()">×</button>
-        <div id="design-modal-title" class="modal-title">Select Design</div>
-        <div id="design-modal-scroll" class="modal-scroll-area"></div>
-      </div>
-    </div>
-  </main>
-
-  <!-- RIGHT PANEL -->
-  <aside class="panel-right">
-    <div class="panel-header">
-      <span><i class="fas fa-sliders-h" style="color:var(--accent);margin-right:8px;"></i>Properties</span>
-      <button class="info-btn" onclick="showTooltip(event,'right-panel-info')"><i class="fas fa-info"></i></button>
-    </div>
-    <div class="prop-scroll">
-      <!-- Project Name -->
-      <div class="prop-group">
-        <div class="section-header">
-          <div class="section-icon"><i class="fas fa-tag"></i></div>
-          <label class="prop-label">Project Name</label>
-          <button class="info-btn" onclick="showTooltip(event,'proj-name-info')"><i class="fas fa-info"></i></button>
-        </div>
-        <input type="text" id="project-name" placeholder="Project Name" oninput="updateProjectName(this.value)">
-      </div>
-
-      <!-- Bed Size -->
-      <div class="prop-group">
-        <div class="section-header">
-          <div class="section-icon"><i class="fas fa-expand-arrows-alt"></i></div>
-          <label class="prop-label">Bed Size</label>
-          <button class="info-btn" onclick="showTooltip(event,'size-info')"><i class="fas fa-info"></i></button>
-        </div>
-        <div class="bed-size-row" id="bed-size-row">
-          <button class="bed-size-btn" onclick="applyBedSize('twin')">Twin</button>
-          <button class="bed-size-btn" onclick="applyBedSize('full')">Full</button>
-          <button class="bed-size-btn" onclick="applyBedSize('queen')">Queen</button>
-          <button class="bed-size-btn active" onclick="applyBedSize('king')">King</button>
-        </div>
-      </div>
-
-      <!-- Global Scale -->
-      <div class="prop-group">
-        <div class="section-header">
-          <div class="section-icon"><i class="fas fa-expand-arrows-alt"></i></div>
-          <label class="prop-label">Global Scale</label>
-          <button class="info-btn" onclick="showTooltip(event,'scale-info')"><i class="fas fa-info"></i></button>
-        </div>
-        <div class="range-row"><label>Width</label><input type="range" id="inp-scale-x" min="50" max="200" value="100" oninput="updateGlobalScale('x',this.value)"><span class="val-display" id="gs-x">100</span></div>
-        <div class="range-row"><label>Height</label><input type="range" id="inp-scale-y" min="50" max="200" value="100" oninput="updateGlobalScale('y',this.value)"><span class="val-display" id="gs-y">100</span></div>
-        <div class="range-row"><label>Depth</label><input type="range" id="inp-scale-z" min="50" max="200" value="100" oninput="updateGlobalScale('z',this.value)"><span class="val-display" id="gs-z">100</span></div>
-      </div>
-
-      <!-- Material Library -->
-      <div class="prop-group">
-        <div class="section-header">
-          <div class="section-icon"><i class="fas fa-palette"></i></div>
-          <label class="prop-label">Material Library</label>
-          <button class="info-btn" onclick="showTooltip(event,'material-info')"><i class="fas fa-info"></i></button>
-        </div>
-        <div class="instruction-text">Select a Layer below, then click a Material here to apply.</div>
-        <div id="rec-mat-container" style="display:none">
-          <div class="mat-section-title"><i class="fas fa-star"></i> Recommended</div>
-          <div class="mat-grid-large" id="rec-mat-grid"></div>
-        </div>
-        <div class="mat-section-title" style="color:#777;margin-top:10px;">All Materials</div>
-        <div class="mat-grid-large" id="all-mat-grid"></div>
-      </div>
-
-      <!-- Layers -->
-      <div class="prop-group">
-        <div class="section-header">
-          <div class="section-icon"><i class="fas fa-layer-group"></i></div>
-          <label class="prop-label">Layers</label>
-          <button class="info-btn" onclick="showTooltip(event,'layers-info')"><i class="fas fa-info"></i></button>
-        </div>
-        <div id="layers-container"></div>
-      </div>
-    </div>
-    <div class="footer-bar">
-      <span>Estimated Cost</span>
-      <div class="total-price" id="total-price">&#8369;0.00</div>
-    </div>
-  </aside>
-</div>
-
-<div id="info-tooltip" class="info-tooltip">
-  <div class="info-tooltip-title" id="tt-title"></div>
-  <div class="info-tooltip-body" id="tt-body"></div>
-  <div class="info-tooltip-tip" id="tt-tip"></div>
-</div>
-
-<script>
-/* ═══════════════════════════════════════════════
-   NAVIGATION
-═══════════════════════════════════════════════ */
-function goToExport(){ saveState(); window.location.href='export_area.html'; }
-function goToCraft(){
-  const ai=getActiveItem();
-  if(ai){ sessionStorage.setItem('prevProjectName',ai.name); sessionStorage.setItem('prevProjectPage','bed.html'); }
-  window.location.href='craft.html';
-}
-function goToPrevProject(){ const p=sessionStorage.getItem('prevProjectPage'); if(p) window.location.href=p; }
-function loadPrevProjectBar(){
-  const prevName=sessionStorage.getItem('prevProjectName');
-  const prevPage=sessionStorage.getItem('prevProjectPage');
-  const bar=document.getElementById('prev-project-bar');
-  const nameEl=document.getElementById('prev-project-name-text');
-  if(prevName&&prevPage&&bar&&nameEl){ nameEl.textContent=prevName; bar.style.display='block'; }
-}
-
-/* ═══════════════════════════════════════════════
-   TOOLTIP
-═══════════════════════════════════════════════ */
-const tooltipData={
-  'left-panel-info':{icon:'fas fa-folder-open',title:'Design Projects',body:'Manage all your bed design sessions here. Each project saves independently.',tip:'Click "Add New Furniture Design" to go to the FurniCraft catalog and start a new project.'},
-  'right-panel-info':{icon:'fas fa-sliders-h',title:'Properties Panel',body:'The central control hub for your active bed design. All editable properties live here and update the 3D model in real time.',tip:'Scroll down to find the Layers section where you can edit each individual bed part.'},
-  'score-info':{icon:'fas fa-chart-bar',title:'Design Analysis',body:'Real-time quality scores calculated from the materials applied to each part.',tip:'Use all Recommended (⭐) materials to hit 100% on both scores.'},
-  'proj-name-info':{icon:'fas fa-tag',title:'Project Name',body:'Give your bed design a descriptive name. This label appears in the project list and becomes the filename on export.',tip:'Use names like "Narra Canopy King v2" to stay organized.'},
-  'size-info':{icon:'fas fa-expand-arrows-alt',title:'Bed Size',body:'Quick-apply standard bed dimensions: Twin (99×190cm), Full (137×190cm), Queen (153×203cm), King (193×203cm).',tip:'Bed sizes automatically update all mattress, frame, and platform dimensions proportionally.'},
-  'scale-info':{icon:'fas fa-expand-arrows-alt',title:'Global Scale',body:'Uniformly resize the entire bed in three axes. Values range from 50% (half size) to 200% (double).',tip:'Use Global Scale for quick size prototyping.'},
-  'material-info':{icon:'fas fa-palette',title:'Material Library',body:'A curated palette of real-world furniture materials — Philippine hardwoods, fabric, leather, metal, and more. Each material carries unique Durability, Quality, and Price values.',tip:'First click a Layer to select it, then click any material tile here to apply it instantly.'},
-  'layers-info':{icon:'fas fa-layer-group',title:'Layers — Bed Parts',body:'The bed is composed of 5 independent layers: Headboard, Footboard, Frame/Rails, Platform/Slats, and Legs. Click a layer row to select and expand it.',tip:'Click the 👁 eye icon on any layer header to focus the 3D camera directly on that part.'},
-  'lyr-shape-info':{icon:'fas fa-shapes',title:'Shape / Style',body:'Defines the fundamental 3D geometry of this bed part.',tip:'Old-fashioned styles include Baroque, Victorian, Canopy. Modern includes Platform, Floating, Minimalist.'},
-  'lyr-carving-info':{icon:'fas fa-drafting-compass',title:'Carving / Texture',body:'Applies a surface texture or carving pattern as a bump map onto this part.',tip:'Tufted and leather textures pair best with fabric/leather-colored parts.'},
-  'lyr-color-info':{icon:'fas fa-eye-dropper',title:'Hex Color',body:'Set the exact color of this bed part using the color picker or a hex code.',tip:'Use hex values that match a material in the Material Library for accurate cost estimates.'},
-  'lyr-dims-info':{icon:'fas fa-ruler-combined',title:'Dimensions (cm)',body:'Set the exact physical dimensions of this part in centimetres.',tip:'Standard king bed is 193×203cm. Standard mattress height is 30–35cm.'}
-};
-let activeTooltip=null;
-function showTooltip(event,key){
-  event.stopPropagation();
-  const data=tooltipData[key]; if(!data) return;
-  const tooltip=document.getElementById('info-tooltip');
-  if(activeTooltip===key&&tooltip.classList.contains('visible')){ hideTooltip(); return; }
-  activeTooltip=key;
-  document.getElementById('tt-title').innerHTML='<i class="'+data.icon+'"></i>&nbsp;'+data.title;
-  document.getElementById('tt-body').textContent=data.body;
-  document.getElementById('tt-tip').innerHTML='<i class="fas fa-lightbulb"></i> '+data.tip;
-  const btn=event.currentTarget,rect=btn.getBoundingClientRect();
-  const tipW=300,tipH=200;
-  let left=rect.left-tipW-12,top=rect.top-10;
-  if(left<8) left=rect.right+12;
-  if(left+tipW>window.innerWidth-8) left=window.innerWidth-tipW-8;
-  if(top+tipH>window.innerHeight-10) top=window.innerHeight-tipH-10;
-  if(top<8) top=8;
-  tooltip.style.left=left+'px'; tooltip.style.top=top+'px';
-  tooltip.classList.add('visible');
-}
-function hideTooltip(){ const t=document.getElementById('info-tooltip'); if(t) t.classList.remove('visible'); activeTooltip=null; }
-document.addEventListener('click',function(e){
-  if(!e.target.closest('.info-btn')&&!e.target.closest('.score-info-btn')&&!e.target.closest('.lbl-info-btn')&&!e.target.closest('#info-tooltip')) hideTooltip();
-});
-
-/* ═══════════════════════════════════════════════
-   DATABASES
-═══════════════════════════════════════════════ */
-const materialDB={
-  narra:       {name:'Narra',      icon:'🌳',hex:'#8B4513',dura:95,qual:98,price:3.5,rec:true},
-  kamagong:    {name:'Kamagong',   icon:'🌳',hex:'#1a0a00',dura:98,qual:99,price:4.8,rec:true},
-  molave:      {name:'Molave',     icon:'🌳',hex:'#7a5230',dura:92,qual:93,price:3.2,rec:true},
-  mahogany:    {name:'Mahogany',   icon:'🪵',hex:'#5c3a21',dura:85,qual:90,price:2.8,rec:true},
-  tanguile:    {name:'Tanguile',   icon:'🌳',hex:'#a0522d',dura:80,qual:84,price:2.4,rec:true},
-  yakal:       {name:'Yakal',      icon:'🌳',hex:'#6b3a2a',dura:96,qual:94,price:4.2,rec:true},
-  oak:         {name:'Oak',        icon:'🌳',hex:'#d4ac7d',dura:80,qual:85,price:2.5,rec:true},
-  pine:        {name:'Pine',       icon:'🌲',hex:'#c9a96e',dura:65,qual:72,price:1.8,rec:true},
-  rubberwood:  {name:'Rubber Wood',icon:'🌿',hex:'#c8a87a',dura:70,qual:75,price:1.6,rec:true},
-  bamboo:      {name:'Bamboo',     icon:'🎍',hex:'#c5b358',dura:72,qual:78,price:1.4,rec:true},
-  fabric_linen:{name:'Linen Fabric',icon:'🧵',hex:'#d6c9b0',dura:60,qual:88,price:2.1,rec:false},
-  velvet:      {name:'Velvet',     icon:'🟣',hex:'#4a1a6e',dura:55,qual:92,price:3.0,rec:false},
-  leather:     {name:'Leather',    icon:'🟤',hex:'#3e1f0f',dura:78,qual:95,price:4.5,rec:false},
-  white_paint: {name:'White Paint',icon:'⬜',hex:'#f5f0e8',dura:60,qual:75,price:1.2,rec:false},
-  matte_black: {name:'Matte Black',icon:'⬛',hex:'#1a1a1a',dura:82,qual:80,price:2.0,rec:false},
-  brushed_steel:{name:'Steel',     icon:'🔩',hex:'#8d9498',dura:92,qual:88,price:4.0,rec:false},
-};
-
-const bedParts=['Headboard','Footboard','Frame','Platform','Legs'];
-
-/* ═══════════════════════════════════════════════
-   SHAPE DB  (headboard / footboard styles)
-═══════════════════════════════════════════════ */
-const shapeDB={
-  headboard:[
-    // ── Old-Fashioned ──
-    {id:'baroque',         name:'Baroque Crown',      icon:'crown',      faIcon:true, cat:'Old-Fashioned'},
-    {id:'victorian_arch',  name:'Victorian Arch',     icon:'archway',    faIcon:true, cat:'Old-Fashioned'},
-    {id:'carved_panel',    name:'Carved Wood Panel',  icon:'tree',       faIcon:true, cat:'Old-Fashioned'},
-    {id:'canopy_posts',    name:'Four-Post Canopy',   icon:'dungeon',    faIcon:true, cat:'Old-Fashioned'},
-    {id:'sleigh_head',     name:'Sleigh Roll',        icon:'snowflake',  faIcon:true, cat:'Old-Fashioned'},
-    {id:'gothic_arch',     name:'Gothic Pointed',     icon:'place-of-worship',faIcon:true,cat:'Old-Fashioned'},
-    {id:'spindle_head',    name:'Spindle Colonial',   icon:'grip-lines-vertical',faIcon:true,cat:'Old-Fashioned'},
-    {id:'scroll_head',     name:'Scroll Ornate',      icon:'scroll',     faIcon:true, cat:'Old-Fashioned'},
-    // ── Modern ──
-    {id:'flat_panel',      name:'Flat Slab',          icon:'square-full',faIcon:false, cat:'Modern'},
-    {id:'tufted_panel',    name:'Tufted Upholstered', icon:'th',         faIcon:false, cat:'Modern'},
-    {id:'slatted_head',    name:'Slatted Wood',       icon:'bars',       faIcon:true, cat:'Modern'},
-    {id:'floating_head',   name:'Floating Ledge',     icon:'minus',      faIcon:true, cat:'Modern'},
-    {id:'curved_modern',   name:'Curved Soft',        icon:'circle',     faIcon:false, cat:'Modern'},
-    {id:'bookcase_head',   name:'Bookcase Integrated',icon:'book',       faIcon:true, cat:'Modern'},
-    {id:'diamond_head',    name:'Diamond Quilted',    icon:'gem',        faIcon:true, cat:'Modern'},
-    {id:'arch_modern',     name:'Soft Arch',          icon:'map-marker', faIcon:true, cat:'Modern'},
-  ],
-  footboard:[
-    {id:'matching_low',    name:'Low Matching Rail',  icon:'minus',      faIcon:true, cat:'Classic'},
-    {id:'scroll_foot',     name:'Scroll Ornate',      icon:'scroll',     faIcon:true, cat:'Classic'},
-    {id:'sleigh_foot',     name:'Sleigh Roll',        icon:'snowflake',  faIcon:true, cat:'Classic'},
-    {id:'spindle_foot',    name:'Spindle Rail',       icon:'grip-lines-vertical',faIcon:true,cat:'Classic'},
-    {id:'no_footboard',    name:'None (Open)',        icon:'ban',        faIcon:true, cat:'Modern'},
-    {id:'flat_foot',       name:'Flat Low Rail',      icon:'square-full',faIcon:false,cat:'Modern'},
-    {id:'slatted_foot',    name:'Slatted',            icon:'bars',       faIcon:true, cat:'Modern'},
-    {id:'bench_foot',      name:'Bench End',          icon:'couch',      faIcon:true, cat:'Modern'},
-  ],
-  frame:[
-    {id:'classic_rail',    name:'Classic Side Rails', icon:'equals',     faIcon:true, cat:'Classic'},
-    {id:'carved_rail',     name:'Carved Molding Rail',icon:'tree',       faIcon:true, cat:'Classic'},
-    {id:'platform_frame',  name:'Platform Box Frame', icon:'square-full',faIcon:false,cat:'Modern'},
-    {id:'storage_frame',   name:'Storage Drawers',    icon:'archive',    faIcon:true, cat:'Modern'},
-    {id:'floating_frame',  name:'Floating / Invisible',icon:'magic',     faIcon:true, cat:'Modern'},
-  ],
-  platform:[
-    {id:'solid_platform',  name:'Solid Platform',     icon:'square-full',faIcon:false,cat:'Classic'},
-    {id:'wood_slats',      name:'Wood Slats',         icon:'bars',       faIcon:true, cat:'Classic'},
-    {id:'box_spring',      name:'Box Spring Base',    icon:'th',         faIcon:false,cat:'Classic'},
-    {id:'floating_platform',name:'Floating Slab',     icon:'cloud',      faIcon:true, cat:'Modern'},
-    {id:'open_slats',      name:'Open Air Slats',     icon:'grip-lines', faIcon:true, cat:'Modern'},
-    {id:'upholstered_platform',name:'Upholstered Box',icon:'couch',      faIcon:true, cat:'Modern'},
-  ],
-  legs:[
-    {id:'turned_leg',      name:'Turned Ornate',      icon:'ellipsis-v', faIcon:true, cat:'Old-Fashioned'},
-    {id:'cabriole',        name:'Cabriole Curved',    icon:'signature',  faIcon:true, cat:'Old-Fashioned'},
-    {id:'bun_foot',        name:'Bun Foot',           icon:'circle',     faIcon:false,cat:'Old-Fashioned'},
-    {id:'tapered_square',  name:'Tapered Square',     icon:'caret-down', faIcon:true, cat:'Modern'},
-    {id:'straight_round',  name:'Straight Round',     icon:'circle',     faIcon:false,cat:'Modern'},
-    {id:'hairpin',         name:'Metal Hairpin',      icon:'paperclip',  faIcon:true, cat:'Modern'},
-    {id:'block_foot',      name:'Block Cube Foot',    icon:'square-full',faIcon:false,cat:'Modern'},
-    {id:'no_legs',         name:'No Legs (Floor)',    icon:'ban',        faIcon:true, cat:'Modern'},
-  ]
-};
-
-const carvingDB={
-  none:          {name:'Smooth Finish',    icon:'circle-minus', cat:'Basic'},
-  rustic:        {name:'Antique Distressed',icon:'tree',         cat:'Basic'},
-  floral:        {name:'Floral Carving',   icon:'fan',          cat:'Wood Carvings'},
-  linear_groove: {name:'Linear Grooves',  icon:'align-justify',cat:'Wood Carvings'},
-  geometric:     {name:'Geometric Pattern',icon:'dice-d20',     cat:'Wood Carvings'},
-  lattice:       {name:'Wood Lattice',    icon:'th',            cat:'Wood Carvings'},
-  padded:        {name:'Standard Fabric', icon:'couch', faIcon:true, cat:'Upholstery'},
-  studded:       {name:'Tufted Buttons',  icon:'braille',faIcon:true,cat:'Upholstery'},
-  leather_tufted:{name:'Diamond Leather', icon:'gem',   faIcon:true,cat:'Upholstery'},
-  weave:         {name:'Woven Rattan',    icon:'box',           cat:'Upholstery'},
-};
-
-/* ═══════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════ */
-let appState={items:[],activeItemId:0,activeLayer:null};
-let isRotating=true,showDimensions=true,textureCache={},modalState={partName:null,type:null};
-
-const BED_SIZES={
-  twin: {w:99,d:190},full:{w:137,d:190},queen:{w:153,d:203},king:{w:193,d:203}
-};
-
-window.onload=function(){
-  try{
-    let saved=sessionStorage.getItem('cadState_bed_v1');
-    if(saved){ appState=JSON.parse(saved); if(!appState.items) appState.items=[]; }
-  }catch(e){ appState.items=[]; }
-  if(appState.items.length===0) createNewBed(false,'classic');
-  const ai=getActiveItem();
-  if(ai&&!appState.activeLayer) appState.activeLayer=bedParts[0];
-  renderUI(); updatePrice();
-  loadPrevProjectBar();
-  setTimeout(()=>{ init3D(); },100);
-};
-
-function getActiveItem(){ return appState.items.find(i=>i.id===appState.activeItemId); }
-function saveState(){ sessionStorage.setItem('cadState_bed_v1',JSON.stringify(appState)); }
-
-/* ═══════════════════════════════════════════════
-   BED PRESETS
-═══════════════════════════════════════════════ */
-const presets={
-  classic:{
-    shapes:{Headboard:'baroque',Footboard:'scroll_foot',Frame:'classic_rail',Platform:'solid_platform',Legs:'turned_leg'},
-    carvings:{Headboard:'floral',Footboard:'floral',Frame:'linear_groove',Platform:'none',Legs:'none'},
-    selections:{Headboard:'#8B4513',Footboard:'#8B4513',Frame:'#8B4513',Platform:'#8B4513',Legs:'#8B4513'},
-    dims:{Headboard:{w:200,h:140,d:12},Footboard:{w:200,h:60,d:12},Frame:{w:200,h:28,d:210},Platform:{w:196,h:8,d:200},Legs:{w:9,h:22,d:9}},
-    name:'Classic Baroque Bed'
-  },
-  victorian:{
-    shapes:{Headboard:'victorian_arch',Footboard:'spindle_foot',Frame:'carved_rail',Platform:'wood_slats',Legs:'cabriole'},
-    carvings:{Headboard:'geometric',Footboard:'none',Frame:'linear_groove',Platform:'none',Legs:'none'},
-    selections:{Headboard:'#5c3a21',Footboard:'#5c3a21',Frame:'#5c3a21',Platform:'#5c3a21',Legs:'#5c3a21'},
-    dims:{Headboard:{w:200,h:160,d:14},Footboard:{w:200,h:70,d:12},Frame:{w:200,h:28,d:210},Platform:{w:196,h:8,d:200},Legs:{w:9,h:24,d:9}},
-    name:'Victorian Arch Bed'
-  },
-  canopy:{
-    shapes:{Headboard:'canopy_posts',Footboard:'matching_low',Frame:'classic_rail',Platform:'solid_platform',Legs:'turned_leg'},
-    carvings:{Headboard:'floral',Footboard:'none',Frame:'none',Platform:'none',Legs:'none'},
-    selections:{Headboard:'#1a0a00',Footboard:'#1a0a00',Frame:'#1a0a00',Platform:'#1a0a00',Legs:'#1a0a00'},
-    dims:{Headboard:{w:200,h:220,d:12},Footboard:{w:200,h:220,d:12},Frame:{w:200,h:28,d:210},Platform:{w:196,h:8,d:200},Legs:{w:10,h:26,d:10}},
-    name:'Four-Post Canopy Bed'
-  },
-  platform:{
-    shapes:{Headboard:'flat_panel',Footboard:'flat_foot',Frame:'platform_frame',Platform:'floating_platform',Legs:'tapered_square'},
-    carvings:{Headboard:'none',Footboard:'none',Frame:'none',Platform:'none',Legs:'none'},
-    selections:{Headboard:'#d4ac7d',Footboard:'#d4ac7d',Frame:'#d4ac7d',Platform:'#d4ac7d',Legs:'#d4ac7d'},
-    dims:{Headboard:{w:200,h:100,d:10},Footboard:{w:200,h:30,d:10},Frame:{w:200,h:20,d:210},Platform:{w:196,h:10,d:200},Legs:{w:6,h:14,d:6}},
-    name:'Modern Platform Bed'
-  },
-  floating:{
-    shapes:{Headboard:'floating_head',Footboard:'no_footboard',Frame:'floating_frame',Platform:'floating_platform',Legs:'no_legs'},
-    carvings:{Headboard:'none',Footboard:'none',Frame:'none',Platform:'none',Legs:'none'},
-    selections:{Headboard:'#1a1a1a',Footboard:'#1a1a1a',Frame:'#1a1a1a',Platform:'#1a1a1a',Legs:'#1a1a1a'},
-    dims:{Headboard:{w:200,h:90,d:6},Footboard:{w:200,h:0,d:6},Frame:{w:200,h:16,d:210},Platform:{w:196,h:12,d:200},Legs:{w:5,h:5,d:5}},
-    name:'Floating Modern Bed'
-  },
-  tufted:{
-    shapes:{Headboard:'tufted_panel',Footboard:'bench_foot',Frame:'platform_frame',Platform:'upholstered_platform',Legs:'block_foot'},
-    carvings:{Headboard:'leather_tufted',Footboard:'padded',Frame:'none',Platform:'padded',Legs:'none'},
-    selections:{Headboard:'#4a1a6e',Footboard:'#4a1a6e',Frame:'#1a1a1a',Platform:'#1a1a1a',Legs:'#1a1a1a'},
-    dims:{Headboard:{w:200,h:120,d:14},Footboard:{w:200,h:50,d:14},Frame:{w:200,h:22,d:210},Platform:{w:196,h:10,d:200},Legs:{w:8,h:12,d:8}},
-    name:'Tufted Velvet Bed'
-  },
-  sleigh:{
-    shapes:{Headboard:'sleigh_head',Footboard:'sleigh_foot',Frame:'classic_rail',Platform:'solid_platform',Legs:'bun_foot'},
-    carvings:{Headboard:'rustic',Footboard:'rustic',Frame:'none',Platform:'none',Legs:'none'},
-    selections:{Headboard:'#6b3a2a',Footboard:'#6b3a2a',Frame:'#6b3a2a',Platform:'#6b3a2a',Legs:'#6b3a2a'},
-    dims:{Headboard:{w:200,h:130,d:16},Footboard:{w:200,h:80,d:16},Frame:{w:200,h:28,d:210},Platform:{w:196,h:8,d:200},Legs:{w:10,h:18,d:10}},
-    name:'Yakal Sleigh Bed'
-  },
-  gothic:{
-    shapes:{Headboard:'gothic_arch',Footboard:'spindle_foot',Frame:'carved_rail',Platform:'wood_slats',Legs:'turned_leg'},
-    carvings:{Headboard:'geometric',Footboard:'none',Frame:'linear_groove',Platform:'none',Legs:'none'},
-    selections:{Headboard:'#1a0a00',Footboard:'#1a0a00',Frame:'#1a0a00',Platform:'#1a0a00',Legs:'#1a0a00'},
-    dims:{Headboard:{w:200,h:180,d:14},Footboard:{w:200,h:75,d:12},Frame:{w:200,h:28,d:210},Platform:{w:196,h:8,d:200},Legs:{w:10,h:24,d:10}},
-    name:'Gothic Cathedral Bed'
-  },
-};
-
-function createNewBed(shouldRender=true,presetKey='classic'){
-  const p=presets[presetKey]||presets.classic;
-  const newItem={
-    id:Date.now(),type:'bed',
-    name:p.name+' '+(appState.items.length+1),
-    shapes:JSON.parse(JSON.stringify(p.shapes)),
-    carvings:JSON.parse(JSON.stringify(p.carvings)),
-    selections:JSON.parse(JSON.stringify(p.selections)),
-    dims:JSON.parse(JSON.stringify(p.dims)),
-    globalScale:{x:1,y:1,z:1},
-    bedSize:'king'
-  };
-  appState.items.push(newItem);
-  appState.activeItemId=newItem.id;
-  appState.activeLayer='Headboard';
-  saveState();
-  if(shouldRender&&scene){ renderUI(); build3DScene(); updatePrice(); }
-}
-
-function applyBedSize(size){
-  const item=getActiveItem(); if(!item) return;
-  const s=BED_SIZES[size]; if(!s) return;
-  item.bedSize=size;
-  const bw=s.w/10, bd=s.d/10;  // to cm scale (we use 10cm = 1 unit)
-  // Update dims proportionally
-  item.dims.Headboard.w=s.w; item.dims.Footboard.w=s.w;
-  item.dims.Frame.w=s.w; item.dims.Frame.d=s.d+10;
-  item.dims.Platform.w=s.w-4; item.dims.Platform.d=s.d;
-  saveState(); build3DScene(); updatePrice();
-  // Update active buttons
-  document.querySelectorAll('.bed-size-btn').forEach(b=>{
-    b.classList.toggle('active',b.textContent.toLowerCase()===size);
-  });
-}
-
-function toggleRotation(){
-  isRotating=!isRotating;
-  if(controls) controls.autoRotate=isRotating;
-  document.getElementById('btn-rotate').innerHTML=isRotating?'<i class="fas fa-pause"></i> Stop Rotate':'<i class="fas fa-play"></i> Auto Rotate';
-}
-function toggleDimensions(){ showDimensions=!showDimensions; build3DScene(); document.getElementById('btn-dims').innerHTML=showDimensions?'<i class="fas fa-ruler-combined"></i> Hide Ruler':'<i class="fas fa-ruler-combined"></i> Show Ruler'; }
-function resetView(){ resetCamera(); resetFocus(); build3DScene(); }
-function updateGlobalScale(axis,val){
-  const item=getActiveItem(); if(!item.globalScale) item.globalScale={x:1,y:1,z:1};
-  item.globalScale[axis]=val/100;
-  document.getElementById('gs-'+axis).innerText=val;
-  saveState(); build3DScene(); updatePrice();
-}
-
-/* ═══════════════════════════════════════════════
-   UI RENDERING
-═══════════════════════════════════════════════ */
-function renderUI(){ renderSceneList(); renderProperties(); calculateScore(); updatePrice(); }
-
-function renderSceneList(){
-  const list=document.getElementById('scene-list'); list.innerHTML='';
-
-  // Quick-start preset buttons
-  const presetBtns=[
-    {key:'classic',label:'+ Baroque Classic',color:'#8B4513',icon:'fas fa-crown'},
-    {key:'victorian',label:'+ Victorian Arch',color:'#5c3a21',icon:'fas fa-archway'},
-    {key:'canopy',label:'+ Four-Post Canopy',color:'#1a0a00',icon:'fas fa-dungeon'},
-    {key:'sleigh',label:'+ Sleigh Bed',color:'#6b3a2a',icon:'fas fa-snowflake'},
-    {key:'gothic',label:'+ Gothic Cathedral',color:'#2a0a2a',icon:'fas fa-place-of-worship'},
-    {key:'platform',label:'+ Modern Platform',color:'#d4ac7d',icon:'fas fa-square'},
-    {key:'floating',label:'+ Floating Minimal',color:'#1a1a1a',icon:'fas fa-magic'},
-    {key:'tufted',label:'+ Tufted Velvet',color:'#4a1a6e',icon:'fas fa-th'},
-  ];
-
-  const btnContainer=document.createElement('div');
-  btnContainer.style.cssText='margin-bottom:6px;';
-  presetBtns.forEach(pb=>{
-    const btn=document.createElement('div');
-    btn.className='style-btn';
-    btn.style.cssText=`color:${pb.color};border-color:${pb.color}44;background:${pb.color}11;font-size:.78rem;padding:7px 10px;margin:3px 0;`;
-    btn.innerHTML=`<i class="${pb.icon}" style="color:${pb.color};font-size:.75rem;"></i><span>${pb.label}</span>`;
-    btn.onmouseover=()=>btn.style.background=pb.color+'22';
-    btn.onmouseout=()=>btn.style.background=pb.color+'11';
-    btn.onclick=()=>createNewBed(true,pb.key);
-    btnContainer.appendChild(btn);
-  });
-  list.appendChild(btnContainer);
-
-  appState.items.forEach(item=>{
-    const div=document.createElement('div');
-    div.className='scene-item'+(item.id===appState.activeItemId?' active':'');
-    div.onclick=(e)=>{
-      if(e.target.closest('.btn-delete')) return;
-      appState.activeItemId=item.id; appState.activeLayer='Headboard';
-      renderUI(); build3DScene();
+    /* ═══════════════════════════════════════════════
+       TOOLTIP
+    ═══════════════════════════════════════════════ */
+    const tooltipData = {
+      'left-panel-info': { icon: 'fas fa-folder-open', title: 'Design Projects', body: 'Manage all your bed design sessions here. Each project saves independently.', tip: 'Click "Add New Furniture Design" to go to the FurniCraft catalog and start a new project.' },
+      'right-panel-info': { icon: 'fas fa-sliders-h', title: 'Properties Panel', body: 'The central control hub for your active bed design. All editable properties live here and update the 3D model in real time.', tip: 'Scroll down to find the Layers section where you can edit each individual bed part.' },
+      'score-info': { icon: 'fas fa-chart-bar', title: 'Design Analysis', body: 'Real-time quality scores calculated from the materials applied to each part.', tip: 'Use all Recommended (⭐) materials to hit 100% on both scores.' },
+      'proj-name-info': { icon: 'fas fa-tag', title: 'Project Name', body: 'Give your bed design a descriptive name. This label appears in the project list and becomes the filename on export.', tip: 'Use names like "Narra Canopy King v2" to stay organized.' },
+      'size-info': { icon: 'fas fa-expand-arrows-alt', title: 'Bed Size', body: 'Quick-apply standard bed dimensions: Twin (99×190cm), Full (137×190cm), Queen (153×203cm), King (193×203cm).', tip: 'Bed sizes automatically update all mattress, frame, and platform dimensions proportionally.' },
+      'scale-info': { icon: 'fas fa-expand-arrows-alt', title: 'Global Scale', body: 'Uniformly resize the entire bed in three axes. Values range from 50% (half size) to 200% (double).', tip: 'Use Global Scale for quick size prototyping.' },
+      'material-info': { icon: 'fas fa-palette', title: 'Material Library', body: 'A curated palette of real-world furniture materials — Philippine hardwoods, fabric, leather, metal, and more. Each material carries unique Durability, Quality, and Price values.', tip: 'First click a Layer to select it, then click any material tile here to apply it instantly.' },
+      'layers-info': { icon: 'fas fa-layer-group', title: 'Layers — Bed Parts', body: 'The bed is composed of 5 independent layers: Headboard, Footboard, Frame/Rails, Platform/Slats, and Legs. Click a layer row to select and expand it.', tip: 'Click the 👁 eye icon on any layer header to focus the 3D camera directly on that part.' },
+      'lyr-shape-info': { icon: 'fas fa-shapes', title: 'Shape / Style', body: 'Defines the fundamental 3D geometry of this bed part.', tip: 'Old-fashioned styles include Baroque, Victorian, Canopy. Modern includes Platform, Floating, Minimalist.' },
+      'lyr-carving-info': { icon: 'fas fa-drafting-compass', title: 'Carving / Texture', body: 'Applies a surface texture or carving pattern as a bump map onto this part.', tip: 'Tufted and leather textures pair best with fabric/leather-colored parts.' },
+      'lyr-color-info': { icon: 'fas fa-eye-dropper', title: 'Hex Color', body: 'Set the exact color of this bed part using the color picker or a hex code.', tip: 'Use hex values that match a material in the Material Library for accurate cost estimates.' },
+      'lyr-dims-info': { icon: 'fas fa-ruler-combined', title: 'Dimensions (cm)', body: 'Set the exact physical dimensions of this part in centimetres.', tip: 'Standard king bed is 193×203cm. Standard mattress height is 30–35cm.' }
     };
-    div.innerHTML='<span><i class="fas fa-bed" style="margin-right:6px;"></i>'+item.name+'</span><button class="btn-delete" onclick="deleteItem('+item.id+')"><i class="fas fa-trash-alt"></i></button>';
-    list.appendChild(div);
-  });
-}
+    let activeTooltip = null;
+    function showTooltip(event, key) {
+      event.stopPropagation();
+      const data = tooltipData[key]; if (!data) return;
+      const tooltip = document.getElementById('info-tooltip');
+      if (activeTooltip === key && tooltip.classList.contains('visible')) { hideTooltip(); return; }
+      activeTooltip = key;
+      document.getElementById('tt-title').innerHTML = '<i class="' + data.icon + '"></i>&nbsp;' + data.title;
+      document.getElementById('tt-body').textContent = data.body;
+      document.getElementById('tt-tip').innerHTML = '<i class="fas fa-lightbulb"></i> ' + data.tip;
+      const btn = event.currentTarget, rect = btn.getBoundingClientRect();
+      const tipW = 300, tipH = 200;
+      let left = rect.left - tipW - 12, top = rect.top - 10;
+      if (left < 8) left = rect.right + 12;
+      if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+      if (top + tipH > window.innerHeight - 10) top = window.innerHeight - tipH - 10;
+      if (top < 8) top = 8;
+      tooltip.style.left = left + 'px'; tooltip.style.top = top + 'px';
+      tooltip.classList.add('visible');
+    }
+    function hideTooltip() { const t = document.getElementById('info-tooltip'); if (t) t.classList.remove('visible'); activeTooltip = null; }
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.info-btn') && !e.target.closest('.score-info-btn') && !e.target.closest('.lbl-info-btn') && !e.target.closest('#info-tooltip')) hideTooltip();
+    });
 
-function renderProperties(){
-  const item=getActiveItem(); if(!item) return;
-  document.getElementById('project-name').value=item.name;
-  const gs=item.globalScale||{x:1,y:1,z:1};
-  ['x','y','z'].forEach(a=>{
-    const v=Math.round(gs[a]*100);
-    if(document.getElementById('gs-'+a)) document.getElementById('gs-'+a).innerText=v;
-    if(document.getElementById('inp-scale-'+a)) document.getElementById('inp-scale-'+a).value=v;
-  });
-
-  // Bed size buttons
-  document.querySelectorAll('.bed-size-btn').forEach(b=>{
-    b.classList.toggle('active',b.textContent.toLowerCase()===(item.bedSize||'king'));
-  });
-
-  // Material grids
-  const recGrid=document.getElementById('rec-mat-grid');
-  const allGrid=document.getElementById('all-mat-grid');
-  const recContainer=document.getElementById('rec-mat-container');
-  recGrid.innerHTML=''; allGrid.innerHTML='';
-  let hasRecs=false;
-  Object.keys(materialDB).forEach(k=>{
-    const m=materialDB[k]; if(m.rec) hasRecs=true;
-    const card=document.createElement('div');
-    card.className='mat-card-lg'+(m.rec?' recommended':'');
-    card.onclick=()=>applyMaterialToActiveLayer(m.hex);
-    card.innerHTML='<div class="mat-card-icon">'+m.icon+'</div><div class="mat-card-name">'+m.name+'</div>';
-    if(m.rec) recGrid.appendChild(card); else allGrid.appendChild(card);
-  });
-  recContainer.style.display=hasRecs?'block':'none';
-
-  // Layers
-  const container=document.getElementById('layers-container'); container.innerHTML='';
-  bedParts.forEach(part=>{
-    const hex=(item.selections||{})[part]||'#8B4513';
-    const dims=(item.dims||{})[part]||{w:200,h:100,d:12};
-    const currentCarving=(item.carvings||{})[part]||'none';
-    const currentShapeId=(item.shapes||{})[part]||'flat_panel';
-
-    let shapeName='Standard';
-    const db=shapeDB[part.toLowerCase()];
-    if(db){ const f=db.find(s=>s.id===currentShapeId); if(f) shapeName=f.name; }
-    let carvName=carvingDB[currentCarving]?carvingDB[currentCarving].name:'Smooth';
-
-    const isActive=(appState.activeLayer===part);
-    const layer=document.createElement('div');
-    layer.className='layer-item'+(isActive?' active-layer open':'');
-    layer.onclick=(e)=>{
-      if(e.target.closest('.view-focus-btn')||e.target.tagName==='INPUT'||e.target.closest('.clickable-design-val')) return;
-      setActiveLayer(part);
+    /* ═══════════════════════════════════════════════
+       DATABASES
+    ═══════════════════════════════════════════════ */
+    const materialDB = {
+      narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 3.5, rec: true },
+      kamagong: { name: 'Kamagong', icon: '🌳', hex: '#1a0a00', dura: 98, qual: 99, price: 4.8, rec: true },
+      molave: { name: 'Molave', icon: '🌳', hex: '#7a5230', dura: 92, qual: 93, price: 3.2, rec: true },
+      mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true },
+      tanguile: { name: 'Tanguile', icon: '🌳', hex: '#a0522d', dura: 80, qual: 84, price: 2.4, rec: true },
+      yakal: { name: 'Yakal', icon: '🌳', hex: '#6b3a2a', dura: 96, qual: 94, price: 4.2, rec: true },
+      oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true },
+      pine: { name: 'Pine', icon: '🌲', hex: '#c9a96e', dura: 65, qual: 72, price: 1.8, rec: true },
+      rubberwood: { name: 'Rubber Wood', icon: '🌿', hex: '#c8a87a', dura: 70, qual: 75, price: 1.6, rec: true },
+      bamboo: { name: 'Bamboo', icon: '🎍', hex: '#c5b358', dura: 72, qual: 78, price: 1.4, rec: true },
+      fabric_linen: { name: 'Linen Fabric', icon: '🧵', hex: '#d6c9b0', dura: 60, qual: 88, price: 2.1, rec: false },
+      velvet: { name: 'Velvet', icon: '🟣', hex: '#4a1a6e', dura: 55, qual: 92, price: 3.0, rec: false },
+      leather: { name: 'Leather', icon: '🟤', hex: '#3e1f0f', dura: 78, qual: 95, price: 4.5, rec: false },
+      white_paint: { name: 'White Paint', icon: '⬜', hex: '#f5f0e8', dura: 60, qual: 75, price: 1.2, rec: false },
+      matte_black: { name: 'Matte Black', icon: '⬛', hex: '#1a1a1a', dura: 82, qual: 80, price: 2.0, rec: false },
+      brushed_steel: { name: 'Steel', icon: '🔩', hex: '#8d9498', dura: 92, qual: 88, price: 4.0, rec: false },
     };
-    layer.innerHTML=`
+
+    const bedParts = ['Headboard', 'Footboard', 'Frame', 'Platform', 'Legs'];
+
+    /* ═══════════════════════════════════════════════
+       SHAPE DB  (headboard / footboard styles)
+    ═══════════════════════════════════════════════ */
+    const shapeDB = {
+      headboard: [
+        // ── Old-Fashioned ──
+        { id: 'baroque', name: 'Baroque Crown', icon: 'crown', faIcon: true, cat: 'Old-Fashioned' },
+        { id: 'victorian_arch', name: 'Victorian Arch', icon: 'archway', faIcon: true, cat: 'Old-Fashioned' },
+        { id: 'carved_panel', name: 'Carved Wood Panel', icon: 'tree', faIcon: true, cat: 'Old-Fashioned' },
+        { id: 'canopy_posts', name: 'Four-Post Canopy', icon: 'dungeon', faIcon: true, cat: 'Old-Fashioned' },
+        { id: 'sleigh_head', name: 'Sleigh Roll', icon: 'snowflake', faIcon: true, cat: 'Old-Fashioned' },
+        { id: 'gothic_arch', name: 'Gothic Pointed', icon: 'place-of-worship', faIcon: true, cat: 'Old-Fashioned' },
+        { id: 'spindle_head', name: 'Spindle Colonial', icon: 'grip-lines-vertical', faIcon: true, cat: 'Old-Fashioned' },
+        { id: 'scroll_head', name: 'Scroll Ornate', icon: 'scroll', faIcon: true, cat: 'Old-Fashioned' },
+        // ── Modern ──
+        { id: 'flat_panel', name: 'Flat Slab', icon: 'square-full', faIcon: false, cat: 'Modern' },
+        { id: 'tufted_panel', name: 'Tufted Upholstered', icon: 'th', faIcon: false, cat: 'Modern' },
+        { id: 'slatted_head', name: 'Slatted Wood', icon: 'bars', faIcon: true, cat: 'Modern' },
+        { id: 'floating_head', name: 'Floating Ledge', icon: 'minus', faIcon: true, cat: 'Modern' },
+        { id: 'curved_modern', name: 'Curved Soft', icon: 'circle', faIcon: false, cat: 'Modern' },
+        { id: 'bookcase_head', name: 'Bookcase Integrated', icon: 'book', faIcon: true, cat: 'Modern' },
+        { id: 'diamond_head', name: 'Diamond Quilted', icon: 'gem', faIcon: true, cat: 'Modern' },
+        { id: 'arch_modern', name: 'Soft Arch', icon: 'map-marker', faIcon: true, cat: 'Modern' },
+      ],
+      footboard: [
+        { id: 'matching_low', name: 'Low Matching Rail', icon: 'minus', faIcon: true, cat: 'Classic' },
+        { id: 'scroll_foot', name: 'Scroll Ornate', icon: 'scroll', faIcon: true, cat: 'Classic' },
+        { id: 'sleigh_foot', name: 'Sleigh Roll', icon: 'snowflake', faIcon: true, cat: 'Classic' },
+        { id: 'spindle_foot', name: 'Spindle Rail', icon: 'grip-lines-vertical', faIcon: true, cat: 'Classic' },
+        { id: 'no_footboard', name: 'None (Open)', icon: 'ban', faIcon: true, cat: 'Modern' },
+        { id: 'flat_foot', name: 'Flat Low Rail', icon: 'square-full', faIcon: false, cat: 'Modern' },
+        { id: 'slatted_foot', name: 'Slatted', icon: 'bars', faIcon: true, cat: 'Modern' },
+        { id: 'bench_foot', name: 'Bench End', icon: 'couch', faIcon: true, cat: 'Modern' },
+      ],
+      frame: [
+        { id: 'classic_rail', name: 'Classic Side Rails', icon: 'equals', faIcon: true, cat: 'Classic' },
+        { id: 'carved_rail', name: 'Carved Molding Rail', icon: 'tree', faIcon: true, cat: 'Classic' },
+        { id: 'platform_frame', name: 'Platform Box Frame', icon: 'square-full', faIcon: false, cat: 'Modern' },
+        { id: 'storage_frame', name: 'Storage Drawers', icon: 'archive', faIcon: true, cat: 'Modern' },
+        { id: 'floating_frame', name: 'Floating / Invisible', icon: 'magic', faIcon: true, cat: 'Modern' },
+      ],
+      platform: [
+        { id: 'solid_platform', name: 'Solid Platform', icon: 'square-full', faIcon: false, cat: 'Classic' },
+        { id: 'wood_slats', name: 'Wood Slats', icon: 'bars', faIcon: true, cat: 'Classic' },
+        { id: 'box_spring', name: 'Box Spring Base', icon: 'th', faIcon: false, cat: 'Classic' },
+        { id: 'floating_platform', name: 'Floating Slab', icon: 'cloud', faIcon: true, cat: 'Modern' },
+        { id: 'open_slats', name: 'Open Air Slats', icon: 'grip-lines', faIcon: true, cat: 'Modern' },
+        { id: 'upholstered_platform', name: 'Upholstered Box', icon: 'couch', faIcon: true, cat: 'Modern' },
+      ],
+      legs: [
+        { id: 'turned_leg', name: 'Turned Ornate', icon: 'ellipsis-v', faIcon: true, cat: 'Old-Fashioned' },
+        { id: 'cabriole', name: 'Cabriole Curved', icon: 'signature', faIcon: true, cat: 'Old-Fashioned' },
+        { id: 'bun_foot', name: 'Bun Foot', icon: 'circle', faIcon: false, cat: 'Old-Fashioned' },
+        { id: 'tapered_square', name: 'Tapered Square', icon: 'caret-down', faIcon: true, cat: 'Modern' },
+        { id: 'straight_round', name: 'Straight Round', icon: 'circle', faIcon: false, cat: 'Modern' },
+        { id: 'hairpin', name: 'Metal Hairpin', icon: 'paperclip', faIcon: true, cat: 'Modern' },
+        { id: 'block_foot', name: 'Block Cube Foot', icon: 'square-full', faIcon: false, cat: 'Modern' },
+        { id: 'no_legs', name: 'No Legs (Floor)', icon: 'ban', faIcon: true, cat: 'Modern' },
+      ]
+    };
+
+    const carvingDB = {
+      none: { name: 'Smooth Finish', icon: 'circle-minus', cat: 'Basic' },
+      rustic: { name: 'Antique Distressed', icon: 'tree', cat: 'Basic' },
+      floral: { name: 'Floral Carving', icon: 'fan', cat: 'Wood Carvings' },
+      linear_groove: { name: 'Linear Grooves', icon: 'align-justify', cat: 'Wood Carvings' },
+      geometric: { name: 'Geometric Pattern', icon: 'dice-d20', cat: 'Wood Carvings' },
+      lattice: { name: 'Wood Lattice', icon: 'th', cat: 'Wood Carvings' },
+      padded: { name: 'Standard Fabric', icon: 'couch', faIcon: true, cat: 'Upholstery' },
+      studded: { name: 'Tufted Buttons', icon: 'braille', faIcon: true, cat: 'Upholstery' },
+      leather_tufted: { name: 'Diamond Leather', icon: 'gem', faIcon: true, cat: 'Upholstery' },
+      weave: { name: 'Woven Rattan', icon: 'box', cat: 'Upholstery' },
+    };
+
+    /* ═══════════════════════════════════════════════
+       STATE
+    ═══════════════════════════════════════════════ */
+    let appState = { items: [], activeItemId: 0, activeLayer: null };
+    let isRotating = true, showDimensions = true, textureCache = {}, modalState = { partName: null, type: null };
+
+    const BED_SIZES = {
+      twin: { w: 99, d: 190 }, full: { w: 137, d: 190 }, queen: { w: 153, d: 203 }, king: { w: 193, d: 203 }
+    };
+
+    window.onload = function () {
+      try {
+        let saved = sessionStorage.getItem('cadState_bed_v1');
+        if (saved) { appState = JSON.parse(saved); if (!appState.items) appState.items = []; }
+      } catch (e) { appState.items = []; }
+      if (appState.items.length === 0) {
+        createNewBed(false, 'plain');
+      }
+      const ai = getActiveItem();
+      if (ai && !appState.activeLayer) appState.activeLayer = bedParts[0];
+      renderUI(); updatePrice();
+      loadPrevProjectBar();
+      setTimeout(() => { init3D(); }, 100);
+    };
+
+    function deleteItem(id) {
+      if (appState.items.length <= 1) {
+        alert("Cannot delete the last remaining design.");
+        return;
+      }
+      if (!confirm("Delete this design project?")) return;
+      appState.items = appState.items.filter(i => i.id !== id);
+      if (appState.activeItemId === id) {
+        appState.activeItemId = appState.items[0].id;
+        appState.activeLayer = bedParts[0];
+      }
+      saveState();
+      renderUI();
+      build3DScene();
+    }
+
+    function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
+    function saveState() { sessionStorage.setItem('cadState_bed_v1', JSON.stringify(appState)); }
+
+    /* ═══════════════════════════════════════════════
+       BED PRESETS
+    ═══════════════════════════════════════════════ */
+    const presets = {
+      plain: {
+        shapes: { Headboard: 'flat_panel', Footboard: 'flat_foot', Frame: 'platform_frame', Platform: 'solid_platform', Legs: 'block_foot' },
+        carvings: { Headboard: 'none', Footboard: 'none', Frame: 'none', Platform: 'none', Legs: 'none' },
+        selections: { Headboard: '#8B4513', Footboard: '#8B4513', Frame: '#8B4513', Platform: '#8B4513', Legs: '#8B4513' },
+        dims: { Headboard: { w: 200, h: 100, d: 10 }, Footboard: { w: 200, h: 30, d: 10 }, Frame: { w: 200, h: 20, d: 210 }, Platform: { w: 196, h: 8, d: 200 }, Legs: { w: 8, h: 12, d: 8 } },
+        name: 'Plain Platform Bed'
+      },
+      classic: {
+        shapes: { Headboard: 'baroque', Footboard: 'scroll_foot', Frame: 'classic_rail', Platform: 'solid_platform', Legs: 'turned_leg' },
+        carvings: { Headboard: 'floral', Footboard: 'floral', Frame: 'linear_groove', Platform: 'none', Legs: 'none' },
+        selections: { Headboard: '#8B4513', Footboard: '#8B4513', Frame: '#8B4513', Platform: '#8B4513', Legs: '#8B4513' },
+        dims: { Headboard: { w: 200, h: 140, d: 12 }, Footboard: { w: 200, h: 60, d: 12 }, Frame: { w: 200, h: 28, d: 210 }, Platform: { w: 196, h: 8, d: 200 }, Legs: { w: 9, h: 22, d: 9 } },
+        name: 'Classic Baroque Bed'
+      },
+      victorian: {
+        shapes: { Headboard: 'victorian_arch', Footboard: 'spindle_foot', Frame: 'carved_rail', Platform: 'wood_slats', Legs: 'cabriole' },
+        carvings: { Headboard: 'geometric', Footboard: 'none', Frame: 'linear_groove', Platform: 'none', Legs: 'none' },
+        selections: { Headboard: '#5c3a21', Footboard: '#5c3a21', Frame: '#5c3a21', Platform: '#5c3a21', Legs: '#5c3a21' },
+        dims: { Headboard: { w: 200, h: 160, d: 14 }, Footboard: { w: 200, h: 70, d: 12 }, Frame: { w: 200, h: 28, d: 210 }, Platform: { w: 196, h: 8, d: 200 }, Legs: { w: 9, h: 24, d: 9 } },
+        name: 'Victorian Arch Bed'
+      },
+      canopy: {
+        shapes: { Headboard: 'canopy_posts', Footboard: 'matching_low', Frame: 'classic_rail', Platform: 'solid_platform', Legs: 'turned_leg' },
+        carvings: { Headboard: 'floral', Footboard: 'none', Frame: 'none', Platform: 'none', Legs: 'none' },
+        selections: { Headboard: '#1a0a00', Footboard: '#1a0a00', Frame: '#1a0a00', Platform: '#1a0a00', Legs: '#1a0a00' },
+        dims: { Headboard: { w: 200, h: 220, d: 12 }, Footboard: { w: 200, h: 220, d: 12 }, Frame: { w: 200, h: 28, d: 210 }, Platform: { w: 196, h: 8, d: 200 }, Legs: { w: 10, h: 26, d: 10 } },
+        name: 'Four-Post Canopy Bed'
+      },
+      platform: {
+        shapes: { Headboard: 'flat_panel', Footboard: 'flat_foot', Frame: 'platform_frame', Platform: 'floating_platform', Legs: 'tapered_square' },
+        carvings: { Headboard: 'none', Footboard: 'none', Frame: 'none', Platform: 'none', Legs: 'none' },
+        selections: { Headboard: '#d4ac7d', Footboard: '#d4ac7d', Frame: '#d4ac7d', Platform: '#d4ac7d', Legs: '#d4ac7d' },
+        dims: { Headboard: { w: 200, h: 100, d: 10 }, Footboard: { w: 200, h: 30, d: 10 }, Frame: { w: 200, h: 20, d: 210 }, Platform: { w: 196, h: 10, d: 200 }, Legs: { w: 6, h: 14, d: 6 } },
+        name: 'Modern Platform Bed'
+      },
+      floating: {
+        shapes: { Headboard: 'floating_head', Footboard: 'no_footboard', Frame: 'floating_frame', Platform: 'floating_platform', Legs: 'no_legs' },
+        carvings: { Headboard: 'none', Footboard: 'none', Frame: 'none', Platform: 'none', Legs: 'none' },
+        selections: { Headboard: '#1a1a1a', Footboard: '#1a1a1a', Frame: '#1a1a1a', Platform: '#1a1a1a', Legs: '#1a1a1a' },
+        dims: { Headboard: { w: 200, h: 90, d: 6 }, Footboard: { w: 200, h: 0, d: 6 }, Frame: { w: 200, h: 16, d: 210 }, Platform: { w: 196, h: 12, d: 200 }, Legs: { w: 5, h: 5, d: 5 } },
+        name: 'Floating Modern Bed'
+      },
+      tufted: {
+        shapes: { Headboard: 'tufted_panel', Footboard: 'bench_foot', Frame: 'platform_frame', Platform: 'upholstered_platform', Legs: 'block_foot' },
+        carvings: { Headboard: 'leather_tufted', Footboard: 'padded', Frame: 'none', Platform: 'padded', Legs: 'none' },
+        selections: { Headboard: '#4a1a6e', Footboard: '#4a1a6e', Frame: '#1a1a1a', Platform: '#1a1a1a', Legs: '#1a1a1a' },
+        dims: { Headboard: { w: 200, h: 120, d: 14 }, Footboard: { w: 200, h: 50, d: 14 }, Frame: { w: 200, h: 22, d: 210 }, Platform: { w: 196, h: 10, d: 200 }, Legs: { w: 8, h: 12, d: 8 } },
+        name: 'Tufted Velvet Bed'
+      },
+      sleigh: {
+        shapes: { Headboard: 'sleigh_head', Footboard: 'sleigh_foot', Frame: 'classic_rail', Platform: 'solid_platform', Legs: 'bun_foot' },
+        carvings: { Headboard: 'rustic', Footboard: 'rustic', Frame: 'none', Platform: 'none', Legs: 'none' },
+        selections: { Headboard: '#6b3a2a', Footboard: '#6b3a2a', Frame: '#6b3a2a', Platform: '#6b3a2a', Legs: '#6b3a2a' },
+        dims: { Headboard: { w: 200, h: 130, d: 16 }, Footboard: { w: 200, h: 80, d: 16 }, Frame: { w: 200, h: 28, d: 210 }, Platform: { w: 196, h: 8, d: 200 }, Legs: { w: 10, h: 18, d: 10 } },
+        name: 'Yakal Sleigh Bed'
+      },
+      gothic: {
+        shapes: { Headboard: 'gothic_arch', Footboard: 'spindle_foot', Frame: 'carved_rail', Platform: 'wood_slats', Legs: 'turned_leg' },
+        carvings: { Headboard: 'geometric', Footboard: 'none', Frame: 'linear_groove', Platform: 'none', Legs: 'none' },
+        selections: { Headboard: '#1a0a00', Footboard: '#1a0a00', Frame: '#1a0a00', Platform: '#1a0a00', Legs: '#1a0a00' },
+        dims: { Headboard: { w: 200, h: 180, d: 14 }, Footboard: { w: 200, h: 75, d: 12 }, Frame: { w: 200, h: 28, d: 210 }, Platform: { w: 196, h: 8, d: 200 }, Legs: { w: 10, h: 24, d: 10 } },
+        name: 'Gothic Cathedral Bed'
+      },
+    };
+
+    function createNewBed(shouldRender = true, presetKey = 'plain') {
+      const p = presets[presetKey] || presets.plain;
+      const newItem = {
+        id: Date.now(), type: 'bed',
+        name: p.name + ' ' + (appState.items.length || ''),
+        shapes: JSON.parse(JSON.stringify(p.shapes)),
+        carvings: JSON.parse(JSON.stringify(p.carvings)),
+        selections: JSON.parse(JSON.stringify(p.selections)),
+        dims: JSON.parse(JSON.stringify(p.dims)),
+        globalScale: { x: 1, y: 1, z: 1 },
+        bedSize: 'king'
+      };
+      appState.items.push(newItem);
+      appState.activeItemId = newItem.id;
+      appState.activeLayer = 'Headboard';
+      saveState();
+      if (shouldRender && scene) { renderUI(); build3DScene(); updatePrice(); }
+    }
+
+    function applyBedSize(size) {
+      const item = getActiveItem(); if (!item) return;
+      const s = BED_SIZES[size]; if (!s) return;
+      item.bedSize = size;
+      const bw = s.w / 10, bd = s.d / 10;  // to cm scale (we use 10cm = 1 unit)
+      // Update dims proportionally
+      item.dims.Headboard.w = s.w; item.dims.Footboard.w = s.w;
+      item.dims.Frame.w = s.w; item.dims.Frame.d = s.d + 10;
+      item.dims.Platform.w = s.w - 4; item.dims.Platform.d = s.d;
+      saveState(); build3DScene(); updatePrice();
+      // Update active buttons
+      document.querySelectorAll('.bed-size-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.toLowerCase() === size);
+      });
+    }
+
+    function toggleRotation() {
+      isRotating = !isRotating;
+      if (controls) controls.autoRotate = isRotating;
+      document.getElementById('btn-rotate').innerHTML = isRotating ? '<i class="fas fa-pause"></i> Stop Rotate' : '<i class="fas fa-play"></i> Auto Rotate';
+    }
+    function toggleDimensions() { showDimensions = !showDimensions; build3DScene(); document.getElementById('btn-dims').innerHTML = showDimensions ? '<i class="fas fa-ruler-combined"></i> Hide Ruler' : '<i class="fas fa-ruler-combined"></i> Show Ruler'; }
+    function resetView() { resetCamera(); resetFocus(); build3DScene(); }
+    function updateGlobalScale(axis, val) {
+      const item = getActiveItem(); if (!item.globalScale) item.globalScale = { x: 1, y: 1, z: 1 };
+      item.globalScale[axis] = val / 100;
+      document.getElementById('gs-' + axis).innerText = val;
+      saveState(); build3DScene(); updatePrice();
+    }
+
+    /* ═══════════════════════════════════════════════
+       UI RENDERING
+    ═══════════════════════════════════════════════ */
+    function renderUI() { renderSceneList(); renderProperties(); calculateScore(); updatePrice(); }
+
+    function renderSceneList() {
+      const list = document.getElementById('scene-list');
+      if (!list) return;
+      list.innerHTML = '';
+
+      const addBtn = document.createElement('div');
+      addBtn.style.cssText = 'margin:8px 0 4px;padding:10px 12px;border-radius:6px;background:#1e2a2e;border:1px dashed #2e4a4e;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#6abfbf;transition:0.15s;';
+      addBtn.innerHTML = '<i class="fas fa-bed" style="color:#6abfbf"></i><span>+ New Plain Bed</span>';
+      addBtn.onmouseover = () => addBtn.style.background = '#243034';
+      addBtn.onmouseout = () => addBtn.style.background = '#1e2a2e';
+      addBtn.onclick = () => createNewBed(true, 'plain');
+      list.appendChild(addBtn);
+
+      appState.items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
+        div.onclick = (e) => {
+          if (e.target.closest('.btn-delete')) return;
+          appState.activeItemId = item.id;
+          appState.activeLayer = 'Headboard';
+          renderUI();
+          build3DScene();
+        };
+        div.innerHTML = '<span><i class="fas fa-bed"></i> ' + item.name + '</span><button class="btn-delete" onclick="deleteItem(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>';
+        list.appendChild(div);
+      });
+    }
+
+    function selectBedModel(key) {
+      // Replace the current active design with the selected preset
+      const p = presets[key] || presets.classic;
+      const item = getActiveItem();
+      if (item) {
+        item.shapes = JSON.parse(JSON.stringify(p.shapes));
+        item.carvings = JSON.parse(JSON.stringify(p.carvings));
+        item.selections = JSON.parse(JSON.stringify(p.selections));
+        item.dims = JSON.parse(JSON.stringify(p.dims));
+        item.name = p.name;
+        item.globalScale = { x: 1, y: 1, z: 1 };
+        item.bedSize = 'king';
+        appState.activeLayer = 'Headboard';
+        saveState(); renderUI(); build3DScene(); updatePrice();
+      } else {
+        createNewBed(true, key);
+      }
+      updateModelCardHighlight();
+    }
+
+    function updateModelCardHighlight() {
+      const item = getActiveItem();
+      // Determine which preset key the active item corresponds to
+      const keys = ['classic', 'victorian', 'canopy', 'sleigh', 'gothic', 'platform', 'floating', 'tufted'];
+      keys.forEach(k => {
+        const card = document.getElementById('mcard-' + k);
+        if (!card) return;
+        const preset = presets[k];
+        const matches = item && preset && item.name && item.name.startsWith(preset.name);
+        card.classList.toggle('active-model', !!matches);
+      });
+    }
+
+    function renderProperties() {
+      const item = getActiveItem(); if (!item) return;
+      document.getElementById('project-name').value = item.name;
+      const gs = item.globalScale || { x: 1, y: 1, z: 1 };
+      ['x', 'y', 'z'].forEach(a => {
+        const v = Math.round(gs[a] * 100);
+        if (document.getElementById('gs-' + a)) document.getElementById('gs-' + a).innerText = v;
+        if (document.getElementById('inp-scale-' + a)) document.getElementById('inp-scale-' + a).value = v;
+      });
+
+      // Bed size buttons
+      document.querySelectorAll('.bed-size-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.toLowerCase() === (item.bedSize || 'king'));
+      });
+
+      // Material grids
+      const recGrid = document.getElementById('rec-mat-grid');
+      const allGrid = document.getElementById('all-mat-grid');
+      const recContainer = document.getElementById('rec-mat-container');
+      recGrid.innerHTML = ''; allGrid.innerHTML = '';
+      let hasRecs = false;
+      Object.keys(materialDB).forEach(k => {
+        const m = materialDB[k]; if (m.rec) hasRecs = true;
+        const card = document.createElement('div');
+        card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
+        card.onclick = () => applyMaterialToActiveLayer(m.hex);
+        card.innerHTML = '<div class="mat-card-icon">' + m.icon + '</div><div class="mat-card-name">' + m.name + '</div>';
+        if (m.rec) recGrid.appendChild(card); else allGrid.appendChild(card);
+      });
+      recContainer.style.display = hasRecs ? 'block' : 'none';
+
+      // Layers
+      const container = document.getElementById('layers-container'); container.innerHTML = '';
+      bedParts.forEach(part => {
+        const hex = (item.selections || {})[part] || '#8B4513';
+        const dims = (item.dims || {})[part] || { w: 200, h: 100, d: 12 };
+        const currentCarving = (item.carvings || {})[part] || 'none';
+        const currentShapeId = (item.shapes || {})[part] || 'flat_panel';
+
+        let shapeName = 'Standard';
+        const db = shapeDB[part.toLowerCase()];
+        if (db) { const f = db.find(s => s.id === currentShapeId); if (f) shapeName = f.name; }
+        let carvName = carvingDB[currentCarving] ? carvingDB[currentCarving].name : 'Smooth';
+
+        const isActive = (appState.activeLayer === part);
+        const layer = document.createElement('div');
+        layer.className = 'layer-item' + (isActive ? ' active-layer open' : '');
+        layer.onclick = (e) => {
+          if (e.target.closest('.view-focus-btn') || e.target.tagName === 'INPUT' || e.target.closest('.clickable-design-val')) return;
+          setActiveLayer(part);
+        };
+        layer.innerHTML = `
       <div class="layer-header">
-        <span><i class="fas fa-layer-group"></i> ${part} ${isActive?'(Selected)':''}</span>
-        <button class="view-focus-btn" onclick="focusOnPart('${part}')">${isActive?'<i class="fas fa-eye"></i>':'<i class="far fa-eye"></i>'}</button>
+        <span><i class="fas fa-layer-group"></i> ${part} ${isActive ? '(Selected)' : ''}</span>
+        <button class="view-focus-btn" onclick="focusOnPart('${part}')">${isActive ? '<i class="fas fa-eye"></i>' : '<i class="far fa-eye"></i>'}</button>
         <div class="color-preview" style="background:${hex}"></div>
       </div>
       <div class="layer-content">
@@ -718,727 +1821,722 @@ function renderProperties(){
           </div>
         </div>
       </div>`;
-    container.appendChild(layer);
-  });
-}
-
-function setActiveLayer(p){ appState.activeLayer=p; renderProperties(); focusOnPart(p); }
-function applyMaterialToActiveLayer(hex){ if(!appState.activeLayer) return; updateColor(appState.activeLayer,hex); renderProperties(); }
-function updateColor(part,hex){ const item=getActiveItem(); if(!item.selections) item.selections={}; item.selections[part]=hex; build3DScene(); saveState(); calculateScore(); updatePrice(); }
-function updateDim(part,axis,val){ const item=getActiveItem(); if(!item.dims) item.dims={}; if(!item.dims[part]) item.dims[part]={w:200,h:100,d:12}; item.dims[part][axis]=parseInt(val)||0; saveState(); build3DScene(); updatePrice(); }
-function updateProjectName(val){ getActiveItem().name=val; renderSceneList(); saveState(); }
-
-function updatePrice(){
-  const item=getActiveItem(); if(!item) return;
-  let cost=0;
-  const sels=item.selections||{};
-  const dims=item.dims||{};
-  bedParts.forEach(part=>{
-    const hex=sels[part]||'#8B4513';
-    const matKey=Object.keys(materialDB).find(k=>materialDB[k].hex.toLowerCase()===hex.toLowerCase())||'mahogany';
-    const mat=materialDB[matKey]||materialDB.mahogany;
-    const d=dims[part]||{w:200,h:100,d:12};
-    let vol=(d.w*d.h*d.d)/8000;
-    cost+=vol*mat.price;
-  });
-  const gs=item.globalScale||{x:1,y:1,z:1};
-  const mult=gs.x*gs.y*gs.z;
-  document.getElementById('total-price').innerHTML='&#8369;'+Math.round((3000+cost)*mult).toLocaleString();
-}
-
-function calculateScore(){
-  const item=getActiveItem(); if(!item) return;
-  const sels=item.selections||{};
-  const parts=Object.values(sels);
-  let td=0,tq=0,rc=0;
-  parts.forEach(hex=>{
-    const mk=Object.keys(materialDB).find(k=>materialDB[k].hex.toLowerCase()===hex.toLowerCase());
-    if(mk){ const m=materialDB[mk]; td+=m.dura; tq+=m.qual; if(m.rec) rc++; }
-    else{ td+=50; tq+=50; }
-  });
-  const ad=parts.length>0?Math.round(td/parts.length):0;
-  const aq=parts.length>0?Math.round(tq/parts.length):0;
-  document.getElementById('bar-dura').style.width=ad+'%'; document.getElementById('score-dura-val').innerText=ad+'%';
-  document.getElementById('bar-dura').style.background=ad>80?'#2ecc71':(ad>50?'orange':'#e74c3c');
-  document.getElementById('bar-qual').style.width=aq+'%'; document.getElementById('score-qual-val').innerText=aq+'%';
-  document.getElementById('rec-status').innerHTML=rc===parts.length?'<i class="fas fa-check-circle" style="color:#2ecc71"></i> Optimal Choice':'<i class="fas fa-info-circle" style="color:orange"></i> Custom Mix';
-}
-
-function deleteItem(id){
-  if(confirm('Delete?')){
-    appState.items=appState.items.filter(i=>i.id!==id);
-    if(appState.items.length===0) createNewBed(true,'classic'); else appState.activeItemId=appState.items[0].id;
-    appState.activeLayer='Headboard'; saveState(); renderUI(); build3DScene();
-  }
-}
-
-/* ═══════════════════════════════════════════════
-   DESIGN MODAL
-═══════════════════════════════════════════════ */
-function openDesignModal(partName,type){
-  modalState={partName,type};
-  document.getElementById('design-modal-title').innerText='Select '+(type==='shape'?'Style':'Texture')+' for '+partName;
-  const scrollArea=document.getElementById('design-modal-scroll'); scrollArea.innerHTML='';
-  const legend=document.createElement('div');
-  legend.className='render-legend';
-  legend.innerHTML='<div class="render-legend-item"><div class="legend-dot ok"></div> Fully Rendered</div><div class="render-legend-item"><div class="legend-dot warn"></div> Approximated</div>';
-  scrollArea.appendChild(legend);
-  const item=getActiveItem();
-  let db,activeId;
-  if(type==='shape'){ db=shapeDB[partName.toLowerCase()]||[]; activeId=(item.shapes||{})[partName]; }
-  else{ db=Object.keys(carvingDB).map(k=>({id:k,...carvingDB[k]})); activeId=(item.carvings||{})[partName]; }
-  let groups={};
-  db.forEach(it=>{ const cat=it.cat||'General'; if(!groups[cat]) groups[cat]=[]; groups[cat].push(it); });
-  Object.keys(groups).forEach(catName=>{
-    const title=document.createElement('div'); title.className='modal-section-title'; title.innerText=catName;
-    scrollArea.appendChild(title);
-    const grid=document.createElement('div'); grid.className='design-grid';
-    groups[catName].forEach(it=>{
-      const card=document.createElement('div');
-      card.className='design-card'+(it.id===activeId?' active':'');
-      card.onclick=()=>selectDesign(it.id);
-      const fi=it.faIcon?it.icon:(carvingDB[it.id]?carvingDB[it.id].icon:(it.icon||'circle'));
-      card.innerHTML=`<i class="design-icon fas fa-${fi}"></i><div class="design-name">${it.name}</div>`;
-      grid.appendChild(card);
-    });
-    scrollArea.appendChild(grid);
-  });
-  document.getElementById('design-modal-overlay').classList.add('open');
-  focusOnPart(partName);
-}
-function closeDesignModal(e){ if(e&&e.target!==document.getElementById('design-modal-overlay')&&!e.target.classList.contains('design-modal-overlay')) return; document.getElementById('design-modal-overlay').classList.remove('open'); modalState={partName:null,type:null}; }
-function selectDesign(newId){
-  const item=getActiveItem();
-  if(modalState.type==='shape'){ if(!item.shapes) item.shapes={}; item.shapes[modalState.partName]=newId; }
-  else{ if(!item.carvings) item.carvings={}; item.carvings[modalState.partName]=newId; }
-  build3DScene(); saveState(); renderProperties(); calculateScore(); updatePrice();
-  document.getElementById('design-modal-overlay').classList.remove('open');
-}
-
-/* ═══════════════════════════════════════════════
-   TEXTURE GENERATOR
-═══════════════════════════════════════════════ */
-function createPatternTexture(style){
-  if(textureCache[style]) return textureCache[style];
-  const canvas=document.createElement('canvas'); canvas.width=512; canvas.height=512;
-  const ctx=canvas.getContext('2d');
-  ctx.fillStyle='#808080'; ctx.fillRect(0,0,512,512);
-  ctx.strokeStyle='#ffffff'; ctx.lineWidth=15;
-  if(style==='linear_groove'){ ctx.strokeStyle='#2d2d2d';ctx.lineWidth=10;for(let i=0;i<=512;i+=64){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(512,i);ctx.stroke();} }
-  else if(style==='lattice'){ ctx.beginPath();for(let i=-512;i<1024;i+=64){ctx.moveTo(i,0);ctx.lineTo(i+512,512);ctx.moveTo(i,512);ctx.lineTo(i+512,0);}ctx.stroke(); }
-  else if(style==='studded'||style==='leather_tufted'){ for(let x=25;x<512;x+=100)for(let y=25;y<512;y+=100){const g=ctx.createRadialGradient(x,y,5,x,y,40);g.addColorStop(0,'white');g.addColorStop(1,'#808080');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,35,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(0,0,0,0.5)';ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);ctx.fill();} }
-  else if(style==='weave'){ return createWeaveTexture(); }
-  else if(style==='geometric'){ ctx.lineWidth=10;ctx.strokeRect(50,50,412,412);ctx.strokeRect(150,150,212,212);ctx.beginPath();ctx.arc(256,256,60,0,Math.PI*2);ctx.stroke(); }
-  else if(style==='floral'){ ctx.fillStyle='#ffffff';ctx.beginPath();ctx.moveTo(256,50);ctx.bezierCurveTo(150,50,150,200,256,200);ctx.bezierCurveTo(362,200,362,50,256,50);ctx.moveTo(256,462);ctx.bezierCurveTo(150,462,150,312,256,312);ctx.bezierCurveTo(362,312,362,462,256,462);ctx.fill();ctx.lineWidth=8;ctx.strokeStyle='#ffffff';ctx.beginPath();ctx.arc(100,256,50,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(412,256,50,0,Math.PI*2);ctx.stroke(); }
-  else if(style==='rustic'){ for(let i=0;i<5000;i++){ctx.fillStyle='rgba(128,128,128,'+(Math.random()*0.5)+')';ctx.fillRect(Math.random()*512,Math.random()*512,Math.random()*4,Math.random()*16);} }
-  else if(style==='padded'){ for(let i=0;i<10000;i++){ctx.fillStyle='rgba(128,128,128,'+(Math.random()*0.2)+')';ctx.fillRect(Math.random()*512,Math.random()*512,1,1);} }
-  const texture=new THREE.CanvasTexture(canvas);
-  texture.wrapS=THREE.RepeatWrapping; texture.wrapT=THREE.RepeatWrapping;
-  textureCache[style]=texture; return texture;
-}
-function createWeaveTexture(){
-  if(textureCache['weave']) return textureCache['weave'];
-  const canvas=document.createElement('canvas'); canvas.width=512; canvas.height=512;
-  const ctx=canvas.getContext('2d');
-  ctx.fillStyle='#C19A6B'; ctx.fillRect(0,0,512,512);
-  ctx.lineWidth=15; const step=40;
-  for(let y=step/2;y<512;y+=step)for(let x=0;x<512;x+=step){ctx.strokeStyle='#99734D';ctx.beginPath();ctx.moveTo(x+5,y);ctx.lineTo(x+step/2-5,y);ctx.stroke();ctx.strokeStyle='#D7BDA0';ctx.beginPath();ctx.moveTo(x+step/2+5,y);ctx.lineTo(x+step-5,y);ctx.stroke();}
-  for(let x=step/2;x<512;x+=step)for(let y=0;y<512;y+=step){ctx.strokeStyle='#D7BDA0';ctx.beginPath();ctx.moveTo(x,y+5);ctx.lineTo(x,y+step/2-5);ctx.stroke();ctx.strokeStyle='#99734D';ctx.beginPath();ctx.moveTo(x,y+step/2+5);ctx.lineTo(x,y+step-5);ctx.stroke();}
-  const texture=new THREE.CanvasTexture(canvas);
-  texture.wrapS=THREE.RepeatWrapping; texture.wrapT=THREE.RepeatWrapping;
-  textureCache['weave']=texture; return texture;
-}
-
-/* ═══════════════════════════════════════════════
-   3D ENGINE
-═══════════════════════════════════════════════ */
-let scene,camera,renderer,currentGroup,controls,dimGroup;
-
-function init3D(){
-  const container=document.getElementById('canvas-container');
-  const w=container.clientWidth||800,h=container.clientHeight||600;
-  scene=new THREE.Scene(); scene.background=new THREE.Color(0x1e1e1e);
-  camera=new THREE.PerspectiveCamera(45,w/h,0.1,200);
-  renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
-  renderer.setSize(w,h);
-  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  container.innerHTML=''; container.appendChild(renderer.domElement);
-  controls=new THREE.OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=true; controls.autoRotate=isRotating; controls.autoRotateSpeed=0.4;
-  scene.add(new THREE.AmbientLight(0xffffff,0.45));
-  const dL=new THREE.DirectionalLight(0xffffff,1.1);
-  dL.position.set(8,14,10); dL.castShadow=true; scene.add(dL);
-  const fL=new THREE.DirectionalLight(0xffffff,0.35);
-  fL.position.set(-8,6,-8); scene.add(fL);
-  const bL=new THREE.DirectionalLight(0xffffff,0.2);
-  bL.position.set(0,4,-12); scene.add(bL);
-  scene.add(new THREE.GridHelper(40,40,0x444444,0x2a2a2a));
-  dimGroup=new THREE.Group(); scene.add(dimGroup);
-  resetCamera(); build3DScene(); animate();
-}
-function animate(){ requestAnimationFrame(animate); if(controls) controls.update(); if(renderer&&scene&&camera) renderer.render(scene,camera); }
-function resetCamera(){ if(camera) camera.position.set(14,10,18); if(controls) controls.target.set(0,3,0); resetFocus(); }
-function resetFocus(){ document.querySelectorAll('.view-focus-btn').forEach(b=>b.innerHTML='<i class="far fa-eye"></i>'); }
-
-function focusOnPart(partName){
-  if(!currentGroup||!controls) return;
-  const meshes=currentGroup.children.filter(m=>m.name===partName);
-  if(meshes.length===0) return;
-  resetFocus();
-  const box=new THREE.Box3(); meshes.forEach(m=>box.expandByObject(m));
-  const center=new THREE.Vector3(); box.getCenter(center);
-  controls.target.set(center.x,center.y,center.z);
-  camera.position.set(center.x+8,center.y+4,center.z+10);
-}
-
-function createDimensionLine(start,end,label,offset){
-  if(!showDimensions) return;
-  const o=offset||new THREE.Vector3();
-  const p1=start.clone().add(o),p2=end.clone().add(o);
-  const mat=new THREE.LineBasicMaterial({color:0xaaaaaa,transparent:true,opacity:.45});
-  dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),mat));
-  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
-  const ctx=canvas.getContext('2d');
-  ctx.fillStyle='rgba(0,0,0,0)';ctx.fillRect(0,0,512,128);
-  ctx.font='Bold 60px Segoe UI';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=4;ctx.fillText(label,256,64);
-  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(canvas),transparent:true,depthTest:false}));
-  sp.position.copy(p1).lerp(p2,0.5);sp.position.y+=0.05;sp.scale.set(0.9,0.22,1);
-  dimGroup.add(sp);
-}
-
-/* ═══════════════════════════════════════════════
-   MAIN 3D SCENE BUILD
-═══════════════════════════════════════════════ */
-function build3DScene(){
-  if(!scene) return;
-  if(currentGroup) scene.remove(currentGroup);
-  currentGroup=new THREE.Group(); dimGroup.clear();
-
-  const item=getActiveItem(); if(!item) return;
-  const SCALE=20; // 20cm per unit
-  const gd=p=>{const d=(item.dims||{})[p]||{w:200,h:100,d:12};return{w:d.w/SCALE,h:d.h/SCALE,d:d.d/SCALE};};
-  const getSel=p=>(item.selections||{})[p]||'#8B4513';
-  const getCarv=p=>(item.carvings||{})[p]||'none';
-  const getShape=p=>(item.shapes||{})[p]||'flat_panel';
-
-  const getMat=(hex,ck)=>{
-    ck=ck||'none';
-    const cStyle=carvingDB[ck]||carvingDB.none;
-    const matKey=Object.keys(materialDB).find(k=>materialDB[k].hex.toLowerCase()===hex.toLowerCase());
-    const roughMap={narra:.35,kamagong:.2,molave:.32,mahogany:.28,tanguile:.38,yakal:.22,oak:.42,pine:.5,rubberwood:.46,bamboo:.44,fabric_linen:.9,velvet:.92,leather:.4,white_paint:.6,matte_black:.8,brushed_steel:.35};
-    const roughness=roughMap[matKey]!==undefined?roughMap[matKey]:0.55;
-    const metalness=(matKey==='brushed_steel')?0.85:0.04;
-    const mat=new THREE.MeshStandardMaterial({color:hex,roughness,metalness,side:THREE.DoubleSide});
-    if(ck!=='none'){
-      const tex=createPatternTexture(ck).clone();
-      const rx=(cStyle.style&&cStyle.style.repeatX)?cStyle.style.repeatX:2;
-      const ry=(cStyle.style&&cStyle.style.repeatY)?cStyle.style.repeatY:2;
-      tex.repeat.set(rx,ry);tex.needsUpdate=true;
-      mat.bumpMap=tex;mat.bumpScale=0.12;
-    }
-    return mat;
-  };
-
-  const addMesh=(name,geo,hex,carv,x,y,z,rx=0,ry=0,rz=0)=>{
-    if(!geo) return;
-    const mesh=new THREE.Mesh(geo,getMat(hex,carv));
-    mesh.position.set(x,y,z);mesh.rotation.set(rx,ry,rz);
-    mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;
-    currentGroup.add(mesh);return mesh;
-  };
-  const sg=(fn,fb)=>{try{const g=fn();return(g&&g.attributes&&g.attributes.position&&g.attributes.position.count>0)?g:fb;}catch(e){return fb;}};
-
-  // ── DIMENSIONS ──
-  const dH=gd('Headboard');   // headboard
-  const dF=gd('Footboard');   // footboard
-  const dR=gd('Frame');       // rails/frame
-  const dP=gd('Platform');    // platform/slats
-  const dL=gd('Legs');        // legs
-
-  const legH=dL.h;
-  const frameY=legH+dR.h/2;
-  const platformY=legH+dR.h+dP.h/2;
-  const mattressH=0.35;
-  const mattressY=platformY+dP.h/2+mattressH/2;
-
-  // Bed total length from dims
-  const bedW=dR.w;  // total width
-  const bedLen=dR.d; // total length (depth)
-
-  const headZ=-bedLen/2+dH.d/2;
-  const footZ=bedLen/2-dF.d/2;
-
-  /* ═══════════════════════════
-     LEGS
-  ═══════════════════════════ */
-  const legShape=getShape('Legs');
-  const lHex=getSel('Legs'), lCarv=getCarv('Legs');
-
-  if(legShape!=='no_legs'){
-    const legW=dL.w, legD=dL.d;
-    const lxOff=(bedW/2)-legW*0.7;
-    const lzHead=-bedLen/2+legD;
-    const lzFoot=bedLen/2-legD;
-
-    const makeLeg=()=>{
-      if(legShape==='turned_leg'){
-        const g=new THREE.CylinderGeometry(legW/2,legW/2,legH,20,12);
-        const pos=g.attributes.position;
-        for(let i=0;i<pos.count;i++){const yv=pos.getY(i)/legH;const s=1+Math.sin(yv*Math.PI*4)*0.22;pos.setX(i,pos.getX(i)*s);pos.setZ(i,pos.getZ(i)*s);}
-        g.computeVertexNormals();return g;
-      }
-      if(legShape==='cabriole'){
-        const pts=[];const segs=20;
-        for(let i=0;i<=segs;i++){const t=i/segs;const r=(legW/2)*(0.55+Math.sin(t*Math.PI)*0.45);pts.push(new THREE.Vector2(r,t*legH));}
-        return new THREE.LatheGeometry(pts,16);
-      }
-      if(legShape==='bun_foot'){
-        const g=new THREE.SphereGeometry(legW*0.7,16,12,0,Math.PI*2,0,Math.PI*0.65);
-        g.rotateX(Math.PI);return g;
-      }
-      if(legShape==='tapered_square'){const g=new THREE.CylinderGeometry(legW*0.3,legW*0.6,legH,4);g.rotateY(Math.PI/4);return g;}
-      if(legShape==='straight_round') return new THREE.CylinderGeometry(legW/2,legW/2,legH,16);
-      if(legShape==='hairpin'){
-        const g=new THREE.CylinderGeometry(legW*0.1,legW*0.1,legH*1.2,8);return g;
-      }
-      if(legShape==='block_foot') return new THREE.BoxGeometry(legW,legH,legD);
-      return new THREE.BoxGeometry(legW,legH,legD);
-    };
-
-    const legGeo=sg(makeLeg,new THREE.BoxGeometry(legW,legH,legD));
-    // 4 corner legs
-    const legY=legH/2+(legShape==='bun_foot'?legW*0.1:0);
-    [[-lxOff,lzHead],[lxOff,lzHead],[-lxOff,lzFoot],[lxOff,lzFoot]].forEach(([x,z])=>{
-      addMesh('Legs',legGeo,lHex,lCarv,x,legY,z);
-    });
-    // For canopy: add tall posts
-    if(getShape('Headboard')==='canopy_posts'){
-      const postH=dH.h;const postR=legW*0.5;
-      [[-lxOff,lzHead],[lxOff,lzHead],[-lxOff,lzFoot],[lxOff,lzFoot]].forEach(([x,z])=>{
-        addMesh('Headboard',new THREE.CylinderGeometry(postR,postR*1.1,postH,16),lHex,lCarv,x,legH+postH/2,z);
+        container.appendChild(layer);
       });
-      // Canopy top rails
-      const topY=legH+postH-postR*0.5;
-      addMesh('Headboard',new THREE.CylinderGeometry(postR*0.7,postR*0.7,bedW-legW*1.4,12,1,false),lHex,lCarv,0,topY,lzHead,0,0,Math.PI/2);
-      addMesh('Headboard',new THREE.CylinderGeometry(postR*0.7,postR*0.7,bedW-legW*1.4,12,1,false),lHex,lCarv,0,topY,lzFoot,0,0,Math.PI/2);
-      addMesh('Headboard',new THREE.CylinderGeometry(postR*0.7,postR*0.7,bedLen-legD*2,12,1,false),lHex,lCarv,-lxOff,topY,0,Math.PI/2,0,0);
-      addMesh('Headboard',new THREE.CylinderGeometry(postR*0.7,postR*0.7,bedLen-legD*2,12,1,false),lHex,lCarv,lxOff,topY,0,Math.PI/2,0,0);
-    }
-  }
-
-  /* ═══════════════════════════
-     FRAME / SIDE RAILS
-  ═══════════════════════════ */
-  const frameShape=getShape('Frame');
-  const fHex=getSel('Frame'),fCarv=getCarv('Frame');
-  const rH=dR.h,rD=dR.d,rW=dR.w;
-
-  if(frameShape==='floating_frame'){
-    // Floating: shadow ledge base only
-    addMesh('Frame',new THREE.BoxGeometry(rW*1.05,rH*0.5,rD*1.02),fHex,fCarv,0,frameY-rH*0.1,0);
-  } else if(frameShape==='storage_frame'){
-    // Box frame with drawer lines
-    addMesh('Frame',new THREE.BoxGeometry(rW,rH*1.8,rD),fHex,fCarv,0,legH+rH*0.9,0);
-    // Drawer fronts
-    const dW=rW/3-0.06,dHt=rH*0.7;
-    for(let i=0;i<3;i++){
-      const dx=-rW/2+dW/2+i*(dW+0.06)+0.03;
-      addMesh('Frame',new THREE.BoxGeometry(dW,dHt,0.04),fHex,'none',dx,legH+rH*0.85,rD/2+0.001);
-    }
-  } else if(frameShape==='platform_frame'){
-    // Solid box platform
-    addMesh('Frame',new THREE.BoxGeometry(rW,rH*1.5,rD),fHex,fCarv,0,legH+rH*0.75,0);
-  } else {
-    // Classic rails: two side rails + head/foot cross rails
-    const railThick=dR.w*0.05;
-    addMesh('Frame',new THREE.BoxGeometry(railThick,rH,rD),fHex,fCarv,-rW/2+railThick/2,frameY,0);
-    addMesh('Frame',new THREE.BoxGeometry(railThick,rH,rD),fHex,fCarv,rW/2-railThick/2,frameY,0);
-    // Cross rails (head/foot side)
-    addMesh('Frame',new THREE.BoxGeometry(rW,rH,railThick),fHex,fCarv,0,frameY,-rD/2+railThick/2);
-    addMesh('Frame',new THREE.BoxGeometry(rW,rH,railThick),fHex,fCarv,0,frameY,rD/2-railThick/2);
-    // Carved molding on rails if classic
-    if(frameShape==='carved_rail'){
-      const mH=rH*0.35,mT=railThick*0.55;
-      addMesh('Frame',new THREE.BoxGeometry(railThick+mT,mH,rD*0.92),fHex,fCarv,-rW/2+railThick/2,frameY+rH*0.05,0);
-      addMesh('Frame',new THREE.BoxGeometry(railThick+mT,mH,rD*0.92),fHex,fCarv,rW/2-railThick/2,frameY+rH*0.05,0);
-    }
-  }
-
-  /* ═══════════════════════════
-     PLATFORM / SLATS
-  ═══════════════════════════ */
-  const platShape=getShape('Platform');
-  const pHex=getSel('Platform'),pCarv=getCarv('Platform');
-
-  if(platShape==='wood_slats'||platShape==='open_slats'){
-    const slCnt=12,slW=dP.w,slD=dP.d/slCnt*0.58,slH=dP.h*1.4,gap=dP.d/slCnt;
-    for(let i=0;i<slCnt;i++){
-      const sz=-dP.d/2+gap/2+i*gap;
-      addMesh('Platform',new THREE.BoxGeometry(slW,slH,slD),pHex,pCarv,0,platformY,sz);
-    }
-    // Side rails for slats
-    addMesh('Platform',new THREE.BoxGeometry(dP.w*0.025,slH,dP.d),pHex,'none',-dP.w/2+dP.w*0.012,platformY,0);
-    addMesh('Platform',new THREE.BoxGeometry(dP.w*0.025,slH,dP.d),pHex,'none',dP.w/2-dP.w*0.012,platformY,0);
-  } else if(platShape==='box_spring'){
-    addMesh('Platform',new THREE.BoxGeometry(dP.w,dP.h,dP.d),pHex,pCarv,0,platformY,0);
-    // Grid pattern on top
-    const gsz=dP.w/6;
-    for(let i=0;i<=6;i++){addMesh('Platform',new THREE.BoxGeometry(0.012,0.012,dP.d),pHex,'none',-dP.w/2+i*gsz,platformY+dP.h/2+0.006,0);}
-    for(let j=0;j<=8;j++){addMesh('Platform',new THREE.BoxGeometry(dP.w,0.012,0.012),pHex,'none',0,platformY+dP.h/2+0.006,-dP.d/2+j*(dP.d/8));}
-  } else if(platShape==='floating_platform'){
-    // Floating shadow illusion
-    addMesh('Platform',new THREE.BoxGeometry(dP.w*0.92,dP.h*1.2,dP.d*0.96),pHex,pCarv,0,platformY,0);
-    // Shadow plane
-    const shadowGeo=new THREE.PlaneGeometry(dP.w*0.85,dP.d*0.88);
-    const shadowMesh=new THREE.Mesh(shadowGeo,new THREE.MeshStandardMaterial({color:'#000000',transparent:true,opacity:.3,depthWrite:false}));
-    shadowMesh.rotation.x=-Math.PI/2;shadowMesh.position.set(0,legH*0.08,0);
-    shadowMesh.name='Platform';currentGroup.add(shadowMesh);
-  } else if(platShape==='upholstered_platform'){
-    const g=new THREE.BoxGeometry(dP.w,dP.h*1.5,dP.d);
-    const bvl=new THREE.BoxGeometry(dP.w*0.98,dP.h*1.5+0.02,dP.d*0.98);
-    addMesh('Platform',g,pHex,pCarv,0,platformY,0);
-  } else {
-    addMesh('Platform',new THREE.BoxGeometry(dP.w,dP.h,dP.d),pHex,pCarv,0,platformY,0);
-  }
-
-  /* ═══════════════════════════
-     MATTRESS (always rendered, neutral)
-  ═══════════════════════════ */
-  const mW=dP.w*0.98,mD=dP.d*0.98;
-  const matMattress=new THREE.MeshStandardMaterial({color:'#f0ede8',roughness:.95,metalness:0});
-  const mattGeo=new THREE.BoxGeometry(mW,mattressH,mD);
-  const mattMesh=new THREE.Mesh(mattGeo,matMattress);
-  mattMesh.position.set(0,mattressY,0);mattMesh.name='Mattress';
-  mattMesh.castShadow=true;mattMesh.receiveShadow=true;
-  currentGroup.add(mattMesh);
-  // Mattress seam lines
-  const seam1=new THREE.Mesh(new THREE.BoxGeometry(mW*0.98,0.005,0.012),new THREE.MeshStandardMaterial({color:'#c0bdb8'}));
-  seam1.position.set(0,mattressY+mattressH/2+0.003,0);currentGroup.add(seam1);
-
-  /* ═══════════════════════════
-     PILLOW (decorative)
-  ═══════════════════════════ */
-  const pillY=mattressY+mattressH/2+0.06;
-  const pillZ=-mD/2+0.25;
-  const pillW=mW*0.42;
-  const pillGeo=sg(()=>{
-    const g=new THREE.BoxGeometry(pillW,0.11,0.38);
-    const pos=g.attributes.position;
-    for(let i=0;i<pos.count;i++){const xn=pos.getX(i)/(pillW/2);const yn=pos.getY(i)/0.055;const s=1-xn*xn*0.08-yn*yn*0.2;pos.setX(i,pos.getX(i)*s);}
-    g.computeVertexNormals();return g;
-  },new THREE.BoxGeometry(pillW,0.1,0.38));
-  const pillMat=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.9,metalness:0});
-  [[-mW*0.25],[mW*0.25]].forEach(([px])=>{
-    const pm=new THREE.Mesh(pillGeo,pillMat);pm.position.set(px,pillY,pillZ);pm.name='Mattress';pm.castShadow=true;currentGroup.add(pm);
-  });
-
-  /* ═══════════════════════════
-     HEADBOARD
-  ═══════════════════════════ */
-  const headShape=getShape('Headboard');
-  const hHex=getSel('Headboard'),hCarv=getCarv('Headboard');
-  const hW=dH.w,hH=dH.h,hT=dH.d;
-  const hY=legH+dR.h+hH/2;
-  const hZ=-bedLen/2-hT/2;
-
-  if(headShape!=='canopy_posts'){
-    buildHeadboard(headShape,hW,hH,hT,hY,hZ,hHex,hCarv,addMesh,sg,getMat);
-  }
-
-  /* ═══════════════════════════
-     FOOTBOARD
-  ═══════════════════════════ */
-  const footShape=getShape('Footboard');
-  const ftHex=getSel('Footboard'),ftCarv=getCarv('Footboard');
-  const fW=dF.w,fH=dF.h,fT=dF.d;
-  const ftY=legH+dR.h+fH/2;
-  const ftZ=bedLen/2+fT/2;
-
-  if(footShape!=='no_footboard'){
-    buildFootboard(footShape,fW,fH,fT,ftY,ftZ,ftHex,ftCarv,addMesh,sg,getMat);
-  }
-
-  /* ═══════════════════════════
-     DIMENSION RULERS
-  ═══════════════════════════ */
-  if(showDimensions){
-    const gs=item.globalScale||{x:1,y:1,z:1};
-    createDimensionLine(new THREE.Vector3(-bedW/2*(gs.x||1),0,0),new THREE.Vector3(bedW/2*(gs.x||1),0,0),Math.round(bedW*SCALE)+'cm W',new THREE.Vector3(0,0,bedLen/2*(gs.z||1)+0.5));
-    createDimensionLine(new THREE.Vector3(bedW/2*(gs.x||1)+0.5,0,-bedLen/2*(gs.z||1)),new THREE.Vector3(bedW/2*(gs.x||1)+0.5,0,bedLen/2*(gs.z||1)),Math.round(bedLen*SCALE)+'cm L',new THREE.Vector3(0,0,0));
-    createDimensionLine(new THREE.Vector3(-bedW/2*(gs.x||1)-0.5,0,0),new THREE.Vector3(-bedW/2*(gs.x||1)-0.5,mattressY+mattressH,0),Math.round((mattressY+mattressH)*SCALE)+'cm H',new THREE.Vector3(0,0,0));
-  }
-
-  const gs=item.globalScale||{x:1,y:1,z:1};
-  currentGroup.scale.set(gs.x||1,gs.y||1,gs.z||1);
-  scene.add(currentGroup);
-}
-
-/* ═══════════════════════════════════════════════
-   HEADBOARD BUILDER
-═══════════════════════════════════════════════ */
-function buildHeadboard(shape,hW,hH,hT,hY,hZ,hex,carv,addMesh,sg,getMat){
-  const bpW=Math.max(hW*0.04,0.06);
-
-  if(shape==='flat_panel'){
-    // Clean flat slab
-    const geo=sg(()=>new THREE.BoxGeometry(hW,hH,hT),new THREE.BoxGeometry(hW,hH,hT));
-    addMesh('Headboard',geo,hex,carv,0,hY,hZ);
-    // Cap
-    addMesh('Headboard',new THREE.BoxGeometry(hW+bpW,bpW*0.6,hT+bpW),hex,'none',0,hY+hH/2,hZ);
-
-  }else if(shape==='baroque'||shape==='carved_panel'){
-    // Shaped crown at top
-    const geo=sg(()=>{
-      const s=new THREE.Shape();
-      const hw=hW/2,hh=hH/2;
-      s.moveTo(-hw,-hh);
-      s.lineTo(hw,-hh);
-      s.lineTo(hw,hh*0.45);
-      // Baroque crown: 3 arches
-      const aw=hw/3;
-      s.quadraticCurveTo(hw*0.9,hh*0.7,hw*0.7,hh*0.75);
-      s.quadraticCurveTo(hw*0.5,hh*1.05,hw*0.35,hh*0.88);
-      s.quadraticCurveTo(0,hh*1.25,0,hh*1.1);
-      s.quadraticCurveTo(0,hh*1.25,-hw*0.35,hh*0.88);
-      s.quadraticCurveTo(-hw*0.5,hh*1.05,-hw*0.7,hh*0.75);
-      s.quadraticCurveTo(-hw*0.9,hh*0.7,-hw,hh*0.45);
-      s.closePath();
-      const g=new THREE.ExtrudeGeometry(s,{depth:hT,bevelEnabled:true,bevelSize:0.018,bevelThickness:0.018,bevelSegments:3});
-      g.translate(0,0,-hT/2); return g;
-    },new THREE.BoxGeometry(hW,hH,hT));
-    addMesh('Headboard',geo,hex,carv,0,hY,hZ);
-    // Side posts
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.5,hH*1.1,hT),hex,carv,-hW/2+bpW*0.75,hY,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.5,hH*1.1,hT),hex,carv,hW/2-bpW*0.75,hY,hZ);
-
-  }else if(shape==='victorian_arch'){
-    const geo=sg(()=>{
-      const hw=hW/2,hh=hH/2;
-      const s=new THREE.Shape();
-      s.moveTo(-hw,-hh); s.lineTo(hw,-hh); s.lineTo(hw,hh*0.1);
-      s.quadraticCurveTo(hw,hh*0.85,0,hh);
-      s.quadraticCurveTo(-hw,hh*0.85,-hw,hh*0.1);
-      s.closePath();
-      const g=new THREE.ExtrudeGeometry(s,{depth:hT,bevelEnabled:true,bevelSize:0.016,bevelThickness:0.016,bevelSegments:2});
-      g.translate(0,0,-hT/2); return g;
-    },new THREE.BoxGeometry(hW,hH,hT));
-    addMesh('Headboard',geo,hex,carv,0,hY,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.4,hH*1.08,hT),hex,'none',-hW/2+bpW*0.7,hY,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.4,hH*1.08,hT),hex,'none',hW/2-bpW*0.7,hY,hZ);
-
-  }else if(shape==='gothic_arch'){
-    const geo=sg(()=>{
-      const hw=hW/2,hh=hH/2;
-      const s=new THREE.Shape();
-      s.moveTo(-hw,-hh); s.lineTo(hw,-hh); s.lineTo(hw,hh*0.2);
-      // Gothic pointed arch
-      s.quadraticCurveTo(hw*0.8,hh*0.7,0,hh*1.08);
-      s.quadraticCurveTo(-hw*0.8,hh*0.7,-hw,hh*0.2);
-      s.closePath();
-      const g=new THREE.ExtrudeGeometry(s,{depth:hT,bevelEnabled:true,bevelSize:0.014,bevelThickness:0.014,bevelSegments:2});
-      g.translate(0,0,-hT/2); return g;
-    },new THREE.BoxGeometry(hW,hH,hT));
-    addMesh('Headboard',geo,hex,carv,0,hY,hZ);
-    // Trefoil detail
-    const tr=hW*0.1;
-    addMesh('Headboard',new THREE.CylinderGeometry(tr,tr,hT*1.05,3),hex,'none',0,hY+hH*0.65,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.5,hH*1.05,hT),hex,'none',-hW/2+bpW*0.75,hY,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.5,hH*1.05,hT),hex,'none',hW/2-bpW*0.75,hY,hZ);
-
-  }else if(shape==='sleigh_head'){
-    // Sleigh: sweeping roll at top
-    const geo=sg(()=>{
-      const hw=hW/2,hh=hH/2;
-      const s=new THREE.Shape();
-      s.moveTo(-hw,-hh); s.lineTo(hw,-hh); s.lineTo(hw,hh*0.5);
-      s.bezierCurveTo(hw,hh*0.9,hw*0.2,hh*1.15,0,hh*1.15);
-      s.bezierCurveTo(-hw*0.2,hh*1.15,-hw,hh*0.9,-hw,hh*0.5);
-      s.closePath();
-      const g=new THREE.ExtrudeGeometry(s,{depth:hT,bevelEnabled:true,bevelSize:0.02,bevelThickness:0.02,bevelSegments:3});
-      g.translate(0,0,-hT/2); return g;
-    },new THREE.BoxGeometry(hW,hH,hT));
-    addMesh('Headboard',geo,hex,carv,0,hY,hZ);
-    // Scroll caps
-    addMesh('Headboard',new THREE.TorusGeometry(hH*0.12,hH*0.038,10,20,Math.PI*1.4),hex,'none',-hW/2+hH*0.12,hY+hH*0.52,hZ,0,Math.PI/2,Math.PI*0.8);
-    addMesh('Headboard',new THREE.TorusGeometry(hH*0.12,hH*0.038,10,20,Math.PI*1.4),hex,'none',hW/2-hH*0.12,hY+hH*0.52,hZ,0,Math.PI/2,-Math.PI*0.8);
-
-  }else if(shape==='spindle_head'){
-    // Spindle colonial: posts + spindles
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.8,hH*1.05,hT),hex,carv,-hW/2+bpW*0.9,hY,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.8,hH*1.05,hT),hex,carv,hW/2-bpW*0.9,hY,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(hW,bpW,hT),hex,'none',0,hY+hH/2-bpW/2,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(hW,bpW,hT),hex,'none',0,hY-hH/2+bpW/2,hZ);
-    const cnt=9,sR=hW*0.013,step=(hW-bpW*3.6)/(cnt-1);
-    for(let i=0;i<cnt;i++){
-      const sx=-hW/2+bpW*1.8+i*step;
-      const sg2=new THREE.CylinderGeometry(sR,sR*1.3,hH*0.85,10);
-      addMesh('Headboard',sg2,hex,'none',sx,hY,hZ);
     }
 
-  }else if(shape==='scroll_head'){
-    addMesh('Headboard',new THREE.BoxGeometry(hW,hH,hT),hex,carv,0,hY,hZ);
-    // Side scrolls
-    const sr=hH*0.15,st=hH*0.04;
-    addMesh('Headboard',new THREE.TorusGeometry(sr,st,10,20),hex,'none',-hW/2-sr*0.4,hY+hH*0.35,hZ);
-    addMesh('Headboard',new THREE.TorusGeometry(sr,st,10,20),hex,'none',hW/2+sr*0.4,hY+hH*0.35,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.6,hH,hT),hex,'none',-hW/2+bpW*0.8,hY,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.6,hH,hT),hex,'none',hW/2-bpW*0.8,hY,hZ);
+    function setActiveLayer(p) { appState.activeLayer = p; renderProperties(); focusOnPart(p); }
+    function applyMaterialToActiveLayer(hex) { if (!appState.activeLayer) return; updateColor(appState.activeLayer, hex); renderProperties(); }
+    function updateColor(part, hex) { const item = getActiveItem(); if (!item.selections) item.selections = {}; item.selections[part] = hex; build3DScene(); saveState(); calculateScore(); updatePrice(); }
+    function updateDim(part, axis, val) { const item = getActiveItem(); if (!item.dims) item.dims = {}; if (!item.dims[part]) item.dims[part] = { w: 200, h: 100, d: 12 }; item.dims[part][axis] = parseInt(val) || 0; saveState(); build3DScene(); updatePrice(); }
+    function updateProjectName(val) { getActiveItem().name = val; renderSceneList(); saveState(); }
 
-  }else if(shape==='tufted_panel'){
-    // Rounded-corner upholstered panel
-    const geo=sg(()=>{
-      const hw=hW/2,hh=hH/2,r=Math.min(hH*0.12,hW*0.06);
-      const s=new THREE.Shape();
-      s.moveTo(-hw+r,-hh);s.lineTo(hw-r,-hh);
-      s.quadraticCurveTo(hw,-hh,hw,-hh+r);
-      s.lineTo(hw,hh-r);
-      s.quadraticCurveTo(hw,hh,hw-r,hh);
-      s.lineTo(-hw+r,hh);
-      s.quadraticCurveTo(-hw,hh,-hw,hh-r);
-      s.lineTo(-hw,-hh+r);
-      s.quadraticCurveTo(-hw,-hh,-hw+r,-hh);
-      s.closePath();
-      const g=new THREE.ExtrudeGeometry(s,{depth:hT*1.5,bevelEnabled:true,bevelSize:0.025,bevelThickness:0.025,bevelSegments:4});
-      g.translate(0,0,-hT*0.75); return g;
-    },new THREE.BoxGeometry(hW,hH,hT));
-    addMesh('Headboard',geo,hex,carv,0,hY,hZ);
-
-  }else if(shape==='slatted_head'){
-    // Horizontal slats
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.6,hH,hT),hex,'none',-hW/2+bpW*0.8,hY,hZ);
-    addMesh('Headboard',new THREE.BoxGeometry(bpW*1.6,hH,hT),hex,'none',hW/2-bpW*0.8,hY,hZ);
-    const cnt=6,sH=hH/(cnt*2.2),step=hH/(cnt-0.5);
-    for(let i=0;i<cnt;i++){
-      const sy=hY-hH/2+step*0.5+i*step;
-      addMesh('Headboard',new THREE.BoxGeometry(hW-bpW*3.2,sH,hT*0.8),hex,carv,0,sy,hZ);
+    function updatePrice() {
+      const item = getActiveItem(); if (!item) return;
+      let cost = 0;
+      const sels = item.selections || {};
+      const dims = item.dims || {};
+      bedParts.forEach(part => {
+        const hex = sels[part] || '#8B4513';
+        const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase()) || 'mahogany';
+        const mat = materialDB[matKey] || materialDB.mahogany;
+        const d = dims[part] || { w: 200, h: 100, d: 12 };
+        let vol = (d.w * d.h * d.d) / 8000;
+        cost += vol * mat.price;
+      });
+      const gs = item.globalScale || { x: 1, y: 1, z: 1 };
+      const mult = gs.x * gs.y * gs.z;
+      document.getElementById('total-price').innerHTML = '&#8369;' + Math.round((3000 + cost) * mult).toLocaleString();
     }
 
-  }else if(shape==='floating_head'){
-    // Wall-mounted floating look
-    const geo=new THREE.BoxGeometry(hW*1.08,hH,hT*0.7);
-    addMesh('Headboard',geo,hex,carv,0,hY,hZ);
-    // Bottom reveal gap
-    addMesh('Headboard',new THREE.BoxGeometry(hW*1.08,hH*0.04,hT*0.75),hex,'none',0,hY-hH/2-hH*0.02,hZ);
-
-  }else if(shape==='curved_modern'){
-    const geo=sg(()=>{
-      const hw=hW/2,hh=hH/2;
-      const s=new THREE.Shape();
-      s.moveTo(-hw,-hh); s.lineTo(hw,-hh);
-      s.lineTo(hw,hh*0.6);
-      s.quadraticCurveTo(hw*0.6,hh*1.05,0,hh);
-      s.quadraticCurveTo(-hw*0.6,hh*1.05,-hw,hh*0.6);
-      s.closePath();
-      const g=new THREE.ExtrudeGeometry(s,{depth:hT*1.3,bevelEnabled:true,bevelSize:0.022,bevelThickness:0.022,bevelSegments:4});
-      g.translate(0,0,-hT*0.65); return g;
-    },new THREE.BoxGeometry(hW,hH,hT));
-    addMesh('Headboard',geo,hex,carv,0,hY,hZ);
-
-  }else if(shape==='bookcase_head'){
-    // Bookcase integrated
-    addMesh('Headboard',new THREE.BoxGeometry(hW,hH,hT*1.5),hex,carv,0,hY,hZ);
-    const shelfH=hH*0.28,shelfT=hT*1.4,shelfD=hH*0.18;
-    // Shelves
-    for(let i=0;i<3;i++){
-      const sy=hY-hH/2+shelfH*0.5+i*shelfH*1.1;
-      addMesh('Headboard',new THREE.BoxGeometry(hW*0.38,0.015,shelfD),hex,'none',-hW/2+hW*0.2,sy,hZ-hT);
-      addMesh('Headboard',new THREE.BoxGeometry(hW*0.38,0.015,shelfD),hex,'none',hW/2-hW*0.2,sy,hZ-hT);
+    function calculateScore() {
+      const item = getActiveItem(); if (!item) return;
+      const sels = item.selections || {};
+      const parts = Object.values(sels);
+      let td = 0, tq = 0, rc = 0;
+      parts.forEach(hex => {
+        const mk = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
+        if (mk) { const m = materialDB[mk]; td += m.dura; tq += m.qual; if (m.rec) rc++; }
+        else { td += 50; tq += 50; }
+      });
+      const ad = parts.length > 0 ? Math.round(td / parts.length) : 0;
+      const aq = parts.length > 0 ? Math.round(tq / parts.length) : 0;
+      document.getElementById('bar-dura').style.width = ad + '%'; document.getElementById('score-dura-val').innerText = ad + '%';
+      document.getElementById('bar-dura').style.background = ad > 80 ? '#2ecc71' : (ad > 50 ? 'orange' : '#e74c3c');
+      document.getElementById('bar-qual').style.width = aq + '%'; document.getElementById('score-qual-val').innerText = aq + '%';
+      document.getElementById('rec-status').innerHTML = rc === parts.length ? '<i class="fas fa-check-circle" style="color:#2ecc71"></i> Optimal Choice' : '<i class="fas fa-info-circle" style="color:orange"></i> Custom Mix';
     }
 
-  }else if(shape==='diamond_head'){
-    addMesh('Headboard',new THREE.BoxGeometry(hW,hH,hT*1.4),hex,carv,0,hY,hZ);
-    // Diamond trim
-    const dS=Math.min(hH*0.25,hW*0.14);
-    for(let xi=-1;xi<=1;xi+=2)for(let yi=-1;yi<=1;yi+=2){
-      const g=new THREE.BoxGeometry(dS,dS,0.015);g.rotateZ(Math.PI/4);
-      addMesh('Headboard',g,hex,'none',xi*(hW*0.22),hY+yi*(hH*0.22),hZ-hT*0.7-0.008);
+
+
+    /* ═══════════════════════════════════════════════
+       DESIGN MODAL
+    ═══════════════════════════════════════════════ */
+    function openDesignModal(partName, type) {
+      modalState = { partName, type };
+      document.getElementById('design-modal-title').innerText = 'Select ' + (type === 'shape' ? 'Style' : 'Texture') + ' for ' + partName;
+      const scrollArea = document.getElementById('design-modal-scroll'); scrollArea.innerHTML = '';
+      const legend = document.createElement('div');
+      legend.className = 'render-legend';
+      legend.innerHTML = '<div class="render-legend-item"><div class="legend-dot ok"></div> Fully Rendered</div><div class="render-legend-item"><div class="legend-dot warn"></div> Approximated</div>';
+      scrollArea.appendChild(legend);
+      const item = getActiveItem();
+      let db, activeId;
+      if (type === 'shape') { db = shapeDB[partName.toLowerCase()] || []; activeId = (item.shapes || {})[partName]; }
+      else { db = Object.keys(carvingDB).map(k => ({ id: k, ...carvingDB[k] })); activeId = (item.carvings || {})[partName]; }
+      let groups = {};
+      db.forEach(it => { const cat = it.cat || 'General'; if (!groups[cat]) groups[cat] = []; groups[cat].push(it); });
+      Object.keys(groups).forEach(catName => {
+        const title = document.createElement('div'); title.className = 'modal-section-title'; title.innerText = catName;
+        scrollArea.appendChild(title);
+        const grid = document.createElement('div'); grid.className = 'design-grid';
+        groups[catName].forEach(it => {
+          const card = document.createElement('div');
+          card.className = 'design-card' + (it.id === activeId ? ' active' : '');
+          card.onclick = () => selectDesign(it.id);
+          const fi = it.faIcon ? it.icon : (carvingDB[it.id] ? carvingDB[it.id].icon : (it.icon || 'circle'));
+          card.innerHTML = `<i class="design-icon fas fa-${fi}"></i><div class="design-name">${it.name}</div>`;
+          grid.appendChild(card);
+        });
+        scrollArea.appendChild(grid);
+      });
+      document.getElementById('design-modal-overlay').classList.add('open');
+      focusOnPart(partName);
+    }
+    function closeDesignModal(e) { if (e && e.target !== document.getElementById('design-modal-overlay') && !e.target.classList.contains('design-modal-overlay')) return; document.getElementById('design-modal-overlay').classList.remove('open'); modalState = { partName: null, type: null }; }
+    function selectDesign(newId) {
+      const item = getActiveItem();
+      if (modalState.type === 'shape') { if (!item.shapes) item.shapes = {}; item.shapes[modalState.partName] = newId; }
+      else { if (!item.carvings) item.carvings = {}; item.carvings[modalState.partName] = newId; }
+      build3DScene(); saveState(); renderProperties(); calculateScore(); updatePrice();
+      document.getElementById('design-modal-overlay').classList.remove('open');
     }
 
-  }else if(shape==='arch_modern'){
-    const geo=sg(()=>{
-      const hw=hW/2,hh=hH/2;
-      const s=new THREE.Shape();
-      s.moveTo(-hw,-hh); s.lineTo(hw,-hh); s.lineTo(hw,hh*0.35);
-      s.absarc(0,hh*0.35,hw,0,Math.PI,true);
-      s.closePath();
-      const g=new THREE.ExtrudeGeometry(s,{depth:hT*1.2,bevelEnabled:true,bevelSize:0.02,bevelThickness:0.02,bevelSegments:4});
-      g.translate(0,0,-hT*0.6); return g;
-    },new THREE.BoxGeometry(hW,hH,hT));
-    addMesh('Headboard',geo,hex,carv,0,hY,hZ);
-
-  }else{
-    addMesh('Headboard',new THREE.BoxGeometry(hW,hH,hT),hex,carv,0,hY,hZ);
-  }
-}
-
-/* ═══════════════════════════════════════════════
-   FOOTBOARD BUILDER
-═══════════════════════════════════════════════ */
-function buildFootboard(shape,fW,fH,fT,ftY,ftZ,hex,carv,addMesh,sg,getMat){
-  const bpW=Math.max(fW*0.04,0.06);
-
-  if(shape==='matching_low'||shape==='flat_foot'){
-    addMesh('Footboard',new THREE.BoxGeometry(fW,fH,fT),hex,carv,0,ftY,ftZ);
-    addMesh('Footboard',new THREE.BoxGeometry(fW+bpW,bpW*0.5,fT+bpW),hex,'none',0,ftY+fH/2,ftZ);
-
-  }else if(shape==='scroll_foot'){
-    addMesh('Footboard',new THREE.BoxGeometry(fW,fH,fT),hex,carv,0,ftY,ftZ);
-    const sr=fH*0.18,st=fH*0.045;
-    addMesh('Footboard',new THREE.TorusGeometry(sr,st,10,20),hex,'none',-fW/2-sr*0.3,ftY+fH*0.3,ftZ);
-    addMesh('Footboard',new THREE.TorusGeometry(sr,st,10,20),hex,'none',fW/2+sr*0.3,ftY+fH*0.3,ftZ);
-
-  }else if(shape==='sleigh_foot'){
-    const geo=sg(()=>{
-      const hw=fW/2,hh=fH/2;
-      const s=new THREE.Shape();
-      s.moveTo(-hw,-hh); s.lineTo(hw,-hh); s.lineTo(hw,hh*0.45);
-      s.bezierCurveTo(hw,hh*0.85,hw*0.18,hh*1.12,0,hh*1.12);
-      s.bezierCurveTo(-hw*0.18,hh*1.12,-hw,hh*0.85,-hw,hh*0.45);
-      s.closePath();
-      const g=new THREE.ExtrudeGeometry(s,{depth:fT,bevelEnabled:true,bevelSize:0.018,bevelThickness:0.018,bevelSegments:3});
-      g.translate(0,0,-fT/2); return g;
-    },new THREE.BoxGeometry(fW,fH,fT));
-    addMesh('Footboard',geo,hex,carv,0,ftY,ftZ);
-
-  }else if(shape==='spindle_foot'){
-    addMesh('Footboard',new THREE.BoxGeometry(bpW*1.8,fH*1.05,fT),hex,carv,-fW/2+bpW*0.9,ftY,ftZ);
-    addMesh('Footboard',new THREE.BoxGeometry(bpW*1.8,fH*1.05,fT),hex,carv,fW/2-bpW*0.9,ftY,ftZ);
-    addMesh('Footboard',new THREE.BoxGeometry(fW,bpW,fT),hex,'none',0,ftY+fH/2-bpW/2,ftZ);
-    addMesh('Footboard',new THREE.BoxGeometry(fW,bpW,fT),hex,'none',0,ftY-fH/2+bpW/2,ftZ);
-    const cnt=7,sR=fW*0.013,step=(fW-bpW*3.6)/(cnt-1);
-    for(let i=0;i<cnt;i++){
-      addMesh('Footboard',new THREE.CylinderGeometry(sR,sR*1.25,fH*0.82,10),hex,'none',-fW/2+bpW*1.8+i*step,ftY,ftZ);
+    /* ═══════════════════════════════════════════════
+       TEXTURE GENERATOR
+    ═══════════════════════════════════════════════ */
+    function createPatternTexture(style) {
+      if (textureCache[style]) return textureCache[style];
+      const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, 512, 512);
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 15;
+      if (style === 'linear_groove') { ctx.strokeStyle = '#2d2d2d'; ctx.lineWidth = 10; for (let i = 0; i <= 512; i += 64) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke(); } }
+      else if (style === 'lattice') { ctx.beginPath(); for (let i = -512; i < 1024; i += 64) { ctx.moveTo(i, 0); ctx.lineTo(i + 512, 512); ctx.moveTo(i, 512); ctx.lineTo(i + 512, 0); } ctx.stroke(); }
+      else if (style === 'studded' || style === 'leather_tufted') { for (let x = 25; x < 512; x += 100)for (let y = 25; y < 512; y += 100) { const g = ctx.createRadialGradient(x, y, 5, x, y, 40); g.addColorStop(0, 'white'); g.addColorStop(1, '#808080'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 35, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2); ctx.fill(); } }
+      else if (style === 'weave') { return createWeaveTexture(); }
+      else if (style === 'geometric') { ctx.lineWidth = 10; ctx.strokeRect(50, 50, 412, 412); ctx.strokeRect(150, 150, 212, 212); ctx.beginPath(); ctx.arc(256, 256, 60, 0, Math.PI * 2); ctx.stroke(); }
+      else if (style === 'floral') { ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(256, 50); ctx.bezierCurveTo(150, 50, 150, 200, 256, 200); ctx.bezierCurveTo(362, 200, 362, 50, 256, 50); ctx.moveTo(256, 462); ctx.bezierCurveTo(150, 462, 150, 312, 256, 312); ctx.bezierCurveTo(362, 312, 362, 462, 256, 462); ctx.fill(); ctx.lineWidth = 8; ctx.strokeStyle = '#ffffff'; ctx.beginPath(); ctx.arc(100, 256, 50, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.arc(412, 256, 50, 0, Math.PI * 2); ctx.stroke(); }
+      else if (style === 'rustic') { for (let i = 0; i < 5000; i++) { ctx.fillStyle = 'rgba(128,128,128,' + (Math.random() * 0.5) + ')'; ctx.fillRect(Math.random() * 512, Math.random() * 512, Math.random() * 4, Math.random() * 16); } }
+      else if (style === 'padded') { for (let i = 0; i < 10000; i++) { ctx.fillStyle = 'rgba(128,128,128,' + (Math.random() * 0.2) + ')'; ctx.fillRect(Math.random() * 512, Math.random() * 512, 1, 1); } }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+      textureCache[style] = texture; return texture;
+    }
+    function createWeaveTexture() {
+      if (textureCache['weave']) return textureCache['weave'];
+      const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#C19A6B'; ctx.fillRect(0, 0, 512, 512);
+      ctx.lineWidth = 15; const step = 40;
+      for (let y = step / 2; y < 512; y += step)for (let x = 0; x < 512; x += step) { ctx.strokeStyle = '#99734D'; ctx.beginPath(); ctx.moveTo(x + 5, y); ctx.lineTo(x + step / 2 - 5, y); ctx.stroke(); ctx.strokeStyle = '#D7BDA0'; ctx.beginPath(); ctx.moveTo(x + step / 2 + 5, y); ctx.lineTo(x + step - 5, y); ctx.stroke(); }
+      for (let x = step / 2; x < 512; x += step)for (let y = 0; y < 512; y += step) { ctx.strokeStyle = '#D7BDA0'; ctx.beginPath(); ctx.moveTo(x, y + 5); ctx.lineTo(x, y + step / 2 - 5); ctx.stroke(); ctx.strokeStyle = '#99734D'; ctx.beginPath(); ctx.moveTo(x, y + step / 2 + 5); ctx.lineTo(x, y + step - 5); ctx.stroke(); }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+      textureCache['weave'] = texture; return texture;
     }
 
-  }else if(shape==='slatted_foot'){
-    addMesh('Footboard',new THREE.BoxGeometry(bpW*1.6,fH,fT),hex,'none',-fW/2+bpW*0.8,ftY,ftZ);
-    addMesh('Footboard',new THREE.BoxGeometry(bpW*1.6,fH,fT),hex,'none',fW/2-bpW*0.8,ftY,ftZ);
-    const cnt=4,sH=fH/(cnt*2.4),step=fH/(cnt-0.5);
-    for(let i=0;i<cnt;i++){
-      addMesh('Footboard',new THREE.BoxGeometry(fW-bpW*3.2,sH,fT*0.8),hex,carv,0,ftY-fH/2+step*0.5+i*step,ftZ);
+    /* ═══════════════════════════════════════════════
+       3D ENGINE
+    ═══════════════════════════════════════════════ */
+    let scene, camera, renderer, currentGroup, controls, dimGroup;
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      const w = container.clientWidth || 800, h = container.clientHeight || 600;
+      scene = new THREE.Scene(); scene.background = new THREE.Color(0x1e1e1e);
+      camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 200);
+      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setSize(w, h);
+      renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.innerHTML = ''; container.appendChild(renderer.domElement);
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true; controls.autoRotate = isRotating; controls.autoRotateSpeed = 0.4;
+      scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+      const dL = new THREE.DirectionalLight(0xffffff, 1.1);
+      dL.position.set(8, 14, 10); dL.castShadow = true; scene.add(dL);
+      const fL = new THREE.DirectionalLight(0xffffff, 0.35);
+      fL.position.set(-8, 6, -8); scene.add(fL);
+      const bL = new THREE.DirectionalLight(0xffffff, 0.2);
+      bL.position.set(0, 4, -12); scene.add(bL);
+      scene.add(new THREE.GridHelper(40, 40, 0x444444, 0x2a2a2a));
+      dimGroup = new THREE.Group(); scene.add(dimGroup);
+      resetCamera(); build3DScene(); animate();
+    }
+    function animate() { requestAnimationFrame(animate); if (controls) controls.update(); if (renderer && scene && camera) renderer.render(scene, camera); }
+    function resetCamera() { if (camera) camera.position.set(14, 10, 18); if (controls) controls.target.set(0, 3, 0); resetFocus(); }
+    function resetFocus() { document.querySelectorAll('.view-focus-btn').forEach(b => b.innerHTML = '<i class="far fa-eye"></i>'); }
+
+    function focusOnPart(partName) {
+      if (!currentGroup || !controls) return;
+      const meshes = currentGroup.children.filter(m => m.name === partName);
+      if (meshes.length === 0) return;
+      resetFocus();
+      const box = new THREE.Box3(); meshes.forEach(m => box.expandByObject(m));
+      const center = new THREE.Vector3(); box.getCenter(center);
+      controls.target.set(center.x, center.y, center.z);
+      camera.position.set(center.x + 8, center.y + 4, center.z + 10);
     }
 
-  }else if(shape==='bench_foot'){
-    // Upholstered bench at foot
-    addMesh('Footboard',new THREE.BoxGeometry(fW*0.82,fH*0.7,0.4),hex,carv,0,ftY,ftZ-0.1);
-    // Bench legs
-    [[-fW*0.32,ftZ+0.05],[fW*0.32,ftZ+0.05]].forEach(([bx,bz])=>{
-      addMesh('Footboard',new THREE.BoxGeometry(0.06,ftY-fH*0.35,0.06),hex,'none',bx,ftY-fH*0.35/2-fH*0.15,bz);
+    function createDimensionLine(start, end, label, offset) {
+      if (!showDimensions) return;
+      const o = offset || new THREE.Vector3();
+      const p1 = start.clone().add(o), p2 = end.clone().add(o);
+      const mat = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: .45 });
+      dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1, p2]), mat));
+      const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0, 0, 512, 128);
+      ctx.font = 'Bold 80px Segoe UI'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 4; ctx.fillText(label, 256, 64);
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
+      sp.position.copy(p1).lerp(p2, 0.5); sp.position.y += 0.1; sp.scale.set(1.2, 0.3, 1);
+      dimGroup.add(sp);
+    }
+
+    /* ═══════════════════════════════════════════════
+       MAIN 3D SCENE BUILD
+    ═══════════════════════════════════════════════ */
+    function build3DScene() {
+      if (!scene) return;
+      if (currentGroup) scene.remove(currentGroup);
+      currentGroup = new THREE.Group(); dimGroup.clear();
+
+      const item = getActiveItem(); if (!item) return;
+      const SCALE = 20; // 20cm per unit
+      const gd = p => { const d = (item.dims || {})[p] || { w: 200, h: 100, d: 12 }; return { w: d.w / SCALE, h: d.h / SCALE, d: d.d / SCALE }; };
+      const getSel = p => (item.selections || {})[p] || '#8B4513';
+      const getCarv = p => (item.carvings || {})[p] || 'none';
+      const getShape = p => (item.shapes || {})[p] || 'flat_panel';
+
+      const getMat = (hex, ck) => {
+        ck = ck || 'none';
+        const cStyle = carvingDB[ck] || carvingDB.none;
+        const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
+        const roughMap = { narra: .35, kamagong: .2, molave: .32, mahogany: .28, tanguile: .38, yakal: .22, oak: .42, pine: .5, rubberwood: .46, bamboo: .44, fabric_linen: .9, velvet: .92, leather: .4, white_paint: .6, matte_black: .8, brushed_steel: .35 };
+        const roughness = roughMap[matKey] !== undefined ? roughMap[matKey] : 0.55;
+        const metalness = (matKey === 'brushed_steel') ? 0.85 : 0.04;
+        const mat = new THREE.MeshStandardMaterial({ color: hex, roughness, metalness, side: THREE.DoubleSide });
+        if (ck !== 'none') {
+          const tex = createPatternTexture(ck).clone();
+          const rx = (cStyle.style && cStyle.style.repeatX) ? cStyle.style.repeatX : 2;
+          const ry = (cStyle.style && cStyle.style.repeatY) ? cStyle.style.repeatY : 2;
+          tex.repeat.set(rx, ry); tex.needsUpdate = true;
+          mat.bumpMap = tex; mat.bumpScale = 0.12;
+        }
+        return mat;
+      };
+
+      const addMesh = (name, geo, hex, carv, x, y, z, rx = 0, ry = 0, rz = 0) => {
+        if (!geo) return;
+        const mesh = new THREE.Mesh(geo, getMat(hex, carv));
+        mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz);
+        mesh.name = name; mesh.castShadow = true; mesh.receiveShadow = true;
+        currentGroup.add(mesh); return mesh;
+      };
+      const sg = (fn, fb) => { try { const g = fn(); return (g && g.attributes && g.attributes.position && g.attributes.position.count > 0) ? g : fb; } catch (e) { return fb; } };
+
+      // ── DIMENSIONS ──
+      const dH = gd('Headboard');   // headboard
+      const dF = gd('Footboard');   // footboard
+      const dR = gd('Frame');       // rails/frame
+      const dP = gd('Platform');    // platform/slats
+      const dL = gd('Legs');        // legs
+
+      const legH = dL.h;
+      const frameY = legH + dR.h / 2;
+      const platformY = legH + dR.h + dP.h / 2;
+      const mattressH = 0.35;
+      const mattressY = platformY + dP.h / 2 + mattressH / 2;
+
+      // Bed total length from dims
+      const bedW = dR.w;  // total width
+      const bedLen = dR.d; // total length (depth)
+
+      const headZ = -bedLen / 2 + dH.d / 2;
+      const footZ = bedLen / 2 - dF.d / 2;
+
+      /* ═══════════════════════════
+         LEGS
+      ═══════════════════════════ */
+      const legShape = getShape('Legs');
+      const lHex = getSel('Legs'), lCarv = getCarv('Legs');
+
+      if (legShape !== 'no_legs') {
+        const legW = dL.w, legD = dL.d;
+        const lxOff = (bedW / 2) - legW * 0.7;
+        const lzHead = -bedLen / 2 + legD;
+        const lzFoot = bedLen / 2 - legD;
+
+        const makeLeg = () => {
+          if (legShape === 'turned_leg') {
+            const g = new THREE.CylinderGeometry(legW / 2, legW / 2, legH, 20, 12);
+            const pos = g.attributes.position;
+            for (let i = 0; i < pos.count; i++) { const yv = pos.getY(i) / legH; const s = 1 + Math.sin(yv * Math.PI * 4) * 0.22; pos.setX(i, pos.getX(i) * s); pos.setZ(i, pos.getZ(i) * s); }
+            g.computeVertexNormals(); return g;
+          }
+          if (legShape === 'cabriole') {
+            const pts = []; const segs = 20;
+            for (let i = 0; i <= segs; i++) { const t = i / segs; const r = (legW / 2) * (0.55 + Math.sin(t * Math.PI) * 0.45); pts.push(new THREE.Vector2(r, t * legH)); }
+            return new THREE.LatheGeometry(pts, 16);
+          }
+          if (legShape === 'bun_foot') {
+            const g = new THREE.SphereGeometry(legW * 0.7, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.65);
+            g.rotateX(Math.PI); return g;
+          }
+          if (legShape === 'tapered_square') { const g = new THREE.CylinderGeometry(legW * 0.3, legW * 0.6, legH, 4); g.rotateY(Math.PI / 4); return g; }
+          if (legShape === 'straight_round') return new THREE.CylinderGeometry(legW / 2, legW / 2, legH, 16);
+          if (legShape === 'hairpin') {
+            const g = new THREE.CylinderGeometry(legW * 0.1, legW * 0.1, legH * 1.2, 8); return g;
+          }
+          if (legShape === 'block_foot') return new THREE.BoxGeometry(legW, legH, legD);
+          return new THREE.BoxGeometry(legW, legH, legD);
+        };
+
+        const legGeo = sg(makeLeg, new THREE.BoxGeometry(legW, legH, legD));
+        // 4 corner legs
+        const legY = legH / 2 + (legShape === 'bun_foot' ? legW * 0.1 : 0);
+        [[-lxOff, lzHead], [lxOff, lzHead], [-lxOff, lzFoot], [lxOff, lzFoot]].forEach(([x, z]) => {
+          addMesh('Legs', legGeo, lHex, lCarv, x, legY, z);
+        });
+        // For canopy: add tall posts
+        if (getShape('Headboard') === 'canopy_posts') {
+          const postH = dH.h; const postR = legW * 0.5;
+          [[-lxOff, lzHead], [lxOff, lzHead], [-lxOff, lzFoot], [lxOff, lzFoot]].forEach(([x, z]) => {
+            addMesh('Headboard', new THREE.CylinderGeometry(postR, postR * 1.1, postH, 16), lHex, lCarv, x, legH + postH / 2, z);
+          });
+          // Canopy top rails
+          const topY = legH + postH - postR * 0.5;
+          addMesh('Headboard', new THREE.CylinderGeometry(postR * 0.7, postR * 0.7, bedW - legW * 1.4, 12, 1, false), lHex, lCarv, 0, topY, lzHead, 0, 0, Math.PI / 2);
+          addMesh('Headboard', new THREE.CylinderGeometry(postR * 0.7, postR * 0.7, bedW - legW * 1.4, 12, 1, false), lHex, lCarv, 0, topY, lzFoot, 0, 0, Math.PI / 2);
+          addMesh('Headboard', new THREE.CylinderGeometry(postR * 0.7, postR * 0.7, bedLen - legD * 2, 12, 1, false), lHex, lCarv, -lxOff, topY, 0, Math.PI / 2, 0, 0);
+          addMesh('Headboard', new THREE.CylinderGeometry(postR * 0.7, postR * 0.7, bedLen - legD * 2, 12, 1, false), lHex, lCarv, lxOff, topY, 0, Math.PI / 2, 0, 0);
+        }
+      }
+
+      /* ═══════════════════════════
+         FRAME / SIDE RAILS
+      ═══════════════════════════ */
+      const frameShape = getShape('Frame');
+      const fHex = getSel('Frame'), fCarv = getCarv('Frame');
+      const rH = dR.h, rD = dR.d, rW = dR.w;
+
+      if (frameShape === 'floating_frame') {
+        // Floating: shadow ledge base only
+        addMesh('Frame', new THREE.BoxGeometry(rW * 1.05, rH * 0.5, rD * 1.02), fHex, fCarv, 0, frameY - rH * 0.1, 0);
+      } else if (frameShape === 'storage_frame') {
+        // Box frame with drawer lines
+        addMesh('Frame', new THREE.BoxGeometry(rW, rH * 1.8, rD), fHex, fCarv, 0, legH + rH * 0.9, 0);
+        // Drawer fronts
+        const dW = rW / 3 - 0.06, dHt = rH * 0.7;
+        for (let i = 0; i < 3; i++) {
+          const dx = -rW / 2 + dW / 2 + i * (dW + 0.06) + 0.03;
+          addMesh('Frame', new THREE.BoxGeometry(dW, dHt, 0.04), fHex, 'none', dx, legH + rH * 0.85, rD / 2 + 0.001);
+        }
+      } else if (frameShape === 'platform_frame') {
+        // Solid box platform
+        addMesh('Frame', new THREE.BoxGeometry(rW, rH * 1.5, rD), fHex, fCarv, 0, legH + rH * 0.75, 0);
+      } else {
+        // Classic rails: two side rails + head/foot cross rails
+        const railThick = dR.w * 0.05;
+        addMesh('Frame', new THREE.BoxGeometry(railThick, rH, rD), fHex, fCarv, -rW / 2 + railThick / 2, frameY, 0);
+        addMesh('Frame', new THREE.BoxGeometry(railThick, rH, rD), fHex, fCarv, rW / 2 - railThick / 2, frameY, 0);
+        // Cross rails (head/foot side)
+        addMesh('Frame', new THREE.BoxGeometry(rW, rH, railThick), fHex, fCarv, 0, frameY, -rD / 2 + railThick / 2);
+        addMesh('Frame', new THREE.BoxGeometry(rW, rH, railThick), fHex, fCarv, 0, frameY, rD / 2 - railThick / 2);
+        // Carved molding on rails if classic
+        if (frameShape === 'carved_rail') {
+          const mH = rH * 0.35, mT = railThick * 0.55;
+          addMesh('Frame', new THREE.BoxGeometry(railThick + mT, mH, rD * 0.92), fHex, fCarv, -rW / 2 + railThick / 2, frameY + rH * 0.05, 0);
+          addMesh('Frame', new THREE.BoxGeometry(railThick + mT, mH, rD * 0.92), fHex, fCarv, rW / 2 - railThick / 2, frameY + rH * 0.05, 0);
+        }
+      }
+
+      /* ═══════════════════════════
+         PLATFORM / SLATS
+      ═══════════════════════════ */
+      const platShape = getShape('Platform');
+      const pHex = getSel('Platform'), pCarv = getCarv('Platform');
+
+      if (platShape === 'wood_slats' || platShape === 'open_slats') {
+        const slCnt = 12, slW = dP.w, slD = dP.d / slCnt * 0.58, slH = dP.h * 1.4, gap = dP.d / slCnt;
+        for (let i = 0; i < slCnt; i++) {
+          const sz = -dP.d / 2 + gap / 2 + i * gap;
+          addMesh('Platform', new THREE.BoxGeometry(slW, slH, slD), pHex, pCarv, 0, platformY, sz);
+        }
+        // Side rails for slats
+        addMesh('Platform', new THREE.BoxGeometry(dP.w * 0.025, slH, dP.d), pHex, 'none', -dP.w / 2 + dP.w * 0.012, platformY, 0);
+        addMesh('Platform', new THREE.BoxGeometry(dP.w * 0.025, slH, dP.d), pHex, 'none', dP.w / 2 - dP.w * 0.012, platformY, 0);
+      } else if (platShape === 'box_spring') {
+        addMesh('Platform', new THREE.BoxGeometry(dP.w, dP.h, dP.d), pHex, pCarv, 0, platformY, 0);
+        // Grid pattern on top
+        const gsz = dP.w / 6;
+        for (let i = 0; i <= 6; i++) { addMesh('Platform', new THREE.BoxGeometry(0.012, 0.012, dP.d), pHex, 'none', -dP.w / 2 + i * gsz, platformY + dP.h / 2 + 0.006, 0); }
+        for (let j = 0; j <= 8; j++) { addMesh('Platform', new THREE.BoxGeometry(dP.w, 0.012, 0.012), pHex, 'none', 0, platformY + dP.h / 2 + 0.006, -dP.d / 2 + j * (dP.d / 8)); }
+      } else if (platShape === 'floating_platform') {
+        // Floating shadow illusion
+        addMesh('Platform', new THREE.BoxGeometry(dP.w * 0.92, dP.h * 1.2, dP.d * 0.96), pHex, pCarv, 0, platformY, 0);
+        // Shadow plane
+        const shadowGeo = new THREE.PlaneGeometry(dP.w * 0.85, dP.d * 0.88);
+        const shadowMesh = new THREE.Mesh(shadowGeo, new THREE.MeshStandardMaterial({ color: '#000000', transparent: true, opacity: .3, depthWrite: false }));
+        shadowMesh.rotation.x = -Math.PI / 2; shadowMesh.position.set(0, legH * 0.08, 0);
+        shadowMesh.name = 'Platform'; currentGroup.add(shadowMesh);
+      } else if (platShape === 'upholstered_platform') {
+        const g = new THREE.BoxGeometry(dP.w, dP.h * 1.5, dP.d);
+        const bvl = new THREE.BoxGeometry(dP.w * 0.98, dP.h * 1.5 + 0.02, dP.d * 0.98);
+        addMesh('Platform', g, pHex, pCarv, 0, platformY, 0);
+      } else {
+        addMesh('Platform', new THREE.BoxGeometry(dP.w, dP.h, dP.d), pHex, pCarv, 0, platformY, 0);
+      }
+
+      /* ═══════════════════════════
+         MATTRESS (always rendered, neutral)
+      ═══════════════════════════ */
+      const mW = dP.w * 0.98, mD = dP.d * 0.98;
+      const matMattress = new THREE.MeshStandardMaterial({ color: '#f0ede8', roughness: .95, metalness: 0 });
+      const mattGeo = new THREE.BoxGeometry(mW, mattressH, mD);
+      const mattMesh = new THREE.Mesh(mattGeo, matMattress);
+      mattMesh.position.set(0, mattressY, 0); mattMesh.name = 'Mattress';
+      mattMesh.castShadow = true; mattMesh.receiveShadow = true;
+      currentGroup.add(mattMesh);
+      // Mattress seam lines
+      const seam1 = new THREE.Mesh(new THREE.BoxGeometry(mW * 0.98, 0.005, 0.012), new THREE.MeshStandardMaterial({ color: '#c0bdb8' }));
+      seam1.position.set(0, mattressY + mattressH / 2 + 0.003, 0); currentGroup.add(seam1);
+
+      /* ═══════════════════════════
+         PILLOW (decorative)
+      ═══════════════════════════ */
+      const pillY = mattressY + mattressH / 2 + 0.06;
+      const pillZ = -mD / 2 + 0.25;
+      const pillW = mW * 0.42;
+      const pillGeo = sg(() => {
+        const g = new THREE.BoxGeometry(pillW, 0.11, 0.38);
+        const pos = g.attributes.position;
+        for (let i = 0; i < pos.count; i++) { const xn = pos.getX(i) / (pillW / 2); const yn = pos.getY(i) / 0.055; const s = 1 - xn * xn * 0.08 - yn * yn * 0.2; pos.setX(i, pos.getX(i) * s); }
+        g.computeVertexNormals(); return g;
+      }, new THREE.BoxGeometry(pillW, 0.1, 0.38));
+      const pillMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: .9, metalness: 0 });
+      [[-mW * 0.25], [mW * 0.25]].forEach(([px]) => {
+        const pm = new THREE.Mesh(pillGeo, pillMat); pm.position.set(px, pillY, pillZ); pm.name = 'Mattress'; pm.castShadow = true; currentGroup.add(pm);
+      });
+
+      /* ═══════════════════════════
+         HEADBOARD
+      ═══════════════════════════ */
+      const headShape = getShape('Headboard');
+      const hHex = getSel('Headboard'), hCarv = getCarv('Headboard');
+      const hW = dH.w, hH = dH.h, hT = dH.d;
+      const hY = legH + dR.h + hH / 2;
+      const hZ = -bedLen / 2 - hT / 2;
+
+      if (headShape !== 'canopy_posts') {
+        buildHeadboard(headShape, hW, hH, hT, hY, hZ, hHex, hCarv, addMesh, sg, getMat);
+      }
+
+      /* ═══════════════════════════
+         FOOTBOARD
+      ═══════════════════════════ */
+      const footShape = getShape('Footboard');
+      const ftHex = getSel('Footboard'), ftCarv = getCarv('Footboard');
+      const fW = dF.w, fH = dF.h, fT = dF.d;
+      const ftY = legH + dR.h + fH / 2;
+      const ftZ = bedLen / 2 + fT / 2;
+
+      if (footShape !== 'no_footboard') {
+        buildFootboard(footShape, fW, fH, fT, ftY, ftZ, ftHex, ftCarv, addMesh, sg, getMat);
+      }
+
+      /* ═══════════════════════════
+         DIMENSION RULERS
+      ═══════════════════════════ */
+      if (showDimensions) {
+        const gs = item.globalScale || { x: 1, y: 1, z: 1 };
+        createDimensionLine(new THREE.Vector3(-bedW / 2 * (gs.x || 1), 0, 0), new THREE.Vector3(bedW / 2 * (gs.x || 1), 0, 0), Math.round(bedW * SCALE * (gs.x || 1)) + 'cm W', new THREE.Vector3(0, 0, bedLen / 2 * (gs.z || 1) + 0.5));
+        createDimensionLine(new THREE.Vector3(bedW / 2 * (gs.x || 1) + 0.5, 0, -bedLen / 2 * (gs.z || 1)), new THREE.Vector3(bedW / 2 * (gs.x || 1) + 0.5, 0, bedLen / 2 * (gs.z || 1)), Math.round(bedLen * SCALE * (gs.z || 1)) + 'cm D', new THREE.Vector3(0, 0, 0));
+        createDimensionLine(new THREE.Vector3(-bedW / 2 * (gs.x || 1) - 0.5, 0, 0), new THREE.Vector3(-bedW / 2 * (gs.x || 1) - 0.5, (mattressY + mattressH) * (gs.y || 1), 0), Math.round((mattressY + mattressH) * SCALE * (gs.y || 1)) + 'cm H', new THREE.Vector3(0, 0, 0));
+      }
+
+      const gs = item.globalScale || { x: 1, y: 1, z: 1 };
+      currentGroup.scale.set(gs.x || 1, gs.y || 1, gs.z || 1);
+      scene.add(currentGroup);
+    }
+
+    /* ═══════════════════════════════════════════════
+       HEADBOARD BUILDER
+    ═══════════════════════════════════════════════ */
+    function buildHeadboard(shape, hW, hH, hT, hY, hZ, hex, carv, addMesh, sg, getMat) {
+      const bpW = Math.max(hW * 0.04, 0.06);
+
+      if (shape === 'flat_panel') {
+        // Clean flat slab
+        const geo = sg(() => new THREE.BoxGeometry(hW, hH, hT), new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        // Cap
+        addMesh('Headboard', new THREE.BoxGeometry(hW + bpW, bpW * 0.6, hT + bpW), hex, 'none', 0, hY + hH / 2, hZ);
+
+      } else if (shape === 'baroque' || shape === 'carved_panel') {
+        // Shaped crown at top
+        const geo = sg(() => {
+          const s = new THREE.Shape();
+          const hw = hW / 2, hh = hH / 2;
+          s.moveTo(-hw, -hh);
+          s.lineTo(hw, -hh);
+          s.lineTo(hw, hh * 0.45);
+          // Baroque crown: 3 arches
+          const aw = hw / 3;
+          s.quadraticCurveTo(hw * 0.9, hh * 0.7, hw * 0.7, hh * 0.75);
+          s.quadraticCurveTo(hw * 0.5, hh * 1.05, hw * 0.35, hh * 0.88);
+          s.quadraticCurveTo(0, hh * 1.25, 0, hh * 1.1);
+          s.quadraticCurveTo(0, hh * 1.25, -hw * 0.35, hh * 0.88);
+          s.quadraticCurveTo(-hw * 0.5, hh * 1.05, -hw * 0.7, hh * 0.75);
+          s.quadraticCurveTo(-hw * 0.9, hh * 0.7, -hw, hh * 0.45);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT, bevelEnabled: true, bevelSize: 0.018, bevelThickness: 0.018, bevelSegments: 3 });
+          g.translate(0, 0, -hT / 2); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        // Side posts
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.5, hH * 1.1, hT), hex, carv, -hW / 2 + bpW * 0.75, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.5, hH * 1.1, hT), hex, carv, hW / 2 - bpW * 0.75, hY, hZ);
+
+      } else if (shape === 'victorian_arch') {
+        const geo = sg(() => {
+          const hw = hW / 2, hh = hH / 2;
+          const s = new THREE.Shape();
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.1);
+          s.quadraticCurveTo(hw, hh * 0.85, 0, hh);
+          s.quadraticCurveTo(-hw, hh * 0.85, -hw, hh * 0.1);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT, bevelEnabled: true, bevelSize: 0.016, bevelThickness: 0.016, bevelSegments: 2 });
+          g.translate(0, 0, -hT / 2); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.4, hH * 1.08, hT), hex, 'none', -hW / 2 + bpW * 0.7, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.4, hH * 1.08, hT), hex, 'none', hW / 2 - bpW * 0.7, hY, hZ);
+
+      } else if (shape === 'gothic_arch') {
+        const geo = sg(() => {
+          const hw = hW / 2, hh = hH / 2;
+          const s = new THREE.Shape();
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.2);
+          // Gothic pointed arch
+          s.quadraticCurveTo(hw * 0.8, hh * 0.7, 0, hh * 1.08);
+          s.quadraticCurveTo(-hw * 0.8, hh * 0.7, -hw, hh * 0.2);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT, bevelEnabled: true, bevelSize: 0.014, bevelThickness: 0.014, bevelSegments: 2 });
+          g.translate(0, 0, -hT / 2); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        // Trefoil detail
+        const tr = hW * 0.1;
+        addMesh('Headboard', new THREE.CylinderGeometry(tr, tr, hT * 1.05, 3), hex, 'none', 0, hY + hH * 0.65, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.5, hH * 1.05, hT), hex, 'none', -hW / 2 + bpW * 0.75, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.5, hH * 1.05, hT), hex, 'none', hW / 2 - bpW * 0.75, hY, hZ);
+
+      } else if (shape === 'sleigh_head') {
+        // Sleigh: sweeping roll at top
+        const geo = sg(() => {
+          const hw = hW / 2, hh = hH / 2;
+          const s = new THREE.Shape();
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.5);
+          s.bezierCurveTo(hw, hh * 0.9, hw * 0.2, hh * 1.15, 0, hh * 1.15);
+          s.bezierCurveTo(-hw * 0.2, hh * 1.15, -hw, hh * 0.9, -hw, hh * 0.5);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 3 });
+          g.translate(0, 0, -hT / 2); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        // Scroll caps
+        addMesh('Headboard', new THREE.TorusGeometry(hH * 0.12, hH * 0.038, 10, 20, Math.PI * 1.4), hex, 'none', -hW / 2 + hH * 0.12, hY + hH * 0.52, hZ, 0, Math.PI / 2, Math.PI * 0.8);
+        addMesh('Headboard', new THREE.TorusGeometry(hH * 0.12, hH * 0.038, 10, 20, Math.PI * 1.4), hex, 'none', hW / 2 - hH * 0.12, hY + hH * 0.52, hZ, 0, Math.PI / 2, -Math.PI * 0.8);
+
+      } else if (shape === 'spindle_head') {
+        // Spindle colonial: posts + spindles
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.8, hH * 1.05, hT), hex, carv, -hW / 2 + bpW * 0.9, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.8, hH * 1.05, hT), hex, carv, hW / 2 - bpW * 0.9, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(hW, bpW, hT), hex, 'none', 0, hY + hH / 2 - bpW / 2, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(hW, bpW, hT), hex, 'none', 0, hY - hH / 2 + bpW / 2, hZ);
+        const cnt = 9, sR = hW * 0.013, step = (hW - bpW * 3.6) / (cnt - 1);
+        for (let i = 0; i < cnt; i++) {
+          const sx = -hW / 2 + bpW * 1.8 + i * step;
+          const sg2 = new THREE.CylinderGeometry(sR, sR * 1.3, hH * 0.85, 10);
+          addMesh('Headboard', sg2, hex, 'none', sx, hY, hZ);
+        }
+
+      } else if (shape === 'scroll_head') {
+        addMesh('Headboard', new THREE.BoxGeometry(hW, hH, hT), hex, carv, 0, hY, hZ);
+        // Side scrolls
+        const sr = hH * 0.15, st = hH * 0.04;
+        addMesh('Headboard', new THREE.TorusGeometry(sr, st, 10, 20), hex, 'none', -hW / 2 - sr * 0.4, hY + hH * 0.35, hZ);
+        addMesh('Headboard', new THREE.TorusGeometry(sr, st, 10, 20), hex, 'none', hW / 2 + sr * 0.4, hY + hH * 0.35, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.6, hH, hT), hex, 'none', -hW / 2 + bpW * 0.8, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.6, hH, hT), hex, 'none', hW / 2 - bpW * 0.8, hY, hZ);
+
+      } else if (shape === 'tufted_panel') {
+        // Rounded-corner upholstered panel
+        const geo = sg(() => {
+          const hw = hW / 2, hh = hH / 2, r = Math.min(hH * 0.12, hW * 0.06);
+          const s = new THREE.Shape();
+          s.moveTo(-hw + r, -hh); s.lineTo(hw - r, -hh);
+          s.quadraticCurveTo(hw, -hh, hw, -hh + r);
+          s.lineTo(hw, hh - r);
+          s.quadraticCurveTo(hw, hh, hw - r, hh);
+          s.lineTo(-hw + r, hh);
+          s.quadraticCurveTo(-hw, hh, -hw, hh - r);
+          s.lineTo(-hw, -hh + r);
+          s.quadraticCurveTo(-hw, -hh, -hw + r, -hh);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT * 1.5, bevelEnabled: true, bevelSize: 0.025, bevelThickness: 0.025, bevelSegments: 4 });
+          g.translate(0, 0, -hT * 0.75); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+
+      } else if (shape === 'slatted_head') {
+        // Horizontal slats
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.6, hH, hT), hex, 'none', -hW / 2 + bpW * 0.8, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.6, hH, hT), hex, 'none', hW / 2 - bpW * 0.8, hY, hZ);
+        const cnt = 6, sH = hH / (cnt * 2.2), step = hH / (cnt - 0.5);
+        for (let i = 0; i < cnt; i++) {
+          const sy = hY - hH / 2 + step * 0.5 + i * step;
+          addMesh('Headboard', new THREE.BoxGeometry(hW - bpW * 3.2, sH, hT * 0.8), hex, carv, 0, sy, hZ);
+        }
+
+      } else if (shape === 'floating_head') {
+        // Wall-mounted floating look
+        const geo = new THREE.BoxGeometry(hW * 1.08, hH, hT * 0.7);
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        // Bottom reveal gap
+        addMesh('Headboard', new THREE.BoxGeometry(hW * 1.08, hH * 0.04, hT * 0.75), hex, 'none', 0, hY - hH / 2 - hH * 0.02, hZ);
+
+      } else if (shape === 'curved_modern') {
+        const geo = sg(() => {
+          const hw = hW / 2, hh = hH / 2;
+          const s = new THREE.Shape();
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh);
+          s.lineTo(hw, hh * 0.6);
+          s.quadraticCurveTo(hw * 0.6, hh * 1.05, 0, hh);
+          s.quadraticCurveTo(-hw * 0.6, hh * 1.05, -hw, hh * 0.6);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT * 1.3, bevelEnabled: true, bevelSize: 0.022, bevelThickness: 0.022, bevelSegments: 4 });
+          g.translate(0, 0, -hT * 0.65); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+
+      } else if (shape === 'bookcase_head') {
+        // Bookcase integrated
+        addMesh('Headboard', new THREE.BoxGeometry(hW, hH, hT * 1.5), hex, carv, 0, hY, hZ);
+        const shelfH = hH * 0.28, shelfT = hT * 1.4, shelfD = hH * 0.18;
+        // Shelves
+        for (let i = 0; i < 3; i++) {
+          const sy = hY - hH / 2 + shelfH * 0.5 + i * shelfH * 1.1;
+          addMesh('Headboard', new THREE.BoxGeometry(hW * 0.38, 0.015, shelfD), hex, 'none', -hW / 2 + hW * 0.2, sy, hZ - hT);
+          addMesh('Headboard', new THREE.BoxGeometry(hW * 0.38, 0.015, shelfD), hex, 'none', hW / 2 - hW * 0.2, sy, hZ - hT);
+        }
+
+      } else if (shape === 'diamond_head') {
+        addMesh('Headboard', new THREE.BoxGeometry(hW, hH, hT * 1.4), hex, carv, 0, hY, hZ);
+        // Diamond trim
+        const dS = Math.min(hH * 0.25, hW * 0.14);
+        for (let xi = -1; xi <= 1; xi += 2)for (let yi = -1; yi <= 1; yi += 2) {
+          const g = new THREE.BoxGeometry(dS, dS, 0.015); g.rotateZ(Math.PI / 4);
+          addMesh('Headboard', g, hex, 'none', xi * (hW * 0.22), hY + yi * (hH * 0.22), hZ - hT * 0.7 - 0.008);
+        }
+
+      } else if (shape === 'arch_modern') {
+        const geo = sg(() => {
+          const hw = hW / 2, hh = hH / 2;
+          const s = new THREE.Shape();
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.35);
+          s.absarc(0, hh * 0.35, hw, 0, Math.PI, true);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT * 1.2, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 4 });
+          g.translate(0, 0, -hT * 0.6); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+
+      } else {
+        addMesh('Headboard', new THREE.BoxGeometry(hW, hH, hT), hex, carv, 0, hY, hZ);
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
+       FOOTBOARD BUILDER
+    ═══════════════════════════════════════════════ */
+    function buildFootboard(shape, fW, fH, fT, ftY, ftZ, hex, carv, addMesh, sg, getMat) {
+      const bpW = Math.max(fW * 0.04, 0.06);
+
+      if (shape === 'matching_low' || shape === 'flat_foot') {
+        addMesh('Footboard', new THREE.BoxGeometry(fW, fH, fT), hex, carv, 0, ftY, ftZ);
+        addMesh('Footboard', new THREE.BoxGeometry(fW + bpW, bpW * 0.5, fT + bpW), hex, 'none', 0, ftY + fH / 2, ftZ);
+
+      } else if (shape === 'scroll_foot') {
+        addMesh('Footboard', new THREE.BoxGeometry(fW, fH, fT), hex, carv, 0, ftY, ftZ);
+        const sr = fH * 0.18, st = fH * 0.045;
+        addMesh('Footboard', new THREE.TorusGeometry(sr, st, 10, 20), hex, 'none', -fW / 2 - sr * 0.3, ftY + fH * 0.3, ftZ);
+        addMesh('Footboard', new THREE.TorusGeometry(sr, st, 10, 20), hex, 'none', fW / 2 + sr * 0.3, ftY + fH * 0.3, ftZ);
+
+      } else if (shape === 'sleigh_foot') {
+        const geo = sg(() => {
+          const hw = fW / 2, hh = fH / 2;
+          const s = new THREE.Shape();
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.45);
+          s.bezierCurveTo(hw, hh * 0.85, hw * 0.18, hh * 1.12, 0, hh * 1.12);
+          s.bezierCurveTo(-hw * 0.18, hh * 1.12, -hw, hh * 0.85, -hw, hh * 0.45);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: fT, bevelEnabled: true, bevelSize: 0.018, bevelThickness: 0.018, bevelSegments: 3 });
+          g.translate(0, 0, -fT / 2); return g;
+        }, new THREE.BoxGeometry(fW, fH, fT));
+        addMesh('Footboard', geo, hex, carv, 0, ftY, ftZ);
+
+      } else if (shape === 'spindle_foot') {
+        addMesh('Footboard', new THREE.BoxGeometry(bpW * 1.8, fH * 1.05, fT), hex, carv, -fW / 2 + bpW * 0.9, ftY, ftZ);
+        addMesh('Footboard', new THREE.BoxGeometry(bpW * 1.8, fH * 1.05, fT), hex, carv, fW / 2 - bpW * 0.9, ftY, ftZ);
+        addMesh('Footboard', new THREE.BoxGeometry(fW, bpW, fT), hex, 'none', 0, ftY + fH / 2 - bpW / 2, ftZ);
+        addMesh('Footboard', new THREE.BoxGeometry(fW, bpW, fT), hex, 'none', 0, ftY - fH / 2 + bpW / 2, ftZ);
+        const cnt = 7, sR = fW * 0.013, step = (fW - bpW * 3.6) / (cnt - 1);
+        for (let i = 0; i < cnt; i++) {
+          addMesh('Footboard', new THREE.CylinderGeometry(sR, sR * 1.25, fH * 0.82, 10), hex, 'none', -fW / 2 + bpW * 1.8 + i * step, ftY, ftZ);
+        }
+
+      } else if (shape === 'slatted_foot') {
+        addMesh('Footboard', new THREE.BoxGeometry(bpW * 1.6, fH, fT), hex, 'none', -fW / 2 + bpW * 0.8, ftY, ftZ);
+        addMesh('Footboard', new THREE.BoxGeometry(bpW * 1.6, fH, fT), hex, 'none', fW / 2 - bpW * 0.8, ftY, ftZ);
+        const cnt = 4, sH = fH / (cnt * 2.4), step = fH / (cnt - 0.5);
+        for (let i = 0; i < cnt; i++) {
+          addMesh('Footboard', new THREE.BoxGeometry(fW - bpW * 3.2, sH, fT * 0.8), hex, carv, 0, ftY - fH / 2 + step * 0.5 + i * step, ftZ);
+        }
+
+      } else if (shape === 'bench_foot') {
+        // Upholstered bench at foot
+        addMesh('Footboard', new THREE.BoxGeometry(fW * 0.82, fH * 0.7, 0.4), hex, carv, 0, ftY, ftZ - 0.1);
+        // Bench legs
+        [[-fW * 0.32, ftZ + 0.05], [fW * 0.32, ftZ + 0.05]].forEach(([bx, bz]) => {
+          addMesh('Footboard', new THREE.BoxGeometry(0.06, ftY - fH * 0.35, 0.06), hex, 'none', bx, ftY - fH * 0.35 / 2 - fH * 0.15, bz);
+        });
+
+      } else {
+        addMesh('Footboard', new THREE.BoxGeometry(fW, fH, fT), hex, carv, 0, ftY, ftZ);
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      if (!renderer || !camera) return;
+      const c = document.getElementById('canvas-container');
+      const w = c.clientWidth, h = c.clientHeight;
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
     });
-
-  }else{
-    addMesh('Footboard',new THREE.BoxGeometry(fW,fH,fT),hex,carv,0,ftY,ftZ);
-  }
-}
-
-window.addEventListener('resize',()=>{
-  if(!renderer||!camera) return;
-  const c=document.getElementById('canvas-container');
-  const w=c.clientWidth,h=c.clientHeight;
-  camera.aspect=w/h; camera.updateProjectionMatrix();
-  renderer.setSize(w,h);
-});
-</script>
+  </script>
 </body>
+
 </html>

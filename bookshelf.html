@@ -13,16 +13,9 @@
 
     <style>
         :root {
-            --bg-dark: #1e1e1e;
-            --bg-panel: #252526;
-            --bg-header: #333333;
-            --accent: #e64a19;      /* Red-Orange Primary */
-            --select-orange: #ff5722; /* Vibrant Red-Orange */
-            --text-main: #e0e0e0;
-            --text-dim: #999;
-            --border: #3e3e42;
-            --gold: #f1c40f;
-            --rec-bg: #2e1004;      /* Dark reddish-brown tint */
+            --bg-dark:#1e1e1e; --bg-panel:#252526; --bg-header:#333333;
+            --accent:#8e44ad; --accent2:#6c3483; --select-blue:#007acc; --text-main:#e0e0e0;
+            --text-dim:#999; --border:#3e3e42; --gold:#f1c40f; --rec-bg:#2a1a35;
         }
 
         * {
@@ -59,24 +52,8 @@
             gap: 8px;
         }
 
-        .btn-export {
-            background: #d84315 !important;
-            color: white !important;
-            padding: 5px 12px;
-            border-radius: 4px;
-            font-weight: 600;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            border: none;
-            font-size: 0.9rem;
-        }
-
-        .btn-export:hover {
-            background: #bf360c !important;
-        }
+        .btn-export { background: var(--accent) !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
+        .btn-export:hover { background: var(--accent2) !important; }
 
         .workspace {
             display: flex;
@@ -166,9 +143,7 @@
             transition: 0.2s;
         }
 
-        .btn-add:hover {
-            background: #bf360c;
-        }
+        .btn-add:hover { background: var(--accent2); }
 
         .viewport {
             flex: 1;
@@ -284,7 +259,7 @@
 
         .modal-section-title {
             width: 100%;
-            color: var(--select-orange);
+            color: var(--accent);
             font-size: 0.8rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -330,7 +305,7 @@
 
         .design-card.active {
             border-color: var(--accent);
-            background: rgba(230, 74, 25, 0.1);
+            background: rgba(142, 68, 173, 0.1);
         }
 
         .design-icon {
@@ -570,7 +545,7 @@
             justify-content: center;
             font-size: 0.78rem;
             flex-shrink: 0;
-            background: rgba(230, 74, 25, 0.15);
+            background: rgba(142, 68, 173, 0.15);
             color: var(--accent);
             border: 1px solid rgba(230, 74, 25, 0.25);
         }
@@ -615,11 +590,7 @@
             position: fixed;
             z-index: 9999;
             background: #1a1a1e;
-            border: 1px solid var(--select-orange);
-            border-radius: 10px;
-            padding: 16px 18px;
-            width: 300px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 87, 34, 0.15);
+            border: 1px solid var(--select-blue); border-radius: 10px; padding: 16px 18px; width: 300px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(142, 68, 173, 0.15);
             pointer-events: none;
             opacity: 0;
             transform: translateY(6px) scale(0.97);
@@ -637,7 +608,7 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: var(--select-orange);
+            color: var(--accent);
             margin-bottom: 8px;
             display: flex;
             align-items: center;
@@ -746,8 +717,7 @@
         }
 
         .mat-card-lg.recommended {
-            background: var(--rec-bg);
-            border-color: #793315;
+            background: var(--rec-bg); border-color: #5a2a7a;
         }
 
         .mat-card-icon {
@@ -802,10 +772,7 @@
             transition: all 0.2s;
         }
 
-        .layer-item.active-layer {
-            border: 1px solid var(--select-orange);
-            box-shadow: 0 0 10px rgba(255, 87, 34, 0.25);
-        }
+        .layer-item.active-layer { border: 1px solid var(--select-blue); box-shadow: 0 0 10px rgba(142, 68, 173, 0.25); }
 
         .layer-header {
             padding: 13px 12px;
@@ -1246,6 +1213,7 @@
         ========================================================================== */
         function goToExport() { saveState(); window.location.href = 'export_area.html'; }
         function goToCraft() {
+            saveState();
             const ai = getActiveItem();
             if (ai) { sessionStorage.setItem('prevProjectName', ai.name); sessionStorage.setItem('prevProjectPage', 'bookshelf.html'); }
             window.location.href = 'craft.html';
@@ -1418,7 +1386,12 @@
                 let savedState = sessionStorage.getItem('cadState_bookshelf_v1');
                 if (savedState) { appState = JSON.parse(savedState); if (!appState.items) appState.items = []; }
             } catch (e) { appState.items = []; }
-            if (appState.items.length === 0) createNewBookshelf(false);
+            
+            const shouldAdd = sessionStorage.getItem('addNew');
+            if (appState.items.length === 0 || shouldAdd === 'true') {
+                createNewBookshelf(false);
+                sessionStorage.removeItem('addNew');
+            }
             const activeItem = getActiveItem();
             if (activeItem && !appState.activeLayer) appState.activeLayer = assetsDB.bookshelf.parts[0];
             renderUI(); updatePrice();
@@ -1850,10 +1823,11 @@
             const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
             canvas.width = 512; canvas.height = 128;
             ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0, 0, 512, 128);
-            ctx.font = "Bold 60px Segoe UI"; ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.font = "Bold 80px Segoe UI"; ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 4; ctx.fillText(label, 256, 64);
             const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
-            sprite.position.copy(p1).lerp(p2, 0.5); sprite.position.y += 0.05; sprite.scale.set(0.8, 0.2, 1);
+            sprite.position.copy(p1).lerp(p2, 0.5); sprite.position.y += 0.05;
+            sprite.scale.set(1.2, 0.3, 1);
             dimGroup.add(sprite);
         }
 
@@ -1975,9 +1949,9 @@
             /* ── Dimension rulers ── */
             if (showDimensions) {
                 const gx = gs.x || 1, gy = gs.y || 1, gz = gs.z || 1;
-                createDimensionLine(new THREE.Vector3(-FW / 2 * gx, 0, FD / 2 * gz), new THREE.Vector3(FW / 2 * gx, 0, FD / 2 * gz), Math.round(FW * SCALE * gx) + 'cm', new THREE.Vector3(0, 0, 0.3 * gz));
-                createDimensionLine(new THREE.Vector3(-FW / 2 * gx - 0.25, 0, 0), new THREE.Vector3(-FW / 2 * gx - 0.25, FH * gy, 0), Math.round(FH * SCALE * gy) + 'cm', new THREE.Vector3(-0.1 * gx, 0, 0));
-                createDimensionLine(new THREE.Vector3(FW / 2 * gx + 0.15, FH / 2 * gy, -FD / 2 * gz), new THREE.Vector3(FW / 2 * gx + 0.15, FH / 2 * gy, FD / 2 * gz), Math.round(FD * SCALE * gz) + 'cm', new THREE.Vector3(0.1 * gx, 0, 0));
+                createDimensionLine(new THREE.Vector3(-FW / 2 * gx, 0, FD / 2 * gz), new THREE.Vector3(FW / 2 * gx, 0, FD / 2 * gz), Math.round(FW * SCALE * gx) + 'cm W', new THREE.Vector3(0, 0, 0.3 * gz));
+                createDimensionLine(new THREE.Vector3(-FW / 2 * gx - 0.25, 0, 0), new THREE.Vector3(-FW / 2 * gx - 0.25, FH * gy, 0), Math.round(FH * SCALE * gy) + 'cm H', new THREE.Vector3(-0.1 * gx, 0, 0));
+                createDimensionLine(new THREE.Vector3(FW / 2 * gx + 0.15, FH / 2 * gy, -FD / 2 * gz), new THREE.Vector3(FW / 2 * gx + 0.15, FH / 2 * gy, FD / 2 * gz), Math.round(FD * SCALE * gz) + 'cm D', new THREE.Vector3(0.1 * gx, 0, 0));
             }
         }
 

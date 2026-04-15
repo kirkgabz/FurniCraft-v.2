@@ -11,16 +11,17 @@
 
   <style>
     :root {
-      --bg-dark: #1e1e1e; --bg-panel: #252526; --bg-header: #333333;
-      --accent: #d35400; --select-blue: #007acc; --text-main: #e0e0e0;
-      --text-dim: #999; --border: #3e3e42; --gold: #f1c40f; --rec-bg: #2c2918;
+      --bg-dark:#1e1e1e; --bg-panel:#252526; --bg-header:#333333;
+      --accent:#8e44ad; --accent2:#6c3483; --select-blue:#007acc;
+      --text-main:#e0e0e0; --text-dim:#999; --border:#3e3e42;
+      --gold:#f1c40f; --rec-bg:#2a1a35;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
     header { height: 45px; background-color: var(--bg-header); display: flex; align-items: center; padding: 0 1rem; border-bottom: 1px solid var(--border); justify-content: space-between; }
     .brand { font-weight: 600; color: white; display: flex; align-items: center; gap: 8px; }
-    .btn-export { background: #e67e22 !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
-    .btn-export:hover { background: #d35400 !important; }
+    .btn-export { background: var(--accent) !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
+    .btn-export:hover { background: var(--accent2) !important; }
     .workspace { display: flex; flex: 1; height: calc(100vh - 45px); overflow: hidden; }
 
     /* ── LEFT PANEL ── */
@@ -33,7 +34,7 @@
     .btn-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
     .btn-delete:hover { color: #c0392b; background: rgba(192,57,43,0.1); }
     .btn-add { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.02em; transition: 0.2s; flex-shrink: 0; }
-    .btn-add:hover { background: #b84a00; }
+    .btn-add:hover { background: var(--accent2); }
 
     /* ── VIEWPORT ── */
     .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); overflow: hidden; }
@@ -67,7 +68,7 @@
     .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
     .design-card { background: #333; border: 1px solid #444; border-radius: 4px; padding: 10px; text-align: center; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; height: 80px; position: relative; overflow: hidden; }
     .design-card:hover { transform: translateY(-2px); background: #3e3e42; border-color:white; }
-    .design-card.active { border-color: var(--accent); background: rgba(211,84,0,0.1); }
+    .design-card.active { border-color: var(--accent); background: rgba(142, 68, 173, 0.1); }
     .design-icon { font-size: 1.4rem; color: #aaa; }
     .design-name { font-size: 0.7rem; color: #ccc; line-height: 1.1; }
 
@@ -76,7 +77,7 @@
     .prop-scroll { flex: 1; overflow-y: auto; }
     .prop-group { padding: 20px 18px; border-bottom: 1px solid var(--border); }
     .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; min-width: 0; }
-    .section-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; background: rgba(211,84,0,0.15); color: var(--accent); border: 1px solid rgba(211,84,0,0.25); }
+    .section-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; background: rgba(142,68,173,0.15); color: var(--accent); border: 1px solid rgba(142,68,173,0.25); }
     .prop-label { font-size: 0.78rem; font-weight: 800; color: #d0d0d0; display: inline; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; line-height: 1.2; flex-shrink: 0; }
     .info-btn { width: 18px; height: 18px; border-radius: 50%; background: #2e2e2e; border: 1px solid #4a4a4a; color: #777; font-size: 0.65rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s; }
     .info-btn:hover { background: var(--select-blue); border-color: var(--select-blue); color: white; transform: scale(1.2); }
@@ -98,8 +99,8 @@
     .mat-grid-large { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
     .mat-card-lg { background: #333; border: 1px solid var(--border); border-radius: 6px; padding: 12px 8px; text-align: center; cursor: pointer; transition: 0.15s; position: relative; }
     .mat-card-lg:hover { transform: translateY(-2px); background: #3e3e42; border-color: white; }
-    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #554a1f; }
-    .mat-card-lg.selected-mat { border-color: var(--accent) !important; background: rgba(211,84,0,0.15) !important; }
+    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #5a2a7a; }
+    .mat-card-lg.selected-mat { border-color: var(--accent) !important; background: rgba(142,68,173,0.15) !important; }
     .mat-card-icon { font-size: 1.8rem; margin-bottom: 6px; }
     .mat-card-name { font-size: 0.88rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -111,7 +112,7 @@
     /* ── STYLE TOGGLE ── */
     .style-toggle-row { display: flex; gap: 8px; margin-bottom: 4px; }
     .style-toggle-btn { flex: 1; padding: 10px; background: #333; border: 1px solid #444; border-radius: 6px; color: #ccc; cursor: pointer; font-size: 0.9rem; font-weight: 600; text-align: center; transition: 0.15s; }
-    .style-toggle-btn.active { background: rgba(211,84,0,0.2); border-color: var(--accent); color: var(--accent); }
+    .style-toggle-btn.active { background: rgba(142,68,173,0.2); border-color: var(--accent); color: var(--accent); }
 
     /* ── SEAT COUNT ── */
     .seat-count-row { display: flex; align-items: center; gap: 12px; }
@@ -121,7 +122,7 @@
 
     /* ── LAYERS ── */
     .layer-item { background: #2b2b2b; border-radius: 6px; margin-bottom: 10px; border: 1px solid #333; transition: all 0.2s; }
-    .layer-item.active-layer { border: 1px solid var(--select-blue); box-shadow: 0 0 10px rgba(0,122,204,0.25); }
+    .layer-item.active-layer { border: 1px solid var(--select-blue); box-shadow: 0 0 10px rgba(142,68,173,0.25); }
     .layer-header { padding: 13px 12px; font-size: 1rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #333; border-radius: 6px 6px 0 0; }
     .layer-header:hover { background: #3c3c3c; }
     .color-preview { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #777; flex-shrink: 0; }
@@ -373,7 +374,12 @@
    NAVIGATION
 ═══════════════════════════════════════════ */
 function goToExport() { saveState(); }
-function goToCraft() { window.location.href = 'craft.html'; }
+function goToCraft() { 
+  saveState();
+  const ai = getActiveItem();
+  if (ai) { sessionStorage.setItem('prevProjectName', ai.name); sessionStorage.setItem('prevProjectPage', 'sofa.html'); }
+  window.location.href = 'craft.html'; 
+}
 
 /* ═══════════════════════════════════════════
    TOOLTIP
@@ -490,9 +496,15 @@ window.onload = function() {
     const saved = sessionStorage.getItem('cadState_sofa_v1');
     if (saved) { appState = JSON.parse(saved); if (!appState.items) appState.items = []; }
   } catch(e) { appState.items = []; }
-  if (appState.items.length === 0) createNewSofa(false);
+  
+  const shouldAdd = sessionStorage.getItem('addNew');
+  if (appState.items.length === 0 || shouldAdd === 'true') {
+    createNewSofa(false);
+    sessionStorage.removeItem('addNew');
+  }
   if (!appState.activeLayer) appState.activeLayer = 'Frame';
   renderUI(); updatePrice();
+  loadPrevProjectBar();
   setTimeout(init3D, 100);
 };
 
@@ -871,19 +883,21 @@ function focusOnPart(partName) {
   controls.update();
 }
 
-function createDimLine(start, end, label) {
+function createDimensionLine(start, end, label, offset) {
   if (!showDimensions) return;
+  const safeOffset = offset || new THREE.Vector3(0, 0, 0);
+  const p1 = start.clone().add(safeOffset), p2 = end.clone().add(safeOffset);
   const mat = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
-  dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([start, end]), mat));
-  const c = document.createElement('canvas'); c.width = 512; c.height = 128;
-  const ctx = c.getContext('2d');
-  ctx.font = 'Bold 60px Segoe UI'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 4;
-  ctx.fillText(label, 256, 64);
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false }));
-  sp.position.copy(start).lerp(end, 0.5); sp.position.y += 0.08;
-  sp.scale.set(0.8, 0.2, 1);
-  dimGroup.add(sp);
+  dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1, p2]), mat));
+  const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
+  canvas.width = 512; canvas.height = 128;
+  ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0, 0, 512, 128);
+  ctx.font = "Bold 80px Segoe UI"; ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 4; ctx.fillText(label, 256, 64);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
+  sprite.position.copy(p1).lerp(p2, 0.5); sprite.position.y += 0.05;
+  sprite.scale.set(1.2, 0.3, 1);
+  dimGroup.add(sprite);
 }
 
 /* ═══════════════════════════════════════════
@@ -1215,20 +1229,20 @@ function build3DScene() {
   // ─── DIMENSION RULERS ───
   if (showDimensions) {
     const gx = gs.x, gy = gs.y, gz = gs.z;
-    createDimLine(
+    createDimensionLine(
       new THREE.Vector3(-totalW / 2 * gx, 0, lzF * gz + 0.2),
       new THREE.Vector3( totalW / 2 * gx, 0, lzF * gz + 0.2),
-      Math.round(totalW * 100 * gx) + 'cm'
+      Math.round(totalW * 100 * gx) + 'cm W'
     );
-    createDimLine(
+    createDimensionLine(
       new THREE.Vector3(totalW / 2 * gx + 0.25, 0, lzB * gz),
       new THREE.Vector3(totalW / 2 * gx + 0.25, (yBackBot + backH) * gy, lzB * gz),
-      Math.round((yBackBot + backH) * 100 * gy) + 'cm'
+      Math.round((yBackBot + backH) * 100 * gy) + 'cm H'
     );
-    createDimLine(
+    createDimensionLine(
       new THREE.Vector3(-totalW / 2 * gx - 0.2, yLegTop * gy, lzF * gz),
       new THREE.Vector3(-totalW / 2 * gx - 0.2, yLegTop * gy, lzB * gz),
-      Math.round((seatD + backD) * 100 * gz) + 'cm'
+      Math.round((seatD + backD) * 100 * gz) + 'cm D'
     );
   }
 }

@@ -375,6 +375,7 @@
     // Modified this function to route to specific HTML files based on the type passed
     function openBuilder(type) {
       sessionStorage.setItem('targetFurniture', type);
+      sessionStorage.setItem('addNew', 'true');
       window.location.href = type + '.html';
     }
 

@@ -12,16 +12,17 @@
 
   <style>
     :root {
-      --bg-dark: #1e1e1e; --bg-panel: #252526; --bg-header: #333333;
-      --accent: #d35400; --select-blue: #007acc; --text-main: #e0e0e0;
-      --text-dim: #999; --border: #3e3e42; --gold: #f1c40f; --rec-bg: #2c2918;
+      --bg-dark:#1e1e1e; --bg-panel:#252526; --bg-header:#333333;
+      --accent:#8e44ad; --accent2:#6c3483; --select-blue:#007acc;
+      --text-main:#e0e0e0; --text-dim:#999; --border:#3e3e42;
+      --gold:#f1c40f; --rec-bg:#2a1a35;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
     header { height: 45px; background-color: var(--bg-header); display: flex; align-items: center; padding: 0 1rem; border-bottom: 1px solid var(--border); justify-content: space-between; }
     .brand { font-weight: 600; color: white; display: flex; align-items: center; gap: 8px; }
-    .btn-export { background: #e67e22 !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
-    .btn-export:hover { background: #d35400 !important; }
+    .btn-export { background: var(--accent) !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
+    .btn-export:hover { background: var(--accent2) !important; }
     .workspace { display: flex; flex: 1; height: calc(100vh - 45px); }
     .panel-left { width: 280px; background-color: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 5; }
     .panel-header { padding: 14px 16px; font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #e0e0e0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #2a2a2e 0%, #252526 100%); }
@@ -32,7 +33,7 @@
     .btn-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
     .btn-delete:hover { color: #c0392b; background: rgba(192,57,43,0.1); }
     .btn-add { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.02em; transition: 0.2s; }
-    .btn-add:hover { background: #b84a00; }
+    .btn-add:hover { background: var(--accent2); }
     .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); }
     #canvas-container { width: 100%; height: 100%; outline: none; }
     .viewport-controls { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 5px; border-radius: 20px; border: 1px solid #555; display: flex; gap: 5px; z-index: 10; }
@@ -52,14 +53,12 @@
     .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
     .design-card { background: #333; border: 1px solid #444; border-radius: 4px; padding: 10px; text-align: center; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; height: 80px; position: relative; overflow: hidden; }
     .design-card:hover { transform: translateY(-2px); background: #3e3e42; border-color:white; }
-    .design-card.active { border-color: var(--accent); background: rgba(211, 84, 0, 0.1); }
+    .acc-mat-chip.active { border-color:var(--accent); background:rgba(142,68,173,0.15); color:white; }
     .design-icon { font-size: 1.4rem; color: #aaa; }
     .design-name { font-size: 0.7rem; color: #ccc; line-height: 1.1; }
 
     .design-card.render-partial { border-color: #8a6800; background: #1e1a00; }
     .design-card.render-partial:hover { border-color: #f1c40f; background: #2a2300; }
-    .design-card.render-partial .design-icon { color: #888; }
-    .design-card.render-partial .design-name { color: #999; }
     .design-card.render-broken { border-color: #7a1111 !important; background: #1a0000 !important; cursor: not-allowed !important; pointer-events: none; opacity: 0.72; }
     .design-card.render-broken:hover { transform: none !important; }
     .design-card.render-broken .design-icon { color: #5a2a2a; }
@@ -90,7 +89,7 @@
     .prop-group { padding: 20px 18px; border-bottom: 1px solid var(--border); }
 
     .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; min-width: 0; }
-    .section-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; background: rgba(211,84,0,0.15); color: var(--accent); border: 1px solid rgba(211,84,0,0.25); }
+    .section-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; background: rgba(142,68,173,0.15); color: var(--accent); border: 1px solid rgba(142,68,173,0.25); }
     .prop-label { font-size: 0.78rem; font-weight: 800; color: #d0d0d0; display: inline; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; line-height: 1.2; flex-shrink: 0; }
 
     .info-btn { width: 18px; height: 18px; border-radius: 50%; background: #2e2e2e; border: 1px solid #4a4a4a; color: #777; font-size: 0.65rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s; }
@@ -111,8 +110,8 @@
     .mat-section-title { color: var(--gold); font-size: 1rem; font-weight: bold; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px; }
     .mat-grid-large { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
     .mat-card-lg { background: #333; border: 1px solid var(--border); border-radius: 6px; padding: 12px 8px; text-align: center; cursor: pointer; transition: 0.15s; position: relative; }
-    .mat-card-lg:hover { transform: translateY(-2px); background: #3e3e42; border-color: white; }
-    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #554a1f; }
+    .cat-card:hover { transform:translateY(-3px); border-color:var(--accent); background:#2a2a2e; box-shadow:0 8px 24px rgba(142,68,173,0.15); }
+    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #5a2a7a; }
     .mat-card-icon { font-size: 1.8rem; margin-bottom: 6px; }
     .mat-card-name { font-size: 0.88rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -387,6 +386,7 @@
     }
 
     function goToCraft() {
+      saveState();
       const ai = getActiveItem();
       if (ai) {
         sessionStorage.setItem('prevProjectName', ai.name);
@@ -508,7 +508,10 @@
       brushed_steel:{ name: 'Brushed Steel',icon:'🔩',hex: '#8d9498', dura: 92, qual: 88, price: 4.0, rec: false },
     };
 
-    const assetsDB = { chair: { name: 'Dining Chair', basePrice: 500, parts: ['Seat', 'Back', 'Legs', 'Armrests'] } };
+    const assetsDB = {
+      chair: { name: 'Dining Chair', basePrice: 500, parts: ['Seat', 'Back', 'Legs', 'Armrests'] },
+      rocking_chair: { name: 'Rocking Chair', basePrice: 650, parts: ['Seat', 'Back', 'Legs', 'Armrests', 'Headrest'] }
+    };
 
     const shapeDB = {
       seat: [
@@ -521,7 +524,8 @@
         { id: 'padded_seat',     name: 'Thick Upholstered',    icon: 'square',  carving:'padded', cat: 'Ergonomic & Soft' },
         { id: 'curved_plank',    name: 'Waterfall Curved',     icon: 'water',   faIcon: true, cat: 'Ergonomic & Soft' },
         { id: 'sculpted_saddle', name: 'Scooped Saddle',       icon: 'horse-head',faIcon:true, cat: 'Ergonomic & Soft' },
-        { id: 'rocking_seat',    name: 'Rocking Chair Seat',   icon: 'chair',   faIcon:true,  cat: 'Rocking Style' }
+        { id: 'rocking_seat',    name: 'Classic Rocking Seat', icon: 'chair',   faIcon:true,  cat: 'Rocking Style' },
+        { id: 'modern_rocker_seat', name: 'Modern Slab Seat', icon: 'tablet-alt', faIcon:true, cat: 'Rocking Style' }
       ],
       back: [
         { id: 'simple_panel',  name: 'Flat Panel',           icon: 'window-maximize',       cat: 'Solid Backs' },
@@ -534,7 +538,8 @@
         { id: 'ladder_back',   name: 'Ladder Slats',         icon: 'bars',    faIcon: true, cat: 'Open Backs' },
         { id: 'slat_back',     name: 'Vertical Slats',       icon: 'align-justify',faIcon:true, cat: 'Open Backs' },
         { id: 'balloon_back',  name: 'Balloon Loop',         icon: 'map-marker',faIcon:true, cat: 'Open Backs' },
-        { id: 'rocking_back',  name: 'Rocking High Back',    icon: 'arrow-up', faIcon:true, cat: 'Rocking Style' }
+        { id: 'rocking_back',  name: 'Bentwood Rocker Back', icon: 'arrow-up', faIcon:true, cat: 'Rocking Style' },
+        { id: 'modern_rocker_back', name: 'Modern Minimal Back', icon: 'square-full', faIcon:true, cat: 'Rocking Style' }
       ],
       legs: [
         { id: 'straight_post_s',name: 'Straight Square',    icon: 'square-full',            cat: 'Standard' },
@@ -546,7 +551,8 @@
         { id: 'fluted_round',   name: 'Fluted Round',       icon: 'align-center',faIcon:true,cat:'Ornate & Metal' },
         { id: 'turned_leg',     name: 'Turned / Bobbin',    icon: 'ellipsis-v',faIcon:true, cat: 'Ornate & Metal' },
         { id: 'hairpin',        name: 'Metal Hairpin',      icon: 'paperclip', faIcon:true, cat: 'Ornate & Metal' },
-        { id: 'rocking_runners',name: 'Rocking Runners',    icon: 'redo',      faIcon:true, cat: 'Rocking Style' }
+        { id: 'rocking_runners',name: 'Classic Oak Runners',    icon: 'redo',      faIcon:true, cat: 'Rocking Style' },
+        { id: 'modern_rocker_runners', name: 'Sleek Modern Runners', icon: 'minus', faIcon:true, cat: 'Rocking Style' }
       ],
       armrests: [
         { id: 'l_shape_arm',   name: 'L-Shape Post Arm',   icon: 'chair',       faIcon:true, cat: 'Standard Arms' },
@@ -557,7 +563,15 @@
         { id: 'track_arm',     name: 'High Track Arm',     icon: 'grip-lines',  faIcon:true, cat: 'Shaped Arms' },
         { id: 'swoop_arm',     name: 'Deep Swoop',         icon: 'water',       faIcon:true, cat: 'Shaped Arms' },
         { id: 'pad_arm',       name: 'Padded Top Block',   icon: 'square',carving:'padded',faIcon:true,cat:'Shaped Arms' },
-        { id: 'rocking_arm',   name: 'Rocking Flat Arm',   icon: 'minus',       faIcon:true, cat: 'Rocking Style' }
+        { id: 'rocking_arm',   name: 'Classic Scroll Arm',   icon: 'scroll',      faIcon:true, cat: 'Rocking Style' },
+        { id: 'modern_rocking_arm', name: 'Sleek Modern Arm', icon: 'minus', faIcon:true, cat: 'Rocking Style' }
+      ],
+      headrest: [
+        { id: 'rocking_crest',   name: 'Classic Crest Rail', icon: 'archway', faIcon:true,  cat: 'Rocking Style' },
+        { id: 'bentwood_head',   name: 'Bentwood Curve',     icon: 'wave-square', faIcon:true, cat: 'Senior Style' },
+        { id: 'padded_head',     name: 'Top Padded Bar',     icon: 'square', carving:'padded', faIcon:true, cat: 'Comfort' },
+        { id: 'modern_headrest', name: 'Modern Head Block',  icon: 'square',  faIcon:true,  cat: 'Rocking Style' },
+        { id: 'none',            name: 'No Headrest',        icon: 'times',   faIcon:true,  cat: 'Basic' }
       ]
     };
 
@@ -615,9 +629,15 @@
         let savedState = sessionStorage.getItem('cadState_chair_v6');
         if (savedState) { appState = JSON.parse(savedState); if (!appState.items) appState.items = []; }
       } catch(e) { appState.items = []; }
-      if (appState.items.length === 0) createNewChair(false);
+      
+      const shouldAdd = sessionStorage.getItem('addNew');
+      if (appState.items.length === 0 || shouldAdd === 'true') {
+        createNewChair(false);
+        sessionStorage.removeItem('addNew');
+      }
+
       const activeItem = getActiveItem();
-      if (activeItem && !appState.activeLayer) appState.activeLayer = assetsDB.chair.parts[0];
+      if (activeItem && !appState.activeLayer) appState.activeLayer = assetsDB[activeItem.type].parts[0];
       renderUI(); updatePrice();
       loadPrevProjectBar();
       setTimeout(() => { init3D(); }, 100);
@@ -629,11 +649,11 @@
     function createNewChair(shouldRender = true) {
       const newItem = {
         id: Date.now(), type: 'chair', name: 'Custom Chair Design ' + (appState.items.length + 1),
-        selections: { Seat:'#8B4513', Back:'#8B4513', Legs:'#8B4513', Armrests:'#8B4513' },
-        dims: { Seat:{w:45,h:5,d:45}, Back:{w:45,h:50,d:5}, Legs:{w:5,h:45,d:5}, Armrests:{w:5,h:25,d:5} },
-        carvings: { Seat:'none', Back:'none', Legs:'none', Armrests:'none' },
-        shapes: { Seat:'square_plank', Back:'simple_panel', Legs:'straight_post_s', Armrests:'l_shape_arm' },
-        holes: { Seat:'none', Back:'none', Legs:'none', Armrests:'none' },
+        selections: { Seat:'#8B4513', Back:'#8B4513', Legs:'#8B4513', Armrests:'#8B4513', Headrest:'#8B4513' },
+        dims: { Seat:{w:45,h:5,d:45}, Back:{w:45,h:50,d:5}, Legs:{w:5,h:45,d:5}, Armrests:{w:5,h:25,d:5}, Headrest:{w:45,h:8,d:4} },
+        carvings: { Seat:'none', Back:'none', Legs:'none', Armrests:'none', Headrest:'none' },
+        shapes: { Seat:'square_plank', Back:'simple_panel', Legs:'straight_post_s', Armrests:'l_shape_arm', Headrest:'none' },
+        holes: { Seat:'none', Back:'none', Legs:'none', Armrests:'none', Headrest:'none' },
         globalScale: { x:1, y:1, z:1 },
         isLeftArmVisible: true, isRightArmVisible: true
       };
@@ -646,12 +666,12 @@
 
     function createRockingChair() {
       const newItem = {
-        id: Date.now(), type: 'chair', name: 'Rocking Chair ' + (appState.items.length + 1),
-        selections: { Seat:'#8B4513', Back:'#8B4513', Legs:'#8B4513', Armrests:'#8B4513' },
-        dims: { Seat:{w:50,h:6,d:48}, Back:{w:50,h:55,d:6}, Legs:{w:5,h:46,d:5}, Armrests:{w:5,h:22,d:5} },
-        carvings: { Seat:'none', Back:'none', Legs:'none', Armrests:'none' },
-        shapes: { Seat:'rocking_seat', Back:'rocking_back', Legs:'rocking_runners', Armrests:'rocking_arm' },
-        holes: { Seat:'none', Back:'ladder_back', Legs:'none', Armrests:'none' },
+        id: Date.now(), type: 'rocking_chair', name: 'Rocking Chair ' + (appState.items.length + 1),
+        selections: { Seat:'#8B4513', Back:'#8B4513', Legs:'#8B4513', Armrests:'#8B4513', Headrest:'#8B4513' },
+        dims: { Seat:{w:50,h:6,d:48}, Back:{w:50,h:55,d:6}, Legs:{w:5,h:46,d:5}, Armrests:{w:5,h:22,d:5}, Headrest:{w:55,h:8,d:4} },
+        carvings: { Seat:'none', Back:'none', Legs:'none', Armrests:'none', Headrest:'none' },
+        shapes: { Seat:'rocking_seat', Back:'rocking_back', Legs:'rocking_runners', Armrests:'rocking_arm', Headrest:'rocking_crest' },
+        holes: { Seat:'none', Back:'none', Legs:'none', Armrests:'none', Headrest:'none' },
         globalScale: { x:1, y:1, z:1 },
         isLeftArmVisible: true, isRightArmVisible: true
       };
@@ -751,7 +771,8 @@
       const carvings = activeItem.carvings || {}, selections = activeItem.selections || {};
       const itemDims = activeItem.dims || {};
 
-      assetsDB.chair.parts.forEach(part => {
+      const itemType = activeItem.type || 'chair';
+      assetsDB[itemType].parts.forEach(part => {
         const hex = selections[part] || '#8B4513';
         const dims = itemDims[part] || {w:50,h:50,d:50};
         const currentCarving = carvings[part] || 'none';
@@ -831,7 +852,8 @@
       let addedCost = 0;
       const selections = activeItem.selections || {};
       const itemDims = activeItem.dims || {};
-      assetsDB.chair.parts.forEach(part => {
+      const itemType = activeItem.type || 'chair';
+      assetsDB[itemType].parts.forEach(part => {
         if (part === 'Armrests' && !activeItem.isLeftArmVisible && !activeItem.isRightArmVisible) return;
         const hex = selections[part] || '#8B4513';
         const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase()) || 'mahogany';
@@ -843,7 +865,8 @@
       });
       const gs = activeItem.globalScale || {x:1,y:1,z:1};
       const scaleMultiplier = gs.x * gs.y * gs.z;
-      document.getElementById('total-price').innerHTML = '&#8369;' + Math.round((assetsDB.chair.basePrice + addedCost) * scaleMultiplier).toLocaleString();
+      const baseCost = assetsDB[activeItem.type || 'chair'].basePrice;
+      document.getElementById('total-price').innerHTML = '&#8369;' + Math.round((baseCost + addedCost) * scaleMultiplier).toLocaleString();
     }
 
     function calculateScore() {
@@ -1053,10 +1076,11 @@
       const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
       canvas.width=512; canvas.height=128;
       ctx.fillStyle="rgba(0,0,0,0)"; ctx.fillRect(0,0,512,128);
-      ctx.font="Bold 60px Segoe UI"; ctx.fillStyle="#ffffff"; ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.font="Bold 80px Segoe UI"; ctx.fillStyle="#ffffff"; ctx.textAlign="center"; ctx.textBaseline="middle";
       ctx.shadowColor="rgba(0,0,0,0.8)"; ctx.shadowBlur=4; ctx.fillText(label,256,64);
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(canvas),transparent:true,depthTest:false}));
-      sprite.position.copy(p1).lerp(p2,0.5); sprite.position.y+=0.05; sprite.scale.set(0.6,0.15,1);
+      sprite.position.copy(p1).lerp(p2,0.5); sprite.position.y+=0.05;
+      sprite.scale.set(1.2,0.3,1);
       dimGroup.add(sprite);
     }
 
@@ -1177,14 +1201,15 @@
         catch(e) { console.warn('geo err:',e.message); return fb; }
       };
 
+      let effectiveSeatTopY = seatTopY;
       if (isRocking || seatShape === 'rocking_seat') {
-        buildRockingChair3D(getDims, itemShapes, itemHoles, itemCarvings, itemSelections, addMesh, getMat, sg, seatTopY, yB, backZ, dSeat, dBack, dLeg, SCALE);
+        effectiveSeatTopY = buildRockingChair3D(getDims, itemShapes, itemHoles, itemCarvings, itemSelections, addMesh, getMat, sg, seatTopY, yB, backZ, dSeat, dBack, dLeg, SCALE);
       } else {
         buildStandardChair3D(getDims, itemShapes, itemHoles, itemCarvings, itemSelections, addMesh, getMat, sg, seatTopY, yB, backZ, dSeat, dBack, dLeg, locX, locZ, yL, yS, seatShape, legShape, SCALE);
       }
 
       if (activeItem.isLeftArmVisible || activeItem.isRightArmVisible) {
-        buildArmrests(getDims, itemShapes, itemCarvings, itemSelections, addMesh, sg, seatTopY, yB, backZ, dSeat, dLeg, dBack, isRocking, activeItem);
+        buildArmrests(getDims, itemShapes, itemCarvings, itemSelections, addMesh, sg, effectiveSeatTopY, yB, backZ, dSeat, dLeg, dBack, isRocking, activeItem);
       }
 
       const gs=activeItem.globalScale||{x:1,y:1,z:1};
@@ -1193,9 +1218,9 @@
 
       if(showDimensions){
         const gx=gs.x||1,gy=gs.y||1,gz=gs.z||1;
-        createDimensionLine(new THREE.Vector3(-dSeat.w/2*gx,0,locZ*gz),new THREE.Vector3(dSeat.w/2*gx,0,locZ*gz),Math.round(dSeat.w*50*gx)+'cm',new THREE.Vector3(0,0,dLeg.d*gz));
-        createDimensionLine(new THREE.Vector3(-locX*gx,0,(dSeat.d/2+0.12)*gz),new THREE.Vector3(-locX*gx,dLeg.h*gy,(dSeat.d/2+0.12)*gz),Math.round(dLeg.h*50*gy)+'cm',new THREE.Vector3(-dLeg.w*gx,0,0));
-        createDimensionLine(new THREE.Vector3((locX+0.12)*gx,yS*gy,backZ*gz),new THREE.Vector3((locX+0.12)*gx,(yB+dBack.h/2)*gy,backZ*gz),Math.round(dBack.h*50*gy)+'cm',new THREE.Vector3(dLeg.w*gx,0,0));
+        createDimensionLine(new THREE.Vector3(-dSeat.w/2*gx,0,locZ*gz),new THREE.Vector3(dSeat.w/2*gx,0,locZ*gz),Math.round(dSeat.w*50*gx)+'cm W',new THREE.Vector3(0,0,dLeg.d*gz));
+        createDimensionLine(new THREE.Vector3(-locX*gx,0,(dSeat.d/2+0.12)*gz),new THREE.Vector3(-locX*gx,dLeg.h*gy,(dSeat.d/2+0.12)*gz),Math.round(dLeg.h*50*gy)+'cm H',new THREE.Vector3(-dLeg.w*gx,0,0));
+        createDimensionLine(new THREE.Vector3((locX+0.12)*gx,yS*gy,backZ*gz),new THREE.Vector3((locX+0.12)*gx,(yB+dBack.h/2)*gy,backZ*gz),Math.round(dBack.h*50*gy)+'cm H',new THREE.Vector3(dLeg.w*gx,0,0));
       }
     }
 
@@ -1206,168 +1231,116 @@
       const legHex  = itemSelections['Legs']  || '#8B4513';
       const seatHex = itemSelections['Seat']  || '#8B4513';
       const backHex = itemSelections['Back']  || '#8B4513';
+      const headHex = itemSelections['Headrest'] || '#8B4513';
+      
       const legCarv = itemCarvings['Legs']    || 'none';
       const seatCarv= itemCarvings['Seat']    || 'none';
       const backCarv= itemCarvings['Back']    || 'none';
-      const seatHole= itemHoles['Seat']       || 'none';
+      const headCarv= itemCarvings['Headrest']|| 'none';
+      
+      const legStyle  = itemShapes['Legs'] || 'rocking_runners';
+      const seatStyle = itemShapes['Seat'] || 'rocking_seat';
+      const backStyle = itemShapes['Back'] || 'rocking_back';
+      const headStyle = itemShapes['Headrest'] || 'rocking_crest';
+      
+      const isModern = legStyle === 'modern_rocker_runners';
+      const legR=dLeg.w*0.5, legH=dLeg.h, sW=dSeat.w, sD=dSeat.d, sH=dSeat.h;
+      const legInX=sW*0.38, fLegZ=sD*0.32, bLegZ=-sD*0.34;
+      const arcR=sD*1.6, runnerR=isModern?0.05:0.08, rYOff=-0.12;
+      const rSZ=fLegZ+sD*0.3, rEZ=bLegZ-sD*0.35;
 
-      const legR     = dLeg.w * 0.5;
-      const legH     = dLeg.h;
-      const sW       = dSeat.w;
-      const sD       = dSeat.d;
-      const sH       = dSeat.h;
-
-      const legInX   = sW * 0.38;
-      const fLegZ    = sD * 0.30;
-      const bLegZ    = -sD * 0.34;
-
-      const fLegH = legH * 1.02;
-      const bLegH = legH * 0.85;
-
-      const seatY = fLegH + sH / 2;
-
-      const runnerR     = 0.08;
-      const arcR        = sD * 1.55;
-      const runnerExtraF = sD * 0.28;
-      const runnerExtraB = sD * 0.22;
-
+      /* ── RUNNERS ── */
       class RockerCurve extends THREE.Curve {
-        constructor(startZ, endZ, arcRadius) {
-          super();
-          this.startZ = startZ; this.endZ = endZ; this.arcRadius = arcRadius;
-          this.midZ = (startZ + endZ) / 2;
-          this.centerY = Math.sqrt(arcRadius * arcRadius - Math.pow((endZ - startZ)/2, 2));
-        }
-        getPoint(t) {
-          const z = this.startZ + (this.endZ - this.startZ) * t;
-          const dz = z - this.midZ;
-          const y = this.centerY - Math.sqrt(Math.max(0, this.arcRadius * this.arcRadius - dz * dz));
-          return new THREE.Vector3(0, y, z);
-        }
+        constructor(x, sZ, eZ, aR, yO) { super(); this.x=x; this.sZ=sZ; this.eZ=eZ; this.aR=aR; this.yO=yO; this.mZ=(sZ+eZ)/2; this.cY=Math.sqrt(Math.max(0,aR*aR-Math.pow((eZ-sZ)/2,2))); }
+        getPoint(t) { const z=this.sZ+(this.eZ-this.sZ)*t; const dz=z-this.mZ; const y=this.cY-Math.sqrt(Math.max(0,this.aR*this.aR-dz*dz)); return new THREE.Vector3(this.x,y+this.yO,z); }
       }
-
-      const rockerStartZ = fLegZ + runnerExtraF;
-      const rockerEndZ   = bLegZ - runnerExtraB;
-
-      const testCurve = new RockerCurve(rockerStartZ, rockerEndZ, arcR);
-      const testMid = testCurve.getPoint(0.5);
-      const runnerYOffset = -testMid.y;
-
-      class RockerCurveLifted extends THREE.Curve {
-        constructor(xOff, startZ, endZ, arcRadius, yOff) {
-          super();
-          this.xOff = xOff; this.startZ = startZ; this.endZ = endZ;
-          this.arcRadius = arcRadius; this.yOff = yOff;
-          this.midZ = (startZ + endZ) / 2;
-          this.centerY = Math.sqrt(Math.max(0, arcRadius * arcRadius - Math.pow((endZ - startZ)/2, 2)));
+      [-legInX, legInX].forEach(x => {
+        const curve = new RockerCurve(x, rSZ, rEZ, arcR, rYOff);
+        let geo;
+        if(isModern) {
+          const pts=[new THREE.Vector2(-0.06,-0.02),new THREE.Vector2(0.06,-0.02),new THREE.Vector2(0.06,0.02),new THREE.Vector2(-0.06,0.02)];
+          geo = sg(() => new THREE.ExtrudeGeometry(new THREE.Shape(pts), {steps:40, bevelEnabled:true, bevelSize:0.005, extrudePath:curve}), new THREE.BoxGeometry(0.1,0.05,Math.abs(rSZ-rEZ)));
+        } else {
+          geo = sg(() => new THREE.TubeGeometry(curve, 40, runnerR, 12, false), new THREE.CylinderGeometry(runnerR,runnerR,Math.abs(rSZ-rEZ),12));
+          const pF=curve.getPoint(0), pB=curve.getPoint(1);
+          addMesh('Legs', new THREE.SphereGeometry(runnerR*1.2,12,12), legHex, 'none', pF.x, pF.y, pF.z);
+          addMesh('Legs', new THREE.SphereGeometry(runnerR*1.1,12,12), legHex, 'none', pB.x, pB.y, pB.z);
         }
-        getPoint(t) {
-          const z = this.startZ + (this.endZ - this.startZ) * t;
-          const dz = z - this.midZ;
-          const y = this.centerY - Math.sqrt(Math.max(0, this.arcRadius * this.arcRadius - dz * dz));
-          return new THREE.Vector3(this.xOff, y + this.yOff, z);
-        }
-      }
-
-      [-legInX, legInX].forEach(xOff => {
-        const curve = new RockerCurveLifted(xOff, rockerStartZ, rockerEndZ, arcR, runnerYOffset);
-        const geo = sg(() => new THREE.TubeGeometry(curve, 60, runnerR, 10, false),
-                        new THREE.CylinderGeometry(runnerR, runnerR, Math.abs(rockerEndZ - rockerStartZ), 10));
         addMesh('Legs', geo, legHex, legCarv, 0, 0, 0);
       });
 
-      const fLegGeo = new THREE.CylinderGeometry(legR * 0.72, legR, fLegH, 14);
-
-      const getRunnerY = (xOff, z) => {
-        const midZ = (rockerStartZ + rockerEndZ) / 2;
-        const dz = z - midZ;
-        const centerY = Math.sqrt(Math.max(0, arcR * arcR - Math.pow((rockerEndZ - rockerStartZ)/2, 2)));
-        return centerY - Math.sqrt(Math.max(0, arcR * arcR - dz * dz)) + runnerYOffset;
-      };
-
-      [-legInX, legInX].forEach(xOff => {
-        const baseY = getRunnerY(xOff, fLegZ);
-        const legCenterY = baseY + fLegH / 2;
-        addMesh('Legs', new THREE.CylinderGeometry(legR*0.72, legR, fLegH, 14), legHex, legCarv, xOff, legCenterY, fLegZ, 0.06, 0, 0);
-      });
-
-      [-legInX, legInX].forEach(xOff => {
-        const baseY = getRunnerY(xOff, bLegZ);
-        const legCenterY = baseY + bLegH / 2;
-        addMesh('Legs', new THREE.CylinderGeometry(legR*0.65, legR, bLegH, 14), legHex, legCarv, xOff, legCenterY, bLegZ, -0.10, 0, 0);
-      });
-
-      const stretR = legR * 0.48;
-      const stretY1 = fLegH * 0.28;
-      const stretY2 = fLegH * 0.52;
-      const stretLen = legInX * 2 - legR * 0.6;
-
-      addMesh('Legs', new THREE.CylinderGeometry(stretR, stretR, stretLen, 10), legHex, legCarv, 0, stretY1, fLegZ, 0, 0, Math.PI/2);
-      addMesh('Legs', new THREE.CylinderGeometry(stretR, stretR, stretLen, 10), legHex, legCarv, 0, stretY1*0.9, bLegZ, 0, 0, Math.PI/2);
-      const sidStL = Math.abs(fLegZ - bLegZ) * 0.72;
-      const sidStZ = (fLegZ + bLegZ) / 2;
-      [-legInX, legInX].forEach(xOff => {
-        addMesh('Legs', new THREE.CylinderGeometry(stretR, stretR, sidStL, 10), legHex, legCarv, xOff, stretY2, sidStZ, Math.PI/2 * 0.08, 0, 0);
-      });
-
-      const seatGeo = sg(() => {
-        const s = new THREE.Shape();
-        s.moveTo(-sW/2, -sD/2); s.lineTo(sW/2, -sD/2);
-        s.lineTo(sW/2, sD/2);   s.lineTo(-sW/2, sD/2); s.closePath();
-        punchSeatHoles(s, seatHole, dSeat);
-        const g = new THREE.ExtrudeGeometry(s, { depth: sH, bevelEnabled: true, bevelSize: 0.008, bevelThickness: 0.008, bevelSegments: 2 });
-        g.translate(0, 0, -sH/2); g.rotateX(Math.PI/2); return g;
-      }, new THREE.BoxGeometry(sW, sH, sD));
-
-      const frontLegTopY = getRunnerY(-legInX, fLegZ) + fLegH;
-      const backLegTopY  = getRunnerY(-legInX, bLegZ) + bLegH;
-      const seatTiltAngle = Math.atan2(frontLegTopY - backLegTopY, Math.abs(fLegZ - bLegZ)) * -0.7;
-      const seatCenterY   = (frontLegTopY + backLegTopY) / 2 + sH / 2;
-      const seatCenterZ   = (fLegZ + bLegZ) / 2;
-      addMesh('Seat', seatGeo, seatHex, seatCarv, 0, seatCenterY, seatCenterZ, seatTiltAngle, 0, 0);
-
-      const backShape = itemShapes['Back'] || 'rocking_back';
-      const backTopY  = backLegTopY + dBack.h;
-      const backBaseY = backLegTopY;
-      const backCenterY = (backTopY + backBaseY) / 2;
-      const backTiltAngle = -0.22;
-      const bpW = Math.max(dLeg.w*0.95, 0.04);
-
-      if (backShape === 'rocking_back' || backShape === 'simple_panel' || backShape === 'padded_back') {
-        const geo = sg(() => {
-          const hw=dBack.w/2, hh=dBack.h/2;
-          const s = new THREE.Shape();
-          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh); s.lineTo(-hw, hh); s.closePath();
-          punchBackHolesRocking(s, itemHoles['Back'] || 'none', dBack);
-          const bvl = backShape === 'padded_back';
-          const g = new THREE.ExtrudeGeometry(s, { depth: dBack.d, bevelEnabled: bvl, bevelSize: bvl?0.014:0, bevelThickness: 0.014, bevelSegments: 2 });
-          g.translate(0,0,-dBack.d/2); return g;
-        }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h*1.08, bpW), backHex, 'none', -(dBack.w/2-bpW/2), backCenterY, bLegZ, backTiltAngle, 0, 0);
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h*1.08, bpW), backHex, 'none',  (dBack.w/2-bpW/2), backCenterY, bLegZ, backTiltAngle, 0, 0);
-        addMesh('Back', geo, backHex, backCarv, 0, backCenterY, bLegZ, backTiltAngle, 0, 0);
-      } else if (backShape === 'spindle_back' || backShape === 'ladder_back' || backShape === 'slat_back') {
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h*1.08, bpW), backHex, 'none', -(dBack.w/2-bpW/2), backCenterY, bLegZ, backTiltAngle, 0, 0);
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h*1.08, bpW), backHex, 'none',  (dBack.w/2-bpW/2), backCenterY, bLegZ, backTiltAngle, 0, 0);
-        addMesh('Back', new THREE.BoxGeometry(dBack.w+bpW, bpW, dBack.d*1.1), backHex, 'none', 0, backTopY - bpW/2, bLegZ, backTiltAngle, 0, 0);
-        addMesh('Back', new THREE.BoxGeometry(dBack.w+bpW, bpW, dBack.d*1.1), backHex, 'none', 0, backBaseY + bpW/2, bLegZ, backTiltAngle, 0, 0);
-
-        if (backShape === 'spindle_back') {
-          const cnt=5, sR=dBack.w/(cnt*4.5), step=(dBack.w-bpW*2)/(cnt-1);
-          for(let i=0;i<cnt;i++)
-            addMesh('Back', new THREE.CylinderGeometry(sR, sR*1.2, dBack.h*0.82, 14), backHex, 'none', -dBack.w/2+bpW+i*step, backCenterY, bLegZ, backTiltAngle, 0, 0);
-        } else if (backShape === 'ladder_back') {
-          const cnt=4, step=dBack.h/(cnt-1);
-          for(let i=0;i<cnt;i++)
-            addMesh('Back', new THREE.BoxGeometry(dBack.w, bpW*0.85, dBack.d), backHex, 'none', 0, backBaseY+i*step, bLegZ, backTiltAngle, 0, 0);
-        } else {
-          const cnt=4, totalW=dBack.w-bpW*2, slatW=totalW/(cnt*2-1), step=slatW*2;
-          for(let i=0;i<cnt;i++)
-            addMesh('Back', new THREE.BoxGeometry(slatW, dBack.h*0.82, dBack.d*0.85), backHex, 'none', -totalW/2+i*step+slatW/2, backCenterY, bLegZ, backTiltAngle, 0, 0);
+      /* ── LEGS ── */
+      const getRY = (z) => { const mZ=(rSZ+rEZ)/2, dz=z-mZ, cY=Math.sqrt(Math.max(0,arcR*arcR-Math.pow((rEZ-rSZ)/2,2))); return (cY-Math.sqrt(Math.max(0,arcR*arcR-dz*dz)))+rYOff; };
+      const fLH=legH*1.1, bLH=legH*0.95;
+      [-legInX, legInX].forEach(x => {
+        const fy=getRY(fLegZ), by=getRY(bLegZ);
+        let gF, gB;
+        if(isModern) { gF=new THREE.BoxGeometry(0.06,fLH,0.06); gB=new THREE.BoxGeometry(0.06,bLH,0.06); }
+        else {
+          const mk=(h,r)=>{const pts=[]; for(let i=0;i<=10;i++){const t=i/10, s=1+Math.sin(t*Math.PI*3)*0.25; pts.push(new THREE.Vector2(r*s,t*h));} return new THREE.LatheGeometry(pts,16);};
+          gF=mk(fLH,legR); gB=mk(bLH,legR*0.85);
         }
-      } else {
-        addMesh('Back', new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d), backHex, backCarv, 0, backCenterY, bLegZ, backTiltAngle, 0, 0);
+        addMesh('Legs',gF,legHex,legCarv,x,fy+(isModern?fLH/2:0),fLegZ,isModern?0.1:0);
+        addMesh('Legs',gB,legHex,legCarv,x,by+(isModern?bLH/2:0),bLegZ,isModern?-0.15:0);
+      });
+
+      /* ── SEAT ── */
+      const sT=-0.15, lTA=(getRY(fLegZ)+fLH+getRY(bLegZ)+bLH)/2, sYV=lTA+sH/2, sZV=(fLegZ+bLegZ)/2;
+      const sG=sg(()=>{
+        let g; if(seatStyle==='modern_rocker_seat') g=new THREE.BoxGeometry(sW,sH*0.6,sD);
+        else {
+          const s=new THREE.Shape(); s.moveTo(-sW/2,-sD/2); s.lineTo(sW/2,-sD/2); s.lineTo(sW/2,sD/2); s.lineTo(-sW/2,sD/2); s.closePath();
+          g=new THREE.ExtrudeGeometry(s,{depth:sH,bevelEnabled:true,bevelSize:0.02,bevelThickness:0.02,bevelSegments:3}); g.rotateX(Math.PI/2);
+          const pa=g.attributes.position; for(let i=0;i<pa.count;i++){const d=Math.sqrt(pa.getX(i)**2+pa.getZ(i)**2); if(pa.getY(i)>0) pa.setY(i,pa.getY(i)-Math.max(0,0.04-d*0.1));} g.computeVertexNormals();
+        } return g;
+      }, new THREE.BoxGeometry(sW,sH,sD));
+      addMesh('Seat',sG,seatHex,seatCarv,0,sYV,sZV,sT,0,0);
+      const sTY=sYV+sH/2;
+
+      /* ── HEADREST (Crest Rail) ── */
+      const bH=dBack.h, bW=dBack.w, bTilt=isModern?-0.1:-0.25;
+      const dHead=getDims('Headrest');
+      let headY = sTY + bH;
+      if (headStyle !== 'none') {
+        let hGeo;
+        if (headStyle === 'modern_headrest' || isModern) {
+          hGeo = new THREE.BoxGeometry(dHead.w, dHead.h, dHead.d);
+          addMesh('Headrest', hGeo, headHex, headCarv, 0, headY + dHead.h/2, bLegZ, bTilt);
+        } else {
+          const isBent = headStyle === 'bentwood_head';
+          const crestCurve = new THREE.CubicBezierCurve3(
+            new THREE.Vector3(-dHead.w/2, 0, 0),
+            new THREE.Vector3(-dHead.w/4, isBent ? dHead.h*1.5 : dHead.h, 0),
+            new THREE.Vector3(dHead.w/4, isBent ? dHead.h*1.5 : dHead.h, 0),
+            new THREE.Vector3(dHead.w/2, 0, 0)
+          );
+          if (headStyle === 'padded_head') {
+             hGeo = new THREE.BoxGeometry(dHead.w, dHead.h, dHead.d);
+             addMesh('Headrest', hGeo, headHex, 'padded', 0, headY + dHead.h/2, bLegZ, bTilt);
+          } else {
+             hGeo = sg(()=>new THREE.TubeGeometry(crestCurve, 32, dHead.d/2, 12, false), new THREE.BoxGeometry(dHead.w, dHead.h, dHead.d));
+             addMesh('Headrest', hGeo, headHex, headCarv, 0, headY, bLegZ, bTilt);
+          }
+        }
       }
+
+      /* ── BACK SPINDLES ── */
+      if (backStyle === 'modern_rocker_back') {
+         addMesh('Back', new THREE.BoxGeometry(bW, bH, 0.04), backHex, backCarv, 0, sTY+bH/2, bLegZ, bTilt);
+      } else {
+        const sCnt=7, gap=bW/(sCnt-1);
+        for(let i=0; i<sCnt; i++) {
+          const tx = -bW/2 + i*gap;
+          const normX = (tx / (dHead.w/2));
+          const isCurved = headStyle==='rocking_crest' || headStyle==='bentwood_head';
+          const liftH = (headStyle==='bentwood_head') ? dHead.h*1.5 : dHead.h;
+          const curveLift = isCurved ? Math.max(0, (1 - Math.pow(normX, 2)) * liftH * 0.65) : 0;
+          const currH = bH + curveLift;
+          const sR = 0.018;
+          addMesh('Back', new THREE.CylinderGeometry(sR, sR*1.2, currH, 8), backHex, 'none', tx, sTY + currH/2, bLegZ, bTilt);
+        }
+      }
+      return sTY;
     }
 
     function punchBackHolesRocking(s, backHole, dBack) {
@@ -1565,8 +1538,17 @@
         const ac=(armShape==='pad_arm'&&armCarv==='none')?'padded':armCarv;
 
         if (armShape === 'rocking_arm') {
-          addMesh('Armrests', new THREE.BoxGeometry(bW*1.1, th*1.4, barLen*0.88), armHex, ac, xPos, seatTopY+pH*0.85, barCtrZ+barLen*0.04);
-          addMesh('Armrests', new THREE.CylinderGeometry(bW*0.42, bW*0.42, pH, 10), armHex, ac, xPos, seatTopY+pH/2, postZ);
+          // Classic Rocking Arm
+          addMesh('Armrests', new THREE.BoxGeometry(bW*1.2, th*1.4, barLen*0.9), armHex, ac, xPos, seatTopY+pH*0.85, barCtrZ+barLen*0.04);
+          const supportPts = []; for(let i=0; i<=8; i++) {
+             const t = i/8; const s = 1 + Math.sin(t*Math.PI)*0.2;
+             supportPts.push(new THREE.Vector2(bW*0.4*s, t*pH));
+          }
+          addMesh('Armrests', new THREE.LatheGeometry(supportPts, 12), armHex, ac, xPos, seatTopY, postZ);
+        } else if (armShape === 'modern_rocking_arm') {
+          // Modern Rocking Arm: Sleek flat bar
+          addMesh('Armrests', new THREE.BoxGeometry(bW * 0.8, th * 0.6, barLen), armHex, ac, xPos, seatTopY + pH, barCtrZ);
+          addMesh('Armrests', new THREE.BoxGeometry(0.04, pH, 0.04), armHex, ac, xPos, seatTopY + pH/2, postZ);
         } else if(armShape==='l_shape_arm'){
           addMesh('Armrests',new THREE.BoxGeometry(bW,pH,th),armHex,ac,xPos,seatTopY+pH/2,postZ);
           addMesh('Armrests',new THREE.BoxGeometry(bW,th,barLen),armHex,ac,xPos,armTopY,barCtrZ);

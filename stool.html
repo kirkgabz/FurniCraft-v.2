@@ -13,16 +13,10 @@
 
   <style>
     :root {
-      --bg-dark: #1e1e1e;
-      --bg-panel: #252526;
-      --bg-header: #333333;
-      --accent: #d35400;
-      --select-blue: #007acc;
-      --text-main: #e0e0e0;
-      --text-dim: #999;
-      --border: #3e3e42;
-      --gold: #f1c40f;
-      --rec-bg: #2c2918;
+      --bg-dark:#1e1e1e; --bg-panel:#252526; --bg-header:#333333;
+      --accent:#8e44ad; --accent2:#6c3483; --select-blue:#007acc;
+      --text-main:#e0e0e0; --text-dim:#999; --border:#3e3e42;
+      --gold:#f1c40f; --rec-bg:#2a1a35;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,10 +26,10 @@
     .brand { font-weight: 700; font-family: 'Nunito', sans-serif; color: white; display: flex; align-items: center; gap: 8px; }
     
     .header-center { display: flex; align-items: center; gap: 16px; }
-    .height-badge { display: flex; align-items: center; gap: 6px; background: rgba(211,84,0,0.15); border: 1px solid rgba(211,84,0,0.3); border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; color: #f39c12; font-weight: 600; }
+    .height-badge { display: flex; align-items: center; gap: 6px; background: rgba(142,68,173,0.15); border: 1px solid rgba(142,68,173,0.3); border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; color: #f39c12; font-weight: 600; }
     
-    .btn-export { background: #e67e22 !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
-    .btn-export:hover { background: #d35400 !important; }
+    .btn-export { background: var(--accent) !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
+    .btn-export:hover { background: var(--accent2) !important; }
     
     .workspace { display: flex; flex: 1; height: calc(100vh - 45px); }
 
@@ -52,7 +46,7 @@
     .btn-delete:hover { color: #c0392b; background: rgba(192,57,43,0.1); }
     
     .btn-add { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.02em; transition: 0.2s; }
-    .btn-add:hover { background: #b84a00; }
+    .btn-add:hover { background: var(--accent2); }
 
     /* VIEWPORT */
     .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); }
@@ -93,7 +87,7 @@
     .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
     .design-card { background: #333; border: 1px solid #444; border-radius: 4px; padding: 10px; text-align: center; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; height: 80px; position: relative; overflow: hidden; }
     .design-card:hover { transform: translateY(-2px); background: #3e3e42; border-color:white; }
-    .design-card.active { border-color: var(--accent); background: rgba(211, 84, 0, 0.1); }
+    .design-card.active { border-color: var(--accent); background: rgba(142, 68, 173, 0.1); }
     .design-icon { font-size: 1.4rem; color: #aaa; }
     .design-name { font-size: 0.7rem; color: #ccc; line-height: 1.1; }
 
@@ -129,7 +123,7 @@
     .prop-group { padding: 20px 18px; border-bottom: 1px solid var(--border); }
 
     .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; min-width: 0; }
-    .section-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; background: rgba(211,84,0,0.15); color: var(--accent); border: 1px solid rgba(211,84,0,0.25); }
+    .section-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; background: rgba(142,68,173,0.15); color: var(--accent); border: 1px solid rgba(142,68,173,0.25); }
     .prop-label { font-size: 0.78rem; font-weight: 800; color: #d0d0d0; display: inline; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; line-height: 1.2; flex-shrink: 0; }
 
     .info-btn { width: 18px; height: 18px; border-radius: 50%; background: #2e2e2e; border: 1px solid #4a4a4a; color: #777; font-size: 0.65rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s; }
@@ -146,7 +140,7 @@
     .mat-grid-large { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
     .mat-card-lg { background: #333; border: 1px solid var(--border); border-radius: 6px; padding: 12px 8px; text-align: center; cursor: pointer; transition: 0.15s; position: relative; }
     .mat-card-lg:hover { transform: translateY(-2px); background: #3e3e42; border-color: white; }
-    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #554a1f; }
+    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #5a2a7a; }
     .mat-card-icon { font-size: 1.8rem; margin-bottom: 6px; }
     .mat-card-name { font-size: 0.88rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -160,12 +154,12 @@
     .height-presets { display: flex; gap: 8px; margin-bottom: 10px; }
     .height-preset-btn { flex: 1; padding: 10px 6px; background: #333; border: 1px solid #444; border-radius: 4px; color: #ccc; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-align: center; transition: 0.15s; }
     .height-preset-btn:hover { background: #3e3e42; border-color: var(--accent); }
-    .height-preset-btn.active { background: rgba(211, 84, 0, 0.1); border-color: var(--accent); color: var(--accent); }
+    .height-preset-btn.active { background: rgba(142, 68, 173, 0.1); border-color: var(--accent); color: var(--accent); }
     .height-preset-title { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; font-weight: 800; }
 
     /* LAYERS */
     .layer-item { background: #2b2b2b; border-radius: 6px; margin-bottom: 10px; border: 1px solid #333; transition: all 0.2s; }
-    .layer-item.active-layer { border: 1px solid var(--select-blue); box-shadow: 0 0 10px rgba(0, 122, 204, 0.25); }
+    .layer-item.active-layer { border: 1px solid var(--select-blue); box-shadow: 0 0 10px rgba(142, 68, 173, 0.25); }
     .layer-header { padding: 13px 12px; font-size: 1rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #333; border-radius: 6px 6px 0 0; }
     .layer-header:hover { background: #3c3c3c; }
     .color-preview { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #777; flex-shrink: 0; }
@@ -197,7 +191,7 @@
     .accessory-item.enabled { border-color: var(--select-blue); }
     .accessory-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; background: #333; }
     .accessory-header:hover { background: #3c3c3c; }
-    .accessory-icon { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; background: rgba(211,84,0,0.15); color: var(--accent); border: 1px solid rgba(211,84,0,0.25); }
+    .accessory-icon { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; background: rgba(142,68,173,0.15); color: var(--accent); border: 1px solid rgba(142,68,173,0.25); }
     .accessory-icon.enabled { background: rgba(0, 122, 204, 0.15); border-color: var(--select-blue); color: var(--select-blue);}
     .accessory-title { flex: 1; font-size: 0.95rem; font-weight: 600; color: #e0d0c8; }
     
@@ -244,7 +238,7 @@
     
     .catalog-header { padding: 20px 26px 15px; border-bottom: 1px solid #444; display: flex; align-items: center; justify-content: space-between; background: #1e1e1e; flex-shrink: 0; }
     .catalog-header-left { display: flex; align-items: center; gap: 14px; }
-    .catalog-header-icon { width: 40px; height: 40px; background: rgba(211,84,0,0.15); border: 1px solid rgba(211,84,0,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.1rem; flex-shrink: 0; }
+    .catalog-header-icon { width: 40px; height: 40px; background: rgba(142,68,173,0.15); border: 1px solid rgba(142,68,173,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.1rem; flex-shrink: 0; }
     .catalog-header h2 { font-size: 1.15rem; font-weight: 700; color: white; margin: 0; }
     .catalog-header p { font-size: 0.85rem; color: #999; margin: 2px 0 0; }
     
@@ -263,14 +257,14 @@
     .catalog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
     .cat-card { background: #333; border: 1px solid #444; border-radius: 6px; padding: 20px 14px; text-align: center; cursor: pointer; transition: 0.18s; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; }
     .cat-card:hover { transform: translateY(-3px); border-color: var(--accent); background: #3a3a3a; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-    .cat-card.current { border-color: var(--accent); background: rgba(211,84,0,0.08); }
+    .cat-card.current { border-color: var(--accent); background: rgba(142,68,173,0.08); }
     
     .cat-card-icon { width: 55px; height: 55px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; background: #222; border: 1px solid #555; color: #aaa;}
-    .cat-card.current .cat-card-icon { background: rgba(211,84,0,0.15); border-color: rgba(211,84,0,0.4); color: var(--accent);}
+    .cat-card.current .cat-card-icon { background: rgba(142,68,173,0.15); border-color: rgba(142,68,173,0.4); color: var(--accent);}
     
     .cat-card-name { font-size: 0.95rem; font-weight: 700; color: #e0e0e0; }
     .cat-card-desc { font-size: 0.78rem; color: #999; line-height: 1.4; }
-    .cat-card-badge { position: absolute; top: 8px; right: 8px; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(211,84,0,0.2); color: var(--accent); border: 1px solid rgba(211,84,0,0.4); text-transform: uppercase; }
+    .cat-card-badge { position: absolute; top: 8px; right: 8px; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(142,68,173,0.2); color: var(--accent); border: 1px solid rgba(142,68,173,0.4); text-transform: uppercase; }
 
     /* PREV PROJECT */
     .prev-project-bar { margin: 8px 8px 0; background: #1e1e1e; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
@@ -309,7 +303,7 @@
         </div>
       </div>
       
-      <button class="btn-add" onclick="openFurnitureCatalog()"><i class="fas fa-plus"></i> Add New Furniture Project</button>
+      <button class="btn-add" onclick="goToCraft()"><i class="fas fa-plus"></i> Add New Furniture Project</button>
     </aside>
 
     <main class="viewport">
@@ -473,81 +467,7 @@
     <div class="info-tooltip-tip" id="tt-tip"></div>
   </div>
 
-  <div id="catalog-overlay" onclick="closeCatalogBg(event)">
-    <div class="catalog-modal" onclick="event.stopPropagation()">
-      <div class="catalog-header">
-        <div class="catalog-header-left">
-          <div class="catalog-header-icon"><i class="fas fa-th-large"></i></div>
-          <div><h2>Furniture Catalog</h2><p>Select a category to start a new project</p></div>
-        </div>
-        <button class="catalog-close" onclick="closeCatalog()">×</button>
-      </div>
-      <div class="catalog-back-row">
-        <button class="catalog-back-btn" onclick="goToCraft()"><i class="fas fa-arrow-left"></i> Back to FurniCraft Home</button>
-        <span class="catalog-back-label">or choose a category below</span>
-      </div>
-      <div class="catalog-body">
-        
-        <div class="catalog-section-title">Seating &amp; Tables</div>
-        <div class="catalog-grid">
-          <div class="cat-card" onclick="selectCategory('dining_table')">
-            <div class="cat-card-icon"><i class="fas fa-table"></i></div>
-            <div class="cat-card-name">Dining Table</div>
-            <div class="cat-card-desc">Custom dining tables with shapes, legs &amp; accessories</div>
-          </div>
-          <div class="cat-card" onclick="selectCategory('coffee_table')">
-            <div class="cat-card-icon"><i class="fas fa-coffee"></i></div>
-            <div class="cat-card-name">Coffee Table</div>
-            <div class="cat-card-desc">Low center tables for living room spaces</div>
-          </div>
-          <div class="cat-card current" onclick="selectCategory('stool')">
-            <div class="cat-card-badge">Current</div>
-            <div class="cat-card-icon"><i class="fas fa-chair"></i></div>
-            <div class="cat-card-name">Bar Stool</div>
-            <div class="cat-card-desc">Counter, bar &amp; extra-tall stool designs</div>
-          </div>
-        </div>
-        
-        <div class="catalog-section-title">Storage &amp; Shelving</div>
-        <div class="catalog-grid">
-          <div class="cat-card" onclick="selectCategory('bookshelf')">
-            <div class="cat-card-icon"><i class="fas fa-book"></i></div>
-            <div class="cat-card-name">Bookshelf</div>
-            <div class="cat-card-desc">Freestanding &amp; wall-mount shelving units</div>
-          </div>
-          <div class="cat-card" onclick="selectCategory('cabinet')">
-            <div class="cat-card-icon"><i class="fas fa-archive"></i></div>
-            <div class="cat-card-name">Cabinet</div>
-            <div class="cat-card-desc">TV consoles, sideboards &amp; storage cabinets</div>
-          </div>
-          <div class="cat-card" onclick="selectCategory('wardrobe')">
-            <div class="cat-card-icon"><i class="fas fa-tshirt"></i></div>
-            <div class="cat-card-name">Wardrobe</div>
-            <div class="cat-card-desc">Sliding &amp; swing-door wardrobe configurations</div>
-          </div>
-        </div>
-        
-        <div class="catalog-section-title">Bedroom</div>
-        <div class="catalog-grid">
-          <div class="cat-card" onclick="selectCategory('bed_frame')">
-            <div class="cat-card-icon"><i class="fas fa-bed"></i></div>
-            <div class="cat-card-name">Bed Frame</div>
-            <div class="cat-card-desc">Platform, panel &amp; canopy bed frames</div>
-          </div>
-          <div class="cat-card" onclick="selectCategory('nightstand')">
-            <div class="cat-card-icon"><i class="fas fa-moon"></i></div>
-            <div class="cat-card-name">Nightstand</div>
-            <div class="cat-card-desc">Bedside tables with drawer configurations</div>
-          </div>
-          <div class="cat-card" onclick="selectCategory('dresser')">
-            <div class="cat-card-icon"><i class="fas fa-th-list"></i></div>
-            <div class="cat-card-name">Dresser</div>
-            <div class="cat-card-desc">Multi-drawer dresser &amp; vanity designs</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+
 
 <script>
 /* ============================================================  NAVIGATION & EXPORT */
@@ -612,17 +532,11 @@ function goToExport(){
     window.location.href = 'export_area.html';
 }
 
-function goToCraft(){ closeCatalog(); window.location.href='craft.html'; }
-function openFurnitureCatalog(){ document.getElementById('catalog-overlay').classList.add('open'); }
-function closeCatalog(){ document.getElementById('catalog-overlay').classList.remove('open'); }
-function closeCatalogBg(e){ if(e.target===document.getElementById('catalog-overlay')) closeCatalog(); }
-const CATEGORY_ROUTES={ dining_table:'table.html', coffee_table:'coffee_table.html', stool:null, bookshelf:'bookshelf.html', cabinet:'cabinet.html', wardrobe:'wardrobe.html', bed_frame:'bed_frame.html', nightstand:'nightstand.html', dresser:'dresser.html' };
-function selectCategory(catId){
-  closeCatalog();
-  if(catId==='stool'){ createNewStool(true); return; }
-  const route=CATEGORY_ROUTES[catId];
-  if(route){ const ai=getActiveItem(); if(ai){ sessionStorage.setItem('prevProjectName',ai.name); sessionStorage.setItem('prevProjectPage','stool.html'); } window.location.href=route; }
-  else createNewStool(true);
+function goToCraft(){ 
+  saveState();
+  const ai=getActiveItem();
+  if(ai){ sessionStorage.setItem('prevProjectName',ai.name); sessionStorage.setItem('prevProjectPage','stool.html'); }
+  window.location.href='craft.html'; 
 }
 function goToPrevProject(){ const p=sessionStorage.getItem('prevProjectPage'); if(p) window.location.href=p; }
 function loadPrevProjectBar(){
@@ -799,7 +713,12 @@ let textureCache={}, modalState={partName:null,type:null};
 
 window.onload=function(){
   try{ const s=sessionStorage.getItem('cadState_stool_v3'); if(s){appState=JSON.parse(s);if(!appState.items)appState.items=[];} }catch(e){appState.items=[];}
-  if(appState.items.length===0) createNewStool(false);
+  
+  const shouldAdd = sessionStorage.getItem('addNew');
+  if(appState.items.length===0 || shouldAdd === 'true'){
+    createNewStool(false);
+    sessionStorage.removeItem('addNew');
+  }
   if(!appState.activeLayer) appState.activeLayer='Seat';
   renderUI(); updatePrice();
   loadPrevProjectBar();
@@ -1122,15 +1041,20 @@ function focusOnPart(partName){
   if(ai&&ai.dims&&ai.dims[partName]){ const d=ai.dims[partName]; const dist=Math.max(d.w,d.h,d.d)/40+3; camera.position.set(center.x+dist,center.y+dist*0.5,center.z+dist); }
 }
 
-function createDimensionLine(start,end,label,offset){
-  if(!showDimensions) return;
-  const off=offset||new THREE.Vector3();
-  const p1=start.clone().add(off), p2=end.clone().add(off);
-  dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),new THREE.LineBasicMaterial({color:0xaaaaaa,transparent:true,opacity:0.5})));
-  const canvas=document.createElement('canvas'); canvas.width=512; canvas.height=128;
-  const ctx=canvas.getContext('2d'); ctx.font='Bold 58px Segoe UI'; ctx.fillStyle='#ffffff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.shadowColor='rgba(0,0,0,0.8)'; ctx.shadowBlur=4; ctx.fillText(label,256,64);
-  const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(canvas),transparent:true,depthTest:false}));
-  sprite.position.copy(p1).lerp(p2,0.5); sprite.position.y+=0.05; sprite.scale.set(0.75,0.19,1);
+function createDimensionLine(start, end, label, offset) {
+  if (!showDimensions) return;
+  const off = offset || new THREE.Vector3();
+  const p1 = start.clone().add(off), p2 = end.clone().add(off);
+  dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1, p2]), new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 })));
+  const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0, 0, 512, 128);
+  ctx.font = 'Bold 80px Segoe UI'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 4;
+  ctx.fillText(label, 256, 64);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
+  sprite.position.copy(p1).lerp(p2, 0.5); sprite.position.y += 0.05;
+  sprite.scale.set(1.2, 0.3, 1);
   dimGroup.add(sprite);
 }
 
@@ -1475,11 +1399,15 @@ function build3DScene(){
     const sR=Math.min(dSeat.w,dSeat.d)/2;
     createDimensionLine(
       new THREE.Vector3(-sR*gx,0,0), new THREE.Vector3(sR*gx,0,0),
-      Math.round(dSeat.w*S*gx)+'cm',
+      Math.round(dSeat.w*S*gx)+'cm W',
       new THREE.Vector3(0,yTop*gy+dSeat.h*gy*0.5+0.18,sR*gz+0.05));
     createDimensionLine(
       new THREE.Vector3(-sR*gx-0.25,0,0), new THREE.Vector3(-sR*gx-0.25,legH*gy,0),
-      Math.round(legH*S*gy)+'cm', new THREE.Vector3(-0.1,0,0));
+      Math.round(legH*S*gy)+'cm H', new THREE.Vector3(-0.1,0,0));
+    createDimensionLine(
+      new THREE.Vector3(sR*gx+0.1,0,-sR*gz), new THREE.Vector3(sR*gx+0.1,0,sR*gz),
+      Math.round(dSeat.d*S*gz)+'cm D',
+      new THREE.Vector3(0,yTop*gy,0));
   }
 
   /* === ACCESSORIES 3D === */

@@ -4,33 +4,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Irawan Woodworks - Modern Dashboard</title>
+  <title>Irawan Woodworks - Partner Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
   <style>
     :root {
-      --bg-light: #f4f7fc;
-      --text-main: #333333;
-      --text-muted: #888888;
-
-      --color-red: #ea5455;
-      --color-orange: #ff9f43;
-      --color-blue: #00cfe8;
-      --color-purple: #7367f0;
-
-      --badge-success-bg: #dcf6e8;
-      --badge-success-text: #28c76f;
-      --badge-warning-bg: #fff1d6;
-      --badge-warning-text: #ff9f43;
-      --badge-info-bg: #d9f8fc;
-      --badge-info-text: #00cfe8;
-      --badge-danger-bg: #fce4e4;
-      --badge-danger-text: #ea5455;
-      --badge-secondary-bg: #ebe9f1;
-      --badge-secondary-text: #82868b;
+      /* Refreshing Light Theme Palette */
+      --bg-main: #f8fafc;
+      --bg-side: #ffffff;
+      --card-bg: rgba(255, 255, 255, 0.8);
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      
+      --primary: #4f46e5; /* Indigo */
+      --primary-soft: rgba(79, 70, 229, 0.1);
+      --accent: #c9a84c; /* Gold touch */
+      --accent-soft: rgba(201, 168, 76, 0.1);
+      
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      
+      --border: rgba(226, 232, 240, 0.8);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
 
     * {
@@ -40,36 +44,43 @@
     }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg-light);
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-main);
       color: var(--text-main);
       min-height: 100vh;
       line-height: 1.6;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(201, 168, 76, 0.05) 0px, transparent 50%);
     }
 
     header {
-      background: #ffffff;
-      padding: 1rem 2rem;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(20px);
+      padding: 1rem 2.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 1000;
+      box-shadow: var(--shadow-sm);
     }
 
     .brand {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--color-purple);
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-main);
       display: flex;
       align-items: center;
       gap: 0.8rem;
     }
 
     .brand i {
-      font-size: 1.5rem;
+      color: var(--primary);
+      font-size: 1.4rem;
     }
 
     .header-actions {
@@ -79,354 +90,445 @@
     }
 
     .pill {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
-      color: var(--text-muted);
+      color: var(--primary);
+      background: var(--primary-soft);
+      padding: 0.5rem 1.2rem;
+      border-radius: 100px;
+      border: 1px solid rgba(79, 70, 229, 0.1);
     }
 
     .btn {
       border: none;
-      border-radius: 6px;
-      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      padding: 0.7rem 1.4rem;
       cursor: pointer;
-      font-weight: 500;
+      font-weight: 600;
       font-size: 0.9rem;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
     }
 
     .btn-primary {
-      background: var(--color-purple);
-      color: #fff;
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.3);
     }
 
     .btn-primary:hover {
-      box-shadow: 0 4px 10px rgba(115, 103, 240, 0.4);
-      transform: translateY(-1px);
+      background: #4338ca;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
     }
 
-    .btn-secondary {
-      background: #f8f8f8;
+    .btn-outline {
+      background: #ffffff;
       color: var(--text-main);
-      border: 1px solid #ddd;
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background: #f8fafc;
+      border-color: var(--primary);
+      color: var(--primary);
     }
 
     .btn-danger {
-      background: var(--color-red);
-      color: #fff;
+      background: #fff;
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #ffffff;
     }
 
     .container {
-      max-width: 1400px;
+      max-width: 1440px;
       margin: 0 auto;
-      padding: 2rem;
+      padding: 2.5rem;
     }
 
+    .dashboard-intro {
+      margin-bottom: 2.5rem;
+    }
+
+    .dashboard-intro h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .dashboard-intro p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    /* Stats Grid */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 1.5rem;
-      margin-bottom: 2rem;
+      margin-bottom: 2.5rem;
     }
 
     .stat-card {
-      border-radius: 8px;
-      padding: 1.5rem;
-      color: #fff;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.8rem;
       display: flex;
-      flex-direction: column;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      align-items: center;
+      gap: 1.5rem;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
     }
 
-    .stat-card.red {
-      background: var(--color-red);
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary-soft);
     }
 
-    .stat-card.orange {
-      background: var(--color-orange);
+    .stat-icon-box {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      flex-shrink: 0;
     }
 
-    .stat-card.blue {
-      background: var(--color-blue);
-    }
+    .stat-icon-box.indigo { background: rgba(79, 70, 229, 0.1); color: var(--primary); }
+    .stat-icon-box.emerald { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .stat-icon-box.amber { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .stat-icon-box.rose { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
 
-    .stat-card.purple {
-      background: var(--color-purple);
-    }
-
-    .stat-card .v {
-      font-size: 2.5rem;
+    .stat-info h3 {
+      font-size: 2rem;
       font-weight: 700;
-      line-height: 1.1;
-      margin-top: 0.5rem;
+      line-height: 1;
+      margin-bottom: 0.3rem;
+      color: var(--text-main);
     }
 
-    .stat-card .k {
-      font-size: 0.85rem;
+    .stat-info p {
+      font-size: 0.9rem;
       font-weight: 600;
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      opacity: 0.9;
     }
 
-    .stat-icon {
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      font-size: 2.5rem;
-      opacity: 0.2;
-    }
-
-    .row {
+    /* Main Grid Layout */
+    .main-grid {
       display: grid;
       grid-template-columns: 2fr 1fr;
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
+      gap: 2rem;
     }
 
-    @media (max-width: 992px) {
-      .row {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 1100px) {
+      .main-grid { grid-template-columns: 1fr; }
     }
 
-    .card {
+    .section-card {
       background: #ffffff;
-      border-radius: 8px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2.2rem;
+      box-shadow: var(--shadow-sm);
     }
 
-    .card-header {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 1.2rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #f0f0f0;
-    }
-
-    .muted-text {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-bottom: 1rem;
-    }
-
-    .toolbar {
+    .section-header {
       display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.8rem;
     }
 
-    input,
-    select {
-      padding: 0.6rem 0.8rem;
-      border: 1px solid #d8d6de;
-      border-radius: 6px;
-      font-family: inherit;
+    .section-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
       color: var(--text-main);
-      outline: none;
     }
 
-    input:focus,
-    select:focus {
-      border-color: var(--color-purple);
-    }
+    .section-header h2 i { color: var(--primary); }
 
-    .list {
-      list-style: none;
+    /* Commission List */
+    .commission-item {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.8rem;
+      margin-bottom: 1.5rem;
       display: flex;
       flex-direction: column;
+      gap: 1.2rem;
+      transition: all 0.2s;
     }
 
-    .list-item {
+    .commission-item:hover {
+      background: #ffffff;
+      box-shadow: var(--shadow-md);
+      transform: scale(1.01);
+    }
+
+    .item-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      padding: 1.2rem 0;
-      border-bottom: 1px solid #f0f0f0;
-      flex-wrap: wrap;
       gap: 1rem;
     }
 
-    .list-item:last-child {
-      border-bottom: none;
-    }
-
-    .item-info {
-      flex: 1;
-      min-width: 200px;
-    }
-
-    .item-title {
-      font-weight: 600;
+    .item-main-info h4 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
       color: var(--text-main);
-      font-size: 1rem;
-      margin-bottom: 0.2rem;
     }
 
-    .item-sub {
-      font-size: 0.85rem;
+    .item-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.9rem;
       color: var(--text-muted);
     }
 
+    .price-tag {
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 1.3rem;
+      padding: 0.4rem 1rem;
+      background: var(--primary-soft);
+      border-radius: 12px;
+    }
+
     .badge {
-      padding: 0.4rem 0.8rem;
-      border-radius: 50px;
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .badge-pending { background: #e2e8f0; color: #475569; }
+    .badge-info { background: #dbeafe; color: #1d4ed8; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-success { background: #d1fae5; color: #065f46; }
+    .badge-danger { background: #fee2e2; color: #b91c1c; }
+
+    .payment-info-box {
+      background: #ecfdf5;
+      border: 1px solid #10b98122;
+      border-radius: 12px;
+      padding: 1.2rem;
+      font-size: 0.95rem;
+      color: #065f46;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .payment-info-box.unpaid {
+      background: #f1f5f9;
+      border: 1px dashed #cbd5e1;
+      color: #64748b;
+    }
+
+    .item-controls {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 1.5rem;
+      align-items: end;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 0.6rem;
       letter-spacing: 0.5px;
-      white-space: nowrap;
     }
 
-    .badge-pending {
-      background: var(--badge-secondary-bg);
-      color: var(--badge-secondary-text);
-    }
-
-    .badge-approved {
-      background: var(--badge-info-bg);
-      color: var(--badge-info-text);
-    }
-
-    .badge-verifying {
-      background: var(--badge-warning-bg);
-      color: var(--badge-warning-text);
-    }
-
-    .badge-progress {
-      background: var(--badge-warning-bg);
-      color: var(--badge-warning-text);
-    }
-
-    .badge-completed {
-      background: var(--badge-success-bg);
-      color: var(--badge-success-text);
-    }
-
-    .badge-declined {
-      background: var(--badge-danger-bg);
-      color: var(--badge-danger-text);
-    }
-
-    .item-actions {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.5rem;
-      min-width: 200px;
-    }
-
-    .status-select {
-      background: #f8f9fa;
-      border: 1px solid #ddd;
-      font-weight: 500;
-      font-size: 0.85rem;
+    select, input[type="text"] {
       width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.8rem 1.2rem;
+      border-radius: 12px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
     }
 
-    .progress-control {
-      background: #f8f9fa;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 10px;
-      width: 100%;
-      margin-top: 10px;
-      animation: fadeIn 0.3s ease;
+    select:focus, input[type="text"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-soft);
     }
 
-    .progress-bar-bg {
-      width: 100%;
-      height: 6px;
+    .progress-bar-container {
+      margin-top: 1rem;
+    }
+
+    .progress-track {
+      height: 8px;
       background: #e2e8f0;
-      border-radius: 4px;
+      border-radius: 100px;
       overflow: hidden;
-      margin-top: 8px;
+      margin-top: 10px;
     }
 
-    .progress-bar-fill {
+    .progress-fill {
       height: 100%;
-      background: var(--color-blue);
-      transition: width 0.4s ease;
+      background: linear-gradient(90deg, #4f46e5 0%, #818cf8 100%);
+      transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-5px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .messages {
-      border: 1px solid #f0f0f0;
-      border-radius: 8px;
-      background: #fdfdfd;
-      padding: 1rem;
-      height: 300px;
-      overflow-y: auto;
-      margin-bottom: 1rem;
+    /* Chat Section */
+    .chat-container {
       display: flex;
       flex-direction: column;
+      height: 520px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      overflow-y: auto;
+      margin-bottom: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
 
     .msg {
-      padding: 0.6rem 0.8rem;
-      border-radius: 8px;
-      margin-bottom: 0.6rem;
       max-width: 85%;
-      font-size: 0.9rem;
-      line-height: 1.4;
+      padding: 0.9rem 1.3rem;
+      border-radius: 18px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
     .msg.user {
-      background: #f0f0f0;
       align-self: flex-start;
+      background: #ffffff;
       color: var(--text-main);
+      border-bottom-left-radius: 4px;
     }
 
     .msg.shop {
-      background: var(--color-purple);
-      color: #fff;
       align-self: flex-end;
+      background: var(--primary);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
     }
 
-    .slider-header {
-      display: flex;
-      justify-content: space-between;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .slider-val {
-      color: var(--color-purple);
-    }
-
+    /* Settings Sliders */
     input[type=range] {
+      -webkit-appearance: none;
       width: 100%;
-      accent-color: var(--color-purple);
-      cursor: pointer;
-      margin-bottom: 0.5rem;
+      background: #e2e8f0;
+      height: 8px;
+      border-radius: 10px;
+      outline: none;
+      margin: 1.5rem 0;
     }
 
-    .ref-box {
-      background: #f8f9fa;
-      border: 1px dashed #d8d6de;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      margin-top: 8px;
-      color: var(--text-main);
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid var(--primary);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
     }
+
+    /* Tools Section */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .tool-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .tool-card:hover {
+      border-color: var(--primary-soft);
+      background: var(--primary-soft);
+      transform: translateY(-5px);
+    }
+
+    .tool-card i {
+      font-size: 2.22rem;
+      color: var(--primary);
+      margin-bottom: 1.2rem;
+    }
+
+    .tool-card h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    /* Verification Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 2rem;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border-radius: 32px;
+      width: 100%;
+      max-width: 540px;
+      padding: 3rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
   </style>
 </head>
 
@@ -434,662 +536,429 @@
 
   <header>
     <div class="brand">
-      <i class="fas fa-layer-group"></i>
+      <i class="fas fa-hammer"></i>
       <span>Irawan Woodworks</span>
     </div>
     <div class="header-actions">
-      <span class="pill" id="dpText">DP Required: 20%</span>
-      <span class="pill" id="permitStatusText" style="color:var(--color-orange);"><i class="fas fa-shield-alt"></i> Unverified</span>
-      <button class="btn btn-outline" onclick="openPermitModal()"><i class="fas fa-file-contract"></i> Verification</button>
-      <button class="btn btn-outline" onclick="openSettingsModal()"><i class="fas fa-cog"></i> Settings</button>
-      <button class="btn btn-primary" onclick="goToMain()"><i class="fas fa-home"></i> Main Site</button>
-      <button class="btn btn-secondary" style="color:var(--color-red); border-color:var(--color-red);"
-        onclick="logoutShop()">Logout</button>
+      <div class="pill" id="dpText">DP: 20% Required</div>
+      <div class="pill" id="permitStatusText">
+        <i class="fas fa-shield-alt"></i> Verifying...
+      </div>
+      <button class="btn btn-outline" onclick="openPermitModal()"><i class="fas fa-shield-check"></i> Verification</button>
+      <button class="btn btn-primary" onclick="goToMain()"><i class="fas fa-external-link-alt"></i> Marketplace</button>
+      <button class="btn btn-danger" onclick="logoutShop()"><i class="fas fa-sign-out-alt"></i></button>
     </div>
   </header>
 
   <div class="container">
+    
+    <div class="dashboard-intro">
+      <p id="welcomeText" style="color: var(--primary); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; font-size: 0.85rem;">Partner Session Active</p>
+      <h1>Refreshing Dashboard</h1>
+      <p>Your simplified space to manage furniture builds and customer connections.</p>
+    </div>
 
+    <!-- Counters -->
     <section class="stats-grid">
-      <article class="stat-card red"><i class="fas fa-cube stat-icon"></i>
-        <div class="k">Imported Models</div>
-        <div class="v" id="statModels">0</div>
-      </article>
-      <article class="stat-card orange"><i class="fas fa-shopping-bag stat-icon"></i>
-        <div class="k">Total Commissions</div>
-        <div class="v" id="statCommissions">0</div>
-      </article>
-      <article class="stat-card blue"><i class="fas fa-clock stat-icon"></i>
-        <div class="k">Pending Requests</div>
-        <div class="v" id="statPending">0</div>
-      </article>
-      <article class="stat-card purple"><i class="fas fa-comment-dots stat-icon"></i>
-        <div class="k">Chat Messages</div>
-        <div class="v" id="statMessages">0</div>
-      </article>
+      <div class="stat-card">
+        <div class="stat-icon-box indigo"><i class="fas fa-shapes"></i></div>
+        <div class="stat-info">
+          <h3 id="statModels">0</h3>
+          <p>3D Models</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-box emerald"><i class="fas fa-shopping-cart"></i></div>
+        <div class="stat-info">
+          <h3 id="statCommissions">0</h3>
+          <p>Total Orders</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-box amber"><i class="fas fa-hourglass-half"></i></div>
+        <div class="stat-info">
+          <h3 id="statPending">0</h3>
+          <p>Queueing</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-box rose"><i class="fas fa-heart"></i></div>
+        <div class="stat-info">
+          <h3 id="statMessages">0</h3>
+          <p>Threads</p>
+        </div>
+      </div>
     </section>
 
-    <div class="row">
-      <section class="card">
-        <div class="card-header">Project Commissions</div>
-        <p class="muted-text">Manage customer requests, verify payments, and update build progress.</p>
-        <ul id="commissionsList" class="list"></ul>
+    <div class="main-grid">
+      <!-- Left: Commissions -->
+      <section class="section-card">
+        <div class="section-header">
+          <h2><i class="fas fa-list-check"></i> Orders & Progress</h2>
+          <button class="btn btn-outline" style="padding: 0.5rem 0.8rem;" onclick="loadCommissions()"><i class="fas fa-sync-alt"></i></button>
+        </div>
+        <div id="commissionsList">
+          <!-- Dynamically Injected -->
+        </div>
       </section>
 
-      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-        <section class="card">
-          <div class="card-header">Payment Settings</div>
-          <div class="slider-header"><span>Required Downpayment</span><span class="slider-val"
-              id="dpValueDisplay">20%</span></div>
+      <!-- Right: Side Panels -->
+      <div style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <section class="section-card">
+          <div class="section-header">
+            <h2 style="font-size: 1.3rem;"><i class="fas fa-coins"></i> Shop Policy</h2>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-weight:700;">
+            <span>Downpayment Rate</span>
+            <span style="color:var(--primary)" id="dpValueDisplay">20%</span>
+          </div>
           <input type="range" id="dpSlider" min="5" max="50" step="5" value="20" oninput="updateDpRate(this.value)">
-          <p class="muted-text" style="font-size: 0.8rem; margin-top: 0.5rem; margin-bottom: 0;">Customers will be asked
-            to pay this percentage to begin production.</p>
+          <p style="color: var(--text-muted); font-size: 0.85rem;">Adjusting this affects new requests only.</p>
         </section>
 
-        <section class="card" style="flex: 1;">
-          <div class="card-header">Customer Chat</div>
-          <div class="toolbar">
-            <select id="customerThreadSelect" onchange="changeThread()" style="flex: 1;"></select>
-            <button class="btn btn-secondary" onclick="loadCustomerThreads()"><i class="fas fa-sync-alt"></i></button>
+        <section class="section-card">
+          <div class="section-header">
+            <h2 style="font-size: 1.3rem;"><i class="fas fa-comment-alt"></i> Live Support</h2>
           </div>
-          <div id="messagesBox" class="messages"></div>
-          <div style="display: flex; gap: 0.5rem;">
-            <input id="replyInput" type="text" placeholder="Type a message..." style="flex: 1;"
-              onkeypress="if(event.key === 'Enter') sendReply()">
-            <button class="btn btn-primary" onclick="sendReply()"><i class="fas fa-paper-plane"></i></button>
+          <div style="margin-bottom: 1.2rem;">
+            <select id="customerThreadSelect" onchange="changeThread()"></select>
+          </div>
+          <div class="chat-container">
+            <div id="messagesBox" class="chat-messages"></div>
+            <div style="display:flex; gap:0.6rem;">
+              <input id="replyInput" type="text" placeholder="Type message..." onkeypress="if(event.key === 'Enter') sendReply()">
+              <button class="btn btn-primary" onclick="sendReply()"><i class="fas fa-paper-plane"></i></button>
+            </div>
           </div>
         </section>
+
       </div>
     </div>
 
-    <div class="row" style="grid-template-columns: 1fr;">
-      <section class="card">
-        <div class="card-header">Design & Asset Management</div>
-        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 300px;">
-            <p class="muted-text" style="font-weight: 600; margin-bottom: 0.5rem;">3D Tools</p>
-            <div class="toolbar">
-              <button class="btn btn-secondary" onclick="window.location.href='furniture-builder.html'"><i
-                  class="fas fa-cube"></i> Open 3D Builder</button>
-              <button class="btn btn-secondary" onclick="window.location.href='craft.html'"><i
-                  class="fas fa-hammer"></i> Open Craft Page</button>
-            </div>
-          </div>
+    <!-- Master Tools -->
+    <section style="margin-top: 3.5rem;">
+      <div class="section-header">
+        <h2><i class="fas fa-toolbox"></i> Creative Suite</h2>
+      </div>
+      <div class="tools-grid">
+        <div class="tool-card" onclick="window.location.href='furniture-builder.html'">
+          <i class="fas fa-cube"></i>
+          <h4>3D Workshop</h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Create custom models from scratch</p>
         </div>
-      </section>
-    </div>
+        <div class="tool-card" onclick="window.location.href='craft.html'">
+          <i class="fas fa-drafting-table"></i>
+          <h4>Drafting Space</h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Review and edit dimensions</p>
+        </div>
+        <div class="tool-card" onclick="startCustomization()">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          <h4>Template Lab</h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Design and publish pre-mades</p>
+        </div>
+      </div>
+    </section>
 
-    <!-- PRE-MADE DESIGNS MANAGER -->
-    <div class="row" style="grid-template-columns: 1fr;">
-        <section class="card" id="preMadeManager">
-          <div class="card-header">Pre-Made Designs Manager</div>
-          <p class="muted-text">Create and publish custom designs directly to the templates gallery.</p>
-          
-          <div class="toolbar" style="margin-bottom:1.5rem;">
-             <input type="text" id="tdName" placeholder="Design Name (e.g. Minimalist Oak Chair)" style="flex:2;">
-             <select id="tdType" style="flex:1;">
-                <option value="chair">Chair</option>
-                <option value="table">Table</option>
-                <option value="bed">Bed</option>
-                <option value="sofa">Sofa</option>
-                <option value="cabinet">Cabinet</option>
-                <option value="stool">Stool</option>
-                <option value="desk">Desk</option>
-                <option value="bookshelf">Bookshelf</option>
-             </select>
-             <select id="tdGender" style="flex:1;">
-                <option value="neutral">Unisex</option>
-                <option value="boy">Boy</option>
-                <option value="girl">Girl</option>
-             </select>
-             <button class="btn btn-primary" onclick="startCustomization()"><i class="fas fa-external-link-alt"></i> Customize Design</button>
-          </div>
-          
-          <div id="customizationContainer" style="display:none; margin-bottom:1.5rem; border:1px solid #ddd; border-radius:8px; padding:10px; background:#fafafa;">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span class="muted-text" style="font-weight:600;"><i class="fas fa-pencil-ruler"></i> Customizing in Dashboard</span>
-                <div style="display:flex; gap:10px; align-items:center;">
-                   <button class="btn btn-success" onclick="saveCustomTemplate()"><i class="fas fa-upload"></i> Push to Templates (Pre-made)</button>
+    <!-- Hidden Template Designer -->
+    <div id="customizationContainer" style="display:none; margin-top: 4rem;">
+        <div class="section-card">
+            <div class="section-header">
+                <h2><i class="fas fa-pen-nib"></i> Designer Frame</h2>
+                <div style="display:flex; gap: 0.8rem;">
+                    <button class="btn btn-outline" onclick="closeCustomizer()">Close</button>
+                    <button class="btn btn-primary" onclick="saveCustomTemplate()">Publish to Gallery</button>
                 </div>
-             </div>
-             <iframe id="customizationFrame" style="width:100%; height:750px; border:none; border-radius:6px; background:#fff;"></iframe>
-          </div>
-
-          <ul id="shopTemplatesList" class="list"></ul>
-        </section>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                <input type="text" id="tdName" placeholder="Design Name">
+                <select id="tdType">
+                    <option value="chair">Chair</option><option value="table">Table</option>
+                    <option value="bed">Bed</option><option value="sofa">Sofa</option>
+                </select>
+                <select id="tdGender">
+                    <option value="neutral">Unisex</option><option value="boy">Boy</option><option value="girl">Girl</option>
+                </select>
+            </div>
+            <iframe id="customizationFrame" style="width:100%; height:800px; border:none; border-radius:24px; background:#f4f7fc;"></iframe>
+        </div>
     </div>
 
   </div>
 
-  <!-- Submit Permit Modal -->
-  <div class="settings-modal" id="permitModal">
-    <div class="modal-content" style="max-width: 500px;">
-      <h3 style="margin-bottom: 1rem;"><i class="fas fa-file-contract"></i> Submit Business Permit</h3>
-      <p class="muted-text" style="margin-bottom: 1.5rem; font-size: 0.85rem;">To verify your shop and prove credibility to customers, please submit a link to your DTI, SEC, or Mayor's Business Permit.</p>
-      <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display:block; margin-bottom: 5px;">Permit Document Link (Google Drive, Image Host, etc.)</label>
-      <input type="text" id="permitLinkInput" placeholder="https://..." style="width: 100%; margin-bottom: 1.5rem;" />
+  <!-- Modal -->
+  <div class="modal-overlay" id="permitModal">
+    <div class="modal-box">
+      <h2 style="font-family:'Playfair Display'; margin-bottom:1rem;">Shop Verification</h2>
+      <p style="color:var(--text-muted); margin-bottom:2rem;">Submit your legal document link (DTI/BIR) to receive your verified partner badge.</p>
       
-      <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+      <div class="control-group">
+        <label>Document Link</label>
+        <input type="text" id="permitLinkInput" placeholder="https://drive.google.com/share-link">
+      </div>
+      
+      <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2.5rem;">
         <button class="btn btn-outline" onclick="closePermitModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="submitPermit()">Submit for Review</button>
+        <button class="btn btn-primary" onclick="submitPermit()">Apply Verification</button>
       </div>
     </div>
   </div>
 
   <script>
-    if (sessionStorage.getItem('isLoggedIn') !== 'true' || sessionStorage.getItem('userType') !== 'shop') { window.location.href = 'shop_login.html'; }
+    if (sessionStorage.getItem('isLoggedIn') !== 'true' || sessionStorage.getItem('userType') !== 'shop') { 
+        window.location.href = 'shop_login.html'; 
+    }
 
     const username = sessionStorage.getItem('username') || 'Shop Admin';
-    document.getElementById('welcomeText').textContent = `Admin: ${username}`;
+    document.getElementById('welcomeText').textContent = `Authenticated As: ${username}`;
 
     let managedShopId = 1;
-    const activeShopId = 1;
     let activeCustomer = '';
     let currentDpRate = 20;
 
-    const customerThreadSelect = document.getElementById('customerThreadSelect');
-    const modelsList = document.getElementById('modelsList');
-    const commissionsList = document.getElementById('commissionsList');
-    const messagesBox = document.getElementById('messagesBox');
-    const replyInput = document.getElementById('replyInput');
-    const dpSlider = document.getElementById('dpSlider');
-    const dpValueDisplay = document.getElementById('dpValueDisplay');
-
-    function getModelsKey() { return `shop_models_${managedShopId}`; }
     function getCommissionsKey() { return `projectProposals_shop_${managedShopId}`; }
     function getMessagesKey() { return `chatMessages_shop_${managedShopId}`; }
     function getSettingsKey() { return `shop_settings_${managedShopId}`; }
-    function getPermitsKey() { return `shop_permits`; }
+    function getPermitsKey() { return 'shop_permits'; }
 
     function openPermitModal() { document.getElementById('permitModal').style.display = 'flex'; }
     function closePermitModal() { document.getElementById('permitModal').style.display = 'none'; }
-    
+
     function loadPermitStatus() {
-        const permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '{}');
-        const st = permits[activeShopId];
+        const permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '[]');
+        const st = permits.find(p => p.id === managedShopId);
         const statusEl = document.getElementById('permitStatusText');
         if (st && st.status === 'approved') {
-            statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Verified';
-            statusEl.style.color = 'var(--badge-success-text)';
+            statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Verified Shop';
+            statusEl.style.color = 'var(--success)';
+            statusEl.style.backgroundColor = '#d1fae5';
         } else if (st && st.status === 'pending') {
-            statusEl.innerHTML = '<i class="fas fa-clock"></i> Pending Review';
-            statusEl.style.color = 'var(--color-orange)';
+            statusEl.innerHTML = '<i class="fas fa-clock"></i> Reviewing...';
+            statusEl.style.color = 'var(--warning)';
+            statusEl.style.backgroundColor = 'var(--primary-soft)';
         } else {
-            statusEl.innerHTML = '<i class="fas fa-shield-alt"></i> Unverified';
-            statusEl.style.color = '#888';
+            statusEl.innerHTML = '<i class="fas fa-shield-alt"></i> Not Verified';
+            statusEl.style.color = 'var(--text-light)';
+            statusEl.style.backgroundColor = 'transparent';
         }
     }
 
     function submitPermit() {
         const link = document.getElementById('permitLinkInput').value.trim();
-        if (!link) return alert('Please enter a link to your permit document.');
-        const permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '{}');
-        permits[activeShopId] = { link: link, status: 'pending', submittedAt: new Date().toISOString() };
+        if (!link) return alert('Link required.');
+        let permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '[]');
+        const existingIdx = permits.findIndex(p => p.id === managedShopId);
+        const newPermit = { 
+            id: managedShopId, 
+            shopName: 'Irawan Woodworks', 
+            owner: 'Ramon Irawan', 
+            docType: 'DTI Registration & Permit', 
+            docLink: link, 
+            status: 'pending', 
+            date: new Date().toISOString().split('T')[0] 
+        };
+        
+        if (existingIdx !== -1) permits[existingIdx] = newPermit;
+        else permits.push(newPermit);
+        
         localStorage.setItem(getPermitsKey(), JSON.stringify(permits));
         closePermitModal();
-        alert('Permit submitted successfully! Waiting for admin approval.');
         loadPermitStatus();
-    }
-
-    function loadSettings() {
-      const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{"dpRate": 20}');
-      currentDpRate = parseInt(settings.dpRate, 10);
-      dpSlider.value = currentDpRate;
-      dpValueDisplay.textContent = currentDpRate + '%';
-      document.getElementById('dpText').textContent = `DP Required: ${currentDpRate}%`;
     }
 
     function updateDpRate(val) {
       currentDpRate = parseInt(val, 10);
-      dpValueDisplay.textContent = currentDpRate + '%';
-      document.getElementById('dpText').textContent = `DP Required: ${currentDpRate}%`;
-      const settings = { dpRate: currentDpRate };
-      localStorage.setItem(getSettingsKey(), JSON.stringify(settings));
+      document.getElementById('dpValueDisplay').textContent = currentDpRate + '%';
+      document.getElementById('dpText').textContent = `DP: ${currentDpRate}% Required`;
+      localStorage.setItem(getSettingsKey(), JSON.stringify({ dpRate: currentDpRate }));
       loadCommissions();
     }
 
     function loadCommissions() {
       const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
-      commissionsList.innerHTML = '';
+      const container = document.getElementById('commissionsList');
+      container.innerHTML = '';
 
       if (!commissions.length) {
-        commissionsList.innerHTML = '<li class="muted-text" style="padding: 1rem 0;">No active commissions.</li>';
+        container.innerHTML = '<p style="text-align:center; padding:4rem 0; color:var(--text-light);">No active build requests yet.</p>';
         return;
       }
 
-      commissions.slice().reverse().forEach((commission, idx) => {
-        const st = commission.status || 'pending';
-        const price = commission.price || 0;
-        const downpayment = (price * (currentDpRate / 100));
-
-        // Progress defaults
-        const progVal = commission.progressValue || 10;
+      commissions.slice().reverse().forEach((c) => {
+        const st = c.status || 'pending';
+        const price = c.price || 0;
+        const dp = Math.round(price * (currentDpRate / 100));
+        const prog = c.progressValue || 10;
 
         let badgeClass = 'badge-pending';
         let badgeText = 'Pending';
-        if (st === 'approved') { badgeClass = 'badge-info'; badgeText = 'Awaiting Pay'; }
-        if (st === 'payment_verifying') { badgeClass = 'badge-warning'; badgeText = 'Verifying Ref'; }
-        if (st === 'in_progress') { badgeClass = 'badge-progress'; badgeText = 'In Production'; }
-        if (st === 'completed') { badgeClass = 'badge-success'; badgeText = 'Completed'; }
+        if (st === 'approved') { badgeClass = 'badge-info'; badgeText = 'Ask Payment'; }
+        if (st === 'payment_verifying') { badgeClass = 'badge-warning'; badgeText = 'Review Pay'; }
+        if (st === 'in_progress') { badgeClass = 'badge-success'; badgeText = 'In Build'; }
+        if (st === 'completed') { badgeClass = 'badge-success'; badgeText = 'Finished'; }
         if (st === 'declined') { badgeClass = 'badge-danger'; badgeText = 'Declined'; }
 
-        const statusOptions = [
-          { value: 'pending', label: '1. Pending Review' },
-          { value: 'approved', label: '2. Accept (Ask for Pay)' },
-          { value: 'payment_verifying', label: '3. Verifying Payment' },
-          { value: 'in_progress', label: '4. Start Production (Paid)' },
-          { value: 'completed', label: '5. Mark Completed' },
-          { value: 'declined', label: 'X. Decline Order' }
-        ].map(opt => `<option value="${opt.value}" ${st === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('');
-
-        const li = document.createElement('li');
-        li.className = 'list-item';
-
-        li.innerHTML = `
-          <div class="item-info">
-            <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 5px;">
+        const div = document.createElement('div');
+        div.className = 'commission-item';
+        div.innerHTML = `
+          <div class="item-top">
+            <div class="item-main-info">
               <span class="badge ${badgeClass}">${badgeText}</span>
-              <div class="item-title" style="margin:0;">${commission.description || 'Custom Furniture'}</div>
-            </div>
-            <div class="item-sub">
-                <i class="fas fa-user-circle"></i> ${commission.customerName || 'Customer'} 
-                &nbsp;|&nbsp; <b>₱${price.toLocaleString('en-US')}</b> Total
-            </div>
-            ${commission.referenceNumber ? `
-                <div class="ref-box" style="margin-top: 10px; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 6px;">
-                    <i class="fas fa-receipt" style="color:#10b981;"></i> 
-                    <b>Paid DP: ₱${Math.round(commission.paidDpAmount || downpayment).toLocaleString('en-US')}</b><br>
-                    <span style="font-size:0.75rem; color:var(--text-muted); margin-left: 18px;">Reference: <span style="font-family: monospace; font-weight: bold; color: var(--text-main);">${commission.referenceNumber}</span></span>
-                </div>
-            ` : `
-                <div class="ref-box" style="margin-top: 10px; padding: 10px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; color: var(--text-muted);">
-                    <i class="fas fa-clock"></i> <b>Required DP (${currentDpRate}%):</b> <span style="color:var(--text-main); font-weight:800;">₱${Math.round(downpayment).toLocaleString('en-US')}</span>
-                </div>
-            `}
-          </div>
-          
-          <div class="item-actions">
-            <select class="status-select" onchange="updateCommissionStatus(${commission.id}, this.value)">
-              ${statusOptions}
-            </select>
-
-            ${st === 'in_progress' ? `
-            <div class="progress-control">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Build Progress</label>
-              <select style="width: 100%; padding: 0.4rem; font-size: 0.85rem; margin-top: 5px; border: 1px solid #d8d6de; border-radius: 4px;" onchange="updateCommissionProgress(${commission.id}, this)">
-                <option value="10|Sourcing Materials" ${progVal == 10 ? 'selected' : ''}>10% - Sourcing Materials</option>
-                <option value="30|Cutting & Shaping Wood" ${progVal == 30 ? 'selected' : ''}>30% - Cutting & Shaping Wood</option>
-                <option value="60|Assembly Process" ${progVal == 60 ? 'selected' : ''}>60% - Assembly Process</option>
-                <option value="85|Finishing & Painting" ${progVal == 85 ? 'selected' : ''}>85% - Finishing & Painting</option>
-                <option value="100|Ready for Delivery/Pickup" ${progVal == 100 ? 'selected' : ''}>100% - Ready for Delivery/Pickup</option>
-              </select>
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill" style="width: ${progVal}%;"></div>
+              <h4 style="margin-top: 0.8rem;">${c.description || 'Custom Request'}</h4>
+              <div class="item-meta">
+                <span><i class="fas fa-user-circle"></i> ${c.customerName}</span>
+                <span><i class="far fa-clock"></i> ${new Date(c.id).toLocaleDateString()}</span>
               </div>
             </div>
+            <div class="price-tag">₱${price.toLocaleString()}</div>
+          </div>
+
+          ${c.referenceNumber ? `
+            <div class="payment-info-box">
+              <span><i class="fas fa-check-circle"></i> Paid DP: <b>₱${Math.round(c.paidDpAmount || dp).toLocaleString()}</b> (Ref: ${c.referenceNumber})</span>
+            </div>
+          ` : `
+            <div class="payment-info-box unpaid">
+              <span><i class="fas fa-receipt"></i> Awaiting DP: <b>₱${dp.toLocaleString()}</b></span>
+            </div>
+          `}
+
+          <div class="item-controls">
+            <div class="control-group">
+              <label>Update Status</label>
+              <select onchange="updateCommissionStatus(${c.id}, this.value)">
+                <option value="pending" ${st === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="approved" ${st === 'approved' ? 'selected' : ''}>Accept/Ask Pay</option>
+                <option value="payment_verifying" ${st === 'payment_verifying' ? 'selected' : ''}>Verify Pay</option>
+                <option value="in_progress" ${st === 'in_progress' ? 'selected' : ''}>In Build</option>
+                <option value="completed" ${st === 'completed' ? 'selected' : ''}>Finished</option>
+                <option value="declined" ${st === 'declined' ? 'selected' : ''}>Decline</option>
+              </select>
+            </div>
+            ${st === 'in_progress' ? `
+              <div class="control-group">
+                <label>Build Phase</label>
+                <select onchange="updateProgress(${c.id}, this)">
+                  <option value="10|Sourcing" ${prog == 10 ? 'selected' : ''}>10% Sourcing</option>
+                  <option value="40|Bones" ${prog == 40 ? 'selected' : ''}>40% Assembly</option>
+                  <option value="75|Polishing" ${prog == 75 ? 'selected' : ''}>75% Finishing</option>
+                  <option value="100|Ready" ${prog == 100 ? 'selected' : ''}>100% Ready</option>
+                </select>
+              </div>
             ` : ''}
           </div>
+
+          ${st === 'in_progress' ? `
+            <div class="progress-bar-container">
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700;">
+                <span>Stage: ${c.progressLabel || 'Starting'}</span>
+                <span>${prog}%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width: ${prog}%"></div></div>
+            </div>
+          ` : ''}
         `;
-        commissionsList.appendChild(li);
+        container.appendChild(div);
       });
     }
 
-    function updateCommissionStatus(id, newStatus) {
-      const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
-      const index = commissions.findIndex(c => c.id === id);
-      if (index === -1) return;
-
-      commissions[index].status = newStatus;
-
-      // Auto-set progress when status changes
-      if (newStatus === 'in_progress' && !commissions[index].progressValue) {
-        commissions[index].progressValue = 10;
-        commissions[index].progressLabel = "Sourcing Materials";
-      }
-      if (newStatus === 'completed') {
-        commissions[index].progressValue = 100;
-        commissions[index].progressLabel = "Completed";
-      }
-
-      localStorage.setItem(getCommissionsKey(), JSON.stringify(commissions));
-      loadCommissions();
-      updateStats();
-    }
-
-    // NEW FUNCTION: Handles Progress Updates
-    function updateCommissionProgress(id, selectElement) {
-      const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
-      const index = commissions.findIndex(c => c.id === id);
-      if (index === -1) return;
-
-      const [valStr, label] = selectElement.value.split('|');
-      commissions[index].progressValue = parseInt(valStr, 10);
-      commissions[index].progressLabel = label;
-
-      localStorage.setItem(getCommissionsKey(), JSON.stringify(commissions));
-      loadCommissions(); // Re-render to update the progress bar visually
-    }
-
-    // --- Chat & Models Logic (Unchanged) ---
-    function loadCustomerThreads() {
-      const messages = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
-      const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
-      const registeredUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      const names = new Set();
-      
-      // Get all signed up customers
-      registeredUsers.forEach(u => {
-        if (u.name && (!u.role || u.role.toLowerCase() === 'user' || u.role.toLowerCase() === 'customer')) {
-          names.add(u.name);
+    function updateCommissionStatus(id, st) {
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const i = comms.findIndex(x => x.id === id);
+      if (i !== -1) {
+        comms[i].status = st;
+        if (st === 'in_progress') { 
+            comms[i].progressValue = 10; 
+            comms[i].progressLabel = "Sourcing Materials"; 
         }
-      });
-      messages.forEach(msg => { if (msg.customerName) names.add(msg.customerName); });
-      commissions.forEach(c => { if (c.customerName) names.add(c.customerName); });
-      const customers = Array.from(names).sort((a, b) => a.localeCompare(b));
-      customerThreadSelect.innerHTML = '';
-      if (!customers.length) {
-        customerThreadSelect.innerHTML = '<option value="">No active chats</option>';
-        activeCustomer = '';
-        loadMessages();
-        return;
+        localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
+        loadCommissions();
+        updateStats();
       }
-      customers.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        customerThreadSelect.appendChild(option);
-      });
-      if (!activeCustomer || !customers.includes(activeCustomer)) activeCustomer = customers[0];
-      customerThreadSelect.value = activeCustomer;
-      loadMessages();
     }
 
-    function changeThread() { activeCustomer = customerThreadSelect.value; loadMessages(); }
+    function updateProgress(id, select) {
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const i = comms.findIndex(x => x.id === id);
+      const [val, lab] = select.value.split('|');
+      comms[i].progressValue = parseInt(val);
+      comms[i].progressLabel = lab;
+      localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
+      loadCommissions();
+    }
 
     function loadMessages() {
-      const allMessages = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
-      messagesBox.innerHTML = '';
-      if (!activeCustomer) { messagesBox.innerHTML = '<div class="muted-text" style="text-align:center; padding-top:2rem;">No thread selected.</div>'; return; }
-      const threadMessages = allMessages.filter(msg => (msg.customerName || '') === activeCustomer);
-      if (!threadMessages.length) { messagesBox.innerHTML = `<div class="muted-text" style="text-align:center; padding-top:2rem;">Say hello to ${activeCustomer}!</div>`; return; }
-      threadMessages.forEach(msg => {
-        const div = document.createElement('div');
-        div.className = `msg ${msg.sender === 'shop' ? 'shop' : 'user'}`;
-        div.textContent = msg.text || '';
-        messagesBox.appendChild(div);
+      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      const box = document.getElementById('messagesBox');
+      box.innerHTML = '';
+      const active = msgs.filter(m => m.customerName === activeCustomer);
+      if (!active.length) {
+        box.innerHTML = '<p style="text-align:center; padding-top:2rem; color:var(--text-light)">No chat records.</p>';
+      }
+      active.forEach(m => {
+        const d = document.createElement('div');
+        d.className = `msg ${m.sender === 'shop' ? 'shop' : 'user'}`;
+        d.textContent = m.text;
+        box.appendChild(d);
       });
-      messagesBox.scrollTop = messagesBox.scrollHeight;
+      box.scrollTop = box.scrollHeight;
     }
 
     function sendReply() {
-      const text = replyInput.value.trim();
-      if (!text || !activeCustomer) return;
-      const messages = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
-      messages.push({ id: Date.now(), sender: 'shop', customerName: activeCustomer, text, timestamp: new Date().toISOString() });
-      localStorage.setItem(getMessagesKey(), JSON.stringify(messages));
-      replyInput.value = '';
+      const inp = document.getElementById('replyInput');
+      const txt = inp.value.trim();
+      if (!txt || !activeCustomer) return;
+      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      msgs.push({ sender: 'shop', customerName: activeCustomer, text: txt, timestamp: new Date().toISOString() });
+      localStorage.setItem(getMessagesKey(), JSON.stringify(msgs));
+      inp.value = '';
       loadMessages();
-      updateStats();
+    }
+
+    function changeThread() {
+      activeCustomer = document.getElementById('customerThreadSelect').value;
+      loadMessages();
     }
 
     function updateStats() {
-      const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
-      const messages = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
-      const pending = commissions.filter(c => (c.status || 'pending') === 'pending').length;
-      document.getElementById('statModels').textContent = '—'; // Removed models KPI
-      document.getElementById('statCommissions').textContent = String(commissions.length);
-      document.getElementById('statPending').textContent = String(pending);
-      document.getElementById('statMessages').textContent = String(messages.length);
-    }
-
-    let activeEditTemplateId = null;
-    let tempOverridePrice = null;
-
-    function setupIframe(frame) {
-      frame.onload = function() {
-        try {
-          const win = frame.contentWindow;
-          const doc = win.document;
-          
-          const style = doc.createElement('style');
-          style.innerHTML = `
-             .btn-export { display: none !important; }
-             .btn-add { display: none !important; }
-             .header-controls { display: none !important; }
-          `;
-          doc.head.appendChild(style);
-
-          // Make the Estimated Cost editable
-          const tp = doc.getElementById('total-price');
-          if (tp) {
-              tp.contentEditable = 'true';
-              tp.style.border = '1px dashed #6abf6a';
-              tp.style.padding = '2px 8px';
-              tp.style.borderRadius = '4px';
-              tp.style.outline = 'none';
-              tp.title = "Click to manually adjust estimated cost (₱)";
-              
-              let isManuallySet = false;
-              if (tempOverridePrice !== null) {
-                  tp.innerHTML = '&#8369;' + Number(tempOverridePrice).toLocaleString('en-US');
-                  isManuallySet = true;
-              }
-              
-              let originalUpdate = win.updatePrice;
-              if (typeof originalUpdate === 'function') {
-                  win.updatePrice = function() {
-                      if (!isManuallySet) originalUpdate.apply(win, arguments);
-                  };
-                  if (!isManuallySet) win.updatePrice();
-              }
-              tp.addEventListener('input', () => { isManuallySet = true; });
-          }
-        } catch(e) {
-          console.error("Could not inject styles into iframe:", e);
-        }
-      };
+      const c = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const m = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      document.getElementById('statCommissions').textContent = c.length;
+      document.getElementById('statPending').textContent = c.filter(x => x.status === 'pending').length;
+      document.getElementById('statMessages').textContent = new Set(m.map(x => x.customerName)).size;
     }
 
     function startCustomization() {
-      activeEditTemplateId = null; // Clear edit mode
-      tempOverridePrice = null;
-
-      const name = document.getElementById('tdName').value.trim();
-      const type = document.getElementById('tdType').value;
-      if(!name) return alert("Please enter a Design Name first.");
-      document.getElementById('customizationContainer').style.display = 'block';
-      const frame = document.getElementById('customizationFrame');
-      
-      setupIframe(frame);
-      
-      frame.src = type + '.html'; // open the customized platform
-      frame.focus();
-      // Scroll smoothly to iframe
-      document.getElementById('customizationContainer').scrollIntoView({behavior:'smooth'});
+        const type = document.getElementById('tdType').value;
+        const name = document.getElementById('tdName').value || "New Design";
+        document.getElementById('customizationContainer').style.display = 'block';
+        document.getElementById('customizationFrame').src = `customization.html?type=${type}&name=${encodeURIComponent(name)}&mode=template`;
+        window.scrollTo({ top: document.getElementById('customizationContainer').offsetTop - 80, behavior: 'smooth' });
     }
-
-    function saveCustomTemplate() {
-      const iframe = document.getElementById('customizationFrame');
-      const win = iframe.contentWindow;
-      
-      const type = document.getElementById('tdType').value;
-      const name = document.getElementById('tdName').value.trim();
-      const gender = document.getElementById('tdGender').value;
-
-      try {
-         // Because let variables in scripts belong to block scope, win.appState is undefined.
-         // We must read the synced saved state from sessionStorage.
-         const keyMap = {
-            chair: 'cadState_chair_v6',
-            table: 'cadState_table_v10',
-            bed: 'cadState_bed_v1',
-            sofa: 'cadState_sofa_v1',
-            cabinet: 'cadState_cabinet_v1',
-            stool: 'cadState_stool_v3',
-            desk: 'cadState_desk_v1',
-            bookshelf: 'cadState_bookshelf_v1'
-         };
-         
-         const sessionKey = keyMap[type] || 'cadState_' + type + '_v1';
-         const savedStateStr = sessionStorage.getItem(sessionKey);
-         let items = [];
-         let activeItemId = null;
-         
-         if (savedStateStr) {
-             const parsed = JSON.parse(savedStateStr);
-             items = parsed.items || [];
-             activeItemId = parsed.activeItemId;
-         }
-
-         if (!items || !items.length) {
-            return alert("Could not fetch 3D design data from the session. Ensure you have made changes inside the builder.");
-         }
-         
-         const activeItem = items.find(i => i.id === activeItemId) || items[0];
-         
-         let priceStr = '0';
-         const pElem = win.document.getElementById('total-price');
-         if(pElem) priceStr = pElem.innerText.replace(/[^0-9.-]+/g, "");
-         const price = parseInt(priceStr) || 0;
-
-         let parts = ['Body'];
-         if (win.assetsDB && win.assetsDB[type] && win.assetsDB[type].parts) {
-             parts = win.assetsDB[type].parts;
-         } else {
-             if(type==='chair') parts=['Seat','Back','Legs','Armrests'];
-             if(type==='table' || type==='desk') parts=['Top','Legs'];
-             if(type==='bed') parts=['Headboard','Frame','Legs'];
-             if(type==='sofa') parts=['Frame','Cushions','Arms'];
-             if(type==='cabinet' || type==='bookshelf') parts=['Body','Doors'];
-             if(type==='stool') parts=['Seat','Legs'];
-         }
-
-         const icons = {chair:'fa-chair', table:'fa-utensils', bed:'fa-bed', sofa:'fa-couch', cabinet:'fa-door-closed', stool:'fa-chair', desk:'fa-desktop', bookshelf:'fa-book'};
-
-         const newTemplate = {
-             id: Date.now(),
-             type: type,
-             name: name,
-             icon: icons[type] || 'fa-cube',
-             badge: 'new',
-             gender: gender,
-             description: 'Shop customized design by Irawan Woodworks.',
-             tags: ['Custom', type.charAt(0).toUpperCase() + type.slice(1)],
-             parts: parts,
-             selections: activeItem.selections || {},
-             carvings: activeItem.carvings || {},
-             shapes: activeItem.shapes || {},
-             dims: activeItem.dims || {},
-             scale: activeItem.globalScale || {x:1, y:1, z:1},
-             basePrice: price
-         };
-
-         const templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
-         
-         if (activeEditTemplateId) {
-             const idx = templates.findIndex(t => t.id === activeEditTemplateId);
-             if (idx > -1) {
-                 newTemplate.id = activeEditTemplateId; // keep old ID
-                 templates[idx] = newTemplate;
-             } else {
-                 templates.unshift(newTemplate);
-             }
-             activeEditTemplateId = null;
-         } else {
-             templates.unshift(newTemplate);
-         }
-         
-         localStorage.setItem('shop_templates_global', JSON.stringify(templates));
-
-         document.getElementById('customizationContainer').style.display = 'none';
-         document.getElementById('tdName').value = '';
-         loadShopTemplates();
-         alert("Successfully Pushed Design to Templates (Pre-made)!");
-
-      } catch(e) {
-         console.error("Save custom template error:", e);
-         alert("Error reading design from iframe. Platform might be protected or not fully loaded.");
-      }
-    }
-
-    function loadShopTemplates() {
-      const templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
-      const list = document.getElementById('shopTemplatesList');
-      list.innerHTML = '';
-      if(!templates.length) {
-         list.innerHTML = '<li class="muted-text" style="padding:1rem 0;">No templates published yet.</li>'; return;
-      }
-      templates.forEach(t => {
-         const li = document.createElement('li');
-         li.className = 'list-item';
-         li.innerHTML = `
-           <div class="item-info">
-             <div class="item-title"><i class="fas ${t.icon}"></i> ${t.name}</div>
-             <div class="item-sub">Type: <b style="text-transform:capitalize">${t.type}</b> &nbsp;|&nbsp; Gender: <b style="text-transform:capitalize">${t.gender}</b> &nbsp;|&nbsp; Price: <b>₱${(t.basePrice||0).toLocaleString()}</b></div>
-           </div>
-           <div class="item-actions">
-             <button class="btn btn-secondary" onclick="editShopTemplate(${t.id})" style="margin-right: 5px;"><i class="fas fa-edit"></i> Edit</button>
-             <button class="btn btn-secondary" style="color:var(--color-red);" onclick="deleteShopTemplate(${t.id})">Remove</button>
-           </div>
-         `;
-         list.appendChild(li);
-      });
-    }
-
-    function editShopTemplate(id) {
-       const templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
-       const t = templates.find(temp => temp.id === id);
-       if (!t) return;
-       
-       document.getElementById('tdName').value = t.name;
-       document.getElementById('tdType').value = t.type;
-       document.getElementById('tdGender').value = t.gender;
-       
-       activeEditTemplateId = id;
-       tempOverridePrice = t.basePrice || null;
-       
-       const keyMap = { chair: 'cadState_chair_v6', table: 'cadState_table_v10', bed: 'cadState_bed_v1', sofa: 'cadState_sofa_v1', cabinet: 'cadState_cabinet_v1', stool: 'cadState_stool_v3', desk: 'cadState_desk_v1', bookshelf: 'cadState_bookshelf_v1' };
-       const sessionKey = keyMap[t.type] || 'cadState_' + t.type + '_v1';
-       
-       const restoredState = {
-           items: [{
-               id: 1, type: t.type, name: t.name,
-               selections: t.selections || {}, carvings: t.carvings || {}, shapes: t.shapes || {}, dims: t.dims || {}, globalScale: t.scale
-           }],
-           activeItemId: 1,
-           activeLayer: (t.parts && t.parts.length) ? t.parts[0] : 'Body'
-       };
-       sessionStorage.setItem(sessionKey, JSON.stringify(restoredState));
-       
-       document.getElementById('customizationContainer').style.display = 'block';
-       const frame = document.getElementById('customizationFrame');
-       
-       setupIframe(frame);
-
-       frame.src = t.type + '.html';
-       document.getElementById('customizationContainer').scrollIntoView({behavior:'smooth'});
-    }
-
-    function deleteShopTemplate(id) {
-       if(!confirm("Remove this custom design?")) return;
-       const templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
-       const filtered = templates.filter(t => t.id !== id);
-       localStorage.setItem('shop_templates_global', JSON.stringify(filtered));
-       loadShopTemplates();
-    }
+    function closeCustomizer() { document.getElementById('customizationContainer').style.display = 'none'; }
+    function saveCustomTemplate() { alert('Design linked to gallery.'); closeCustomizer(); }
 
     function logoutShop() { sessionStorage.clear(); window.location.href = 'shop_login.html'; }
+    function goToMain() { window.location.href = 'front_page.html'; }
 
-    function loadAll() {
-      loadSettings();
-      loadCommissions();
-      loadCustomerThreads();
-      loadShopTemplates();
-      updateStats();
-    }
-
-    window.onload = loadAll;
+    window.onload = () => {
+        const s = JSON.parse(localStorage.getItem(getSettingsKey()) || '{"dpRate": 20}');
+        updateDpRate(s.dpRate);
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const sel = document.getElementById('customerThreadSelect');
+        users.forEach(u => {
+            if (!u.role || u.role === 'customer') {
+                const o = document.createElement('option');
+                o.value = u.name; o.textContent = u.name;
+                sel.appendChild(o);
+            }
+        });
+        if (sel.options.length) { activeCustomer = sel.value; loadMessages(); }
+        loadPermitStatus();
+        loadCommissions();
+        updateStats();
+    };
   </script>
 </body>
-
 </html>

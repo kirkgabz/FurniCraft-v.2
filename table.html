@@ -1583,10 +1583,127 @@
       color: var(--select-blue);
     }
 
-    .prev-project-divider {
-      height: 1px;
-      background: #2a2a2a;
-      margin: 0 10px;
+    .mat-card-lg {
+      position: relative;
+    }
+
+    .mat-warning-icon {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      color: #f1c40f;
+      font-size: 0.85rem;
+      z-index: 5;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(241, 196, 15, 0.3);
+    }
+
+    .shop-info-badge {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(18, 18, 20, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(178, 106, 56, 0.25);
+      z-index: 100;
+      max-width: 320px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      pointer-events: auto;
+      animation: fadeUpShop 0.6s ease both;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .shop-info-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      gap: 15px;
+    }
+
+    .shop-info-toggle-btn {
+      background: rgba(178, 106, 56, 0.15);
+      border: 1px solid rgba(178, 106, 56, 0.3);
+      color: var(--gold);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .shop-info-toggle-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .shop-info-badge.minimized {
+      padding: 10px 15px;
+    }
+
+    .shop-info-badge.minimized #shop-info-content {
+      display: none;
+    }
+
+    @keyframes fadeUpShop {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .shop-info-name {
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .shop-info-mats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .shop-mat-tag {
+      font-size: 0.68rem;
+      background: rgba(178, 106, 56, 0.12);
+      color: #e0e0e0;
+      padding: 3px 9px;
+      border-radius: 5px;
+      border: 1px solid rgba(178, 106, 56, 0.3);
+      white-space: nowrap;
+    }
+
+    .shop-info-label {
+      font-size: 0.6rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
     }
   </style>
 </head>
@@ -1594,7 +1711,14 @@
 <body>
   <header>
     <div class="brand"><i class="fas fa-table"></i> FurniCraft Studio - Dining Table Pro</div>
-    <button class="btn-export" onclick="goToExport()"><i class="fas fa-file-export"></i> Export</button>
+    <div class="header-controls" style="display: flex; gap: 10px;">
+      <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
+      <button class="btn-export" onclick="goToExport()">
+        <i class="fas fa-file-export"></i> Export
+      </button>
+    </div>
   </header>
   <div class="workspace">
     <aside class="panel-left">
@@ -1615,6 +1739,17 @@
       <button class="btn-add" onclick="goToCraft()"><i class="fas fa-plus"></i> Add New Furniture Project</button>
     </aside>
     <main class="viewport">
+      <div id="shop-info-badge" class="shop-info-badge" style="display:none">
+        <div class="shop-info-header" onclick="toggleShopBadge()">
+          <div class="shop-info-label">Selected Shop</div>
+          <div class="shop-info-toggle-btn"><i class="fas fa-chevron-down" id="shop-toggle-icon"></i></div>
+        </div>
+        <div id="shop-info-content">
+          <div class="shop-info-name" id="shop-info-name"></div>
+          <div class="shop-info-label" style="margin-bottom:8px;">Use Materials of the shop</div>
+          <div class="shop-info-mats" id="shop-info-mats"></div>
+        </div>
+      </div>
       <div class="viewport-controls">
         <button class="vp-btn" id="btn-rotate" onclick="toggleRotation()"><i class="fas fa-pause"></i> Stop
           Rotate</button>
@@ -1802,6 +1937,38 @@
     }
 
 
+    function loadShopInfo() {
+      const shopName = sessionStorage.getItem('selectedShopName');
+      const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+      if (shopName) {
+        const nameEl = document.getElementById('shop-info-name');
+        const badge = document.getElementById('shop-info-badge');
+        if (nameEl && badge) {
+          nameEl.textContent = shopName;
+          badge.style.display = 'block';
+        }
+        if (shopMatsRaw) {
+          const mats = JSON.parse(shopMatsRaw);
+          const container = document.getElementById('shop-info-mats');
+          if (container) {
+            container.innerHTML = mats.map(m => `<span class="shop-mat-tag">${m}</span>`).join('');
+          }
+        }
+      }
+    }
+
+    function toggleShopBadge() {
+      const badge = document.getElementById('shop-info-badge');
+      const icon = document.getElementById('shop-toggle-icon');
+      badge.classList.toggle('minimized');
+      if (badge.classList.contains('minimized')) {
+        icon.className = 'fas fa-chevron-up';
+      } else {
+        icon.className = 'fas fa-chevron-down';
+      }
+    }
+
+
     const tooltipData = {
       'left-panel-info': { icon: 'fas fa-folder-open', title: 'Design Projects', body: 'Manage all your table designs. Each project saves independently.', tip: 'Click "New Table Design" to start fresh.' },
       'right-panel-info': { icon: 'fas fa-sliders-h', title: 'Properties Panel', body: 'All editable properties live here and update the 3D model in real time.', tip: 'Scroll down to find the Layers section for per-part editing.' },
@@ -1812,7 +1979,7 @@
       'features-info': { icon: 'fas fa-toggle-on', title: 'Extensions & Structure', body: 'Extension Leaves add extra tabletop panels on any of 4 sides and perfectly match the tabletop shape. H-Stretcher adds a cross brace between legs at floor level. Side Rails add lateral braces connecting front/back leg pairs.', tip: 'Leaves automatically update when you change the tabletop shape.' },
       'layers-info': { icon: 'fas fa-layer-group', title: 'Layers', body: 'Three independent parts: Tabletop, Legs, and Apron. Each has its own shape, inlay, carving, color, and dimensions.', tip: 'Click the eye icon to focus the camera on that part.' },
       'lyr-shape-info': { icon: 'fas fa-shapes', title: 'Shape / Base Style', body: 'The fundamental 3D geometry of this part. Non-rectangular tops automatically hide the apron for structural accuracy.', tip: 'Classic and Heritage styles suit traditional interiors; Contemporary/Modern suit minimalist spaces.' },
-      'lyr-holes-info': { icon: 'fas fa-circle-notch', title: 'Inlay / Cutout', body: 'Decorative cutout patterns punched through the tabletop surface.', tip: 'Inlays work on all top shapes.' },
+      'lyr-holes-info': { icon: 'fas fa-circle-notch', title: 'Inlay / Cutout', body: 'Decorative cutout patterns punched through the tabletop surface. Use the size slider to scale the pattern. Fill cutouts with any material from the library.', tip: 'Drag the size slider to adjust the inlay pattern scale from 20% to 100%.' },
       'lyr-carving-info': { icon: 'fas fa-drafting-compass', title: 'Carving / Texture', body: 'Surface texture or carving applied as a bump map to this part.', tip: 'Marble Vein works best on light-colored stone tops.' },
       'lyr-color-info': { icon: 'fas fa-eye-dropper', title: 'Hex Color', body: 'Set exact color via picker or hex code. Matches a material in the library for scoring.', tip: 'Use hex values matching a Material Library entry for accurate scoring.' },
       'lyr-dims-info': { icon: 'fas fa-ruler-combined', title: 'Dimensions (cm)', body: 'Exact physical dimensions in centimetres for this part only.', tip: 'Standard dining tables: 75–78cm tall, 90–100cm wide, 160–200cm long.' },
@@ -1845,15 +2012,28 @@
        ============================================================ */
     const materialDB = {
       narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2, rec: true, note: 'National tree of PH. Dense, golden-brown hardwood.' },
+      ipil: { name: 'Ipil', icon: '🌳', hex: '#6B4226', dura: 98, qual: 96, price: 4.8, rec: true, note: 'Highly durable, termite-resistant local hardwood.' },
+      dao: { name: 'Dao', icon: '🪵', hex: '#4B3621', dura: 92, qual: 97, price: 4.5, rec: true, note: 'Premium local wood with distinctive dark streaks.' },
+      guijo: { name: 'Guijo', icon: '🌳', hex: '#8B4513', dura: 96, qual: 94, price: 4.1, rec: true, note: 'Extremely dense and strong for heavy slabs.' },
+      apitong: { name: 'Apitong', icon: '🌲', hex: '#A0522D', dura: 94, qual: 88, price: 3.6, rec: true, note: 'Tough, resilient wood ideal for structural bases.' },
       kamagong: { name: 'Kamagong', icon: '🪵', hex: '#2c1a0e', dura: 97, qual: 99, price: 5.5, rec: true, note: 'Philippine Ebony. Extremely hard and durable.' },
       molave: { name: 'Molave', icon: '🌳', hex: '#6b4226', dura: 93, qual: 95, price: 4.0, rec: true, note: 'Very hard PH hardwood. Termite-resistant.' },
       mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true, note: 'Classic furniture wood. Rich reddish-brown.' },
       tanguile: { name: 'Tanguile', icon: '🌲', hex: '#a0522d', dura: 80, qual: 82, price: 2.2, rec: true, note: 'Philippine red lauan. Common furniture grade.' },
       yakal: { name: 'Yakal', icon: '🌳', hex: '#7a4f2e', dura: 88, qual: 86, price: 3.1, rec: true, note: 'Heavy PH hardwood. Strong and resistant.' },
+      rattan: { name: 'Rattan', icon: '🧺', hex: '#D2B48C', dura: 75, qual: 85, price: 1.8, rec: true, note: 'Classic woven cane for heritage textures.' },
+      capiz: { name: 'Capiz Shell', icon: '🐚', hex: '#F5F5DC', dura: 60, qual: 95, price: 5.2, rec: true, note: 'Translucent, pearlescent shell for elegant inlays.' },
+      walnut: { name: 'Walnut', icon: '🪵', hex: '#3D2B1F', dura: 88, qual: 96, price: 6.2, rec: false, note: 'Luxurious, fine-grained dark brown wood.' },
+      teak: { name: 'Teak', icon: '🌲', hex: '#C19A6B', dura: 95, qual: 94, price: 7.5, rec: false, note: 'Premium, naturally weather-resistant golden-brown wood.' },
+      maple: { name: 'Maple', icon: '🌲', hex: '#F4A460', dura: 82, qual: 88, price: 3.8, rec: false, note: 'Hard, light-colored wood for clean, modern finishes.' },
       oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true, note: 'Imported. Tight grain, very workable.' },
       pine: { name: 'Pine', icon: '🌲', hex: '#c8a96e', dura: 55, qual: 58, price: 1.4, rec: true, note: 'Soft imported wood. Budget-friendly but less durable.' },
       rubber_wood: { name: 'Rubber Wood', icon: '🌿', hex: '#d4b896', dura: 62, qual: 65, price: 1.6, rec: true, note: 'Hevea wood. Eco-friendly, medium hardness.' },
       bamboo: { name: 'Bamboo', icon: '🎋', hex: '#bdb76b', dura: 70, qual: 72, price: 1.2, rec: true, note: 'Sustainable. Harder than most softwoods.' },
+      epoxy: { name: 'Epoxy Resin', icon: '🌊', hex: '#00CED1', dura: 85, qual: 90, price: 4.5, rec: false, note: 'Translucent colorful filler for trendy river tables.' },
+      terrazzo: { name: 'Terrazzo', icon: '🪨', hex: '#E0E0E0', dura: 92, qual: 88, price: 5.8, rec: false, note: 'Scratch-resistant composite with stone or glass chips.' },
+      iron: { name: 'Black Iron', icon: '⛓️', hex: '#1A1A1A', dura: 98, qual: 82, price: 3.2, rec: false, note: 'Heavy-duty standard for industrial table legs.' },
+      brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, qual: 97, price: 6.8, rec: false, note: 'Warm, vintage metallic accent for frames or inlays.' },
       marble_white: { name: 'Marble White', icon: '🪨', hex: '#e8e8e8', dura: 90, qual: 99, price: 8.0, rec: false, note: 'Premium stone top. Heavy and luxurious.' },
       marble_black: { name: 'Marble Black', icon: '⬛', hex: '#2a2a2a', dura: 90, qual: 99, price: 9.0, rec: false, note: 'Premium black stone. Bold and elegant.' },
       glass_clear: { name: 'Glass Clear', icon: '🔲', hex: '#a8d8ea', dura: 70, qual: 95, price: 5.0, rec: false, note: 'Tempered glass top. Modern look.' },
@@ -1863,12 +2043,12 @@
     const shapeComplexityMultiplier = {
       rect_top: 1.0, square_top: 1.0, oval_top: 1.15, round_top: 1.1,
       racetrack_top: 1.12, boat_top: 1.18, hex_top: 1.2, organic_top: 1.3,
-      wave_top: 1.25, demilune_top: 1.2, clover_top: 1.35, trestle_board: 1.05,
-      scallop_top: 1.28, shield_top: 1.22, cathedral_top: 1.25,
+      wave_top: 1.25, clover_top: 1.35, trestle_board: 1.05,
+      shield_top: 1.22, cathedral_top: 1.25,
       square_post: 1.0, round_post: 1.05, tapered_square: 1.08, tapered_round: 1.1,
       turned_leg: 1.3, cabriole: 1.45, fluted_round: 1.2, reeded_square: 1.15,
       carved_claw: 1.5, x_frame: 1.2, hairpin: 1.15, slab_leg: 1.1,
-      a_frame: 1.12, single_pedestal: 1.25, tulip_pedestal: 1.35,
+      a_frame: 1.12, single_pedestal: 1.25,
       flat_apron: 1.0, arch_apron: 1.1, corbel_apron: 1.15, breadboard_apron: 1.08,
       mortise_apron: 1.12, wave_apron: 1.18, gothic_apron: 1.2, no_apron: 0.0
     };
@@ -1888,7 +2068,7 @@
 
     const assetsDB = { table: { name: 'Dining Table', basePrice: 1200, parts: ['Tabletop', 'Legs', 'Apron'] } };
 
-    const NON_RECT_TOPS = new Set(['oval_top', 'round_top', 'hex_top', 'organic_top', 'wave_top', 'demilune_top', 'clover_top', 'scallop_top', 'shield_top', 'cathedral_top', 'racetrack_top', 'boat_top']);
+    const NON_RECT_TOPS = new Set(['oval_top', 'round_top', 'hex_top', 'organic_top', 'wave_top', 'clover_top', 'shield_top', 'cathedral_top', 'racetrack_top', 'boat_top']);
 
     const shapeDB = {
       tabletop: [
@@ -1901,10 +2081,8 @@
         { id: 'hex_top', name: 'Hexagonal', icon: 'stop', faIcon: true, cat: 'Contemporary' },
         { id: 'organic_top', name: 'Organic Freeform', icon: 'leaf', faIcon: true, cat: 'Contemporary' },
         { id: 'wave_top', name: 'Wave Edge', icon: 'water', faIcon: true, cat: 'Contemporary' },
-        { id: 'demilune_top', name: 'Demilune Half-Moon', icon: 'moon', faIcon: true, cat: 'Heritage' },
         { id: 'clover_top', name: 'Clover / Trefoil', icon: 'fan', faIcon: true, cat: 'Heritage' },
         { id: 'trestle_board', name: 'Trestle Board', icon: 'grip-lines', faIcon: true, cat: 'Heritage' },
-        { id: 'scallop_top', name: 'Scalloped Edge', icon: 'adjust', faIcon: true, cat: 'Heritage' },
         { id: 'shield_top', name: 'Shield / Gothic', icon: 'shield-alt', faIcon: true, cat: 'Heritage' },
         { id: 'cathedral_top', name: 'Cathedral Arched', icon: 'archway', faIcon: true, cat: 'Heritage' }
       ],
@@ -1922,8 +2100,7 @@
         { id: 'hairpin', name: 'Metal Hairpin', icon: 'paperclip', faIcon: true, cat: 'Modern' },
         { id: 'slab_leg', name: 'Slab Panel', icon: 'stop', faIcon: true, cat: 'Modern' },
         { id: 'a_frame', name: 'A-Frame Angled', icon: 'angle-up', faIcon: true, cat: 'Modern' },
-        { id: 'single_pedestal', name: 'Single Pedestal', icon: 'circle', faIcon: true, cat: 'Pedestal' },
-        { id: 'tulip_pedestal', name: 'Tulip Column', icon: 'seedling', faIcon: true, cat: 'Pedestal' }
+        { id: 'single_pedestal', name: 'Single Pedestal', icon: 'circle', faIcon: true, cat: 'Pedestal' }
       ],
       apron: [
         { id: 'flat_apron', name: 'Flat Apron', icon: 'minus', faIcon: true, cat: 'Standard' },
@@ -1994,6 +2171,7 @@
       if (!appState.activeLayer) appState.activeLayer = 'Tabletop';
       renderUI(); updatePrice();
       loadPrevProjectBar();
+      loadShopInfo();
       setTimeout(() => init3D(), 100);
     };
     function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
@@ -2012,7 +2190,8 @@
         hasLeafWest: false, hasLeafEast: false, hasLeafNorth: false, hasLeafSouth: false,
         hasCrossbar: false, hasSideRails: false,
         cornerRadius: 0,
-        inlayFillHex: 'none'
+        inlayFillHex: 'none',
+        inlayScale: 50
       };
       appState.items.push(ni); appState.activeItemId = ni.id; appState.activeLayer = 'Tabletop';
       saveState();
@@ -2096,12 +2275,26 @@
 
       const rg = document.getElementById('rec-mat-grid'), ag = document.getElementById('all-mat-grid'), rc = document.getElementById('rec-mat-container');
       rg.innerHTML = ''; ag.innerHTML = ''; let hr = false;
+
+      const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+      const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
+
       Object.keys(materialDB).forEach(k => {
         const m = materialDB[k]; if (m.rec) hr = true;
+
+        const isAvailable = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+        const warningIcon = !isAvailable ? '<div class="mat-warning-icon" title="Not available at chosen workshop"><i class="fas fa-exclamation"></i></div>' : '';
+
         const card = document.createElement('div'); card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
-        card.onclick = () => applyMaterialToActiveLayer(m.hex);
-        card.title = m.note || m.name;
-        card.innerHTML = '<div class="mat-card-icon">' + m.icon + '</div><div class="mat-card-name">' + m.name + '</div>';
+        card.onclick = () => {
+          if (!isAvailable) {
+            alert("This material is not available at the selected workshop: " + (sessionStorage.getItem('selectedShopName') || 'the chosen shop') + ".\n\nPlease choose a material listed in the shop's inventory below.");
+            return;
+          }
+          applyMaterialToActiveLayer(m.hex);
+        };
+        card.title = (!isAvailable ? '[NOT IN SHOP LIST] ' : '') + (m.note || m.name);
+        card.innerHTML = warningIcon + '<div class="mat-card-icon">' + m.icon + '</div><div class="mat-card-name">' + m.name + '</div>';
         if (m.rec) rg.appendChild(card); else ag.appendChild(card);
       });
       rc.style.display = hr ? 'block' : 'none';
@@ -2129,21 +2322,16 @@
         const crVal = part === 'Tabletop' ? Math.round((ai.cornerRadius || 0) * 100) : 0;
         const inlayFill = part === 'Tabletop' ? (ai.inlayFillHex || 'none') : 'none';
         const hasInlay = part === 'Tabletop' && curHole !== 'none';
-        const inlayFillMats = [
-          { id: 'none', name: 'None (Open)', hex: '#222' },
-          { id: '#a8d8ea', name: 'Glass', hex: '#a8d8ea' },
-          { id: '#e8e8e8', name: 'Marble White', hex: '#e8e8e8' },
-          { id: '#2a2a2a', name: 'Marble Black', hex: '#2a2a2a' },
-          { id: '#8a8a8a', name: 'Brushed Steel', hex: '#8a8a8a' },
-          { id: '#c8a050', name: 'Brass', hex: '#c8a050' },
-          { id: '#8B4513', name: 'Mahogany', hex: '#8B4513' },
-          { id: '#bdb76b', name: 'Bamboo', hex: '#bdb76b' },
-          { id: '#4a3728', name: 'Dark Leather', hex: '#4a3728' },
-          { id: '#c19a6b', name: 'Tan Leather', hex: '#c19a6b' },
-          { id: '#2c2c2c', name: 'Black Leather', hex: '#2c2c2c' },
-          { id: '#556b2f', name: 'Green Felt', hex: '#556b2f' },
-        ];
-        const fillChips = inlayFillMats.map(m => `<div class="inlay-fill-chip${inlayFill === m.id ? ' active' : ''}" onclick="updateInlayFill('${m.id}')"><div class="inlay-fill-dot" style="background:${m.hex}"></div>${m.name}</div>`).join('');
+        const inlayScaleVal = part === 'Tabletop' ? (ai.inlayScale != null ? ai.inlayScale : 50) : 50;
+        const shopMatsRawFill = sessionStorage.getItem('selectedShopMaterials');
+        const shopMatsFill = shopMatsRawFill ? JSON.parse(shopMatsRawFill) : [];
+        let fillChipsHtml = `<div class="inlay-fill-chip${inlayFill === 'none' ? ' active' : ''}" onclick="updateInlayFill('none')"><div class="inlay-fill-dot" style="background:#222"></div>None (Open)</div>`;
+        const recFillKeys = Object.keys(materialDB).filter(k => materialDB[k].rec);
+        const allFillKeys = Object.keys(materialDB).filter(k => !materialDB[k].rec);
+        if (recFillKeys.length) fillChipsHtml += `<div style="width:100%;font-size:0.62rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:6px 0 3px;"><i class="fas fa-star" style="margin-right:3px"></i>Recommended</div>`;
+        recFillKeys.forEach(k => { const m = materialDB[k]; const isAvail = shopMatsFill.length === 0 || shopMatsFill.some(sm => sm.toLowerCase() === m.name.toLowerCase()); const warn = !isAvail ? ' title="Not available at chosen workshop"' : ''; const warnDot = !isAvail ? '<i class="fas fa-exclamation" style="color:#f1c40f;font-size:0.55rem;margin-left:2px"></i>' : ''; fillChipsHtml += `<div class="inlay-fill-chip${inlayFill === m.hex ? ' active' : ''}" onclick="updateInlayFill('${m.hex}')"${warn}><div class="inlay-fill-dot" style="background:${m.hex}"></div>${m.name}${warnDot}</div>`; });
+        if (allFillKeys.length) fillChipsHtml += `<div style="width:100%;font-size:0.62rem;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:6px 0 3px;">All Materials</div>`;
+        allFillKeys.forEach(k => { const m = materialDB[k]; const isAvail = shopMatsFill.length === 0 || shopMatsFill.some(sm => sm.toLowerCase() === m.name.toLowerCase()); const warn = !isAvail ? ' title="Not available at chosen workshop"' : ''; const warnDot = !isAvail ? '<i class="fas fa-exclamation" style="color:#f1c40f;font-size:0.55rem;margin-left:2px"></i>' : ''; fillChipsHtml += `<div class="inlay-fill-chip${inlayFill === m.hex ? ' active' : ''}" onclick="updateInlayFill('${m.hex}')"${warn}><div class="inlay-fill-dot" style="background:${m.hex}"></div>${m.name}${warnDot}</div>`; });
         layer.innerHTML = `
       <div class="layer-header">
         <span><i class="fas fa-layer-group"></i> ${part}${isActive ? ' (Selected)' : ''}</span>
@@ -2168,7 +2356,14 @@
         <div class="part-control-row">
           <div class="part-control-label">Inlay / Cutout <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-holes-info')"><i class="fas fa-info"></i></button></div>
           <div class="clickable-design-val" onclick="openDesignModal('${part}','holes')"><span>${hName}</span><i class="fas fa-edit"></i></div>
-          ${hasInlay ? `<div class="inlay-fill-row"><div class="inlay-fill-label" style="width:100%;margin-bottom:4px;font-size:0.78rem;color:#aaa;font-weight:700;">Fill Inlay With Material:</div><div class="inlay-fill-grid">${fillChips}</div></div>` : ''}
+          ${hasInlay ? `
+          <div class="corner-radius-row" style="margin-top:8px">
+            <label>Small</label>
+            <input type="range" min="20" max="100" value="${inlayScaleVal}" oninput="updateInlayScale(this.value)">
+            <span class="val-display">${inlayScaleVal}</span>
+            <label>Large</label>
+          </div>
+          <div class="inlay-fill-row"><div class="inlay-fill-label" style="width:100%;margin-bottom:4px;font-size:0.78rem;color:#aaa;font-weight:700;">Fill Inlay With Material:</div><div class="inlay-fill-grid">${fillChipsHtml}</div></div>` : ''}
         </div>
         <div class="part-control-row">
           <div class="part-control-label">Carving / Texture <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-carving-info')"><i class="fas fa-info"></i></button></div>
@@ -2210,6 +2405,13 @@
       const ai = getActiveItem(); if (!ai) return;
       ai.inlayFillHex = hex;
       saveState(); build3DScene(); renderProperties();
+    }
+    function updateInlayScale(val) {
+      const ai = getActiveItem(); if (!ai) return;
+      ai.inlayScale = parseInt(val) || 50;
+      const row = document.querySelector('.corner-radius-row + .corner-radius-row') || document.querySelectorAll('.corner-radius-row')[1];
+      if (row) { const vd = row.querySelector('.val-display'); if (vd) vd.textContent = val; }
+      saveState(); build3DScene();
     }
 
     /* ============================================================
@@ -2265,17 +2467,89 @@
     function calculateScore() {
       const ai = getActiveItem(); if (!ai) return;
       const parts = Object.values(ai.selections || {});
-      let td = 0, tq = 0, rc = 0;
+      const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+      const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
+
+      let totalDura = 0, totalQual = 0, recCount = 0, inShopCount = 0;
+      const totalParts = parts.length;
+
       parts.forEach(hex => {
         const mk = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
-        if (mk) { const m = materialDB[mk]; td += m.dura; tq += m.qual; if (m.rec) rc++; } else { td += 50; tq += 50; }
+        if (mk) {
+          const m = materialDB[mk];
+          let partDura = m.dura;
+          let partQual = m.qual;
+
+          const isRec = !!m.rec;
+          const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+
+          // 1. Recommended Material Logic: Reward vs Penalty
+          if (isRec) {
+            // Apply a premium efficiency bonus to help reach 100%
+            partDura = Math.min(100, partDura + 6);
+            partQual = Math.min(100, partQual + 4);
+            recCount++;
+          } else {
+            // Penalize non-recommended material usage for "accurate" analysis
+            partDura -= 12;
+            partQual -= 15;
+          }
+
+          // 2. Holistic Reality Check: If selected material isn't stocked by the shop
+          if (!isInShop) {
+            partQual -= 25; // Massive hit to feasibility/quality
+            partDura -= 8;  // Perceived structural reliability drop
+          } else {
+            inShopCount++;
+          }
+
+          totalDura += partDura;
+          totalQual += partQual;
+        } else {
+          // Custom hex codes without DB entries are considered basic experimental mats
+          totalDura += 45; totalQual += 40;
+        }
       });
-      const avgD = parts.length > 0 ? Math.round(td / parts.length) : 0;
-      const avgQ = parts.length > 0 ? Math.round(tq / parts.length) : 0;
-      document.getElementById('bar-dura').style.width = avgD + '%'; document.getElementById('score-dura-val').innerText = avgD + '%';
-      document.getElementById('bar-dura').style.background = avgD > 85 ? '#2ecc71' : (avgD > 65 ? 'orange' : '#e74c3c');
-      document.getElementById('bar-qual').style.width = avgQ + '%'; document.getElementById('score-qual-val').innerText = avgQ + '%';
-      document.getElementById('rec-status').innerHTML = rc === parts.length ? '<i class="fas fa-check-circle" style="color:#2ecc71"></i> Optimal Choice' : '<i class="fas fa-info-circle" style="color:orange"></i> Custom Mix';
+
+      let avgD = totalParts > 0 ? Math.round(totalDura / totalParts) : 0;
+      let avgQ = totalParts > 0 ? Math.round(totalQual / totalParts) : 0;
+
+      // Constrain values to realistic range
+      avgD = Math.max(10, Math.min(100, avgD));
+      avgQ = Math.max(10, Math.min(100, avgQ));
+
+      // Update UI Components
+      const barDura = document.getElementById('bar-dura');
+      const valDura = document.getElementById('score-dura-val');
+      const barQual = document.getElementById('bar-qual');
+      const valQual = document.getElementById('score-qual-val');
+
+      if (barDura && valDura) {
+        barDura.style.width = avgD + '%';
+        valDura.innerText = avgD + '%';
+        // Color mapping for professional feedback
+        barDura.style.background = avgD > 88 ? '#2ecc71' : (avgD > 70 ? '#f1c40f' : '#e74c3c');
+      }
+
+      if (barQual && valQual) {
+        barQual.style.width = avgQ + '%';
+        valQual.innerText = avgQ + '%';
+        barQual.style.background = avgQ > 88 ? '#9b59b6' : (avgQ > 70 ? '#3498db' : '#95a5a6');
+      }
+
+      // Professional Status Synthesis
+      const statusEl = document.getElementById('rec-status');
+      if (statusEl) {
+        if (recCount === totalParts && inShopCount === totalParts) {
+          statusEl.innerHTML = '<i class="fas fa-award" style="color:#2ecc71"></i> Elite Design (Fully Optimized)';
+        } else if (inShopCount < totalParts) {
+          statusEl.innerHTML = '<i class="fas fa-shipping-fast" style="color:#e74c3c"></i> Production Conflict (Check Availability)';
+        } else if (recCount > 0) {
+          statusEl.innerHTML = '<i class="fas fa-check-circle" style="color:#f1c40f"></i> Balanced Configuration';
+        } else {
+          statusEl.innerHTML = '<i class="fas fa-info-circle" style="color:#95a5a6"></i> Standard Construction';
+        }
+      }
     }
 
     function deleteItem(id) {
@@ -2420,7 +2694,7 @@
         if (cr > 0) { roundedRect(s, hw * 2, hd * 2, Math.min(hw, hd) * cr * 0.85); }
         else { s.moveTo(-hw, -hd); s.lineTo(hw, -hd); s.lineTo(hw, hd); s.lineTo(-hw, hd); s.closePath(); }
       } else if (topShape === 'square_top') {
-        const hs = Math.min(hw, hd);
+        const hs = Math.max(hw, hd);
         if (cr > 0) { roundedRect(s, hs * 2, hs * 2, hs * cr * 0.85); }
         else { s.moveTo(-hs, -hs); s.lineTo(hs, -hs); s.lineTo(hs, hs); s.lineTo(-hs, hs); s.closePath(); }
       } else if (topShape === 'round_top') {
@@ -2456,11 +2730,12 @@
       return s;
     }
 
-    function punchTopInlay(s, inlayId, dTop) {
+    function punchTopInlay(s, inlayId, dTop, inlayScale) {
       if (inlayId === 'none') return;
-      const hw = dTop.w / 2, hd = dTop.d / 2;
+      const sc = (inlayScale != null ? inlayScale : 50) / 50;
+      const hw = dTop.w / 2 * sc, hd = dTop.d / 2 * sc;
       if (inlayId === 'center_inlay') { const h = new THREE.Path(); const kx = hw * 0.11, ky = hd * 0.11, ox = hw * 0.22, oy = hd * 0.22; h.moveTo(0, -oy); h.bezierCurveTo(kx, -oy, ox, -ky, ox, 0); h.bezierCurveTo(ox, ky, kx, oy, 0, oy); h.bezierCurveTo(-kx, oy, -ox, ky, -ox, 0); h.bezierCurveTo(-ox, -ky, -kx, -oy, 0, -oy); s.holes.push(h); }
-      else if (inlayId === 'parquet_cross') { const bw = hw * 0.055, bl = hd * 0.6; const h1 = new THREE.Path(); h1.moveTo(-bw, -bl); h1.lineTo(bw, -bl); h1.lineTo(bw, bl); h1.lineTo(-bw, bl); h1.closePath(); s.holes.push(h1); const h2 = new THREE.Path(); h2.moveTo(-bl, -bw); h2.lineTo(bl, -bw); h2.lineTo(bl, bw); h2.lineTo(-bl, bw); h2.closePath(); s.holes.push(h2); }
+      else if (inlayId === 'parquet_cross') { const bw = hw * 0.055, blV = hd * 0.6, blH = hw * 0.6; const h1 = new THREE.Path(); h1.moveTo(-bw, -blV); h1.lineTo(bw, -blV); h1.lineTo(bw, blV); h1.lineTo(-bw, blV); h1.closePath(); s.holes.push(h1); const h2 = new THREE.Path(); h2.moveTo(-blH, -bw); h2.lineTo(blH, -bw); h2.lineTo(blH, bw); h2.lineTo(-blH, bw); h2.closePath(); s.holes.push(h2); }
       else if (inlayId === 'panel_grid') { const h1 = new THREE.Path(); h1.moveTo(-hw * 0.35, -hd * 0.7); h1.lineTo(-hw * 0.05, -hd * 0.7); h1.lineTo(-hw * 0.05, hd * 0.7); h1.lineTo(-hw * 0.35, hd * 0.7); h1.closePath(); s.holes.push(h1); const h2 = new THREE.Path(); h2.moveTo(hw * 0.05, -hd * 0.7); h2.lineTo(hw * 0.35, -hd * 0.7); h2.lineTo(hw * 0.35, hd * 0.7); h2.lineTo(hw * 0.05, hd * 0.7); h2.closePath(); s.holes.push(h2); }
       else if (inlayId === 'plank_lines') { for (let i = -1; i <= 1; i++) { const hy = i * (hd * 0.45); const h = new THREE.Path(); h.moveTo(-hw * 0.75, hy - hd * 0.025); h.lineTo(hw * 0.75, hy - hd * 0.025); h.lineTo(hw * 0.75, hy + hd * 0.025); h.lineTo(-hw * 0.75, hy + hd * 0.025); h.closePath(); s.holes.push(h); } }
       else if (inlayId === 'butterfly_key') { [[-hw * 0.35, 0], [hw * 0.35, 0]].forEach(([bx, by]) => { const h = new THREE.Path(); h.moveTo(bx, by - hd * 0.12); h.bezierCurveTo(bx - hw * 0.12, by - hd * 0.06, bx - hw * 0.12, by + hd * 0.06, bx, by + hd * 0.12); h.bezierCurveTo(bx + hw * 0.12, by + hd * 0.06, bx + hw * 0.12, by - hd * 0.06, bx, by - hd * 0.12); h.closePath(); s.holes.push(h); }); }
@@ -2475,15 +2750,16 @@
       else if (inlayId === 'hex_center') { const r = Math.min(hw, hd) * 0.35; const h = new THREE.Path(); for (let i = 0; i < 6; i++) { const a = (Math.PI / 3) * i + Math.PI / 6; i === 0 ? h.moveTo(Math.cos(a) * r, Math.sin(a) * r) : h.lineTo(Math.cos(a) * r, Math.sin(a) * r); } h.closePath(); s.holes.push(h); }
       else if (inlayId === 'four_slots') { [[-hw * 0.3, -hd * 0.3], [hw * 0.3, -hd * 0.3], [-hw * 0.3, hd * 0.3], [hw * 0.3, hd * 0.3]].forEach(([sx, sz]) => { const sw = hw * 0.065, sl = hd * 0.28; const h = new THREE.Path(); h.moveTo(sx - sw, sz - sl); h.lineTo(sx + sw, sz - sl); h.lineTo(sx + sw, sz + sl); h.lineTo(sx - sw, sz + sl); h.closePath(); s.holes.push(h); }); }
       else if (inlayId === 'cross_slot') { const cw = hw * 0.05, cl = hd * 0.62; const h1 = new THREE.Path(); h1.moveTo(-cw, -cl); h1.lineTo(cw, -cl); h1.lineTo(cw, cl); h1.lineTo(-cw, cl); h1.closePath(); s.holes.push(h1); const h2 = new THREE.Path(); h2.moveTo(-cl, -cw); h2.lineTo(cl, -cw); h2.lineTo(cl, cw); h2.lineTo(-cl, cw); h2.closePath(); s.holes.push(h2); }
-      else if (inlayId === 'arc_ends') { [-hd * 0.52, hd * 0.52].forEach(cy => { const ar = hw * 0.58, at = hd * 0.09; const h = new THREE.Path(); h.absarc(0, cy, ar, Math.PI * 1.1, Math.PI * 1.9, false); h.absarc(0, cy, ar - at * 2, Math.PI * 1.9, Math.PI * 1.1, true); h.closePath(); s.holes.push(h); }); }
+      else if (inlayId === 'arc_ends') { [-hd * 0.55, hd * 0.55].forEach(cy => { const ar = hw * 0.65, innerR = ar - hd * 0.12; const h = new THREE.Path(); h.absarc(0, cy, ar, Math.PI * 1.05, Math.PI * 1.95, false); h.absarc(0, cy, innerR, Math.PI * 1.95, Math.PI * 1.05, true); h.closePath(); s.holes.push(h); }); }
     }
 
-    function getInlayPaths(inlayId, dTop) {
+    function getInlayPaths(inlayId, dTop, inlayScale) {
       if (inlayId === 'none') return [];
-      const hw = dTop.w / 2, hd = dTop.d / 2;
+      const sc = (inlayScale != null ? inlayScale : 50) / 50;
+      const hw = dTop.w / 2 * sc, hd = dTop.d / 2 * sc;
       const paths = [];
       if (inlayId === 'center_inlay') { const s = new THREE.Shape(); const kx = hw * 0.11, ky = hd * 0.11, ox = hw * 0.22, oy = hd * 0.22; s.moveTo(0, -oy); s.bezierCurveTo(kx, -oy, ox, -ky, ox, 0); s.bezierCurveTo(ox, ky, kx, oy, 0, oy); s.bezierCurveTo(-kx, oy, -ox, ky, -ox, 0); s.bezierCurveTo(-ox, -ky, -kx, -oy, 0, -oy); paths.push(s); }
-      else if (inlayId === 'parquet_cross') { const s1 = new THREE.Shape(); const bw = hw * 0.055, bl = hd * 0.6; s1.moveTo(-bw, -bl); s1.lineTo(bw, -bl); s1.lineTo(bw, bl); s1.lineTo(-bw, bl); s1.closePath(); paths.push(s1); const s2 = new THREE.Shape(); s2.moveTo(-bl, -bw); s2.lineTo(bl, -bw); s2.lineTo(bl, bw); s2.lineTo(-bl, bw); s2.closePath(); paths.push(s2); }
+      else if (inlayId === 'parquet_cross') { const s1 = new THREE.Shape(); const bw = hw * 0.055, blV = hd * 0.6, blH = hw * 0.6; s1.moveTo(-bw, -blV); s1.lineTo(bw, -blV); s1.lineTo(bw, blV); s1.lineTo(-bw, blV); s1.closePath(); paths.push(s1); const s2 = new THREE.Shape(); s2.moveTo(-blH, -bw); s2.lineTo(blH, -bw); s2.lineTo(blH, bw); s2.lineTo(-blH, bw); s2.closePath(); paths.push(s2); }
       else if (inlayId === 'panel_grid') { const s1 = new THREE.Shape(); s1.moveTo(-hw * 0.35, -hd * 0.7); s1.lineTo(-hw * 0.05, -hd * 0.7); s1.lineTo(-hw * 0.05, hd * 0.7); s1.lineTo(-hw * 0.35, hd * 0.7); s1.closePath(); paths.push(s1); const s2 = new THREE.Shape(); s2.moveTo(hw * 0.05, -hd * 0.7); s2.lineTo(hw * 0.35, -hd * 0.7); s2.lineTo(hw * 0.35, hd * 0.7); s2.lineTo(hw * 0.05, hd * 0.7); s2.closePath(); paths.push(s2); }
       else if (inlayId === 'plank_lines') { for (let i = -1; i <= 1; i++) { const hy = i * (hd * 0.45); const s = new THREE.Shape(); s.moveTo(-hw * 0.75, hy - hd * 0.025); s.lineTo(hw * 0.75, hy - hd * 0.025); s.lineTo(hw * 0.75, hy + hd * 0.025); s.lineTo(-hw * 0.75, hy + hd * 0.025); s.closePath(); paths.push(s); } }
       else if (inlayId === 'butterfly_key') { [[-hw * 0.35, 0], [hw * 0.35, 0]].forEach(([bx, by]) => { const s = new THREE.Shape(); s.moveTo(bx, by - hd * 0.12); s.bezierCurveTo(bx - hw * 0.12, by - hd * 0.06, bx - hw * 0.12, by + hd * 0.06, bx, by + hd * 0.12); s.bezierCurveTo(bx + hw * 0.12, by + hd * 0.06, bx + hw * 0.12, by - hd * 0.06, bx, by - hd * 0.12); s.closePath(); paths.push(s); }); }
@@ -2498,11 +2774,11 @@
       else if (inlayId === 'hex_center') { const r = Math.min(hw, hd) * 0.35; const s = new THREE.Shape(); for (let i = 0; i < 6; i++) { const a = (Math.PI / 3) * i + Math.PI / 6; i === 0 ? s.moveTo(Math.cos(a) * r, Math.sin(a) * r) : s.lineTo(Math.cos(a) * r, Math.sin(a) * r); } s.closePath(); paths.push(s); }
       else if (inlayId === 'four_slots') { [[-hw * 0.3, -hd * 0.3], [hw * 0.3, -hd * 0.3], [-hw * 0.3, hd * 0.3], [hw * 0.3, hd * 0.3]].forEach(([sx, sz]) => { const sw = hw * 0.065, sl = hd * 0.28; const s = new THREE.Shape(); s.moveTo(sx - sw, sz - sl); s.lineTo(sx + sw, sz - sl); s.lineTo(sx + sw, sz + sl); s.lineTo(sx - sw, sz + sl); s.closePath(); paths.push(s); }); }
       else if (inlayId === 'cross_slot') { const cw = hw * 0.05, cl = hd * 0.62; const s1 = new THREE.Shape(); s1.moveTo(-cw, -cl); s1.lineTo(cw, -cl); s1.lineTo(cw, cl); s1.lineTo(-cw, cl); s1.closePath(); paths.push(s1); const s2 = new THREE.Shape(); s2.moveTo(-cl, -cw); s2.lineTo(cl, -cw); s2.lineTo(cl, cw); s2.lineTo(-cl, cw); s2.closePath(); paths.push(s2); }
-      else if (inlayId === 'arc_ends') { [-hd * 0.52, hd * 0.52].forEach(cy => { const ar = hw * 0.58, at = hd * 0.09; const s = new THREE.Shape(); s.absarc(0, cy, ar, Math.PI * 1.1, Math.PI * 1.9, false); s.absarc(0, cy, ar - at * 2, Math.PI * 1.9, Math.PI * 1.1, true); s.closePath(); paths.push(s); }); }
+      else if (inlayId === 'arc_ends') { [-hd * 0.55, hd * 0.55].forEach(cy => { const ar = hw * 0.65, innerR = ar - hd * 0.12; const s = new THREE.Shape(); s.absarc(0, cy, ar, Math.PI * 1.05, Math.PI * 1.95, false); s.absarc(0, cy, innerR, Math.PI * 1.95, Math.PI * 1.05, true); s.closePath(); paths.push(s); }); }
       return paths;
     }
 
-    function buildCombinedTopGeo(topShapeId, dTop, topInlay, hasLeafW, hasLeafE, hasLeafN, hasLeafS, cornerRadius, sg) {
+    function buildCombinedTopGeo(topShapeId, dTop, topInlay, hasLeafW, hasLeafE, hasLeafN, hasLeafS, cornerRadius, sg, inlayScale) {
       const EW_EXT = dTop.w * 0.22;
       const NS_EXT = dTop.d * 0.26;
       const totalW = dTop.w + (hasLeafW ? EW_EXT : 0) + (hasLeafE ? EW_EXT : 0);
@@ -2513,7 +2789,7 @@
 
       const geo = sg(() => {
         const s = buildTopShape(topShapeId, combinedDims, cornerRadius);
-        punchTopInlay(s, topInlay, combinedDims);
+        punchTopInlay(s, topInlay, combinedDims, inlayScale);
         const g = new THREE.ExtrudeGeometry(s, {
           depth: dTop.h,
           bevelEnabled: true,
@@ -2558,12 +2834,13 @@
       const aprHex = (ai.selections || {}).Apron || '#8B4513';
       const cornerRadius = ai.cornerRadius || 0;
       const inlayFillHex = ai.inlayFillHex || 'none';
+      const inlayScale = ai.inlayScale != null ? ai.inlayScale : 50;
 
       let _matIdx = 0;
       const getMat = (hex, ck) => {
         ck = ck || 'none';
         const mk = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
-        const rMap = { narra: 0.35, kamagong: 0.22, molave: 0.30, mahogany: 0.28, tanguile: 0.40, yakal: 0.32, oak: 0.42, pine: 0.52, rubber_wood: 0.48, bamboo: 0.45, marble_white: 0.05, marble_black: 0.05, glass_clear: 0.08, brushed_steel: 0.35 };
+        const rMap = { narra: 0.35, ipil: 0.3, dao: 0.32, guijo: 0.28, apitong: 0.38, kamagong: 0.22, molave: 0.30, mahogany: 0.28, tanguile: 0.40, yakal: 0.32, oak: 0.42, pine: 0.52, rubber_wood: 0.48, bamboo: 0.45, rattan: 0.5, capiz: 0.15, walnut: 0.35, teak: 0.32, maple: 0.42, epoxy: 0.05, terrazzo: 0.1, iron: 0.45, brass_aged: 0.35, marble_white: 0.05, marble_black: 0.05, glass_clear: 0.08, brushed_steel: 0.35 };
         const roughness = rMap[mk] !== undefined ? rMap[mk] : 0.45;
         const metalness = mk === 'brushed_steel' ? 0.65 : (mk === 'marble_white' || mk === 'marble_black' ? 0.01 : 0.04);
         const isG = hex.toLowerCase() === '#a8d8ea';
@@ -2602,7 +2879,7 @@
       const topOffX = ((hasE ? EW_EXT : 0) - (hasW ? EW_EXT : 0)) / 2;
       const topOffZ = ((hasN ? NS_EXT : 0) - (hasS ? NS_EXT : 0)) / 2;
 
-      const isPedestal = ['single_pedestal', 'tulip_pedestal'].includes(legShapeId);
+      const isPedestal = legShapeId === 'single_pedestal';
       const isModern = ['x_frame', 'hairpin', 'slab_leg', 'a_frame'].includes(legShapeId);
       const legH = dLeg.h;
       const yLeg = legH / 2;
@@ -2639,12 +2916,6 @@
       } else if (topShapeId === 'cathedral_top') {
         lx = hw - inset;
         lz = hd * 0.65 - inset * 0.5;
-      } else if (topShapeId === 'scallop_top') {
-        lx = hw * 0.78 - inset * 0.5;
-        lz = hd * 0.70 - inset * 0.5;
-      } else if (topShapeId === 'demilune_top') {
-        lx = hw * 0.68 - inset * 0.5;
-        lz = hd * 0.45 - inset * 0.5;
       } else if (topShapeId === 'clover_top') {
         lx = Math.min(hw, hd) * 0.55 - inset * 0.5;
         lz = Math.min(hw, hd) * 0.55 - inset * 0.5;
@@ -2658,12 +2929,11 @@
       const ox = topOffX, oz = topOffZ;
 
       const suppressApron = NON_RECT_TOPS.has(topShapeId)
-        || topShapeId === 'square_top'
-        || topShapeId === 'trestle_board'
         || aprShapeId === 'no_apron'
         || isPedestal
-        || isModern
-        || legShapeId === 'x_frame';
+        || legShapeId === 'x_frame'
+        || legShapeId === 'slab_leg'
+        || legShapeId === 'a_frame';
 
       /* LEGS */
       const buildOnePostLeg = () => {
@@ -2687,24 +2957,26 @@
       };
 
       if (isPedestal) {
-        if (legShapeId === 'single_pedestal') {
-          const colH = legH * 0.78, colR = dLeg.w * 0.6;
-          addMesh('Legs', new THREE.CylinderGeometry(colR * 0.55, colR, colH, 20), legHex, legCarv, ox, colH / 2, oz);
-          addMesh('Legs', new THREE.CylinderGeometry(dTop.w * 0.18, dTop.w * 0.24, dLeg.d * 0.55, 20), legHex, legCarv, ox, colH + dLeg.d * 0.275, oz);
-          for (let i = 0; i < 4; i++) { const a = (Math.PI / 2) * i + Math.PI / 4; const fR = dTop.w * 0.24; addMesh('Legs', new THREE.BoxGeometry(fR, legH * 0.15, dLeg.d * 0.5), legHex, legCarv, ox + Math.cos(a) * fR * 0.45, legH * 0.075, oz + Math.sin(a) * fR * 0.45, 0, a, 0.16); }
-        } else {
-          const pts = [new THREE.Vector2(dLeg.w * 0.22, 0), new THREE.Vector2(dLeg.w * 0.12, legH * 0.25), new THREE.Vector2(dLeg.w * 0.08, legH * 0.55), new THREE.Vector2(dLeg.w * 0.2, legH * 0.72), new THREE.Vector2(dLeg.w * 0.28, legH)];
-          addMesh('Legs', new THREE.LatheGeometry(pts, 24), legHex, legCarv, ox, 0, oz);
-          addMesh('Legs', new THREE.CylinderGeometry(dTop.w * 0.18, dTop.w * 0.16, dLeg.d * 0.45, 20), legHex, legCarv, ox, legH + dLeg.d * 0.225, oz);
-        }
+          const colH = legH * 0.85, colR = dLeg.w * 0.55;
+          addMesh('Legs', new THREE.CylinderGeometry(colR * 0.45, colR * 0.8, colH, 24), legHex, legCarv, ox, colH / 2, oz);
+          // Base disc
+          const baseR = Math.max(dTop.w, dTop.d) * 0.28;
+          addMesh('Legs', new THREE.CylinderGeometry(baseR, baseR * 1.05, legH * 0.08, 32), legHex, legCarv, ox, legH * 0.04, oz);
+          // Top plate connecting to tabletop
+          addMesh('Legs', new THREE.CylinderGeometry(colR * 0.65, colR * 0.45, legH * 0.12, 24), legHex, legCarv, ox, colH + legH * 0.06, oz);
       } else if (legShapeId === 'x_frame') {
-        const slabW = dTop.w * 0.88, slabT = dLeg.d * 0.6;
-        const dLen = Math.sqrt(slabW * slabW + legH * legH) * 0.5, ang = Math.atan2(legH, slabW);
-        [-lz, lz].forEach(zp => {
-          addMesh('Legs', new THREE.BoxGeometry(dLen * 2, slabT, slabT * 0.85), legHex, legCarv, ox, legH / 2, oz + zp, 0, 0, ang);
-          addMesh('Legs', new THREE.BoxGeometry(dLen * 2, slabT, slabT * 0.85), legHex, legCarv, ox, legH / 2, oz + zp, 0, 0, -ang);
+        const xSlabT = dLeg.w * 0.7, xSlabD = dLeg.d * 0.6;
+        const xSpan = lz * 2;
+        const xDiag = Math.sqrt(xSpan * xSpan + legH * legH);
+        const xAng = Math.atan2(legH, xSpan);
+        // X-trestle at each end (left and right)
+        [-lx, lx].forEach(xp => {
+          addMesh('Legs', new THREE.BoxGeometry(xSlabD, xDiag, xSlabT), legHex, legCarv, ox + xp, legH / 2, oz, xAng, 0, 0);
+          addMesh('Legs', new THREE.BoxGeometry(xSlabD, xDiag, xSlabT), legHex, legCarv, ox + xp, legH / 2, oz, -xAng, 0, 0);
         });
-        addMesh('Legs', new THREE.BoxGeometry(dTop.w * 0.88, slabT, slabT), legHex, legCarv, ox, legH * 0.3, oz);
+        // Horizontal stretcher connecting left and right trestles
+        const strLen = Math.max(lx * 2 - dLeg.w, 0.05);
+        addMesh('Legs', new THREE.BoxGeometry(strLen, xSlabT, xSlabT), legHex, legCarv, ox, legH * 0.35, oz);
       } else if (legShapeId === 'hairpin') {
         const pinR = dLeg.w * 0.075;
         class HairCurve extends THREE.Curve {
@@ -2718,15 +2990,25 @@
           });
         });
       } else if (legShapeId === 'slab_leg') {
-        addMesh('Legs', new THREE.BoxGeometry(dLeg.d * 0.55, legH, dTop.d * 0.78), legHex, legCarv, ox - lx, yLeg, oz);
-        addMesh('Legs', new THREE.BoxGeometry(dLeg.d * 0.55, legH, dTop.d * 0.78), legHex, legCarv, ox + lx, yLeg, oz);
-        addMesh('Legs', new THREE.BoxGeometry(dTop.w * 0.82, dLeg.d * 0.55, dLeg.d * 0.55), legHex, legCarv, ox, legH * 0.35, oz);
+        const slabThick = dLeg.w * 0.65;
+        const slabDepth = dTop.d * 0.82;
+        addMesh('Legs', new THREE.BoxGeometry(slabThick, legH, slabDepth), legHex, legCarv, ox - lx, yLeg, oz);
+        addMesh('Legs', new THREE.BoxGeometry(slabThick, legH, slabDepth), legHex, legCarv, ox + lx, yLeg, oz);
+        // Horizontal stretcher between slabs
+        const slabStrLen = Math.max(lx * 2 - slabThick, 0.05);
+        addMesh('Legs', new THREE.BoxGeometry(slabStrLen, slabThick * 0.7, slabThick * 0.7), legHex, legCarv, ox, legH * 0.30, oz);
       } else if (legShapeId === 'a_frame') {
-        const ang = 0.2;
-        const gL = new THREE.BoxGeometry(dLeg.w, legH, dLeg.d);
-        addMesh('Legs', gL, legHex, legCarv, ox - lx, yLeg, oz - lz, 0, 0, ang); addMesh('Legs', gL, legHex, legCarv, ox - lx, yLeg, oz + lz, 0, 0, -ang);
-        addMesh('Legs', gL, legHex, legCarv, ox + lx, yLeg, oz - lz, 0, 0, -ang); addMesh('Legs', gL, legHex, legCarv, ox + lx, yLeg, oz + lz, 0, 0, ang);
-        addMesh('Legs', new THREE.BoxGeometry(dTop.w * 0.84, dLeg.w * 0.7, dLeg.d * 0.7), legHex, legCarv, ox, legH * 0.38, oz);
+        const aAng = 0.22;
+        const aLegGeo = new THREE.BoxGeometry(dLeg.w, legH * 1.04, dLeg.d);
+        // Left A-frame pair (two legs angling toward each other)
+        addMesh('Legs', aLegGeo, legHex, legCarv, ox - lx, yLeg, oz - lz * 0.15, 0, 0, aAng);
+        addMesh('Legs', aLegGeo, legHex, legCarv, ox - lx, yLeg, oz + lz * 0.15, 0, 0, -aAng);
+        // Right A-frame pair
+        addMesh('Legs', aLegGeo, legHex, legCarv, ox + lx, yLeg, oz - lz * 0.15, 0, 0, -aAng);
+        addMesh('Legs', aLegGeo, legHex, legCarv, ox + lx, yLeg, oz + lz * 0.15, 0, 0, aAng);
+        // Top rail connecting both A-frames
+        const aStrLen = Math.max(lx * 2 - dLeg.w, 0.05);
+        addMesh('Legs', new THREE.BoxGeometry(aStrLen, dLeg.w * 0.65, dLeg.d * 0.65), legHex, legCarv, ox, legH * 0.82, oz);
       } else {
         const gL = buildOnePostLeg();
         if (legShapeId === 'cabriole') {
@@ -2753,37 +3035,38 @@
           if (aprShapeId === 'flat_apron') return new THREE.BoxGeometry(len, dApr.h, dApr.d);
           if (aprShapeId === 'arch_apron') {
             return sg(() => {
-              const s = new THREE.Shape(); s.moveTo(-len / 2, 0); s.lineTo(len / 2, 0); s.lineTo(len / 2, dApr.h); s.quadraticCurveTo(0, dApr.h * 1.38, -len / 2, dApr.h); s.closePath();
-              const g = new THREE.ExtrudeGeometry(s, { depth: dApr.d, bevelEnabled: false }); g.translate(0, 0, -dApr.d / 2); return g;
+              const s = new THREE.Shape(); s.moveTo(-len / 2, dApr.h); s.lineTo(len / 2, dApr.h); s.lineTo(len / 2, 0); s.quadraticCurveTo(0, dApr.h * 0.42, -len / 2, 0); s.closePath();
+              const g = new THREE.ExtrudeGeometry(s, { depth: dApr.d, bevelEnabled: false }); g.translate(0, -dApr.h / 2, -dApr.d / 2); return g;
             }, new THREE.BoxGeometry(len, dApr.h, dApr.d));
           }
           if (aprShapeId === 'corbel_apron') {
             return sg(() => {
-              const s = new THREE.Shape(); s.moveTo(-len / 2, 0); s.lineTo(len / 2, 0); s.lineTo(len / 2, dApr.h); s.lineTo(len * 0.38, dApr.h); s.quadraticCurveTo(len * 0.2, dApr.h * 0.55, 0, dApr.h * 0.48); s.quadraticCurveTo(-len * 0.2, dApr.h * 0.55, -len * 0.38, dApr.h); s.lineTo(-len / 2, dApr.h); s.closePath();
-              const g = new THREE.ExtrudeGeometry(s, { depth: dApr.d, bevelEnabled: false }); g.translate(0, 0, -dApr.d / 2); return g;
+              const s = new THREE.Shape(); s.moveTo(-len / 2, dApr.h); s.lineTo(len / 2, dApr.h); s.lineTo(len / 2, 0); s.lineTo(len * 0.38, 0); s.quadraticCurveTo(len * 0.2, dApr.h * 0.42, 0, dApr.h * 0.48); s.quadraticCurveTo(-len * 0.2, dApr.h * 0.42, -len * 0.38, 0); s.lineTo(-len / 2, 0); s.closePath();
+              const g = new THREE.ExtrudeGeometry(s, { depth: dApr.d, bevelEnabled: false }); g.translate(0, -dApr.h / 2, -dApr.d / 2); return g;
             }, new THREE.BoxGeometry(len, dApr.h, dApr.d));
           }
           if (aprShapeId === 'mortise_apron') {
             return sg(() => {
               const s = new THREE.Shape(); s.moveTo(-len / 2, 0); s.lineTo(len / 2, 0); s.lineTo(len / 2, dApr.h); s.lineTo(-len / 2, dApr.h); s.closePath();
               const slotW = len * 0.035, slotH = dApr.h * 0.55;
-              for (let i = -1; i <= 1; i++) { const hx = i * (len * 0.24); const h = new THREE.Path(); h.moveTo(hx - slotW, 0); h.lineTo(hx + slotW, 0); h.lineTo(hx + slotW, slotH); h.lineTo(hx - slotW, slotH); h.closePath(); s.holes.push(h); }
-              const g = new THREE.ExtrudeGeometry(s, { depth: dApr.d, bevelEnabled: false }); g.translate(0, 0, -dApr.d / 2); return g;
+              for (let i = -1; i <= 1; i++) { const hx = i * (len * 0.24); const h = new THREE.Path(); h.moveTo(hx - slotW, dApr.h * 0.15); h.lineTo(hx + slotW, dApr.h * 0.15); h.lineTo(hx + slotW, dApr.h * 0.15 + slotH); h.lineTo(hx - slotW, dApr.h * 0.15 + slotH); h.closePath(); s.holes.push(h); }
+              const g = new THREE.ExtrudeGeometry(s, { depth: dApr.d, bevelEnabled: false }); g.translate(0, -dApr.h / 2, -dApr.d / 2); return g;
             }, new THREE.BoxGeometry(len, dApr.h, dApr.d));
           }
           if (aprShapeId === 'wave_apron') {
             return sg(() => {
-              const s = new THREE.Shape(); s.moveTo(-len / 2, 0); s.lineTo(len / 2, 0); s.lineTo(len / 2, dApr.h);
-              const segs = 6; for (let i = segs; i >= 0; i--) { const t = i / segs; s.lineTo(-len / 2 + t * len, dApr.h + (i % 2 === 0 ? 1 : -1) * dApr.h * 0.22); } s.closePath();
-              const g = new THREE.ExtrudeGeometry(s, { depth: dApr.d, bevelEnabled: false }); g.translate(0, 0, -dApr.d / 2); return g;
+              const s = new THREE.Shape(); s.moveTo(-len / 2, dApr.h); s.lineTo(len / 2, dApr.h); s.lineTo(len / 2, 0);
+              const segs = 6; for (let i = segs; i >= 0; i--) { const t = i / segs; s.lineTo(-len / 2 + t * len, (i % 2 === 0 ? 1 : -1) * dApr.h * 0.22); } s.closePath();
+              const g = new THREE.ExtrudeGeometry(s, { depth: dApr.d, bevelEnabled: false }); g.translate(0, -dApr.h / 2, -dApr.d / 2); return g;
             }, new THREE.BoxGeometry(len, dApr.h, dApr.d));
           }
           if (aprShapeId === 'gothic_apron') {
             return sg(() => {
-              const s = new THREE.Shape(); s.moveTo(-len / 2, 0); s.lineTo(len / 2, 0); s.lineTo(len / 2, dApr.h); s.quadraticCurveTo(0, dApr.h * 1.55, -len / 2, dApr.h); s.closePath();
-              const g = new THREE.ExtrudeGeometry(s, { depth: dApr.d, bevelEnabled: false }); g.translate(0, 0, -dApr.d / 2); return g;
+              const s = new THREE.Shape(); s.moveTo(-len / 2, dApr.h); s.lineTo(len / 2, dApr.h); s.lineTo(len / 2, 0); s.quadraticCurveTo(0, -dApr.h * 0.45, -len / 2, 0); s.closePath();
+              const g = new THREE.ExtrudeGeometry(s, { depth: dApr.d, bevelEnabled: false }); g.translate(0, -dApr.h / 2, -dApr.d / 2); return g;
             }, new THREE.BoxGeometry(len, dApr.h, dApr.d));
           }
+          if (aprShapeId === 'breadboard_apron') return new THREE.BoxGeometry(len, dApr.h, dApr.d);
           return new THREE.BoxGeometry(len, dApr.h, dApr.d);
         };
 
@@ -2805,12 +3088,12 @@
       /* TABLETOP */
       {
         const { geo: combinedGeo, combinedDims } = buildCombinedTopGeo(
-          topShapeId, dTop, topInlay, hasW, hasE, hasN, hasS, cornerRadius, sg
+          topShapeId, dTop, topInlay, hasW, hasE, hasN, hasS, cornerRadius, sg, inlayScale
         );
         addMesh('Tabletop', combinedGeo, topHex, topCarv, topOffX, yTableTop, topOffZ);
 
         if (topInlay !== 'none' && inlayFillHex !== 'none') {
-          const fillPaths = getInlayPaths(topInlay, combinedDims);
+          const fillPaths = getInlayPaths(topInlay, combinedDims, inlayScale);
           const fillH = dTop.h * 0.98;
           fillPaths.forEach(shape => {
             const fillGeo = sg(() => {
@@ -2884,7 +3167,7 @@
       ensureAccState(ai);
       let _idx2 = 0;
       const _getMat2 = (hex, ck) => {
-        const _rMap = { narra: 0.35, kamagong: 0.22, molave: 0.30, mahogany: 0.28, tanguile: 0.40, yakal: 0.32, oak: 0.42, pine: 0.52, rubber_wood: 0.48, bamboo: 0.45, marble_white: 0.05, marble_black: 0.05, glass_clear: 0.08, brushed_steel: 0.35 };
+        const _rMap = { narra: 0.35, ipil: 0.3, dao: 0.32, guijo: 0.28, apitong: 0.38, kamagong: 0.22, molave: 0.30, mahogany: 0.28, tanguile: 0.40, yakal: 0.32, oak: 0.42, pine: 0.52, rubber_wood: 0.48, bamboo: 0.45, rattan: 0.5, capiz: 0.15, walnut: 0.35, teak: 0.32, maple: 0.42, epoxy: 0.05, terrazzo: 0.1, iron: 0.45, brass_aged: 0.35, marble_white: 0.05, marble_black: 0.05, glass_clear: 0.08, brushed_steel: 0.35 };
         const _mk = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
         const rough = _mk && _rMap[_mk] !== undefined ? _rMap[_mk] : 0.4;
         return new THREE.MeshStandardMaterial({ color: new THREE.Color(hex), roughness: rough, metalness: 0, side: THREE.DoubleSide });
@@ -3288,6 +3571,16 @@
         if (ai) { ensureAccState(ai); saveState(); renderAccessories(); }
       }, 300);
     });
+
+    function goToCraft() {
+      saveState();
+      const ai = getActiveItem();
+      if (ai) {
+        sessionStorage.setItem('prevProjectName', ai.name);
+        sessionStorage.setItem('prevProjectPage', 'table.html');
+      }
+      window.location.href = 'craft.html';
+    }
 
     function exportModel() {
       if (!currentGroup) return;

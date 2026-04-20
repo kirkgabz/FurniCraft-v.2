@@ -1032,6 +1032,128 @@
             background: #2a2a2a;
             margin: 0 10px;
         }
+    /* ── Shop Info Badge ── */
+    .shop-info-badge {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(18, 18, 20, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(142, 68, 173, 0.25);
+      z-index: 100;
+      max-width: 320px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      pointer-events: auto;
+      animation: fadeUpShop 0.6s ease both;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .shop-info-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      gap: 15px;
+    }
+
+    .shop-info-toggle-btn {
+      background: rgba(142, 68, 173, 0.15);
+      border: 1px solid rgba(142, 68, 173, 0.3);
+      color: var(--accent);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .shop-info-toggle-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .shop-info-badge.minimized {
+      padding: 10px 15px;
+    }
+
+    .shop-info-badge.minimized #shop-info-content {
+      display: none;
+    }
+
+    @keyframes fadeUpShop {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .shop-info-name {
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .shop-info-mats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .shop-mat-tag {
+      font-size: 0.68rem;
+      background: rgba(142, 68, 173, 0.12);
+      color: #e0e0e0;
+      padding: 3px 9px;
+      border-radius: 5px;
+      border: 1px solid rgba(142, 68, 173, 0.3);
+      white-space: nowrap;
+    }
+
+    .shop-info-label {
+      font-size: 0.6rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .warn-icon {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      color: #f1c40f;
+      font-size: 0.8rem;
+      text-shadow: 0 0 10px rgba(0,0,0,0.5);
+      z-index: 5;
+    }
+
+    .elite-bonus {
+      color: #2ecc71;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+      animation: pulseGreen 2s infinite;
+    }
+
+    @keyframes pulseGreen {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
     </style>
 </head>
 
@@ -1041,7 +1163,10 @@
         <div class="brand">
             <i class="fas fa-book-open"></i> FurniCraft Studio - Bookshelf Designer Pro
         </div>
-        <div class="header-controls">
+        <div class="header-controls" style="display: flex; gap: 10px;">
+            <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
             <button class="btn-export" onclick="goToExport()">
                 <i class="fas fa-file-export"></i> Export
             </button>
@@ -1082,6 +1207,27 @@
                 <button class="vp-btn" onclick="resetView()">
                     <i class="fas fa-sync"></i> Full View
                 </button>
+            </div>
+
+            <!-- Shop Info Badge -->
+            <div id="shop-info-badge" class="shop-info-badge" style="display:none">
+                <div class="shop-info-header" onclick="toggleShopBadge()">
+                    <div class="shop-info-label">
+                        <i class="fas fa-hammer"></i> Active Workshop
+                    </div>
+                    <div class="shop-info-toggle-btn" id="shop-badge-toggle-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div id="shop-info-content">
+                    <div class="shop-info-name" id="selected-shop-display-name">
+                        <i class="fas fa-store"></i> Furniture Shop
+                    </div>
+                    <div class="shop-info-label" style="margin-bottom:8px">Available Materials:</div>
+                    <div class="shop-info-mats" id="shop-materials-list">
+                        <!-- Dynamic -->
+                    </div>
+                </div>
             </div>
 
             <div id="canvas-container"></div>
@@ -1211,7 +1357,17 @@
         /* ==========================================================================
             NAVIGATION
         ========================================================================== */
-        function goToExport() { saveState(); window.location.href = 'export_area.html'; }
+        function goToCraft() {
+        saveState();
+        const ai = getActiveItem();
+        if (ai) {
+            sessionStorage.setItem('prevProjectName', ai.name);
+            sessionStorage.setItem('prevProjectPage', 'bookshelf.html');
+        }
+        window.location.href = 'craft.html';
+    }
+    
+    function goToExport() { saveState(); window.location.href = 'export_area.html'; }
         function goToCraft() {
             saveState();
             const ai = getActiveItem();
@@ -1275,21 +1431,35 @@
             DATABASES
         ========================================================================== */
         const materialDB = {
-            narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 3.5, rec: true },
-            kamagong: { name: 'Kamagong', icon: '🌳', hex: '#1a0a00', dura: 98, qual: 99, price: 4.8, rec: true },
-            molave: { name: 'Molave', icon: '🌳', hex: '#7a5230', dura: 92, qual: 93, price: 3.2, rec: true },
-            mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true },
-            tanguile: { name: 'Tanguile', icon: '🌳', hex: '#a0522d', dura: 80, qual: 84, price: 2.4, rec: true },
-            yakal: { name: 'Yakal', icon: '🌳', hex: '#6b3a2a', dura: 96, qual: 94, price: 4.2, rec: true },
-            oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true },
-            pine: { name: 'Pine', icon: '🌲', hex: '#c9a96e', dura: 65, qual: 72, price: 1.8, rec: true },
-            rubberwood: { name: 'Rubber Wood', icon: '🌿', hex: '#c8a87a', dura: 70, qual: 75, price: 1.6, rec: true },
-            bamboo: { name: 'Bamboo', icon: '🎍', hex: '#c5b358', dura: 72, qual: 78, price: 1.4, rec: true },
-            marble_white: { name: 'Marble White', icon: '⬜', hex: '#f0ede8', dura: 88, qual: 96, price: 5.5, rec: false },
-            marble_black: { name: 'Marble Black', icon: '⬛', hex: '#1c1c1e', dura: 90, qual: 97, price: 6.0, rec: false },
-            glass_clear: { name: 'Glass Clear', icon: '🔷', hex: '#a8d8ea', dura: 55, qual: 92, price: 3.8, rec: false },
-            brushed_steel: { name: 'Brushed Steel', icon: '🔩', hex: '#8d9498', dura: 92, qual: 88, price: 4.0, rec: false },
+            narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2, rec: true, note: 'National tree of PH. Dense, golden-brown hardwood.' },
+            ipil: { name: 'Ipil', icon: '🌳', hex: '#6B4226', dura: 98, qual: 96, price: 4.8, rec: true, note: 'Highly durable, termite-resistant local hardwood.' },
+            dao: { name: 'Dao', icon: '🪵', hex: '#4B3621', dura: 92, qual: 97, price: 4.5, rec: true, note: 'Premium local wood with distinctive dark streaks.' },
+            guijo: { name: 'Guijo', icon: '🌳', hex: '#8B4513', dura: 96, qual: 94, price: 4.1, rec: true, note: 'Extremely dense and strong for heavy slabs.' },
+            apitong: { name: 'Apitong', icon: '🌲', hex: '#A0522D', dura: 94, qual: 88, price: 3.6, rec: true, note: 'Tough, resilient wood ideal for structural bases.' },
+            kamagong: { name: 'Kamagong', icon: '🪵', hex: '#2c1a0e', dura: 97, qual: 99, price: 5.5, rec: true, note: 'Philippine Ebony. Extremely hard and durable.' },
+            molave: { name: 'Molave', icon: '🌳', hex: '#6b4226', dura: 93, qual: 95, price: 4.0, rec: true, note: 'Very hard PH hardwood. Termite-resistant.' },
+            mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true, note: 'Classic furniture wood. Rich reddish-brown.' },
+            tanguile: { name: 'Tanguile', icon: '🌲', hex: '#a0522d', dura: 80, qual: 82, price: 2.2, rec: true, note: 'Philippine red lauan. Common furniture grade.' },
+            yakal: { name: 'Yakal', icon: '🌳', hex: '#7a4f2e', dura: 88, qual: 86, price: 3.1, rec: true, note: 'Heavy PH hardwood. Strong and resistant.' },
+            rattan: { name: 'Rattan', icon: '🧺', hex: '#D2B48C', dura: 75, qual: 85, price: 1.8, rec: true, note: 'Classic woven cane for heritage textures.' },
+            capiz: { name: 'Capiz Shell', icon: '🐚', hex: '#F5F5DC', dura: 60, qual: 95, price: 5.2, rec: true, note: 'Translucent, pearlescent shell for elegant inlays.' },
+            walnut: { name: 'Walnut', icon: '🪵', hex: '#3D2B1F', dura: 88, qual: 96, price: 6.2, rec: false, note: 'Luxurious, fine-grained dark brown wood.' },
+            teak: { name: 'Teak', icon: '🌲', hex: '#C19A6B', dura: 95, qual: 94, price: 7.5, rec: false, note: 'Premium, naturally weather-resistant golden-brown wood.' },
+            maple: { name: 'Maple', icon: '🌲', hex: '#F4A460', dura: 82, qual: 88, price: 3.8, rec: false, note: 'Hard, light-colored wood for clean, modern finishes.' },
+            oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true, note: 'Imported. Tight grain, very workable.' },
+            pine: { name: 'Pine', icon: '🌲', hex: '#c8a96e', dura: 55, qual: 58, price: 1.4, rec: true, note: 'Soft imported wood. Budget-friendly but less durable.' },
+            rubber_wood: { name: 'Rubber Wood', icon: '🌿', hex: '#d4b896', dura: 62, qual: 65, price: 1.6, rec: true, note: 'Hevea wood. Eco-friendly, medium hardness.' },
+            bamboo: { name: 'Bamboo', icon: '🎋', hex: '#bdb76b', dura: 70, qual: 72, price: 1.2, rec: true, note: 'Sustainable. Harder than most softwoods.' },
+            epoxy: { name: 'Epoxy Resin', icon: '🌊', hex: '#00CED1', dura: 85, qual: 90, price: 4.5, rec: false, note: 'Translucent colorful filler for trendy river tables.' },
+            terrazzo: { name: 'Terrazzo', icon: '🪨', hex: '#E0E0E0', dura: 92, qual: 88, price: 5.8, rec: false, note: 'Scratch-resistant composite with stone or glass chips.' },
+            iron: { name: 'Black Iron', icon: '⛓️', hex: '#1A1A1A', dura: 98, qual: 82, price: 3.2, rec: false, note: 'Heavy-duty standard for industrial table legs.' },
+            brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, qual: 97, price: 6.8, rec: false, note: 'Warm, vintage metallic accent for frames or inlays.' },
+            marble_white: { name: 'Marble White', icon: '🪨', hex: '#e8e8e8', dura: 90, qual: 99, price: 8.0, rec: false, note: 'Premium stone top. Heavy and luxurious.' },
+            marble_black: { name: 'Marble Black', icon: '⬛', hex: '#2a2a2a', dura: 90, qual: 99, price: 9.0, rec: false, note: 'Premium black stone. Bold and elegant.' },
+            glass_clear: { name: 'Glass Clear', icon: '🔲', hex: '#a8d8ea', dura: 70, qual: 95, price: 5.0, rec: false, note: 'Tempered glass top. Modern look.' },
+            brushed_steel: { name: 'Brushed Steel', icon: '🔩', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
         };
+
 
         const assetsDB = { bookshelf: { name: 'Bookshelf', basePrice: 1200, parts: ['Frame', 'Shelves', 'Back Panel', 'Crown'] } };
 
@@ -1396,8 +1566,42 @@
             if (activeItem && !appState.activeLayer) appState.activeLayer = assetsDB.bookshelf.parts[0];
             renderUI(); updatePrice();
             loadPrevProjectBar();
+            loadShopInfo();
             setTimeout(() => { init3D(); }, 100);
         };
+
+        function toggleShopBadge() {
+            const badge = document.getElementById('shop-info-badge');
+            const icon = document.getElementById('shop-badge-toggle-icon');
+            badge.classList.toggle('minimized');
+            if (icon) {
+                icon.innerHTML = badge.classList.contains('minimized') ? '<i class="fas fa-chevron-up"></i>' : '<i class="fas fa-chevron-down"></i>';
+            }
+        }
+
+        function loadShopInfo() {
+            const shopName = sessionStorage.getItem('selectedShopName');
+            const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+            const badge = document.getElementById('shop-info-badge');
+
+            if (shopName) {
+                badge.style.display = 'block';
+                document.getElementById('selected-shop-display-name').innerHTML = `<i class="fas fa-store"></i> ${shopName}`;
+                const matList = document.getElementById('shop-materials-list');
+                matList.innerHTML = '';
+                if (shopMatsRaw) {
+                    const mats = JSON.parse(shopMatsRaw);
+                    mats.forEach(m => {
+                        const span = document.createElement('span');
+                        span.className = 'shop-mat-tag';
+                        span.innerText = m;
+                        matList.appendChild(span);
+                    });
+                }
+            } else {
+                badge.style.display = 'none';
+            }
+        }
 
         function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
         function saveState() { sessionStorage.setItem('cadState_bookshelf_v1', JSON.stringify(appState)); }
@@ -1523,14 +1727,30 @@
             const recGrid = document.getElementById('rec-mat-grid');
             const allGrid = document.getElementById('all-mat-grid');
             const recContainer = document.getElementById('rec-mat-container');
+            const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+            const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
+            const shopName = sessionStorage.getItem('selectedShopName') || 'the selected shop';
+
             recGrid.innerHTML = ''; allGrid.innerHTML = '';
             let hasRecs = false;
             Object.keys(materialDB).forEach(k => {
                 const m = materialDB[k]; if (m.rec) hasRecs = true;
                 const card = document.createElement('div');
                 card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
-                card.onclick = () => applyMaterialToActiveLayer(m.hex);
-                card.innerHTML = '<div class="mat-card-icon">' + m.icon + '</div><div class="mat-card-name">' + m.name + '</div>';
+
+                const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+                if (!isInShop) {
+                    card.innerHTML += `<div class="warn-icon" title="[NOT IN SHOP LIST]"><i class="fas fa-exclamation-triangle"></i></div>`;
+                }
+
+                card.onclick = () => {
+                    if (!isInShop) {
+                        alert(`This material is not available at the selected workshop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
+                        return;
+                    }
+                    applyMaterialToActiveLayer(m.hex);
+                };
+                card.innerHTML += `<div class="mat-card-icon">${m.icon}</div><div class="mat-card-name">${m.name}</div>`;
                 if (m.rec) recGrid.appendChild(card); else allGrid.appendChild(card);
             });
             recContainer.style.display = hasRecs ? 'block' : 'none';
@@ -1641,19 +1861,81 @@
         function calculateScore() {
             const activeItem = getActiveItem(); if (!activeItem) return;
             const selections = activeItem.selections || {};
+            const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+            const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
+
+            let totalDura = 0, totalQual = 0, recCount = 0, inShopCount = 0;
             const parts = Object.values(selections);
-            let totalDura = 0, totalQual = 0, recCount = 0;
+            const totalParts = parts.length;
+
             parts.forEach(hex => {
-                const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
-                if (matKey) { const mat = materialDB[matKey]; totalDura += mat.dura; totalQual += mat.qual; if (mat.rec) recCount++; }
-                else { totalDura += 50; totalQual += 50; }
+                const mk = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
+                if (mk) {
+                    const m = materialDB[mk];
+                    let partDura = m.dura;
+                    let partQual = m.qual;
+
+                    const isRec = !!m.rec;
+                    const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+
+                    if (isRec) {
+                        partDura = Math.min(100, partDura + 6);
+                        partQual = Math.min(100, partQual + 4);
+                        recCount++;
+                    } else {
+                        partDura -= 12;
+                        partQual -= 15;
+                    }
+
+                    if (!isInShop) {
+                        partQual -= 25;
+                        partDura -= 8;
+                    } else {
+                        inShopCount++;
+                    }
+
+                    totalDura += partDura;
+                    totalQual += partQual;
+                } else {
+                    totalDura += 45; totalQual += 40;
+                }
             });
-            const avgDura = parts.length > 0 ? Math.round(totalDura / parts.length) : 0;
-            const avgQual = parts.length > 0 ? Math.round(totalQual / parts.length) : 0;
-            document.getElementById('bar-dura').style.width = avgDura + '%'; document.getElementById('score-dura-val').innerText = avgDura + '%';
-            document.getElementById('bar-dura').style.background = avgDura > 80 ? '#2ecc71' : (avgDura > 50 ? 'orange' : '#e74c3c');
-            document.getElementById('bar-qual').style.width = avgQual + '%'; document.getElementById('score-qual-val').innerText = avgQual + '%';
-            document.getElementById('rec-status').innerHTML = recCount === parts.length ? '<i class="fas fa-check-circle" style="color:#2ecc71"></i> Optimal Choice' : '<i class="fas fa-info-circle" style="color:orange"></i> Custom Mix';
+
+            const avgDura = totalParts > 0 ? Math.max(0, Math.min(100, Math.round(totalDura / totalParts))) : 0;
+            const avgQual = totalParts > 0 ? Math.max(0, Math.min(100, Math.round(totalQual / totalParts))) : 0;
+
+            const barDura = document.getElementById('bar-dura');
+            const barQual = document.getElementById('bar-qual');
+            const valDura = document.getElementById('score-dura-val');
+            const valQual = document.getElementById('score-qual-val');
+
+            if (barDura) {
+                barDura.style.width = avgDura + '%';
+                barDura.style.background = avgDura > 85 ? '#2ecc71' : (avgDura > 65 ? 'orange' : '#e74c3c');
+            }
+            if (valDura) valDura.innerText = avgDura + '%';
+            if (barQual) barQual.style.width = avgQual + '%';
+            if (valQual) valQual.innerText = avgQual + '%';
+
+            let finalScore = ((avgDura + avgQual) / 2) + ((recCount / totalParts) * 15);
+            if (inShopCount < totalParts && shopMats.length > 0) finalScore -= 15;
+            finalScore = Math.max(0, Math.min(100, Math.round(finalScore)));
+
+            const status = document.getElementById('rec-status');
+            if (status) {
+                if (finalScore >= 95) {
+                    status.innerHTML = '<i class="fas fa-crown" style="color:#f1c40f"></i> <span style="color:#f1c40f;font-weight:bold">Elite Design Configuration</span>';
+                } else if (finalScore >= 80) {
+                    status.innerHTML = '<i class="fas fa-check-circle" style="color:#2ecc71"></i> Optimal Material Synergy';
+                } else if (finalScore >= 60) {
+                    status.innerHTML = '<i class="fas fa-info-circle" style="color:#3498db"></i> Standard Professional Build';
+                } else {
+                    status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#e74c3c"></i> Sub-optimal Material Choice';
+                }
+                if (recCount > 0 && finalScore < 95) {
+                    status.innerHTML += `<div class="elite-bonus"><i class="fas fa-arrow-up"></i> Recommended Material Bonus Applied</div>`;
+                }
+            }
         }
 
         function deleteItem(id) {

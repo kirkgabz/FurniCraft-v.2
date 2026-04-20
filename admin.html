@@ -738,34 +738,27 @@
       <span>FurniCraft</span>
     </div>
     <div class="sidebar-nav">
-      <div class="nav-label">Main</div>
+      <div class="nav-label">Core Management</div>
       <div class="nav-item active">
-        <i class="fas fa-home"></i> <span>Dashboard</span>
+        <i class="fas fa-home"></i> <span>Executive Overview</span>
       </div>
       <div class="nav-item" onclick="manageUsers()">
-        <i class="fas fa-users"></i> <span>Users</span>
+        <i class="fas fa-users-cog"></i> <span>User Directory</span>
       </div>
       <div class="nav-item" onclick="manageShops()">
-        <i class="fas fa-store-alt"></i> <span>Shops</span>
-      </div>
-
-      <div class="nav-label">Management</div>
-      <div class="nav-item" onclick="manageTemplates()">
-        <i class="fas fa-cube"></i> <span>3D Templates</span>
+        <i class="fas fa-store-alt"></i> <span>Shop Ecosystem</span>
       </div>
       <div class="nav-item" onclick="approveShop()">
-        <i class="fas fa-file-signature"></i> <span>Permits & Verifications</span>
-      </div>
-      <div class="nav-item" onclick="customAnalytics()">
-        <i class="fas fa-chart-pie"></i> <span>Platform Analytics</span>
+        <i class="fas fa-certificate"></i> <span>Verifications</span>
       </div>
 
-      <div class="nav-label">System</div>
-      <div class="nav-item" onclick="systemSettings()">
-        <i class="fas fa-cog"></i> <span>Settings</span>
+      <div class="nav-label">Platform Analytics</div>
+      <div class="nav-item" onclick="customAnalytics()">
+        <i class="fas fa-chart-line"></i> <span>Market Metrics</span>
       </div>
-      <div class="nav-item" onclick="systemLogs()">
-        <i class="fas fa-terminal"></i> <span>Server Logs</span>
+      <div class="nav-item"
+        onclick="openModal('System Reports', '<p style=padding:2rem>Generating platform-wide audit...<br><br><i class=\'fas fa-spinner fa-spin\'></i></p>')">
+        <i class="fas fa-file-invoice-dollar"></i> <span>Financial Reports</span>
       </div>
     </div>
   </aside>
@@ -830,81 +823,41 @@
         </div>
       </div>
 
-      <!-- Action Sections Grid -->
       <div class="sections-grid">
-        <!-- User Management -->
+        <!-- User Ecosystem Governance -->
         <div class="section-card">
-          <h2><i class="fas fa-user-cog"></i> User Management Area</h2>
+          <h2><i class="fas fa-users-cog"></i> User Ecosystem Governance</h2>
           <div class="action-grid">
             <button class="action-btn" onclick="manageUsers()">
-              <i class="fas fa-list-ul"></i> View All Users
+              <i class="fas fa-id-badge"></i> User Directory
             </button>
             <button class="action-btn" onclick="addUser()">
-              <i class="fas fa-user-plus"></i> Add New User
+              <i class="fas fa-user-plus"></i> Provision User
             </button>
             <button class="action-btn danger" onclick="banUser()">
-              <i class="fas fa-user-slash"></i> Ban / Suspend
+              <i class="fas fa-user-slash"></i> Discipline Panel
             </button>
             <button class="action-btn" onclick="userReports()">
-              <i class="fas fa-flag"></i> Violations & Reports
+              <i class="fas fa-clipboard-list"></i> Infraction Reports
             </button>
           </div>
         </div>
 
-        <!-- Shop Management -->
+        <!-- Shop Registry & Compliance -->
         <div class="section-card">
-          <h2><i class="fas fa-store-alt"></i> Shop Approvals & Verification</h2>
+          <h2><i class="fas fa-store-alt"></i> Shop Marketplace Integrity</h2>
           <div class="action-grid">
             <button class="action-btn" onclick="manageShops()">
-              <i class="fas fa-store"></i> Directory
+              <i class="fas fa-store"></i> Shop Registry
             </button>
-            <button class="action-btn" onclick="approveShop()"
-              style="background: rgba(16,185,129,0.05); border-color:#34d399;">
-              <i class="fas fa-clipboard-check" style="color: var(--success);"></i> Review Permits
+            <button class="action-btn" onclick="approveShop()">
+              <i class="fas fa-file-signature"></i> Permit Approvals
             </button>
             <button class="action-btn danger" onclick="suspendShop()">
-              <i class="fas fa-ban"></i> Suspend Shop
+              <i class="fas fa-store-slash"></i> Halt Operations
             </button>
             <button class="action-btn" onclick="shopAnalytics()">
-              <i class="fas fa-chart-line"></i> Analytics
-            </button>
-          </div>
-        </div>
-
-        <!-- Content Management -->
-        <div class="section-card">
-          <h2><i class="fas fa-layer-group"></i> Content Repository</h2>
-          <div class="action-grid">
-            <button class="action-btn" onclick="manageTemplates()">
-              <i class="fas fa-cube"></i> 3D Templates
-            </button>
-            <button class="action-btn" onclick="manageCategories()">
-              <i class="fas fa-tags"></i> Taxonomy
-            </button>
-            <button class="action-btn" onclick="featuredContent()">
-              <i class="fas fa-star"></i> Featured Picks
-            </button>
-            <button class="action-btn" onclick="contentReports()">
-              <i class="fas fa-shield-alt"></i> Moderation Queue
-            </button>
-          </div>
-        </div>
-
-        <!-- System Management -->
-        <div class="section-card">
-          <h2><i class="fas fa-server"></i> System Integrity</h2>
-          <div class="action-grid">
-            <button class="action-btn" onclick="systemSettings()">
-              <i class="fas fa-sliders-h"></i> Core Settings
-            </button>
-            <button class="action-btn" onclick="backupData()">
-              <i class="fas fa-cloud-download-alt"></i> Data Backup
-            </button>
-            <button class="action-btn" onclick="systemMaintenance()">
-              <i class="fas fa-tools"></i> Maintenance Tools
-            </button>
-            <button class="action-btn" onclick="systemLogs()">
-              <i class="fas fa-terminal"></i> Runtime Logs
+              <i class="fas fa-chart-line"></i> Sales Metrics
             </button>
           </div>
         </div>
@@ -954,7 +907,17 @@
     // MOCK DATA INITIALIZATION FOR FUNCTIONAL UI
     // ============================================
     function initMockData() {
-      // Business Permits for Shop Verification specific UI request
+      // Infraction Reports Database
+      let reports = localStorage.getItem('infraction_reports');
+      if (!reports) {
+        reports = [
+          { id: 501, userId: 104, userName: 'Alice Walker', reason: 'Suspicious login attempts from multiple countries', severity: 'Medium', date: '2026-04-16' },
+          { id: 502, userId: 201, userName: 'Mark Anthony', reason: 'Attempted to use duplicate payment methods', severity: 'High', date: '2026-04-17' }
+        ];
+        localStorage.setItem('infraction_reports', JSON.stringify(reports));
+      }
+
+      // Business Permits for Shop Verification
       let permits = localStorage.getItem('shop_permits');
       if (!permits) {
         permits = [
@@ -965,17 +928,21 @@
         localStorage.setItem('shop_permits', JSON.stringify(permits));
       }
 
-      // Users
-      let users = localStorage.getItem('admin_users');
-      if (!users) {
-        users = [
-          { id: 101, name: 'Kirk John', email: 'kirk@example.com', role: 'Dev Admin', status: 'active', joined: '2026-01-10' },
-          { id: 102, name: 'Jane Smith', email: 'jane@crafts.com', role: 'Shop Owner', status: 'active', joined: '2026-02-05' },
-          { id: 103, name: 'SpamBot99', email: 'bot@spam.xyz', role: 'Customer', status: 'banned', joined: '2026-04-15' },
-          { id: 104, name: 'Alice Walker', email: 'alice.w@mail.com', role: 'Customer', status: 'active', joined: '2026-03-22' }
-        ];
-        localStorage.setItem('admin_users', JSON.stringify(users));
-      }
+      // Users - Authentic Profile Sync
+      let localUsersDb = JSON.parse(localStorage.getItem('users') || '[]');
+      let adminUsers = [
+        { id: 101, name: 'Kirk Gabo', email: 'kirk.gabo@gmail.com', role: 'Executive Administrator', status: 'active', joined: '2026-01-10' },
+        { id: 102, name: 'Jane Smith', email: 'jane.smith@gmail.com', role: 'Shop Owner', status: 'active', joined: '2026-02-05' },
+        { id: 104, name: 'Alice Walker', email: 'alice.w@gmail.com', role: 'Customer', status: 'active', joined: '2026-03-22' }
+      ];
+
+      localUsersDb.forEach((u, index) => {
+        if (!adminUsers.find(au => au.email === u.email)) {
+          adminUsers.push({ id: 200 + index, name: u.name, email: u.email, role: 'Customer', status: 'active', joined: new Date().toISOString().split('T')[0] });
+        }
+      });
+
+      localStorage.setItem('admin_users', JSON.stringify(adminUsers));
     }
     initMockData();
 
@@ -1053,47 +1020,95 @@
 
     function banUser() {
       let users = JSON.parse(localStorage.getItem('admin_users'));
+      let reports = JSON.parse(localStorage.getItem('infraction_reports') || '[]');
+
       let rows = users.map(u => {
+        let userReports = reports.filter(r => r.userId == u.id);
+        let reportText = userReports.length > 0
+          ? `<span class="status-badge warning" style="cursor:pointer" onclick="viewReportsForUser(${u.id})">${userReports.length} Reports</span>`
+          : '<span class="text-muted">No Reports</span>';
+
         let actionHtml = u.status === 'active'
-          ? `<button class="btn btn-sm btn-danger" onclick="toggleBan(${u.id})"><i class="fas fa-gavel"></i> Ban</button>`
-          : `<button class="btn btn-sm btn-success" onclick="toggleBan(${u.id})"><i class="fas fa-undo"></i> Revoke</button>`;
+          ? `<button class="btn btn-sm btn-danger" onclick="toggleBan(${u.id})"><i class="fas fa-user-slash"></i> Ban User</button>`
+          : `<button class="btn btn-sm btn-success" onclick="toggleBan(${u.id})"><i class="fas fa-undo"></i> Restore</button>`;
+
         return `
             <tr>
                 <td><strong>${u.name}</strong><br><span class="text-muted" style="font-size:0.8rem">${u.email}</span></td>
-                <td>${u.status === 'active' ? '<span class="status-badge success">In Good Standing</span>' : '<span class="status-badge danger">Suspended/Banned</span>'}</td>
+                <td>${reportText}</td>
+                <td>${u.status === 'active' ? '<span class="status-badge success">Active</span>' : '<span class="status-badge danger">Suspended</span>'}</td>
                 <td>${actionHtml}</td>
             </tr>`;
       }).join('');
 
-      openModal('<i class="fas fa-user-slash" style="color:var(--danger)"></i> Enforcement & Bans', `
-            <p class="text-muted" style="margin-bottom:1.5rem;">Suspend access for users violating terms of service. Actions are immediate.</p>
+      openModal('<i class="fas fa-user-shield" style="color:var(--danger)"></i> Disciplinary Enforcement', `
             <div class="table-responsive">
                 <table class="admin-table">
-                    <thead><tr><th>Target User</th><th>Current Standing</th><th>Enforcement Action</th></tr></thead>
+                    <thead><tr><th>User Profile</th><th>Reports</th><th>Standing</th><th>Administrative Action</th></tr></thead>
                     <tbody>${rows}</tbody>
                 </table>
             </div>
         `);
     }
+
+    window.viewReportsForUser = function (userId) {
+      let reports = JSON.parse(localStorage.getItem('infraction_reports') || '[]');
+      let userReports = reports.filter(r => r.userId == userId);
+      let userName = userReports[0] ? userReports[0].userName : 'User';
+
+      let reportList = userReports.map(r => `
+            <div style="background:var(--bg-color); padding:1rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid ${r.severity === 'High' ? 'var(--danger)' : 'var(--warning)'}">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                    <strong>Report ID: #${r.id}</strong>
+                    <span class="status-badge ${r.severity === 'High' ? 'danger' : 'warning'}">${r.severity} Severity</span>
+                </div>
+                <p style="font-size:0.9rem; margin-bottom:0.5rem;">${r.reason}</p>
+                <small class="text-muted">Reported on: ${r.date}</small>
+            </div>
+        `).join('');
+
+      openModal(`<i class="fas fa-flag"></i> Reports for ${userName}`, `
+            <div style="padding:0.5rem;">
+                ${reportList}
+                <button class="btn btn-secondary" onclick="banUser()" style="width:100%; margin-top:1rem;">Back to Discipline Panel</button>
+            </div>
+        `);
+    }
+
     window.toggleBan = function (id) {
       let users = JSON.parse(localStorage.getItem('admin_users'));
       let user = users.find(u => u.id === id);
       if (user) {
+        let reason = user.status === 'active' ? prompt('Enter reason for suspension:') : null;
+        if (user.status === 'active' && !reason) return; // cancel if no reason given
+
         user.status = user.status === 'active' ? 'banned' : 'active';
         localStorage.setItem('admin_users', JSON.stringify(users));
+
+        // Dynamic logging of the action
+        console.log(`[ADMIN ACTION] User ${id} standing updated to ${user.status}. Reason: ${reason || 'Account Restored'}`);
+
         banUser();
       }
     };
 
     function userReports() {
-      openModal('<i class="fas fa-flag" style="color:var(--warning)"></i> User Moderation Queue', `
+      let reports = JSON.parse(localStorage.getItem('infraction_reports') || '[]');
+      let rows = reports.map(r => `
+            <tr>
+                <td><strong>${r.userName}</strong></td>
+                <td>${r.reason}</td>
+                <td><span class="status-badge ${r.severity === 'High' ? 'danger' : 'warning'}">${r.severity}</span></td>
+                <td>${r.date}</td>
+                <td><button class="btn btn-sm btn-primary" onclick="viewReportsForUser(${r.userId})">Review</button></td>
+            </tr>
+      `).join('');
+
+      openModal('<i class="fas fa-clipboard-list" style="color:var(--warning)"></i> Platform Infraction Queue', `
             <div class="table-responsive">
                 <table class="admin-table">
-                    <thead><tr><th>Reported Entity</th><th>Filed By</th><th>Violation Reason</th><th>Status</th></tr></thead>
-                    <tbody>
-                        <tr><td>SpamBot99</td><td>Jane Smith</td><td>Phishing direct messages</td><td><span class="status-badge success">Resolved (Banned)</span></td></tr>
-                        <tr><td>Alice Walker</td><td>System Auto-Mod</td><td>Suspicious login location</td><td><span class="status-badge warning">Under Review</span></td></tr>
-                    </tbody>
+                    <thead><tr><th>Flagged Profile</th><th>Violation Description</th><th>Severity</th><th>Report Date</th><th>Actions</th></tr></thead>
+                    <tbody>${rows}</tbody>
                 </table>
             </div>
         `);
@@ -1212,136 +1227,13 @@
     }
     window.customAnalytics = shopAnalytics;
 
-    // ============================================
-    // 3. CONTENT MANAGEMENT
-    // ============================================
-    function manageTemplates() {
-      openModal('<i class="fas fa-cube" style="color:var(--primary)"></i> Master 3D Templates', `
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
-                <div style="background:var(--bg-color); border:1px solid var(--border-color); border-radius: 12px; padding: 2rem 1rem; text-align:center; transition:transform 0.2s;">
-                    <i class="fas fa-chair" style="font-size:2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
-                    <h4 style="font-weight:600; margin-bottom:0.25rem;">Chair Directory</h4>
-                    <p class="text-muted" style="margin-bottom:1.5rem; font-size: 0.85rem;">24 WebGL Models</p>
-                    <button class="btn btn-secondary w-100" style="width:100%;">Inspect Setup</button>
-                </div>
-                <div style="background:var(--bg-color); border:1px solid var(--border-color); border-radius: 12px; padding: 2rem 1rem; text-align:center; transition:transform 0.2s;">
-                    <i class="fas fa-table" style="font-size:2.5rem; color: var(--secondary); margin-bottom: 1rem;"></i>
-                    <h4 style="font-weight:600; margin-bottom:0.25rem;">Table Directory</h4>
-                    <p class="text-muted" style="margin-bottom:1.5rem; font-size: 0.85rem;">18 WebGL Models</p>
-                    <button class="btn btn-secondary w-100" style="width:100%;">Inspect Setup</button>
-                </div>
-                <div style="background:var(--bg-color); border:1px solid var(--border-color); border-radius: 12px; padding: 2rem 1rem; text-align:center; transition:transform 0.2s;">
-                    <i class="fas fa-bed" style="font-size:2.5rem; color: var(--success); margin-bottom: 1rem;"></i>
-                    <h4 style="font-weight:600; margin-bottom:0.25rem;">Bed Directory</h4>
-                    <p class="text-muted" style="margin-bottom:1.5rem; font-size: 0.85rem;">12 WebGL Models</p>
-                    <button class="btn btn-secondary w-100" style="width:100%;">Inspect Setup</button>
-                </div>
-            </div>
-        `);
+    function syncUserStats() {
+      const users = JSON.parse(localStorage.getItem('admin_users') || '[]');
+      if (document.getElementById('totalUsers')) {
+        document.getElementById('totalUsers').innerText = users.length.toLocaleString();
+      }
     }
-
-    function manageCategories() {
-      openModal('<i class="fas fa-tags" style="color:var(--info)"></i> Furniture Taxonomy', `
-            <div class="table-responsive">
-                <table class="admin-table">
-                    <thead><tr><th>Category</th><th>Items Tagged</th><th>Status</th></tr></thead>
-                    <tbody>
-                        <tr><td>Living Room</td><td>412</td><td><span class="status-badge success">Active</span></td></tr>
-                        <tr><td>Bedroom</td><td>289</td><td><span class="status-badge success">Active</span></td></tr>
-                        <tr><td>Office</td><td>156</td><td><span class="status-badge success">Active</span></td></tr>
-                    </tbody>
-                </table>
-            </div>
-        `);
-    }
-
-    function featuredContent() {
-      openModal('<i class="fas fa-star" style="color:var(--warning)"></i> Frontpage Carousel', '<p style="padding:1rem;">Select specific verified store projects to feature statically on the main landing page. Module connects to the GraphQL landing endpoint.</p>');
-    }
-
-    function contentReports() {
-      openModal('<i class="fas fa-shield-alt" style="color:var(--primary)"></i> Auto-Moderation Logs', '<div style="padding: 2rem; text-align:center;"><i class="fas fa-check-circle" style="font-size:3rem; color:var(--success); margin-bottom:1rem;"></i><h3 style="color:var(--text-main);">All Clear</h3><p class="text-muted">No inappropriate models or descriptions detected by the pipeline today.</p></div>');
-    }
-
-    // ============================================
-    // 4. SYSTEM MANAGEMENT
-    // ============================================
-    function systemSettings() {
-      openModal('<i class="fas fa-cogs" style="color:var(--text-main)"></i> Instance Configuration', `
-            <form onsubmit="event.preventDefault(); this.querySelector('button').innerHTML = '<i class=\\'fas fa-spinner fa-spin\\'></i> Saving...'; setTimeout(() => { alert('Configuration pushed to edge nodes.'); closeModal(); }, 800);">
-                <div class="form-group">
-                    <label class="form-label">Platform Name / Meta Title</label>
-                    <input type="text" class="form-control" value="FurniCraft Platform">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Global Access Flag</label>
-                    <select class="form-control">
-                        <option value="live">Live (Public)</option>
-                        <option value="maintenance">Maintenance Mode (Admin Only)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Default 3D Quality Render</label>
-                    <select class="form-control">
-                        <option value="high">High (WebGl 2.0 / PBR)</option>
-                        <option value="med">Medium (Standard)</option>
-                    </select>
-                </div>
-                <hr style="border:0; border-top:1px solid var(--border-color); margin: 1.5rem 0;">
-                <button class="btn btn-primary" type="submit" style="width: 100%;"><i class="fas fa-cloud-upload-alt"></i> Deploy Save</button>
-            </form>
-        `);
-    }
-
-    function backupData() {
-      openModal('<i class="fas fa-cloud-download-alt" style="color:var(--success)"></i> Postgres Data Dump', `
-            <div style="text-align:center; padding: 2rem;">
-                <div style="width:80px; height:80px; background:rgba(16,185,129,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin: 0 auto 1.5rem;">
-                    <i class="fas fa-database" style="font-size: 2.5rem; color:var(--success);"></i>
-                </div>
-                <h3 style="color:var(--text-main); margin-bottom:0.5rem;">Trigger Asynchronous Backup</h3>
-                <p class="text-muted" style="margin-bottom:2rem; font-size:0.9rem;">Performs a complete export of Users, Auth Tables, Shop Listings, and 3D relational mappings to the S3 bucket.</p>
-                
-                <button class="btn btn-success" style="padding: 0.75rem 1.5rem; font-size:1rem;" onclick="this.innerHTML='<i class=\\'fas fa-spinner fa-spin\\'></i> Injecting task to queue...'; setTimeout(() => { this.innerHTML='<i class=\\'fas fa-check-double\\'></i> Backup Processed'; this.classList.remove('btn-success'); this.classList.add('btn-primary'); this.disabled=true; alert('File furnicraft_bkp_150426.sql.gz deposited to secure bucket.'); }, 1500);">
-                    <i class="fas fa-play"></i> Initiate Snapshot Dump
-                </button>
-            </div>
-        `);
-    }
-
-    function systemMaintenance() {
-      openModal('<i class="fas fa-tools" style="color:var(--warning)"></i> Node Maintenance Hooks', `
-            <p class="text-muted" style="margin-bottom:1.5rem;">Execute low-level commands heavily impacting node performance.</p>
-            <div style="display:flex; flex-direction:column; gap:1rem;">
-                <button class="btn btn-secondary" style="justify-content:space-between; padding:1rem; font-size:0.95rem;" onclick="let b=this; b.innerHTML='Clearing...'; setTimeout(()=>b.innerHTML='Redis Cache Purged <i class=\\'fas fa-check text-success\\'></i>', 500)">
-                    <span><i class="fas fa-memory" style="color:var(--primary); margin-right:10px;"></i> Purge Application Cache (Redis)</span> <i class="fas fa-chevron-right text-muted"></i>
-                </button>
-                <button class="btn btn-secondary" style="justify-content:space-between; padding:1rem; font-size:0.95rem;" onclick="let b=this; b.innerHTML='Rebuilding...'; setTimeout(()=>b.innerHTML='Elastic Cluster Re-indexed <i class=\\'fas fa-check text-success\\'></i>', 1000)">
-                    <span><i class="fas fa-search" style="color:var(--warning); margin-right:10px;"></i> Rebuild Elastic Search Indexes</span> <i class="fas fa-chevron-right text-muted"></i>
-                </button>
-                <button class="btn btn-secondary" style="justify-content:space-between; padding:1rem; font-size:0.95rem;" onclick="let b=this; b.innerHTML='Flushing...'; setTimeout(()=>b.innerHTML='Textures Flushed <i class=\\'fas fa-check text-success\\'></i>', 600)">
-                    <span><i class="fas fa-images" style="color:var(--secondary); margin-right:10px;"></i> Drop Broken Model Textures</span> <i class="fas fa-chevron-right text-muted"></i>
-                </button>
-            </div>
-        `);
-    }
-
-    function systemLogs() {
-      openModal('<i class="fas fa-terminal" style="color:var(--sidebar-bg)"></i> Real-time Pipeline Logs', `
-            <div style="background:var(--sidebar-bg); color:var(--success); font-family:'Courier New', Courier, monospace; padding:1.5rem; border-radius:0.75rem; height:320px; overflow-y:auto; font-size:0.85rem; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); line-height: 1.6;">
-                <span style="color:#94a3b8">[15:24:01]</span> <span style="color:#38bdf8">INFO</span>  - System dependencies initialised successfully.<br>
-                <span style="color:#94a3b8">[15:24:05]</span> <span style="color:#38bdf8">INFO</span>  - Postgres DB Connection established (Latency: 14ms).<br>
-                <span style="color:#94a3b8">[15:27:12]</span> <span style="color:#fcd34d">WARN</span>  - High memory usage detected on WebGL rendering threads [PID 4099].<br>
-                <span style="color:#94a3b8">[15:28:44]</span> <span style="color:#38bdf8">INFO</span>  - User 'admin' successfully authenticated via JWT.<br>
-                <span style="color:#94a3b8">[15:30:11]</span> <span style="color:#38bdf8">INFO</span>  - Processing background image optimizations...<br>
-                <span style="color:#94a3b8">[15:30:25]</span> <span style="color:#38bdf8">INFO</span>  - Optimization complete for 12 nodes.<br>
-                <span style="color:#94a3b8">[15:35:09]</span> <span style="color:#38bdf8">INFO</span>  - WSS socket connection established with 114 clients.<br>
-                <br>
-                <span style="color:white">root@furnicraft-mgmt:~#</span> <span style="animation: blink 1s step-end infinite;">_</span>
-            </div>
-            <style>@keyframes blink { 50% { opacity: 0; } }</style>
-        `);
-    }
+    setTimeout(syncUserStats, 500);
   </script>
 </body>
 

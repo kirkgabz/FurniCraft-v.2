@@ -300,11 +300,46 @@
       margin-top: 0;
     }
 
-    .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
-    .dim-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
-    .dim-group { display: flex; flex-direction: column; align-items: center; }
-    .dim-input { width: 100%; background: #111; border: 1px solid #444; color: var(--accent); padding: 10px; text-align: center; font-size: 1.4rem; border-radius: 3px; font-weight: 700; }
-    .dim-label { font-size: 0.85rem; color: #777; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .design-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .dim-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .dim-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .dim-input {
+      width: 100%;
+      background: #111;
+      border: 1px solid #444;
+      color: var(--accent);
+      padding: 10px;
+      text-align: center;
+      font-size: 1.4rem;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+
+    .dim-label {
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
 
     .design-card {
       background: #333;
@@ -390,7 +425,7 @@
 
     .score-card {
       position: absolute;
-      top: 60px;
+      top: 90px;
       right: 10px;
       background: rgba(18, 18, 20, .92);
       backdrop-filter: blur(6px);
@@ -398,8 +433,9 @@
       border-radius: 10px;
       width: 260px;
       border: 1px solid #444;
-      pointer-events: none;
+      pointer-events: auto;
       box-shadow: 0 4px 20px rgba(0, 0, 0, .5);
+      transition: all 0.3s ease;
     }
 
     .score-title {
@@ -1136,6 +1172,7 @@
       background: linear-gradient(90deg, transparent, #3a3a40, transparent);
       margin: 8px 12px;
     }
+
     /* ── Shop Info Badge ── */
     .shop-info-badge {
       position: absolute;
@@ -1191,8 +1228,15 @@
     }
 
     @keyframes fadeUpShop {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .shop-info-name {
@@ -1238,7 +1282,7 @@
       right: 5px;
       color: #f1c40f;
       font-size: 0.8rem;
-      text-shadow: 0 0 10px rgba(0,0,0,0.5);
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
       z-index: 5;
     }
 
@@ -1254,10 +1298,23 @@
     }
 
     @keyframes pulseGreen {
-      0% { opacity: 0.7; }
-      50% { opacity: 1; }
-      100% { opacity: 0.7; }
+      0% {
+        opacity: 0.7;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.7;
+      }
     }
+    .score-card.minimized { padding: 10px 15px; }
+    .score-card.minimized #design-analysis-content { display: none; }
+    .score-card.minimized .score-title { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .score-toggle-btn { background: rgba(142,68,173,0.15); border: 1px solid rgba(142,68,173,0.3); color: var(--accent); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; margin-left: auto; }
+    .score-toggle-btn:hover { background: var(--accent); color: white; }
   </style>
 </head>
 
@@ -1336,11 +1393,13 @@
 
       <div id="canvas-container"></div>
 
-      <div class="score-card">
-        <div class="score-title">
+      <div class="score-card" id="design-analysis-card">
+        <div class="score-title" onclick="toggleDesignAnalysis()">
           <span><i class="fas fa-chart-bar" style="color:var(--accent);margin-right:7px;"></i> Design Analysis</span>
           <button class="score-info-btn" onclick="showTooltip(event,'score-info')"><i class="fas fa-info"></i></button>
+          <div class="score-toggle-btn"><i class="fas fa-chevron-down" id="da-toggle-icon"></i></div>
         </div>
+        <div id="design-analysis-content">
         <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
         <div class="score-bar-bg">
           <div id="bar-dura" class="score-bar-fill" style="width:0%"></div>
@@ -1350,6 +1409,7 @@
           <div id="bar-qual" class="score-bar-fill" style="width:0%"></div>
         </div>
         <div id="rec-status"></div>
+      </div>
       </div>
 
       <div id="design-modal-overlay" class="modal-overlay design-modal-overlay" onclick="closeDesignModal(event)">
@@ -1462,54 +1522,90 @@
       window.location.href = 'craft.html';
     }
     function goToExport() {
-      const wasRotating = controls.autoRotate;
-      const wereDimsShowing = showDimensions;
-      if (wasRotating) controls.autoRotate = false;
-      if (wereDimsShowing) { showDimensions = false; build3DScene(); }
-      renderer.render(scene, camera);
-      const canvas = document.querySelector('#canvas-container canvas');
-      const previewImageURL = canvas ? canvas.toDataURL("image/png") : "";
-      if (wasRotating) controls.autoRotate = true;
-      if (wereDimsShowing) { showDimensions = true; build3DScene(); }
-      const activeItem = getActiveItem();
-      if (!activeItem) return;
-      const priceText = document.getElementById('total-price').innerText.replace(/[^0-9.-]+/g, "");
-      const numericPrice = parseFloat(priceText) || 0;
-      const durabilityText = document.getElementById('score-dura-val').innerText.replace('%', '');
-      const qualityText = document.getElementById('score-qual-val').innerText.replace('%', '');
-      const formattedMaterials = {};
-      const selections = activeItem.selections || {};
-      Object.keys(selections).forEach(partName => {
-        const hex = selections[partName];
+  const wasRotating = controls.autoRotate;
+  const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
+  
+  if (wasRotating) controls.autoRotate = false;
+  if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
+  
+  renderer.render(scene, camera);
+  
+  const canvas = document.querySelector('#canvas-container canvas');
+  const previewImageURL = canvas ? canvas.toDataURL("image/png") : "";
+  
+  if (wasRotating) controls.autoRotate = true;
+  if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
+  
+  const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
+  if (!activeItem) {
+    saveState();
+    window.location.href = 'export_area.html';
+    return;
+  }
+  
+  const priceEl = document.getElementById('total-price');
+  const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.-]+/g, "") : "0";
+  const numericPrice = parseFloat(priceText) || 0;
+  
+  const duraEl = document.getElementById('score-dura-val');
+  const qualEl = document.getElementById('score-qual-val');
+  const durabilityText = duraEl ? duraEl.innerText.replace('%', '') : "90";
+  const qualityText = qualEl ? qualEl.innerText.replace('%', '') : "90";
+  
+  const formattedMaterials = {};
+  const selections = activeItem.selections || {};
+  
+  Object.keys(selections).forEach(partName => {
+    const hex = selections[partName];
+    if (typeof materialDB !== 'undefined') {
         const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
         formattedMaterials[partName] = matKey ? materialDB[matKey].name : 'Custom Material';
-      });
-      const exportData = {
-        exportId: 'EXP-' + Date.now().toString().slice(-6),
-        projectName: activeItem.name || 'Custom Bed Design',
-        furnitureType: 'Bed Designer Pro',
-        estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
-        previewDataUrl: previewImageURL,
-        cadState: JSON.stringify({
-          items: [{
-            id: activeItem.id,
-            globalScale: activeItem.globalScale || { x: 1, y: 1, z: 1 },
-            materials: formattedMaterials,
-            dims: activeItem.dims || {},
-            analysis: {
-              durability: parseInt(durabilityText) || 90,
-              quality: parseInt(qualityText) || 90
-            }
-          }]
-        })
-      };
-      const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
-      drafts.unshift(exportData);
-      localStorage.setItem('exportDrafts', JSON.stringify(drafts));
-      sessionStorage.setItem('currentExportId', exportData.exportId);
-      saveState();
-      window.location.href = 'export_area.html';
+    } else {
+        formattedMaterials[partName] = 'Custom Material';
     }
+  });
+  
+  let dimsToExport = activeItem.dims || {};
+  
+  const customConfig = {
+      seatCount: activeItem.seatCount,
+      shelfCount: activeItem.shelfCount,
+      drawerCount: activeItem.drawerCount,
+      doorCount: activeItem.doorCount,
+      hasArmrests: activeItem.hasArmrests,
+      hasPedestal: activeItem.hasPedestal,
+      style: activeItem.style
+  };
+  
+  const exportData = {
+    exportId: 'EXP-' + Date.now().toString().slice(-6),
+    projectName: activeItem.name || 'Custom Bed',
+    furnitureType: 'Bed Designer Pro',
+    estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
+    previewDataUrl: previewImageURL,
+    cadState: JSON.stringify({
+      items: [{
+        id: activeItem.id,
+        globalScale: activeItem.globalScale || { x: 1, y: 1, z: 1 },
+        materials: formattedMaterials,
+        dims: dimsToExport,
+        config: customConfig,
+        analysis: {
+          durability: parseInt(durabilityText) || 90,
+          quality: parseInt(qualityText) || 90
+        }
+      }]
+    })
+  };
+  
+  const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
+  drafts.unshift(exportData);
+  localStorage.setItem('exportDrafts', JSON.stringify(drafts));
+  sessionStorage.setItem('currentExportId', exportData.exportId);
+  
+  saveState();
+  window.location.href = 'export_area.html';
+}
 
     function goToCraft() {
       saveState();
@@ -1697,10 +1793,10 @@
       }
       const ai = getActiveItem();
       if (ai && !appState.activeLayer) appState.activeLayer = bedParts[0];
-      
+
       // Initialize Shop Badge
       updateShopBadgeUI();
-      
+
       renderUI(); updatePrice();
       loadPrevProjectBar();
       setTimeout(() => { init3D(); }, 100);
@@ -1971,7 +2067,7 @@
         const m = materialDB[k]; if (m.rec) hasRecs = true;
         const card = document.createElement('div');
         card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
-        
+
         const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
         if (!isInShop) {
           card.innerHTML += `<div class="warn-icon" title="[NOT IN SHOP LIST]"><i class="fas fa-exclamation-triangle"></i></div>`;
@@ -2084,7 +2180,7 @@
           const q = mat.qual || mat.q || 50;
           totalD += d; totalQ += q; count++;
           if (mat.rec) recCount++;
-          
+
           const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === mat.name.toLowerCase());
           if (!isInShop) unavailablePenalty += 15;
         }
@@ -2802,6 +2898,18 @@
       camera.aspect = w / h; camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     });
+
+function toggleDesignAnalysis() {
+  const card = document.getElementById('design-analysis-card');
+  const icon = document.getElementById('da-toggle-icon');
+  if (!card || !icon) return;
+  card.classList.toggle('minimized');
+  if (card.classList.contains('minimized')) {
+    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+  } else {
+    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+  }
+}
   </script>
 </body>
 

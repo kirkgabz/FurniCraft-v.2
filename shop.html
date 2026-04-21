@@ -421,6 +421,12 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .shop-reviews { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(178, 106, 56, 0.2); }
+    .shop-reviews h4 { font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .review-bubble { background: rgba(255,255,255,0.6); padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-muted); border: 1px solid rgba(0,0,0,0.03); }
+    .review-bubble .stars { color: #f59e0b; margin-bottom: 4px; font-size: 0.75rem; }
+    .review-bubble strong { color: var(--text-main); }
   </style>
 </head>
 
@@ -432,11 +438,11 @@
         <i class="fas fa-arrow-left"></i>
       </button>
       <div class="logo">
-        <i class="fas fa-hammer"></i>FurniCraft
+        <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft
       </div>
     </div>
     <div class="header-right">
-      <button class="skip-btn" onclick="window.location.href='craft.html'">
+      <button class="skip-btn" onclick="skipShopSelection()">
         Skip Shop Selection <i class="fas fa-arrow-right"></i>
       </button>
     </div>
@@ -750,6 +756,13 @@
   </main>
 
   <script>
+    function skipShopSelection() {
+      sessionStorage.setItem("selectedShopId", "0");
+      sessionStorage.setItem("selectedShopName", "Global Artisan Network");
+      sessionStorage.setItem("selectedShopMaterials", JSON.stringify(["Narra", "Mahogany", "Oak", "Steel", "Fabric", "Glass", "Pine"]));
+      window.location.href = "main.html";
+    }
+
     function selectShop(id, name) {
       const cards = document.querySelectorAll('.shop-card');
       let materials = [];
@@ -870,6 +883,71 @@
         nearMeBtn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Find Near Me';
       }
     });
+
+    function injectReviews() {
+        const dummyReviews = [
+            { customerName: "Maria S.", rating: 5, reviewText: "Incredible craftsmanship. The joints are flawless!" },
+            { customerName: "John D.", rating: 5, reviewText: "Highly professional and delivered exactly what I designed." },
+            { customerName: "Elena V.", rating: 4, reviewText: "Great quality overall. Very sturdy materials." },
+            { customerName: "Carlos R.", rating: 5, reviewText: "I'm amazed at the detail in the finish. Highly recommended!" }
+        ];
+
+        document.querySelectorAll('.shop-card').forEach(card => {
+            const btn = card.querySelector('.select-btn button');
+            if(!btn) return;
+            const match = btn.getAttribute('onclick').match(/selectShop\((\d+)/);
+            if(!match) return;
+            const shopId = match[1];
+
+            let allReviews = [];
+            const shuffledDummies = dummyReviews.sort(() => 0.5 - Math.random()).slice(0, 2 + Math.floor(Math.random()*2));
+            allReviews.push(...shuffledDummies);
+
+            const realReviews = JSON.parse(localStorage.getItem(`shopReviews_${shopId}`) || '[]');
+            allReviews.push(...realReviews);
+
+            if(allReviews.length > 0) {
+                const reviewsDiv = document.createElement('div');
+                reviewsDiv.className = 'shop-reviews';
+                
+                let sum = 0;
+                allReviews.forEach(r => sum += (r.rating || 5));
+                const avg = (sum / allReviews.length).toFixed(1);
+
+                reviewsDiv.innerHTML = `<h4><i class="fas fa-star" style="color:#f59e0b;"></i> Feedback (${avg}/5.0)</h4>`;
+                
+                const containerDiv = document.createElement('div');
+                containerDiv.style.maxHeight = '150px';
+                containerDiv.style.overflowY = 'auto';
+                containerDiv.style.paddingRight = '4px';
+
+                const presentationList = [...realReviews.reverse(), ...shuffledDummies];
+
+                presentationList.forEach(r => {
+                    let starsHTML = '';
+                    const rval = r.rating || 5;
+                    for(let i=0; i<5; i++){
+                        starsHTML += `<i class="fas fa-star" style="color: ${i < rval ? '#f59e0b' : '#cbd5e1'}"></i>`;
+                    }
+                    containerDiv.innerHTML += `
+                        <div class="review-bubble">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                                <strong>${r.customerName}</strong>
+                                <div class="stars" style="margin:0;">${starsHTML}</div>
+                            </div>
+                            ${r.reviewText ? r.reviewText : '<span style="font-style:italic;">No comment provided.</span>'}
+                        </div>
+                    `;
+                });
+                reviewsDiv.appendChild(containerDiv);
+                
+                const selectBtnDiv = card.querySelector('.select-btn');
+                card.insertBefore(reviewsDiv, selectBtnDiv);
+            }
+        });
+    }
+    
+    injectReviews();
   </script>
 
 </body>

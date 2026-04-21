@@ -1227,13 +1227,35 @@
     }
     window.customAnalytics = shopAnalytics;
 
-    function syncUserStats() {
+    function syncGlobalStats() {
       const users = JSON.parse(localStorage.getItem('admin_users') || '[]');
       if (document.getElementById('totalUsers')) {
         document.getElementById('totalUsers').innerText = users.length.toLocaleString();
       }
+      
+      let platformFees = 0;
+      let totalCompletedCommissions = 0;
+      
+      // We will loop across potentially multiple shop domains hosted locally
+      for(let i=1; i<=20; i++) {
+        let proposals = JSON.parse(localStorage.getItem(`projectProposals_shop_${i}`) || '[]');
+        totalCompletedCommissions += proposals.length;
+        proposals.forEach(p => {
+          if(p.price) {
+             platformFees += (parseFloat(p.price) * 0.005);
+          }
+        });
+      }
+      
+      if(document.getElementById('totalOrders')) {
+        document.getElementById('totalOrders').innerText = totalCompletedCommissions.toLocaleString();
+      }
+      
+      if(document.getElementById('totalRevenue')) {
+        document.getElementById('totalRevenue').innerText = '₱' + platformFees.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      }
     }
-    setTimeout(syncUserStats, 500);
+    setTimeout(syncGlobalStats, 500);
   </script>
 </body>
 

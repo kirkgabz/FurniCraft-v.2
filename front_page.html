@@ -1,92 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>FurniCraft - Custom Furniture Design</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FurniCraft - Custom Furniture Design Experience</title>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <style>
-        /* Light Brown / Scandi Wood Theme Assets */
         :root {
-            --bg-dark: #D7C4B1;   
-            --bg-mid: #EAD8C8;    
-            --bg-light: #F7EFE5;  
-            --accent-wood: #8B5A2B; 
-            --accent-wood-hover: #6B4226; 
-            --text-primary: #2C1E16; 
-            --text-secondary: #5C4A3D; 
-            --glass-bg: rgba(255, 255, 255, 0.45); 
-            --glass-border: rgba(255, 255, 255, 0.7);
+            --bg-base: #F9F7F4;
+            --bg-glass: rgba(255, 255, 255, 0.6);
+            --accent-primary: #8B5A2B;
+            --accent-hover: #724921;
+            --accent-glow: rgba(139, 90, 43, 0.4);
+            --text-dark: #1F1915;
+            --text-muted: #6B5B53;
+            --border-light: rgba(139, 90, 43, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-light) 100%);
-            background-size: 200% 200%;
-            animation: ambientDrift 20s ease-in-out infinite alternate;
-            color: var(--text-primary);
-            overflow-x: hidden;
+            background-color: var(--bg-base);
+            color: var(--text-dark);
             min-height: 100vh;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
-        /* Subtler, ambient background shift */
-        @keyframes ambientDrift {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-
-        /* Refined Texture Overlay */
+        /* Subtle textured grain across the bg */
         body::before {
             content: '';
-            position: absolute;
+            position: fixed;
             inset: 0;
-            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23000000" stroke-width="0.5" opacity="0.03"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23000000" stroke-width="0.3" opacity="0.02"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23000000" stroke-width="0.3" opacity="0.02"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23000000" stroke-width="0.2" opacity="0.015"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
             pointer-events: none;
-            z-index: 0;
+            z-index: 1000;
         }
 
-        header {
-            padding: 25px 50px;
+        /* ----- NAVIGATION ----- */
+        nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 10;
+            padding: 24px 60px;
             position: relative;
-            background: linear-gradient(to bottom, rgba(247, 239, 229, 0.8), transparent);
+            z-index: 50;
+            background: transparent;
         }
 
         .logo {
             font-family: 'Playfair Display', serif;
             font-weight: 700;
-            font-size: 2em;
-            letter-spacing: 1px;
-            color: var(--text-primary);
+            font-size: 1.8rem;
+            color: var(--text-dark);
             display: flex;
             align-items: center;
-            gap: 12px;
+            text-decoration: none;
+            gap: 4px;
+            transition: opacity 0.3s;
         }
 
-        .logo i {
-            color: var(--accent-wood);
-            font-size: 0.8em;
+        .logo:hover {
+            opacity: 0.8;
         }
 
         .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 36px;
+            align-items: center;
         }
 
         .nav-link {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.95em;
+            font-size: 0.95rem;
             font-weight: 500;
-            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            text-decoration: none;
             transition: color 0.3s ease;
             display: flex;
             align-items: center;
@@ -94,220 +95,550 @@
         }
 
         .nav-link:hover {
-            color: var(--accent-wood);
+            color: var(--accent-primary);
         }
 
-        .container {
-            max-width: 1300px;
-            margin: auto;
-            padding: 20px 40px;
+        .nav-link.btn-ghost {
+            border: 1px solid var(--border-light);
+            padding: 10px 24px;
+            border-radius: 40px;
+            color: var(--text-dark);
+        }
+
+        .nav-link.btn-ghost:hover {
+            border-color: var(--accent-primary);
+            background: rgba(139, 90, 43, 0.04);
+        }
+
+        /* ----- HERO SECTION ----- */
+        .hero {
             flex: 1;
             display: flex;
             align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 60px 80px;
+            gap: 80px;
             position: relative;
-            z-index: 1;
-            animation: fadeInUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            z-index: 10;
         }
 
-        .content-wrapper {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 24px;
-            padding: 60px;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 20px 50px rgba(139, 90, 43, 0.15), inset 0 2px 5px rgba(255,255,255,0.8);
+        .hero-left {
+            flex: 1.1;
             display: flex;
-            align-items: center;
-            gap: 70px;
-            width: 100%;
+            flex-direction: column;
+            align-items: flex-start;
+            animation: slideUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
         }
 
-        .hero-image {
-            flex: 1;
-            position: relative;
-        }
-
-        .hero-image img {
-            width: 100%;
-            height: auto;
-            aspect-ratio: 4/5;
-            object-fit: cover;
-            border-radius: 16px;
-            box-shadow: 0 25px 50px rgba(44, 30, 22, 0.2);
-            transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        .hero-image img:hover {
-            transform: translateY(-10px) scale(1.02);
-        }
-
-        .hero-content {
-            flex: 1.2;
-            text-align: left;
-        }
-
-        .hero h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 3.5rem;
-            line-height: 1.1;
-            margin-bottom: 24px;
-            margin-top: 0;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-        }
-
-        .hero h2 span {
-            color: var(--accent-wood);
-            font-style: italic;
-        }
-
-        .hero p {
-            font-size: 1.15rem;
-            line-height: 1.7;
-            margin-bottom: 40px;
-            color: var(--text-secondary);
-            font-weight: 400;
-            max-width: 90%;
-        }
-
-        .cta-primary {
+        .pill-badge {
             display: inline-flex;
             align-items: center;
-            gap: 12px;
-            background: linear-gradient(135deg, var(--accent-wood) 0%, var(--accent-wood-hover) 100%);
-            color: #FFFFFF; 
-            padding: 18px 40px;
-            text-decoration: none;
-            border-radius: 50px;
-            font-size: 1.1em;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(139, 90, 43, 0.08);
+            border: 1px solid rgba(139, 90, 43, 0.15);
+            border-radius: 30px;
+            color: var(--accent-primary);
+            font-size: 0.85rem;
             font-weight: 600;
-            box-shadow: 0 10px 20px rgba(139, 90, 43, 0.3);
-            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 24px;
+        }
+
+        .pill-badge i {
+            color: #F59E0B;
+        }
+
+        .hero-title {
+            font-size: 4.8rem;
+            line-height: 1.05;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+        }
+
+        .hero-title span {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: var(--accent-primary);
+            display: block;
+            margin-top: 4px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+            max-width: 90%;
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        .hero-cta-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 48px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 10px 30px var(--accent-glow);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
             border: none;
         }
 
-        .cta-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px rgba(139, 90, 43, 0.4);
-            background: linear-gradient(135deg, var(--accent-wood-hover) 0%, #4A2B1D 100%);
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: skewX(-25deg);
+            animation: shine 4s infinite 2s;
         }
 
-        /* --- NEW ATMOSPHERIC SAWDUST PARTICLES --- */
-        .particles {
+        @keyframes shine {
+            0% {
+                left: -100%;
+            }
+
+            20% {
+                left: 200%;
+            }
+
+            100% {
+                left: 200%;
+            }
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: transparent;
+            color: var(--text-dark);
+            padding: 18px 30px;
+            border-radius: 50px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(139, 90, 43, 0.05);
+        }
+
+        .social-proof {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .avatars {
+            display: flex;
+        }
+
+        .avatars img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-base);
+            margin-left: -12px;
+            background: #E5D5C5;
+            object-fit: cover;
+        }
+
+        .avatars img:first-child {
+            margin-left: 0;
+        }
+
+        .proof-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .stars {
+            color: #F59E0B;
+            font-size: 0.8rem;
+            display: flex;
+            gap: 2px;
+        }
+
+        /* ----- HERO RIGHT (IMAGE) ----- */
+        .hero-right {
+            flex: 1;
+            position: relative;
+            animation: floatUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+
+        .image-wrapper {
+            position: relative;
+            border-radius: 300px 300px 24px 24px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(44, 30, 22, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+            height: 650px;
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            background: var(--border-light);
+        }
+
+        .image-wrapper::after {
+            content: '';
             position: absolute;
             inset: 0;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+            border-radius: 300px 300px 24px 24px;
             pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
         }
-        
-        .particle {
+
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s ease;
+        }
+
+        .hero-right:hover .image-wrapper img {
+            transform: scale(1.04);
+        }
+
+        .floating-card {
             position: absolute;
-            background-color: var(--accent-wood);
+            left: -40px;
+            bottom: 60px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            padding: 20px 24px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            animation: floatBox 6s ease-in-out infinite;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: var(--accent-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 8px 20px var(--accent-glow);
+        }
+
+        .card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+        }
+
+        .card-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* --- BLURRED SHADOW BLOBS --- */
+        .ambient-blob {
+            position: absolute;
             border-radius: 50%;
-            filter: blur(1px); /* Gives it a soft, out-of-focus look */
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .blob-1 {
+            width: 500px;
+            height: 500px;
+            background: #E8D5C4;
+            top: -100px;
+            right: -100px;
+        }
+
+        .blob-2 {
+            width: 600px;
+            height: 600px;
+            background: #F1E5D8;
+            bottom: -200px;
+            left: -200px;
+        }
+
+        /* --- LOGO STRIP (PARTNERS) --- */
+        .partners {
+            padding: 40px 60px 20px;
+            text-align: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            border-top: 1px solid rgba(139, 90, 43, 0.08);
+            animation: slideUp 1s ease 0.6s forwards;
             opacity: 0;
-            animation: sawdustFall infinite linear;
+            position: relative;
+            z-index: 10;
         }
 
-        /* Particles start at the top and drift slowly down with a slight sway */
-        @keyframes sawdustFall {
-            0% { transform: translateY(-5vh) translateX(0px) rotate(0deg); opacity: 0; }
-            15% { opacity: var(--max-opacity); }
-            85% { opacity: var(--max-opacity); }
-            100% { transform: translateY(105vh) translateX(30px) rotate(360deg); opacity: 0; }
+        .partners-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 24px;
         }
 
-        @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(30px); }
-            100% { opacity: 1; transform: translateY(0); }
+        .logos-flex {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+            opacity: 0.6;
+            filter: grayscale(100%);
+            transition: opacity 0.3s;
         }
 
-        @media (max-width: 992px) {
-            header {
+        .logos-flex:hover {
+            opacity: 0.8;
+            filter: grayscale(80%);
+        }
+
+        .logos-flex span {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes floatUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes floatBox {
+            0% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-12px) rotate(1deg);
+            }
+
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .hero {
                 flex-direction: column;
-                gap: 20px;
-                padding: 20px;
-            }
-            .content-wrapper {
-                flex-direction: column-reverse;
-                padding: 40px 30px;
-                gap: 40px;
-            }
-            .hero-content {
+                padding-top: 40px;
                 text-align: center;
+                gap: 50px;
             }
-            .hero p {
+
+            .hero-left {
+                align-items: center;
+            }
+
+            .hero-title {
+                font-size: 3.5rem;
+            }
+
+            .hero-subtitle {
                 margin: 0 auto 30px;
             }
-            .hero h2 {
+
+            .hero-cta-group {
+                justify-content: center;
+            }
+
+            .floating-card {
+                left: 20px;
+                bottom: 20px;
+                padding: 16px;
+            }
+
+            .nav-links {
+                display: none;
+                /* simple mobile hiding for this demo */
+            }
+        }
+
+        @media (max-width: 600px) {
+            .hero-title {
                 font-size: 2.8rem;
+            }
+
+            .image-wrapper {
+                height: 450px;
+                border-radius: 200px 200px 20px 20px;
+            }
+
+            nav,
+            .hero,
+            .partners {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .hero-cta-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
             }
         }
     </style>
 </head>
+
 <body>
-    
-    <div class="particles" id="particles"></div>
 
-    <header>
-        <div class="logo">
-            <i class="fas fa-hammer"></i>FurniCraft
-        </div>
+    <!-- Backdrops -->
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+
+    <nav>
+        <a href="front_page.html" class="logo">
+            <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo"
+                style="height: 1.3em; width: auto; object-fit: contain; margin-right: 2px; vertical-align: middle; position: relative; bottom: 2px;">
+            FurniCraft
+        </a>
         <div class="nav-links">
-            <a href="shop_login.html" class="nav-link"><i class="fas fa-store"></i> Shop Owner</a>
-            <a href="admin_login.html" class="nav-link"><i class="fas fa-crown"></i> Admin</a>
+            <a href="admin_login.html" class="nav-link"><i class="fas fa-user-tie"></i> Admin Login</a>
+            <a href="shop_login.html" class="nav-link"><i class="fas fa-store"></i> Shop Login</a>
+            <a href="login.html" class="nav-link btn-ghost">Sign In</a>
         </div>
-    </header>
+    </nav>
 
-    <div class="container">
-        <div class="content-wrapper">
-            <section class="hero-content hero">
-                <h2>Design Your <br><span>Dream Furniture</span></h2>
-                <p>FurniCraft is your ultimate platform for creating custom pieces. From rustic chairs to modern desks, bring your ideas to life with our intuitive design tools and experience the art of digital woodworking.</p>
-                <a href="login.html" class="cta-primary">Start Designing <i class="fas fa-arrow-right"></i></a>
-            </section>
-            <section class="hero-image">
-                <img src="images/desk.jpg" alt="Custom Wood Desk" />
-            </section>
+    <main class="hero">
+        <div class="hero-left">
+            <div class="pill-badge">
+                <i class="fas fa-star"></i> Pro Design Platform
+            </div>
+
+            <h1 class="hero-title">
+                Build your
+                <span>Custom Furniture</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                FurniCraft bridges the gap between imagination and execution. Access world-class custom design tools,
+                hand-pick elite raw materials, and instantly connect with premier nationwide artisans.
+            </p>
+
+            <div class="hero-cta-group">
+                <a href="login.html" class="btn-primary">
+                    Start Designing <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="social-proof">
+                <div class="avatars">
+                    <!-- Standard placeholder avatars mimicking diverse users -->
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23CBB7A6'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%23fff' opacity='0.7'/%3E%3Ccircle cx='50' cy='95' r='35' fill='%23fff' opacity='0.7'/%3E%3C/svg%3E"
+                        alt="user">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23D4C4B7'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%23fff' opacity='0.5'/%3E%3Ccircle cx='50' cy='95' r='35' fill='%23fff' opacity='0.5'/%3E%3C/svg%3E"
+                        alt="user">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23BFAC9B'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%23fff' opacity='0.8'/%3E%3Ccircle cx='50' cy='95' r='35' fill='%23fff' opacity='0.8'/%3E%3C/svg%3E"
+                        alt="user">
+                </div>
+                <div class="proof-text">
+                    <div class="stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    Awesome designs by 12,000+ creators
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-right">
+            <div class="image-wrapper">
+                <img src="images/modern_scandi_furniture.png" alt="Premium Modern Wood Furniture">
+            </div>
+
+            <div class="floating-card">
+                <div class="card-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="card-info">
+                    <span class="card-title">Verified Workshops</span>
+                    <span class="card-sub">Trusted artisans nationwide</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="partners">
+        <div class="partners-label">Flagship Materials & Networks</div>
+        <div class="logos-flex">
+            <span><i class="fas fa-tree" style="color:var(--accent-primary)"></i> Hardwood Guild</span>
+            <span><i class="fas fa-cubes" style="color:var(--accent-primary)"></i> Premium Rattan</span>
+            <span><i class="fas fa-drafting-compass" style="color:var(--accent-primary)"></i> Architecture Pro</span>
         </div>
     </div>
 
-    <script>
-        // Generates atmospheric "sawdust" particles
-        function createParticles() {
-            const container = document.getElementById("particles");
-            const particleCount = 25; // Number of dust particles
-            
-            for (let i = 0; i < particleCount; i++) { 
-                const particle = document.createElement("div");
-                particle.className = "particle";
-                
-                // Randomize size to look like varying specs of dust/shavings (2px to 8px)
-                const size = Math.random() * 6 + 2; 
-                particle.style.width = `${size}px`;
-                
-                // Sometimes make them slightly elongated like tiny wood shavings
-                particle.style.height = Math.random() > 0.7 ? `${size * 2}px` : `${size}px`; 
-                
-                // Random horizontal start position
-                particle.style.left = Math.random() * 100 + "%";
-                
-                // Stagger animations so they don't fall at once
-                particle.style.animationDelay = Math.random() * 15 + "s";
-                
-                // Randomize fall speed (slow and floaty)
-                particle.style.animationDuration = (Math.random() * 15 + 15) + "s";
-                
-                // Randomize max opacity so some look further away (depth of field)
-                const maxOpacity = Math.random() * 0.4 + 0.1; 
-                particle.style.setProperty('--max-opacity', maxOpacity);
-                
-                container.appendChild(particle);
-            }
-        }
-        createParticles();
-    </script>
 </body>
+
 </html>

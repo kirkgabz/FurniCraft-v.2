@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,9 +7,12 @@
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js">
+</script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js">
+</script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js">
+</script>
 
   <style>
     :root {
@@ -52,14 +55,78 @@
     .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); }
     #canvas-container { width: 100%; height: 100%; outline: none; }
     
-    .viewport-controls { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 5px; border-radius: 20px; border: 1px solid #555; display: flex; gap: 5px; z-index: 10; }
+    .viewport-controls { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 5px; border-radius: 20px; border: 1px solid #555; display: flex; gap: 5px; z-index: 10; }
     .vp-btn { background: transparent; border: none; color: #ddd; padding: 8px 15px; border-radius: 15px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
     .vp-btn:hover { background: rgba(255,255,255,0.1); color: white; }
     .vp-btn.active { color: var(--accent); }
 
     /* SCORE CARD */
-    .score-card { position: absolute; top: 60px; right: 10px; background: rgba(18, 18, 20, 0.92); backdrop-filter: blur(6px); padding: 18px 20px; border-radius: 10px; width: 260px; border: 1px solid #444; pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-    .score-title { font-size: 0.82rem; font-weight: 800; color: #e8e8e8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; border-bottom: 1px solid #333; padding-bottom: 10px; display: flex; align-items: center; gap: 6px; justify-content: flex-start; }
+        .score-card {
+      position: absolute;
+      top: 90px;
+      right: 10px;
+      background: rgba(18, 18, 20, 0.92);
+      backdrop-filter: blur(6px);
+      padding: 18px 20px;
+      border-radius: 10px;
+      width: 260px;
+      border: 1px solid #444;
+      pointer-events: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    .score-card.minimized {
+      padding: 10px 15px;
+    }
+
+    .score-card.minimized #design-analysis-content {
+      display: none;
+    }
+
+    .score-card.minimized .score-title {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .score-toggle-btn {
+      background: rgba(142, 68, 173, 0.15);
+      border: 1px solid rgba(142, 68, 173, 0.3);
+      color: var(--accent);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      margin-left: auto;
+      pointer-events: auto;
+    }
+
+    .score-toggle-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .score-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #e8e8e8;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: flex-start;
+      cursor: pointer;
+    }
     
     .score-info-btn { width: 17px; height: 17px; border-radius: 50%; background: #2e2e2e; border: 1px solid #4a4a4a; color: #777; font-size: 0.6rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.18s; pointer-events: auto; flex-shrink: 0; margin-left: 4px; }
     .score-info-btn:hover { background: var(--select-blue); border-color: var(--select-blue); color: white; transform: scale(1.2); }
@@ -399,7 +466,7 @@
 <body>
 
   <header>
-    <div class="brand"><i class="fas fa-chair" style="color: var(--accent);"></i> FurniCraft Studio — Bar Stool Pro</div>
+    <div class="brand"><img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft Studio — Bar Stool Pro</div>
     <div class="header-center">
       <div class="height-badge"><i class="fas fa-ruler-vertical"></i><span id="height-badge-text">Standard Height</span></div>
     </div>
@@ -461,16 +528,19 @@
       </div>
       <div id="canvas-container"></div>
 
-      <div class="score-card">
-        <div class="score-title">
+      <div class="score-card" id="design-analysis-card">
+        <div class="score-title" onclick="toggleDesignAnalysis()">
           <span><i class="fas fa-chart-bar" style="color:var(--accent);margin-right:7px;"></i>Design Analysis</span>
           <button class="score-info-btn" onclick="showTooltip(event,'score-info')"><i class="fas fa-info"></i></button>
+          <div class="score-toggle-btn"><i class="fas fa-chevron-down" id="da-toggle-icon"></i></div>
         </div>
+        <div id="design-analysis-content">
         <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
         <div class="score-bar-bg"><div id="bar-dura" class="score-bar-fill" style="width:0%"></div></div>
         <div class="score-metric-label"><span>Material Quality</span><span id="score-qual-val">0%</span></div>
         <div class="score-bar-bg"><div id="bar-qual" class="score-bar-fill" style="width:0%"></div></div>
         <div id="rec-status"></div>
+      </div>
       </div>
 
       <div id="design-modal-overlay" class="modal-overlay design-modal-overlay" onclick="closeDesignModalBg(event)">
@@ -628,65 +698,90 @@ function goToCraft() {
     window.location.href = 'craft.html';
 }
 
-function goToExport(){ 
-    const wasRotating = controls.autoRotate;
-    const wereDimsShowing = showDimensions;
-    if (wasRotating) controls.autoRotate = false;
-    if (wereDimsShowing) { showDimensions = false; build3DScene(); }
-    
-    renderer.render(scene, camera); 
-    
-    const canvas = document.querySelector('#canvas-container canvas');
-    const previewImageURL = canvas ? canvas.toDataURL("image/png") : "";
-
-    if (wasRotating) controls.autoRotate = true;
-    if (wereDimsShowing) { showDimensions = true; build3DScene(); }
-    
-    const activeItem = getActiveItem();
-    if (!activeItem) return;
-
-    const priceText = document.getElementById('total-price').innerText.replace(/[^0-9.-]+/g, "");
-    const numericPrice = parseFloat(priceText) || 0;
-
-    const durabilityText = document.getElementById('score-dura-val').innerText.replace('%', '');
-    const qualityText = document.getElementById('score-qual-val').innerText.replace('%', '');
-
-    const formattedMaterials = {};
-    const selections = activeItem.selections || {};
-    
-    Object.keys(selections).forEach(partName => {
-      const hex = selections[partName];
-      const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
-      formattedMaterials[partName] = matKey ? materialDB[matKey].name : 'Custom Material';
-    });
-
-    const exportData = {
-        exportId: 'EXP-' + Date.now().toString().slice(-6),
-        projectName: activeItem.name || 'Custom Stool Design',
-        furnitureType: 'Bar Stool Pro', 
-        estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
-        previewDataUrl: previewImageURL, 
-        cadState: JSON.stringify({
-            items: [{
-                id: activeItem.id,
-                globalScale: activeItem.globalScale || { x: 1, y: 1, z: 1 },
-                materials: formattedMaterials,
-                dims: activeItem.dims || {},
-                analysis: {
-                    durability: parseInt(durabilityText) || 90,
-                    quality: parseInt(qualityText) || 90
-                }
-            }]
-        })
-    };
-
-    const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
-    drafts.unshift(exportData);
-    localStorage.setItem('exportDrafts', JSON.stringify(drafts));
-    sessionStorage.setItem('currentExportId', exportData.exportId);
-
+function goToExport() {
+  const wasRotating = controls.autoRotate;
+  const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
+  
+  if (wasRotating) controls.autoRotate = false;
+  if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
+  
+  renderer.render(scene, camera);
+  
+  const canvas = document.querySelector('#canvas-container canvas');
+  const previewImageURL = canvas ? canvas.toDataURL("image/png") : "";
+  
+  if (wasRotating) controls.autoRotate = true;
+  if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
+  
+  const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
+  if (!activeItem) {
     saveState();
     window.location.href = 'export_area.html';
+    return;
+  }
+  
+  const priceEl = document.getElementById('total-price');
+  const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.-]+/g, "") : "0";
+  const numericPrice = parseFloat(priceText) || 0;
+  
+  const duraEl = document.getElementById('score-dura-val');
+  const qualEl = document.getElementById('score-qual-val');
+  const durabilityText = duraEl ? duraEl.innerText.replace('%', '') : "90";
+  const qualityText = qualEl ? qualEl.innerText.replace('%', '') : "90";
+  
+  const formattedMaterials = {};
+  const selections = activeItem.selections || {};
+  
+  Object.keys(selections).forEach(partName => {
+    const hex = selections[partName];
+    if (typeof materialDB !== 'undefined') {
+        const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
+        formattedMaterials[partName] = matKey ? materialDB[matKey].name : 'Custom Material';
+    } else {
+        formattedMaterials[partName] = 'Custom Material';
+    }
+  });
+  
+  let dimsToExport = activeItem.dims || {};
+  
+  const customConfig = {
+      seatCount: activeItem.seatCount,
+      shelfCount: activeItem.shelfCount,
+      drawerCount: activeItem.drawerCount,
+      doorCount: activeItem.doorCount,
+      hasArmrests: activeItem.hasArmrests,
+      hasPedestal: activeItem.hasPedestal,
+      style: activeItem.style
+  };
+  
+  const exportData = {
+    exportId: 'EXP-' + Date.now().toString().slice(-6),
+    projectName: activeItem.name || 'Custom Stool',
+    furnitureType: 'Stool Designer Pro',
+    estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
+    previewDataUrl: previewImageURL,
+    cadState: JSON.stringify({
+      items: [{
+        id: activeItem.id,
+        globalScale: activeItem.globalScale || { x: 1, y: 1, z: 1 },
+        materials: formattedMaterials,
+        dims: dimsToExport,
+        config: customConfig,
+        analysis: {
+          durability: parseInt(durabilityText) || 90,
+          quality: parseInt(qualityText) || 90
+        }
+      }]
+    })
+  };
+  
+  const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
+  drafts.unshift(exportData);
+  localStorage.setItem('exportDrafts', JSON.stringify(drafts));
+  sessionStorage.setItem('currentExportId', exportData.exportId);
+  
+  saveState();
+  window.location.href = 'export_area.html';
 }
 
 function goToCraft(){ 
@@ -1980,6 +2075,20 @@ function exportModel(){
   link.download=(ai?ai.name.replace(/\s+/g,'_'):'Stool_Model')+'_Model.stl';
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
 }
+
+function toggleDesignAnalysis() {
+  const card = document.getElementById('design-analysis-card');
+  const icon = document.getElementById('da-toggle-icon');
+  if (!card || !icon) return;
+  card.classList.toggle('minimized');
+  if (card.classList.contains('minimized')) {
+    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+  } else {
+    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+  }
+}
 </script>
 </body>
 </html>
+
+

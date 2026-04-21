@@ -262,7 +262,10 @@
       <button id="backBtn" title="Back to Shops">← Back</button>
       <div>FurniCraft</div>
     </div>
-    <div id="userGreeting">Welcome!</div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div id="userGreeting">Welcome!</div>
+      <button onclick="sessionStorage.clear(); window.location.href='logout.html';" style="background:transparent; border:1px solid #B26A38; color:#B26A38; padding:5px 12px; border-radius:30px; cursor:pointer; font-weight:600; font-size:0.85rem; transition:0.3s;" onmouseover="this.style.background='#B26A38'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#B26A38';"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
   </header>
 
   <main>
@@ -374,7 +377,7 @@
     // Load user name from session storage
     const userName = sessionStorage.getItem('username');
     if (userName) {
-      document.getElementById('userGreeting').textContent = `Welcome, ${userName}!`;
+      document.getElementById('userGreeting').textContent = `Welcome, ${userName.split(' ')[0]}!`;
     }
 
     // Elements

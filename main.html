@@ -1239,15 +1239,18 @@
   <header>
     <div class="header-left">
       <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
-      <div class="logo"><i class="fas fa-hammer"></i>FurniCraft</div>
+      <div class="logo"><img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft</div>
     </div>
-    <div class="greeting-pill" id="greetingPill">Welcome</div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div class="greeting-pill" id="greetingPill">Welcome</div>
+      <button onclick="sessionStorage.clear(); window.location.href='logout.html';" style="background:transparent; border:1px solid #B26A38; color:#B26A38; padding:5px 12px; border-radius:30px; cursor:pointer; font-weight:600; font-size:0.85rem; transition:0.3s;" onmouseover="this.style.background='#B26A38'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#B26A38';"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
   </header>
 
   <!-- ─── Sidebar ─── -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-head">
-      <div class="logo"><i class="fas fa-hammer"></i>FurniCraft</div>
+      <div class="logo"><img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft</div>
       <button class="close-btn" id="closeBtn"><i class="fas fa-times"></i></button>
     </div>
     <div class="nav-links">
@@ -1418,8 +1421,8 @@
     /* ══════════════════════════════════════
        CONSTANTS — must match export_area.html
     ══════════════════════════════════════ */
-    const SHOP_ID = 1;
-    const SHOP_NAME = 'Irawan Custom Woodworks';
+    const SHOP_ID = sessionStorage.getItem('selectedShopId') || 1;
+    const SHOP_NAME = sessionStorage.getItem('selectedShopName') || 'Irawan Custom Woodworks';
     const COMM_KEY = `projectProposals_shop_${SHOP_ID}`;
     const CHAT_KEY = `chatMessages_shop_${SHOP_ID}`;
 
@@ -1967,7 +1970,7 @@
     ══════════════════════════════════════ */
     document.addEventListener('DOMContentLoaded', () => {
       const name = sessionStorage.getItem('username');
-      if (name) document.getElementById('greetingPill').textContent = `Welcome, ${name}!`;
+      if (name) document.getElementById('greetingPill').textContent = `Welcome, ${name.split(' ')[0]}!`;
       renderDashboard();
       updateTemplateCard();
       renderQuickQuestions();

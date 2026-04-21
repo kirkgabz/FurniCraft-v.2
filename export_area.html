@@ -247,7 +247,12 @@
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    /* RATING MODAL */
+    .rating-stars { display: flex; justify-content: center; gap: 8px; margin: 1.5rem 0; font-size: 2.5rem; color: #cbd5e1; cursor: pointer; }
+    .rating-stars i { transition: all 0.2s; }
+    .rating-stars i:hover, .rating-stars i.active { color: #f59e0b; transform: scale(1.1); }
+    .review-textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; font-family: 'Inter', sans-serif; resize: none; margin-bottom: 1rem; outline: none; }
+    .review-textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
   </style>
 </head>
 
@@ -389,31 +394,14 @@
           <span>Required Downpayment</span>
           <h1 id="modalDpAmount">₱0.00</h1>
         </div>
-        <p style="margin-bottom: 1.5rem; font-size: 0.9rem; text-align:center; color: var(--text-muted);">Please send the exact amount to one of the trusted e-wallets below to start production.</p>
+        <p style="margin-bottom: 1.5rem; font-size: 0.9rem; text-align:center; color: var(--text-muted);">Scan this Universal QR Code to process your payment via any Major Bank or E-Wallet (GCash, Maya, BDO, BPI, etc.)</p>
         
-        <div class="wallet-card">
-          <div class="wallet-header gcash"><i class="fas fa-mobile-alt"></i> GCash Transfer</div>
-          <div class="wallet-details">
-            <strong>Account Name:</strong> Irawan Woodworks<br>
-            <strong>Mobile:</strong> 0912 345 6789<br>
-            <ol style="margin-left: 1.2rem; margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
-              <li>Open GCash and tap "Send Money".</li>
-              <li>Enter mobile number and exact amount.</li>
-              <li>Keep the Reference Number for verification.</li>
-            </ol>
-          </div>
-        </div>
-
-        <div class="wallet-card">
-          <div class="wallet-header maya"><i class="fas fa-wallet"></i> Maya Transfer</div>
-          <div class="wallet-details">
-            <strong>Account Name:</strong> Irawan Woodworks<br>
-            <strong>Mobile:</strong> 0912 345 6789<br>
-            <ol style="margin-left: 1.2rem; margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
-              <li>Open Maya and tap "Send Money".</li>
-              <li>Enter mobile number and confirm amount.</li>
-              <li>Keep the Reference Number for verification.</li>
-            </ol>
+        <div style="background: #ffffff; border: 2px dashed #94a3b8; border-radius: 20px; padding: 2rem; text-align:center; margin-bottom: 1rem;">
+          <h3 style="font-family:'Outfit', sans-serif; margin-bottom:1rem; color:#1e293b;"><i class="fas fa-qrcode" style="color:#3b82f6;"></i> Universal Payment QR</h3>
+          <img src="images/universal_qr_code.png" alt="Scan to Pay QR Code" style="width: 180px; height: 180px; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); margin-bottom: 1rem;">
+          <div style="font-size:0.85rem; color:#64748b;">
+            <strong>Merchant Name:</strong> Irawan Custom Woodworks<br>
+            Powered by National QR Standard
           </div>
         </div>
       </div>
@@ -425,6 +413,32 @@
             <button class="btn" style="flex:1; background: #f1f5f9; color: var(--text-main);" onclick="closePaymentModal()">Cancel</button>
             <button class="btn btn-primary" style="flex:2; margin: 0;" onclick="submitPaymentProof()">Submit Proof</button>
         </div>
+      </div>
+    </div>
+  </div>
+  <div id="ratingModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Rate Your Experience</h2>
+        <button class="close-btn" onclick="closeRatingModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <i class="fas fa-box-open" style="font-size: 3rem; color: #10b981; margin-bottom: 1rem;"></i>
+        <h3 style="font-family: 'Nunito', sans-serif; color: var(--text-main); margin-bottom: 0.5rem;">Your order is complete!</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">How was your experience working with <b>Irawan Custom Woodworks</b>?</p>
+        
+        <div class="rating-stars" id="starContainer">
+          <i class="fas fa-star" data-rating="1" onclick="setRating(1)"></i>
+          <i class="fas fa-star" data-rating="2" onclick="setRating(2)"></i>
+          <i class="fas fa-star" data-rating="3" onclick="setRating(3)"></i>
+          <i class="fas fa-star" data-rating="4" onclick="setRating(4)"></i>
+          <i class="fas fa-star" data-rating="5" onclick="setRating(5)"></i>
+        </div>
+        
+        <textarea id="reviewTextInput" class="review-textarea" rows="3" placeholder="Write your feedback here... (Optional)"></textarea>
+      </div>
+      <div class="modal-footer" style="padding-top: 0;">
+        <button class="btn btn-primary" style="width: 100%;" onclick="submitRating()">Submit Review</button>
       </div>
     </div>
   </div>
@@ -535,7 +549,25 @@
         tbody.appendChild(tr);
       });
       
-      document.getElementById('overallNote').innerHTML = `<i class="fas fa-info-circle"></i> Overall footprint estimate: <b>${maxW.toFixed(0)}cm</b> (W) × <b>${maxD.toFixed(0)}cm</b> (D), stacked height approx <b>${sumH.toFixed(0)}cm</b>.`;
+      let configHTML = '';
+      if (item.config) {
+          const configItems = [];
+          if (item.config.seatCount !== undefined) configItems.push(`<b>${item.config.seatCount}</b> Seats`);
+          if (item.config.shelfCount !== undefined) configItems.push(`<b>${item.config.shelfCount}</b> Shelves`);
+          if (item.config.drawerCount !== undefined) configItems.push(`<b>${item.config.drawerCount}</b> Drawers`);
+          if (item.config.doorCount !== undefined) configItems.push(`<b>${item.config.doorCount}</b> Doors`);
+          if (item.config.hasArmrests !== undefined) configItems.push(`Armrests: <b>${item.config.hasArmrests ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasPedestal !== undefined) configItems.push(`Pedestal: <b>${item.config.hasPedestal ? 'Yes' : 'No'}</b>`);
+          if (item.config.style !== undefined) configItems.push(`Style: <b style="text-transform: capitalize;">${item.config.style}</b>`);
+          
+          if (configItems.length > 0) {
+              configHTML = `<div style="margin-top: 10px; padding: 10px; background: #e0e7ff; color: #3730a3; border-radius: 8px;">
+                  <i class="fas fa-cogs"></i> <b>Design Features:</b> ${configItems.join(' &nbsp;|&nbsp; ')}
+              </div>`;
+          }
+      }
+      
+      document.getElementById('overallNote').innerHTML = `<i class="fas fa-info-circle"></i> Overall footprint estimate: <b>${maxW.toFixed(0)}cm</b> (W) × <b>${maxD.toFixed(0)}cm</b> (D), stacked height approx <b>${sumH.toFixed(0)}cm</b>.` + configHTML;
     }
 
     function loadShopPicker(){
@@ -588,7 +620,7 @@
 
     function loadOrderStatus(){
       const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
-      const myOrder = commissions.find(c => c.customerName === getCustName());
+      const myOrder = commissions.find(c => c.customerName === getCustName() && c.exportId === exportDraft?.exportId);
 
       const btnPlaceOrder = document.getElementById('btnPlaceOrder');
       const btnPayDp = document.getElementById('btnPayDp');
@@ -634,11 +666,35 @@
           document.getElementById('progressPercentNum').textContent = '100%';
           document.getElementById('progressBarFill').style.width = '100%';
           document.getElementById('progressBarFill').style.background = '#10b981'; 
+          
+          if (!myOrder.hasRated) {
+              if (!document.getElementById('btnRateShop')) {
+                  const btn = document.createElement('button');
+                  btn.id = 'btnRateShop';
+                  btn.className = 'btn btn-gold';
+                  btn.style.marginTop = '10px';
+                  btn.style.backgroundColor = '#10b981';
+                  btn.innerHTML = '<i class="fas fa-star"></i> Leave a Review';
+                  btn.onclick = openRatingModal;
+                  document.querySelector('.status-card').appendChild(btn);
+              } else {
+                  document.getElementById('btnRateShop').style.display = 'flex';
+              }
+              
+              if (!sessionStorage.getItem('ratingModalAutoShown_' + myOrder.id)) {
+                  sessionStorage.setItem('ratingModalAutoShown_' + myOrder.id, 'true');
+                  setTimeout(openRatingModal, 800);
+              }
+          } else {
+              if (document.getElementById('btnRateShop')) document.getElementById('btnRateShop').style.display = 'none';
+              note = "Order completed! Thanks for your review.";
+          }
         }
         else if (st === 'declined') { 
             uiStatus = 'cancelled'; 
             note = "Order was declined by the shop."; 
             btnPayDp.style.display = 'none'; 
+            if (document.getElementById('btnRateShop')) document.getElementById('btnRateShop').style.display = 'none';
         }
 
         setStatus(uiStatus, note);
@@ -663,11 +719,14 @@
 
     function placeOrder(){
       const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
-      if (commissions.find(c => c.customerName === getCustName())) { alert("You have already placed this order!"); return; }
+      if (commissions.find(c => c.exportId === exportDraft?.exportId)) { alert("You have already placed this precise order!"); return; }
       let numericPrice = parseFloat((exportDraft?.estimatedPriceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
 
       commissions.push({
-        id: Date.now(), customerName: getCustName(),
+        id: Date.now(), 
+        customerName: getCustName(),
+        exportId: exportDraft?.exportId,
+        previewImage: exportDraft?.previewDataUrl,
         description: `Design: ${exportDraft?.projectName || 'Custom'} (${exportDraft?.furnitureType || 'Item'})`,
         duration: 14, price: numericPrice, status: 'pending', submittedAt: new Date().toISOString()
       });
@@ -690,7 +749,7 @@
       const refInput = document.getElementById('refNumberInput').value.trim();
       if (!refInput) { alert("Please enter the Reference Number."); return; }
       const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
-      const index = commissions.findIndex(c => c.customerName === getCustName());
+      const index = commissions.findIndex(c => c.customerName === getCustName() && c.exportId === exportDraft?.exportId);
       if (index !== -1) {
         commissions[index].status = 'payment_verifying'; 
         commissions[index].referenceNumber = refInput;
@@ -703,6 +762,56 @@
         localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
         closePaymentModal(); loadOrderStatus(); 
       }
+    }
+
+    let currentRating = 5;
+    
+    function openRatingModal() {
+        setRating(5);
+        document.getElementById('reviewTextInput').value = '';
+        document.getElementById('ratingModal').style.display = 'flex';
+    }
+    function closeRatingModal() { document.getElementById('ratingModal').style.display = 'none'; }
+    
+    function setRating(val) {
+        currentRating = val;
+        const stars = document.querySelectorAll('#starContainer i');
+        stars.forEach(star => {
+            if (parseInt(star.dataset.rating) <= val) {
+                star.classList.add('active');
+                star.style.color = '#f59e0b';
+            } else {
+                star.classList.remove('active');
+                star.style.color = '#cbd5e1';
+            }
+        });
+    }
+    
+    function submitRating() {
+        const text = document.getElementById('reviewTextInput').value.trim();
+        const reviewsKey = `shopReviews_${activeShopId}`;
+        const reviews = JSON.parse(localStorage.getItem(reviewsKey) || '[]');
+        
+        reviews.push({
+            id: Date.now(),
+            customerName: getCustName(),
+            rating: currentRating,
+            reviewText: text,
+            date: new Date().toISOString()
+        });
+        localStorage.setItem(reviewsKey, JSON.stringify(reviews));
+        
+        const commissionsKey = getDashCommissionsKey();
+        const commissions = JSON.parse(localStorage.getItem(commissionsKey) || '[]');
+        const index = commissions.findIndex(c => c.customerName === getCustName() && c.exportId === exportDraft?.exportId);
+        if (index !== -1) {
+            commissions[index].hasRated = true;
+            localStorage.setItem(commissionsKey, JSON.stringify(commissions));
+        }
+        
+        closeRatingModal();
+        alert("Thank you for your feedback! Your review has been submitted securely.");
+        loadOrderStatus();
     }
 
     document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && document.activeElement.id === 'chatInput') sendMsg(); });

@@ -141,9 +141,14 @@ Here is the updated code with the **syntax fixed** (make sure you copy *only* th
   <header>
     <div style="display: flex; align-items: center;">
       <button onclick="window.history.back()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; margin-right: 1rem;">← Back</button>
-      <div class="logo">FurniCraft</div>
+      <div class="logo">
+  <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft
+</div>
     </div>
-    <span id="user">Welcome!</span>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span id="user">Welcome!</span>
+      <button onclick="sessionStorage.clear(); window.location.href='logout.html';" style="background:transparent; border:1px solid #B26A38; color:#B26A38; padding:5px 12px; border-radius:30px; cursor:pointer; font-weight:600; font-size:0.85rem; transition:0.3s;" onmouseover="this.style.background='#B26A38'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#B26A38';"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
   </header>
 
   <main id="captureArea">
@@ -263,7 +268,7 @@ Here is the updated code with the **syntax fixed** (make sure you copy *only* th
 
     // --- 2. Initialization ---
     const userName = sessionStorage.getItem('username');
-    if (userName) document.getElementById('user').textContent = `Welcome, ${userName}!`;
+    if (userName) document.getElementById('user').textContent = `Welcome, ${userName.split(' ')[0]}!`;
 
     const selectedFurniture = JSON.parse(sessionStorage.getItem('selectedFurniture') || '{}');
     const selectedMaterials = JSON.parse(sessionStorage.getItem('selectedMaterials') || '{}');

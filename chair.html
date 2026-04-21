@@ -185,7 +185,7 @@
 
     .viewport-controls {
       position: absolute;
-      top: 15px;
+      top: 25px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(0, 0, 0, 0.6);
@@ -454,7 +454,7 @@
 
     .score-card {
       position: absolute;
-      top: 60px;
+      top: 90px;
       right: 10px;
       background: rgba(18, 18, 20, 0.92);
       backdrop-filter: blur(6px);
@@ -462,8 +462,45 @@
       border-radius: 10px;
       width: 260px;
       border: 1px solid #444;
-      pointer-events: none;
+      pointer-events: auto;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    .score-card.minimized {
+      padding: 10px 15px;
+    }
+
+    .score-card.minimized #design-analysis-content {
+      display: none;
+    }
+
+    .score-card.minimized .score-title {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .score-toggle-btn {
+      background: rgba(142, 68, 173, 0.15);
+      border: 1px solid rgba(142, 68, 173, 0.3);
+      color: var(--accent);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      margin-left: auto;
+      pointer-events: auto;
+    }
+
+    .score-toggle-btn:hover {
+      background: var(--accent);
+      color: white;
     }
 
     .score-title {
@@ -479,6 +516,7 @@
       align-items: center;
       gap: 6px;
       justify-content: flex-start;
+      cursor: pointer;
     }
 
     .score-info-btn {
@@ -1020,7 +1058,7 @@
       color: var(--select-blue);
     }
 
-    /* ── Shop Info Badge ── */
+    /* ?????? Shop Info Badge ?????? */
     .shop-info-badge {
       position: absolute;
       bottom: 20px;
@@ -1140,7 +1178,7 @@
       border: 1px solid rgba(241, 196, 15, 0.3);
     }
 
-    /* ── Previous project bar ── */
+    /* ?????? Previous project bar ?????? */
     .prev-project-bar {
       margin: 8px 8px 0;
       background: #1a1a1c;
@@ -1208,7 +1246,7 @@
 
   <header>
     <div class="brand">
-      <i class="fas fa-chair"></i> FurniCraft Studio - Dining Chair Pro
+      <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft Studio - Dining Chair Pro
     </div>
     <div class="header-controls" style="display: flex; gap: 10px;">
       <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
@@ -1233,7 +1271,7 @@
         <div class="prev-project-divider"></div>
         <div class="prev-project-item" onclick="goToPrevProject()">
           <span class="prev-project-name"><i class="fas fa-history"></i><span
-              id="prev-project-name-text">—</span></span>
+              id="prev-project-name-text">???</span></span>
           <span class="prev-project-link"><i class="fas fa-external-link-alt"></i> Open</span>
         </div>
       </div>
@@ -1268,26 +1306,29 @@
       </div>
       <div id="canvas-container"></div>
 
-      <div class="score-card">
-        <div class="score-title">
+      <div class="score-card" id="design-analysis-card">
+        <div class="score-title" onclick="toggleDesignAnalysis()">
           <span><i class="fas fa-chart-bar" style="color:var(--accent); margin-right:7px;"></i> Design Analysis</span>
           <button class="score-info-btn" onclick="showTooltip(event,'score-info')" title="About Design Analysis"><i
               class="fas fa-info"></i></button>
+          <div class="score-toggle-btn"><i class="fas fa-chevron-down" id="da-toggle-icon"></i></div>
         </div>
-        <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
-        <div class="score-bar-bg">
-          <div id="bar-dura" class="score-bar-fill" style="width:0%"></div>
+        <div id="design-analysis-content">
+          <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
+          <div class="score-bar-bg">
+            <div id="bar-dura" class="score-bar-fill" style="width:0%"></div>
+          </div>
+          <div class="score-metric-label"><span>Material Quality</span><span id="score-qual-val">0%</span></div>
+          <div class="score-bar-bg">
+            <div id="bar-qual" class="score-bar-fill" style="width:0%"></div>
+          </div>
+          <div id="rec-status"></div>
         </div>
-        <div class="score-metric-label"><span>Material Quality</span><span id="score-qual-val">0%</span></div>
-        <div class="score-bar-bg">
-          <div id="bar-qual" class="score-bar-fill" style="width:0%"></div>
-        </div>
-        <div id="rec-status"></div>
       </div>
 
       <div id="design-modal-overlay" class="modal-overlay design-modal-overlay" onclick="closeDesignModal(event)">
         <div class="design-modal" onclick="event.stopPropagation()">
-          <button class="btn-close-modal" onclick="closeDesignModal()">×</button>
+          <button class="btn-close-modal" onclick="closeDesignModal()">??</button>
           <div id="design-modal-title" class="modal-title">Select Design</div>
           <div id="design-modal-scroll" class="modal-scroll-area"></div>
         </div>
@@ -1383,66 +1424,90 @@
        NAVIGATION & EXPORT
        ========================================================================== */
     function goToExport() {
-      const wasRotating = controls.autoRotate;
-      const wereDimsShowing = showDimensions;
-      if (wasRotating) controls.autoRotate = false;
-      if (wereDimsShowing) { showDimensions = false; build3DScene(); }
-
-      renderer.render(scene, camera);
-
-      const canvas = document.querySelector('#canvas-container canvas');
-      const previewImageURL = canvas ? canvas.toDataURL("image/png") : "";
-
-      if (wasRotating) controls.autoRotate = true;
-      if (wereDimsShowing) { showDimensions = true; build3DScene(); }
-
-      const activeItem = getActiveItem();
-      if (!activeItem) return;
-
-      const priceText = document.getElementById('total-price').innerText.replace(/[^0-9.-]+/g, "");
-      const numericPrice = parseFloat(priceText) || 0;
-
-      const durabilityText = document.getElementById('score-dura-val').innerText.replace('%', '');
-      const qualityText = document.getElementById('score-qual-val').innerText.replace('%', '');
-
-      const formattedMaterials = {};
-      const selections = activeItem.selections || {};
-
-      Object.keys(selections).forEach(partName => {
-        const hex = selections[partName];
+  const wasRotating = controls.autoRotate;
+  const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
+  
+  if (wasRotating) controls.autoRotate = false;
+  if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
+  
+  renderer.render(scene, camera);
+  
+  const canvas = document.querySelector('#canvas-container canvas');
+  const previewImageURL = canvas ? canvas.toDataURL("image/png") : "";
+  
+  if (wasRotating) controls.autoRotate = true;
+  if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
+  
+  const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
+  if (!activeItem) {
+    saveState();
+    window.location.href = 'export_area.html';
+    return;
+  }
+  
+  const priceEl = document.getElementById('total-price');
+  const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.-]+/g, "") : "0";
+  const numericPrice = parseFloat(priceText) || 0;
+  
+  const duraEl = document.getElementById('score-dura-val');
+  const qualEl = document.getElementById('score-qual-val');
+  const durabilityText = duraEl ? duraEl.innerText.replace('%', '') : "90";
+  const qualityText = qualEl ? qualEl.innerText.replace('%', '') : "90";
+  
+  const formattedMaterials = {};
+  const selections = activeItem.selections || {};
+  
+  Object.keys(selections).forEach(partName => {
+    const hex = selections[partName];
+    if (typeof materialDB !== 'undefined') {
         const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
         formattedMaterials[partName] = matKey ? materialDB[matKey].name : 'Custom Material';
-      });
-
-      const exportData = {
-        exportId: 'EXP-' + Date.now().toString().slice(-6),
-        projectName: activeItem.name || 'Custom Chair Design',
-        furnitureType: 'Dining Chair Pro',
-        estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
-        previewDataUrl: previewImageURL,
-        cadState: JSON.stringify({
-          items: [{
-            id: activeItem.id,
-            globalScale: activeItem.globalScale || { x: 1, y: 1, z: 1 },
-            materials: formattedMaterials,
-            dims: activeItem.dims || {},
-            analysis: {
-              durability: parseInt(durabilityText) || 90,
-              quality: parseInt(qualityText) || 90
-            }
-          }]
-        })
-      };
-
-      const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
-      drafts.unshift(exportData);
-      localStorage.setItem('exportDrafts', JSON.stringify(drafts));
-      sessionStorage.setItem('currentExportId', exportData.exportId);
-
-      saveState();
-
-      window.location.href = 'export_area.html';
+    } else {
+        formattedMaterials[partName] = 'Custom Material';
     }
+  });
+  
+  let dimsToExport = activeItem.dims || {};
+  
+  const customConfig = {
+      seatCount: activeItem.seatCount,
+      shelfCount: activeItem.shelfCount,
+      drawerCount: activeItem.drawerCount,
+      doorCount: activeItem.doorCount,
+      hasArmrests: activeItem.hasArmrests,
+      hasPedestal: activeItem.hasPedestal,
+      style: activeItem.style
+  };
+  
+  const exportData = {
+    exportId: 'EXP-' + Date.now().toString().slice(-6),
+    projectName: activeItem.name || 'Custom Chair',
+    furnitureType: 'Chair Designer Pro',
+    estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
+    previewDataUrl: previewImageURL,
+    cadState: JSON.stringify({
+      items: [{
+        id: activeItem.id,
+        globalScale: activeItem.globalScale || { x: 1, y: 1, z: 1 },
+        materials: formattedMaterials,
+        dims: dimsToExport,
+        config: customConfig,
+        analysis: {
+          durability: parseInt(durabilityText) || 90,
+          quality: parseInt(qualityText) || 90
+        }
+      }]
+    })
+  };
+  
+  const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
+  drafts.unshift(exportData);
+  localStorage.setItem('exportDrafts', JSON.stringify(drafts));
+  sessionStorage.setItem('currentExportId', exportData.exportId);
+  
+  saveState();
+  window.location.href = 'export_area.html';
+}
 
     function goToCraft() {
       saveState();
@@ -1505,17 +1570,17 @@
     const tooltipData = {
       'left-panel-info': { icon: 'fas fa-folder-open', title: 'Design Projects', body: 'Manage all your chair design sessions here. Each project saves independently.', tip: 'Click "Add New Furniture Design" to go to the FurniCraft catalog and start a new project.' },
       'right-panel-info': { icon: 'fas fa-sliders-h', title: 'Properties Panel', body: 'The central control hub for your active chair design. All editable properties live here and update the 3D model in real time.', tip: 'Scroll down to find the Layers section where you can edit each individual chair part.' },
-      'score-info': { icon: 'fas fa-chart-bar', title: 'Design Analysis', body: 'Real-time quality scores calculated from the materials applied to each part.', tip: 'Use all Recommended (⭐) materials to hit 100% on both scores.' },
+      'score-info': { icon: 'fas fa-chart-bar', title: 'Design Analysis', body: 'Real-time quality scores calculated from the materials applied to each part.', tip: 'Use all Recommended (???) materials to hit 100% on both scores.' },
       'proj-name-info': { icon: 'fas fa-tag', title: 'Project Name', body: 'Give your chair design a descriptive name. This label appears in the project list and becomes the filename on export.', tip: 'Use names like "Oak Farmhouse v2" or "Rocking Chair - Narra" to stay organized.' },
       'scale-info': { icon: 'fas fa-expand-arrows-alt', title: 'Global Scale', body: 'Uniformly resize the entire chair in three axes. Values range from 50% (half size) to 200% (double).', tip: 'Use Global Scale for quick size prototyping.' },
-      'material-info': { icon: 'fas fa-palette', title: 'Material Library', body: 'A curated palette of real-world furniture materials — Philippine hardwoods, stone, steel, and more. Each material carries unique Durability, Quality, and Price values.', tip: 'First click a Layer to select it, then click any material tile here to apply it instantly.' },
+      'material-info': { icon: 'fas fa-palette', title: 'Material Library', body: 'A curated palette of real-world furniture materials ??? Philippine hardwoods, stone, steel, and more. Each material carries unique Durability, Quality, and Price values.', tip: 'First click a Layer to select it, then click any material tile here to apply it instantly.' },
       'armrest-info': { icon: 'fas fa-grip-lines', title: 'Armrests Toggle', body: 'Show or hide the left and right armrests independently on the 3D model.', tip: 'Dining chairs are often designed without armrests. Toggle both off for a clean side-chair look.' },
-      'layers-info': { icon: 'fas fa-layer-group', title: 'Layers — Chair Parts', body: 'The chair is composed of 4 independent layers: Seat, Back, Legs, and Armrests. Click a layer row to select and expand it.', tip: 'Click the 👁 eye icon on any layer header to focus the 3D camera directly on that part.' },
+      'layers-info': { icon: 'fas fa-layer-group', title: 'Layers ??? Chair Parts', body: 'The chair is composed of 4 independent layers: Seat, Back, Legs, and Armrests. Click a layer row to select and expand it.', tip: 'Click the ???? eye icon on any layer header to focus the 3D camera directly on that part.' },
       'lyr-shape-info': { icon: 'fas fa-shapes', title: 'Shape / Base Style', body: 'Defines the fundamental 3D geometry of this chair part.', tip: 'Some shapes (like Padded Seat or Padded Back) automatically apply a fabric texture.' },
       'lyr-holes-info': { icon: 'fas fa-circle-notch', title: 'Cutouts / Holes', body: 'Adds decorative cutout patterns punched through the flat surface of this part.', tip: 'Cutouts work best on flat panel shapes.' },
       'lyr-carving-info': { icon: 'fas fa-drafting-compass', title: 'Carving / Texture', body: 'Applies a surface texture or carving pattern as a bump map onto this part.', tip: 'Tufted and leather textures pair best with fabric/leather-colored parts.' },
       'lyr-color-info': { icon: 'fas fa-eye-dropper', title: 'Hex Color', body: 'Set the exact color of this chair part using the color picker or a hex code.', tip: 'Use hex values that match a material in the Material Library for accurate cost estimates.' },
-      'lyr-dims-info': { icon: 'fas fa-ruler-combined', title: 'Dimensions (cm)', body: 'Set the exact physical dimensions of this part in centimetres.', tip: 'Standard dining chair seats are ~45×45cm. Leg posts are commonly 4–6cm wide and 43–48cm tall.' }
+      'lyr-dims-info': { icon: 'fas fa-ruler-combined', title: 'Dimensions (cm)', body: 'Set the exact physical dimensions of this part in centimetres.', tip: 'Standard dining chair seats are ~45??45cm. Leg posts are commonly 4???6cm wide and 43???48cm tall.' }
     };
 
     let activeTooltip = null;
@@ -1582,18 +1647,33 @@
        DATABASES
        ========================================================================== */
     const materialDB = {
-      narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 15, rec: true, note: 'Premium local hardwood. Excellent durability.' },
-      kamagong: { name: 'Kamagong', icon: '🌑', hex: '#2C1A0E', dura: 98, qual: 99, price: 25, rec: true, note: 'Ironwood. Extremely hard and luxurious.' },
-      mahogany: { name: 'Mahogany', icon: '🪵', hex: '#652A0E', dura: 85, qual: 88, price: 10, rec: false, note: 'Classic furniture wood.' },
-      oak: { name: 'White Oak', icon: '🌲', hex: '#C19A6B', dura: 88, qual: 90, price: 12, rec: false, note: 'Strong, versatile imported wood.' },
-      pine: { name: 'Pine Wood', icon: '🌱', hex: '#E6C280', dura: 60, qual: 65, price: 5, rec: false, note: 'Softwood, budget-friendly but dents easily.' },
-      rubberwood: { name: 'Rubberwood', icon: '🍃', hex: '#D4B58A', dura: 70, qual: 75, price: 7, rec: false, note: 'Eco-friendly and affordable.' },
-      fabric_gray: { name: 'Gray Fabric', icon: '🛋️', hex: '#7f8c8d', dura: 65, qual: 75, price: 4, rec: false, note: 'Standard upholstery fabric.' },
-      leather_brown: { name: 'Brown Leather', icon: '👜', hex: '#5c4033', dura: 85, qual: 92, price: 14, rec: false, note: 'Premium seating material.' },
-      velvet_blue: { name: 'Blue Velvet', icon: '✨', hex: '#1f3a93', dura: 60, qual: 85, price: 11, rec: false, note: 'Luxurious but requires maintenance.' },
-      brushed_steel: { name: 'Brushed Steel', icon: '🔩', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' },
-      marbled_gold: { name: 'Brushed Gold', icon: '✨', hex: '#D4AF37', dura: 90, qual: 98, price: 9.5, rec: false, note: 'Ultra-premium metallic finish for luxury accents.' },
-      smoked_glass: { name: 'Smoked Glass', icon: '🕶️', hex: '#333333', dura: 75, qual: 94, price: 6.2, rec: false, note: 'Elegant darkened tempered glass.' }
+      narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2, rec: true, note: 'National tree of PH. Dense, golden-brown hardwood.' },
+      ipil: { name: 'Ipil', icon: '🌳', hex: '#6B4226', dura: 98, qual: 96, price: 4.8, rec: true, note: 'Highly durable, termite-resistant local hardwood.' },
+      dao: { name: 'Dao', icon: '🪵', hex: '#4B3621', dura: 92, qual: 97, price: 4.5, rec: true, note: 'Premium local wood with distinctive dark streaks.' },
+      guijo: { name: 'Guijo', icon: '🌳', hex: '#8B4513', dura: 96, qual: 94, price: 4.1, rec: true, note: 'Extremely dense and strong for heavy slabs.' },
+      apitong: { name: 'Apitong', icon: '🌲', hex: '#A0522D', dura: 94, qual: 88, price: 3.6, rec: true, note: 'Tough, resilient wood ideal for structural bases.' },
+      kamagong: { name: 'Kamagong', icon: '🪵', hex: '#2c1a0e', dura: 97, qual: 99, price: 5.5, rec: true, note: 'Philippine Ebony. Extremely hard and durable.' },
+      molave: { name: 'Molave', icon: '🌳', hex: '#6b4226', dura: 93, qual: 95, price: 4.0, rec: true, note: 'Very hard PH hardwood. Termite-resistant.' },
+      mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true, note: 'Classic furniture wood. Rich reddish-brown.' },
+      tanguile: { name: 'Tanguile', icon: '🌲', hex: '#a0522d', dura: 80, qual: 82, price: 2.2, rec: true, note: 'Philippine red lauan. Common furniture grade.' },
+      yakal: { name: 'Yakal', icon: '🌳', hex: '#7a4f2e', dura: 88, qual: 86, price: 3.1, rec: true, note: 'Heavy PH hardwood. Strong and resistant.' },
+      rattan: { name: 'Rattan', icon: '🧺', hex: '#D2B48C', dura: 75, qual: 85, price: 1.8, rec: true, note: 'Classic woven cane for heritage textures.' },
+      capiz: { name: 'Capiz Shell', icon: '🐚', hex: '#F5F5DC', dura: 60, qual: 95, price: 5.2, rec: true, note: 'Translucent, pearlescent shell for elegant inlays.' },
+      walnut: { name: 'Walnut', icon: '🪵', hex: '#3D2B1F', dura: 88, qual: 96, price: 6.2, rec: false, note: 'Luxurious, fine-grained dark brown wood.' },
+      teak: { name: 'Teak', icon: '🌲', hex: '#C19A6B', dura: 95, qual: 94, price: 7.5, rec: false, note: 'Premium, naturally weather-resistant golden-brown wood.' },
+      maple: { name: 'Maple', icon: '🌲', hex: '#F4A460', dura: 82, qual: 88, price: 3.8, rec: false, note: 'Hard, light-colored wood for clean, modern finishes.' },
+      oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true, note: 'Imported. Tight grain, very workable.' },
+      pine: { name: 'Pine', icon: '🌲', hex: '#c8a96e', dura: 55, qual: 58, price: 1.4, rec: true, note: 'Soft imported wood. Budget-friendly but less durable.' },
+      rubber_wood: { name: 'Rubber Wood', icon: '🌿', hex: '#d4b896', dura: 62, qual: 65, price: 1.6, rec: true, note: 'Hevea wood. Eco-friendly, medium hardness.' },
+      bamboo: { name: 'Bamboo', icon: '🎋', hex: '#bdb76b', dura: 70, qual: 72, price: 1.2, rec: true, note: 'Sustainable. Harder than most softwoods.' },
+      fabric_gray: { name: 'Gray Fabric', icon: '🧶', hex: '#7f8c8d', dura: 65, qual: 75, price: 1.5, rec: false, note: 'Standard upholstery fabric.' },
+      leather_brown: { name: 'Brown Leather', icon: '👞', hex: '#5c4033', dura: 85, qual: 92, price: 4.8, rec: false, note: 'Premium seating material.' },
+      velvet_blue: { name: 'Blue Velvet', icon: '🌟', hex: '#1f3a93', dura: 60, qual: 85, price: 3.2, rec: false, note: 'Luxurious but requires maintenance.' },
+      iron: { name: 'Black Iron', icon: '⛓️', hex: '#1A1A1A', dura: 98, qual: 82, price: 3.2, rec: false, note: 'Heavy-duty standard for industrial frame parts.' },
+      brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, qual: 97, price: 6.8, rec: false, note: 'Warm, vintage metallic accent for legs or inlays.' },
+      marbled_gold: { name: 'Brushed Gold', icon: '🪙', hex: '#D4AF37', dura: 90, qual: 98, price: 7.5, rec: false, note: 'Ultra-premium metallic finish for luxury accents.' },
+      smoked_glass: { name: 'Smoked Glass', icon: '🧊', hex: '#333333', dura: 75, qual: 94, price: 6.2, rec: false, note: 'Elegant darkened tempered glass.' },
+      brushed_steel: { name: 'Brushed Steel', icon: '🔩', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
     };
 
     const assetsDB = {
@@ -1705,6 +1785,7 @@
       geometric: { name: 'Geometric Pattern', icon: 'dice-d20', cat: 'Wood Carvings' },
       linear_groove: { name: 'Linear Grooves', icon: 'lines-v', cat: 'Wood Carvings' },
       lattice: { name: 'Wood Lattice Detail', icon: 'th', cat: 'Wood Carvings' },
+      marble_vein: { name: 'Marble Vein', icon: 'wave-square', cat: 'Stone & Special', faIcon: true },
       weave: { name: 'Woven Cane / Rattan', icon: 'box', style: { repeatX: 3, repeatY: 3 }, cat: 'Inserts & Upholstery' },
       padded: { name: 'Standard Fabric', icon: 'couch', faIcon: true, cat: 'Inserts & Upholstery' },
       studded: { name: 'Tufted Buttons', icon: 'braille', faIcon: true, style: { repeatX: 2, repeatY: 2 }, cat: 'Inserts & Upholstery' },
@@ -2002,18 +2083,20 @@
           const isRec = !!mat.rec;
           const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === mat.name.toLowerCase());
 
-          // Professional Weighted Scoring
+          // Professional Weighted Scoring Logic
           if (isRec) {
+            // Efficiency bonus for PH premium hardwoods
             partDura = Math.min(100, partDura + 6);
             partQual = Math.min(100, partQual + 4);
             recCount++;
           } else {
+            // Penalty for non-heritage materials in luxury furniture
             partDura -= 12;
             partQual -= 15;
           }
 
           if (!isInShop) {
-            partQual -= 25;
+            partQual -= 25; // Production conflict penalty
             partDura -= 8;
           } else {
             inShopCount++;
@@ -2261,7 +2344,7 @@
       dimGroup.add(sprite);
     }
 
-    /* ── hole helpers (same as original) ── */
+    /* ?????? hole helpers (same as original) ?????? */
     function buildSeatHoleOnlyShape(seatHole, dSeat) {
       if (seatHole === 'none') return null;
       const sw = dSeat.w * 0.16, sd = dSeat.d * 0.16, insetX = dSeat.w / 2 * 0.75, insetY = dSeat.d / 2 * 0.75;
@@ -2345,7 +2428,7 @@
       const backZ = -(dSeat.d / 2) + (dBack.d / 2);
       const yB = dLeg.h + dSeat.h + dBack.h / 2;
 
-      /* ── MATERIAL FACTORY ── */
+      /* ?????? MATERIAL FACTORY ?????? */
       const getMat = (hex, ck) => {
         ck = ck || 'none';
         const cStyle = carvingDB[ck] || carvingDB.none;
@@ -2426,6 +2509,8 @@
 
       const dRunner = getDims('Runners');
       const dHead = getDims('Headrest');
+      const seatHole = itemHoles['Seat'] || 'none';
+      const backHole = itemHoles['Back'] || 'none';
       const bH = dBack.h, bW = dBack.w;
       const isModernRunner = runnerStyle === 'modern_runners';
 
@@ -2445,7 +2530,7 @@
       const rSZ = fLegZ + 0.3; // Runner Start Z (front extension)
       const rEZ = bLegZ - 0.4; // Runner End Z (back extension)
 
-      /* ── RUNNERS ── */
+      /* ?????? RUNNERS ?????? */
       class RockerCurve extends THREE.Curve {
         constructor(x, sZ, eZ, aR, yO) {
           super(); this.x = x; this.sZ = sZ; this.eZ = eZ; this.aR = aR; this.yO = yO;
@@ -2483,7 +2568,7 @@
         });
       }
 
-      /* ── LEGS ── */
+      /* ?????? LEGS ?????? */
       const getRY = (z) => {
         const mZ = (rSZ + rEZ) / 2, dz = z - mZ, cY = Math.sqrt(Math.max(0, arcR * arcR - Math.pow((rEZ - rSZ) / 2, 2)));
         return (cY - Math.sqrt(Math.max(0, arcR * arcR - dz * dz))) + rYOff;
@@ -2518,7 +2603,7 @@
         addMesh('Legs', gB, legHex, legCarv, x, bLegY + (gB.type === 'BoxGeometry' ? legH / 2 : 0), bLegZ, 0, 0, 0);
       });
 
-      /* ── SEAT (Properly aligned to legs) ── */
+      /* ?????? SEAT (Properly aligned to legs) ?????? */
       // The seat must perfectly touch the top of the legs.
       const sZV = (fLegZ + bLegZ) / 2; // Center seat between legs
       const seatBaseY = (fLegY + bLegY) / 2 + legH; // Center height
@@ -2531,29 +2616,38 @@
         let g;
         if (seatStyle === 'modern_rocker_seat') {
           g = new THREE.BoxGeometry(sW, sH * 0.7, sD);
+        } else if (seatStyle === 'round_plank') {
+          const s = new THREE.Shape(); s.absarc(0, 0, sW / 2, 0, Math.PI * 2, false); punchSeatHoles(s, seatHole, dSeat);
+          g = new THREE.ExtrudeGeometry(s, { depth: sH, bevelEnabled: false }); g.rotateX(Math.PI / 2);
+        } else if (seatStyle === 'hex_plank' || seatStyle === 'oct_plank') {
+          const s = new THREE.Shape(); const sides = seatStyle === 'hex_plank' ? 6 : 8; const r = sW / 2;
+          for (let i = 0; i < sides; i++) { const a = (Math.PI * 2 / sides) * i + Math.PI / sides; i === 0 ? s.moveTo(Math.cos(a) * r, Math.sin(a) * r) : s.lineTo(Math.cos(a) * r, Math.sin(a) * r); } s.closePath();
+          punchSeatHoles(s, seatHole, dSeat); g = new THREE.ExtrudeGeometry(s, { depth: sH, bevelEnabled: false }); g.rotateX(Math.PI / 2);
         } else {
           const s = new THREE.Shape();
           s.moveTo(-sW / 2, -sD / 2); s.lineTo(sW / 2, -sD / 2);
           s.lineTo(sW / 2, sD / 2); s.lineTo(-sW / 2, sD / 2); s.closePath();
+          punchSeatHoles(s, seatHole, dSeat);
           g = new THREE.ExtrudeGeometry(s, { depth: sH, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.03, bevelSegments: 4 });
           g.rotateX(Math.PI / 2);
-          // Add organic scoop for "Old Fashioned" look
-          const pa = g.attributes.position;
-          for (let i = 0; i < pa.count; i++) {
-            const dx = pa.getX(i), dz = pa.getZ(i), dy = pa.getY(i);
-            if (dy > 0) {
-              const d = Math.sqrt(dx * dx + (dz - sD * 0.1) * (dz - sD * 0.1));
-              pa.setY(i, dy - Math.max(0, 0.06 - d * 0.15));
+          if (seatStyle === 'rocking_seat') {
+            const pa = g.attributes.position;
+            for (let i = 0; i < pa.count; i++) {
+              const dx = pa.getX(i), dz = pa.getZ(i), dy = pa.getY(i);
+              if (dy > 0) {
+                const d = Math.sqrt(dx * dx + (dz - sD * 0.1) * (dz - sD * 0.1));
+                pa.setY(i, dy - Math.max(0, 0.06 - d * 0.15));
+              }
             }
+            g.computeVertexNormals();
           }
-          g.computeVertexNormals();
         }
         return g;
       }, new THREE.BoxGeometry(sW, sH, sD));
 
       addMesh('Seat', sG, seatHex, seatCarv, 0, sYV, sZV, seatTilt, 0, 0);
 
-      /* ── BACKREST (Perfectly aligned to rear of seat) ── */
+      /* ?????? BACKREST (Perfectly aligned to rear of seat) ?????? */
       const backTiltOffset = seatStyle === 'modern_rocker_seat' ? -0.1 : -0.22;
       const backTilt = seatTilt + backTiltOffset;
 
@@ -2564,8 +2658,32 @@
       if (backStyle === 'modern_rocker_back') {
         const modBackGeo = new THREE.BoxGeometry(bW, bH, dBack.d || 0.05);
         addMesh('Back', modBackGeo, backHex, backCarv, 0, bYPos + bH / 2 * Math.cos(backTilt), bZPos + bH / 2 * Math.sin(backTilt), backTilt);
+      } else if (['round_back', 'shield_back', 'balloon_back', 'wingback', 'simple_panel', 'padded_back'].includes(backStyle)) {
+        const hw = bW / 2, hh = bH / 2;
+        const s = new THREE.Shape();
+        if (backStyle === 'round_back') { s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.quadraticCurveTo(hw * 1.15, 0, hw, hh); s.quadraticCurveTo(0, hh * 1.1, -hw, hh); s.quadraticCurveTo(-hw * 1.15, 0, -hw, -hh); }
+        else if (backStyle === 'balloon_back') { s.moveTo(-hw * 0.25, -hh); s.lineTo(hw * 0.25, -hh); s.quadraticCurveTo(hw * 0.55, -hh * 0.5, hw * 0.42, hh * 0.5); s.quadraticCurveTo(hw * 0.2, hh * 0.75, 0, hh * 0.78); s.quadraticCurveTo(-hw * 0.2, hh * 0.75, -hw * 0.42, hh * 0.5); s.quadraticCurveTo(-hw * 0.55, -hh * 0.5, -hw * 0.25, -hh); }
+        else if (backStyle === 'shield_back') { s.moveTo(0, -hh); s.quadraticCurveTo(hw * 0.55, -hh * 0.2, hw, hh * 0.1); s.quadraticCurveTo(hw, hh * 0.55, 0, hh); s.quadraticCurveTo(-hw, hh * 0.55, -hw, hh * 0.1); s.quadraticCurveTo(-hw * 0.55, -hh * 0.2, 0, -hh); }
+        else if (backStyle === 'wingback') { s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.35); s.quadraticCurveTo(hw * 1.0, hh * 0.6, hw * 0.85, hh * 0.75); s.quadraticCurveTo(hw * 0.7, hh * 0.9, hw * 0.4, hh); s.quadraticCurveTo(0, hh * 1.05, -hw * 0.4, hh); s.quadraticCurveTo(-hw * 0.7, hh * 0.9, -hw * 0.85, hh * 0.75); s.quadraticCurveTo(-hw * 1.0, hh * 0.6, -hw, hh * 0.35); s.lineTo(-hw, -hh); }
+        else { s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh); s.lineTo(-hw, hh); s.closePath(); }
+        punchBackHoles(s, backHole, dBack);
+        const bvl = (backStyle === 'padded_back' || backStyle === 'shield_back' || backStyle === 'balloon_back' || backStyle === 'wingback');
+        const g = new THREE.ExtrudeGeometry(s, { depth: dBack.d, bevelEnabled: bvl, bevelSize: bvl ? 0.012 : 0, bevelThickness: 0.012, bevelSegments: 3 });
+        g.translate(0, 0, -dBack.d / 2);
+
+        // Structural Posts for panel-based rocking chair back
+        const bpW = dLeg.w * 0.8, postX = (bW / 2) - (bpW / 2);
+        addMesh('Back', new THREE.BoxGeometry(bpW, bH, bpW), backHex, backCarv, -postX, bYPos + bH / 2 * Math.cos(backTilt), bZPos + bH / 2 * Math.sin(backTilt), backTilt);
+        addMesh('Back', new THREE.BoxGeometry(bpW, bH, bpW), backHex, backCarv, postX, bYPos + bH / 2 * Math.cos(backTilt), bZPos + bH / 2 * Math.sin(backTilt), backTilt);
+
+        addMesh('Back', g, backHex, backCarv, 0, bYPos + bH / 2 * Math.cos(backTilt), bZPos + bH / 2 * Math.sin(backTilt), backTilt);
       } else {
         const sCnt = 7, gap = (bW * 0.8) / (sCnt - 1);
+        const bpW = dLeg.w * 0.85;
+        // Spindle supports
+        addMesh('Back', new THREE.BoxGeometry(bW + bpW, bpW, dBack.d), backHex, backCarv, 0, bYPos, bZPos, backTilt);
+        addMesh('Back', new THREE.BoxGeometry(bW + bpW, bpW, dBack.d), backHex, backCarv, 0, bYPos + bH * Math.cos(backTilt), bZPos + bH * Math.sin(backTilt), backTilt);
+
         for (let i = 0; i < sCnt; i++) {
           const tx = - (bW * 0.8) / 2 + i * gap;
           const normX = (tx / (bW / 2));
@@ -2576,11 +2694,11 @@
           const sR = 0.018;
 
           const spindleGeo = new THREE.CylinderGeometry(sR, sR * 1.3, currH, 10);
-          addMesh('Back', spindleGeo, backHex, 'none', tx, bYPos + currH / 2 * Math.cos(backTilt), bZPos + currH / 2 * Math.sin(backTilt), backTilt);
+          addMesh('Back', spindleGeo, backHex, backCarv, tx, bYPos + currH / 2 * Math.cos(backTilt), bZPos + currH / 2 * Math.sin(backTilt), backTilt);
         }
       }
 
-      /* ── HEADREST (Crest Rail) ── */
+      /* ?????? HEADREST (Crest Rail) ?????? */
       if (headStyle !== 'none') {
         const headY = bYPos + bH * Math.cos(backTilt);
         const headZ = bZPos + bH * Math.sin(backTilt);
@@ -2611,14 +2729,17 @@
       return seatTopY;
     }
 
-    function punchBackHolesRocking(s, backHole, dBack) {
+    function punchBackHoles(s, backHole, dBack) {
       if (backHole === 'none') return;
-      const bw = dBack.w * 0.12, bh = dBack.h * 0.11;
-      const safeW = dBack.w * 0.38, safeH = dBack.h * 0.38;
+      const bw = dBack.w * 0.12, bh = dBack.h * 0.11, safeW = dBack.w * 0.38, safeH = dBack.h * 0.38;
       if (backHole === 'center_slot') { const hw = Math.min(bw, safeW * 0.3), hh = Math.min(bh * 2.2, safeH); const h = new THREE.Path(); h.moveTo(-hw, -hh); h.lineTo(hw, -hh); h.lineTo(hw, hh); h.lineTo(-hw, hh); h.closePath(); s.holes.push(h); }
       else if (backHole === 'handle_cutout') { const h = new THREE.Path(); h.absellipse(0, dBack.h * 0.2, Math.min(bw * 1.6, safeW), Math.min(bh * 0.5, safeH * 0.25), 0, Math.PI * 2, true, 0); s.holes.push(h); }
-      else if (backHole === 'three_slots') { const sw_ = Math.min(bw * 0.38, safeW * 0.12), sh_ = Math.min(bh * 2.2, safeH * 0.8); const stepX = dBack.w * 0.26;[-1, 0, 1].forEach(i => { const hx = i * stepX; const h = new THREE.Path(); h.moveTo(hx - sw_, -sh_); h.lineTo(hx + sw_, -sh_); h.lineTo(hx + sw_, sh_); h.lineTo(hx - sw_, sh_); h.closePath(); s.holes.push(h); }); }
+      else if (backHole === 'grid_holes') { const gw = Math.min(bw * 0.7, safeW * 0.25), gh = Math.min(bh * 0.7, safeH * 0.25), stepX = dBack.w * 0.28, stepY = dBack.h * 0.28; for (let xi = -1; xi <= 1; xi++)for (let yi = -1; yi <= 1; yi++) { const hx = xi * stepX, hy = yi * stepY; const h = new THREE.Path(); h.moveTo(hx - gw, hy - gh); h.lineTo(hx + gw, hy - gh); h.lineTo(hx + gw, hy + gh); h.lineTo(hx - gw, hy + gh); h.closePath(); s.holes.push(h); } }
+      else if (backHole === 'keyhole') { const kw = Math.min(bw * 0.55, safeW * 0.25), kh = Math.min(bh * 1.65, safeH * 0.7), kr = Math.min(bw * 0.9, safeW * 0.35); const h = new THREE.Path(); h.moveTo(-kw, -kh); h.lineTo(-kw, kh * 0.4); h.absarc(0, kh * 0.4 + kr, kr, Math.PI, 0, true); h.lineTo(kw, -kh); h.closePath(); s.holes.push(h); }
+      else if (backHole === 'horizontal_slots') { const hw = Math.min(bw * 2.3, safeW), hh = Math.min(bh * 0.4, safeH * 0.15), stepY = dBack.h * 0.26;[-1, 0, 1].forEach(i => { const hy = i * stepY; const h = new THREE.Path(); h.moveTo(-hw, hy - hh); h.lineTo(hw, hy - hh); h.lineTo(hw, hy + hh); h.lineTo(-hw, hy + hh); h.closePath(); s.holes.push(h); }); }
       else if (backHole === 'heart_cutout') { const scl = Math.min(safeW / (bw * 1.8), safeH / (bh * 2.8), 1.0), sw_ = bw * scl, sh_ = bh * scl, cx = 0, cy = sh_ * 0.8; const h = new THREE.Path(); h.moveTo(cx, cy + sh_ * 0.4); h.bezierCurveTo(-sw_ * 0.1, cy + sh_ * 1.2, -sw_ * 1.8, cy + sh_ * 1.2, -sw_ * 1.8, cy); h.bezierCurveTo(-sw_ * 1.8, cy - sh_ * 1.0, cx, cy - sh_ * 2.0, cx, cy - sh_ * 2.4); h.bezierCurveTo(cx, cy - sh_ * 2.0, sw_ * 1.8, cy - sh_ * 1.0, sw_ * 1.8, cy); h.bezierCurveTo(sw_ * 1.8, cy + sh_ * 1.2, sw_ * 0.1, cy + sh_ * 1.2, cx, cy + sh_ * 0.4); h.closePath(); s.holes.push(h); }
+      else if (backHole === 'three_slots') { const sw_ = Math.min(bw * 0.38, safeW * 0.12), sh_ = Math.min(bh * 2.2, safeH * 0.8), stepX = dBack.w * 0.26;[-1, 0, 1].forEach(i => { const hx = i * stepX; const h = new THREE.Path(); h.moveTo(hx - sw_, -sh_); h.lineTo(hx + sw_, -sh_); h.lineTo(hx + sw_, sh_); h.lineTo(hx - sw_, sh_); h.closePath(); s.holes.push(h); }); }
+      else if (backHole === 'diamond_cutout') { const r = Math.min(bw, bh, safeW * 0.55, safeH * 0.55) * 2.2; const h = new THREE.Path(); h.moveTo(0, r); h.lineTo(r, 0); h.lineTo(0, -r); h.lineTo(-r, 0); h.closePath(); s.holes.push(h); }
       else if (backHole === 'arch_window') { const aw = Math.min(bw * 1.55, safeW * 0.75), ab = -Math.min(bh * 2.1, safeH * 0.75), at = Math.min(bh * 0.6, safeH * 0.2); const h = new THREE.Path(); h.moveTo(-aw, ab); h.lineTo(-aw, at); h.absarc(0, at, aw, Math.PI, 0, true); h.lineTo(aw, ab); h.closePath(); s.holes.push(h); }
     }
 
@@ -2728,24 +2849,12 @@
         addMesh('Back', new THREE.BoxGeometry(bpW, bpH, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), bpY, backZ);
       }
 
-      const punchBackHoles = (s) => {
-        if (backHole === 'none') return;
-        const bw = dBack.w * 0.12, bh = dBack.h * 0.11, safeW = dBack.w * 0.38, safeH = dBack.h * 0.38;
-        if (backHole === 'center_slot') { const hw = Math.min(bw, safeW * 0.3), hh = Math.min(bh * 2.2, safeH); const h = new THREE.Path(); h.moveTo(-hw, -hh); h.lineTo(hw, -hh); h.lineTo(hw, hh); h.lineTo(-hw, hh); h.closePath(); s.holes.push(h); }
-        else if (backHole === 'handle_cutout') { const h = new THREE.Path(); h.absellipse(0, dBack.h * 0.2, Math.min(bw * 1.6, safeW), Math.min(bh * 0.5, safeH * 0.25), 0, Math.PI * 2, true, 0); s.holes.push(h); }
-        else if (backHole === 'grid_holes') { const gw = Math.min(bw * 0.7, safeW * 0.25), gh = Math.min(bh * 0.7, safeH * 0.25), stepX = dBack.w * 0.28, stepY = dBack.h * 0.28; for (let xi = -1; xi <= 1; xi++)for (let yi = -1; yi <= 1; yi++) { const hx = xi * stepX, hy = yi * stepY; const h = new THREE.Path(); h.moveTo(hx - gw, hy - gh); h.lineTo(hx + gw, hy - gh); h.lineTo(hx + gw, hy + gh); h.lineTo(hx - gw, hy + gh); h.closePath(); s.holes.push(h); } }
-        else if (backHole === 'keyhole') { const kw = Math.min(bw * 0.55, safeW * 0.25), kh = Math.min(bh * 1.65, safeH * 0.7), kr = Math.min(bw * 0.9, safeW * 0.35); const h = new THREE.Path(); h.moveTo(-kw, -kh); h.lineTo(-kw, kh * 0.4); h.absarc(0, kh * 0.4 + kr, kr, Math.PI, 0, true); h.lineTo(kw, -kh); h.closePath(); s.holes.push(h); }
-        else if (backHole === 'horizontal_slots') { const hw = Math.min(bw * 2.3, safeW), hh = Math.min(bh * 0.4, safeH * 0.15), stepY = dBack.h * 0.26;[-1, 0, 1].forEach(i => { const hy = i * stepY; const h = new THREE.Path(); h.moveTo(-hw, hy - hh); h.lineTo(hw, hy - hh); h.lineTo(hw, hy + hh); h.lineTo(-hw, hy + hh); h.closePath(); s.holes.push(h); }); }
-        else if (backHole === 'heart_cutout') { const scl = Math.min(safeW / (bw * 1.8), safeH / (bh * 2.8), 1.0), sw_ = bw * scl, sh_ = bh * scl, cx = 0, cy = sh_ * 0.8; const h = new THREE.Path(); h.moveTo(cx, cy + sh_ * 0.4); h.bezierCurveTo(-sw_ * 0.1, cy + sh_ * 1.2, -sw_ * 1.8, cy + sh_ * 1.2, -sw_ * 1.8, cy); h.bezierCurveTo(-sw_ * 1.8, cy - sh_ * 1.0, cx, cy - sh_ * 2.0, cx, cy - sh_ * 2.4); h.bezierCurveTo(cx, cy - sh_ * 2.0, sw_ * 1.8, cy - sh_ * 1.0, sw_ * 1.8, cy); h.bezierCurveTo(sw_ * 1.8, cy + sh_ * 1.2, sw_ * 0.1, cy + sh_ * 1.2, cx, cy + sh_ * 0.4); h.closePath(); s.holes.push(h); }
-        else if (backHole === 'three_slots') { const sw_ = Math.min(bw * 0.38, safeW * 0.12), sh_ = Math.min(bh * 2.2, safeH * 0.8), stepX = dBack.w * 0.26;[-1, 0, 1].forEach(i => { const hx = i * stepX; const h = new THREE.Path(); h.moveTo(hx - sw_, -sh_); h.lineTo(hx + sw_, -sh_); h.lineTo(hx + sw_, sh_); h.lineTo(hx - sw_, sh_); h.closePath(); s.holes.push(h); }); }
-        else if (backHole === 'diamond_cutout') { const r = Math.min(bw, bh, safeW * 0.55, safeH * 0.55) * 2.2; const h = new THREE.Path(); h.moveTo(0, r); h.lineTo(r, 0); h.lineTo(0, -r); h.lineTo(-r, 0); h.closePath(); s.holes.push(h); }
-        else if (backHole === 'arch_window') { const aw = Math.min(bw * 1.55, safeW * 0.75), ab = -Math.min(bh * 2.1, safeH * 0.75), at = Math.min(bh * 0.6, safeH * 0.2); const h = new THREE.Path(); h.moveTo(-aw, ab); h.lineTo(-aw, at); h.absarc(0, at, aw, Math.PI, 0, true); h.lineTo(aw, ab); h.closePath(); s.holes.push(h); }
-      };
+
 
       const extrudeBack = (s, bvl = false) => { const g = new THREE.ExtrudeGeometry(s, { depth: dBack.d, bevelEnabled: bvl, bevelSize: bvl ? 0.011 : 0, bevelThickness: 0.011, bevelSegments: 2 }); g.translate(0, 0, -dBack.d / 2); return g; };
 
       if (backShape === 'round_back') {
-        const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.quadraticCurveTo(hw * 1.15, 0, hw, hh); s.quadraticCurveTo(0, hh * 1.1, -hw, hh); s.quadraticCurveTo(-hw * 1.15, 0, -hw, -hh); punchBackHoles(s); return extrudeBack(s, false); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
+        const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.quadraticCurveTo(hw * 1.15, 0, hw, hh); s.quadraticCurveTo(0, hh * 1.1, -hw, hh); s.quadraticCurveTo(-hw * 1.15, 0, -hw, -hh); punchBackHoles(s, backHole, dBack); return extrudeBack(s, false); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
         addMesh('Back', geo, backHex, backCarv, 0, yB, backZ);
       } else if (backShape === 'spindle_back') {
         const cnt = 5, sR = dBack.w / (cnt * 4.5), step = (dBack.w - bpW * 2) / (cnt - 1);
@@ -2775,16 +2884,16 @@
         addMesh('Back', dGeo, backHex, 'none', 0, yB, backZ, 0, 0, dAng);
         addMesh('Back', dGeo, backHex, 'none', 0, yB, backZ, 0, 0, -dAng);
       } else if (backShape === 'balloon_back') {
-        const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw * 0.25, -hh); s.lineTo(hw * 0.25, -hh); s.quadraticCurveTo(hw * 0.55, -hh * 0.5, hw * 0.42, hh * 0.5); s.quadraticCurveTo(hw * 0.2, hh * 0.75, 0, hh * 0.78); s.quadraticCurveTo(-hw * 0.2, hh * 0.75, -hw * 0.42, hh * 0.5); s.quadraticCurveTo(-hw * 0.55, -hh * 0.5, -hw * 0.25, -hh); punchBackHoles(s); return extrudeBack(s, true); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
+        const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw * 0.25, -hh); s.lineTo(hw * 0.25, -hh); s.quadraticCurveTo(hw * 0.55, -hh * 0.5, hw * 0.42, hh * 0.5); s.quadraticCurveTo(hw * 0.2, hh * 0.75, 0, hh * 0.78); s.quadraticCurveTo(-hw * 0.2, hh * 0.75, -hw * 0.42, hh * 0.5); s.quadraticCurveTo(-hw * 0.55, -hh * 0.5, -hw * 0.25, -hh); punchBackHoles(s, backHole, dBack); return extrudeBack(s, true); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
         addMesh('Back', geo, backHex, backCarv, 0, yB, backZ);
       } else if (backShape === 'shield_back') {
-        const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(0, -hh); s.quadraticCurveTo(hw * 0.55, -hh * 0.2, hw, hh * 0.1); s.quadraticCurveTo(hw, hh * 0.55, 0, hh); s.quadraticCurveTo(-hw, hh * 0.55, -hw, hh * 0.1); s.quadraticCurveTo(-hw * 0.55, -hh * 0.2, 0, -hh); punchBackHoles(s); return extrudeBack(s, true); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
+        const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(0, -hh); s.quadraticCurveTo(hw * 0.55, -hh * 0.2, hw, hh * 0.1); s.quadraticCurveTo(hw, hh * 0.55, 0, hh); s.quadraticCurveTo(-hw, hh * 0.55, -hw, hh * 0.1); s.quadraticCurveTo(-hw * 0.55, -hh * 0.2, 0, -hh); punchBackHoles(s, backHole, dBack); return extrudeBack(s, true); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
         addMesh('Back', geo, backHex, backCarv, 0, yB, backZ);
       } else if (backShape === 'wingback') {
-        const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.35); s.quadraticCurveTo(hw * 1.0, hh * 0.6, hw * 0.85, hh * 0.75); s.quadraticCurveTo(hw * 0.7, hh * 0.9, hw * 0.4, hh); s.quadraticCurveTo(0, hh * 1.05, -hw * 0.4, hh); s.quadraticCurveTo(-hw * 0.7, hh * 0.9, -hw * 0.85, hh * 0.75); s.quadraticCurveTo(-hw * 1.0, hh * 0.6, -hw, hh * 0.35); s.lineTo(-hw, -hh); punchBackHoles(s); return extrudeBack(s, true); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
+        const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.35); s.quadraticCurveTo(hw * 1.0, hh * 0.6, hw * 0.85, hh * 0.75); s.quadraticCurveTo(hw * 0.7, hh * 0.9, hw * 0.4, hh); s.quadraticCurveTo(0, hh * 1.05, -hw * 0.4, hh); s.quadraticCurveTo(-hw * 0.7, hh * 0.9, -hw * 0.85, hh * 0.75); s.quadraticCurveTo(-hw * 1.0, hh * 0.6, -hw, hh * 0.35); s.lineTo(-hw, -hh); punchBackHoles(s, backHole, dBack); return extrudeBack(s, true); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
         addMesh('Back', geo, backHex, backCarv, 0, yB, backZ);
       } else {
-        const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh); s.lineTo(-hw, hh); s.closePath(); punchBackHoles(s); const bvl = backShape === 'padded_back'; const g = new THREE.ExtrudeGeometry(s, { depth: dBack.d, bevelEnabled: bvl, bevelSize: bvl ? 0.014 : 0, bevelThickness: 0.014, bevelSegments: 2 }); g.translate(0, 0, -dBack.d / 2); return g; }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
+        const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh); s.lineTo(-hw, hh); s.closePath(); punchBackHoles(s, backHole, dBack); const bvl = backShape === 'padded_back'; const g = new THREE.ExtrudeGeometry(s, { depth: dBack.d, bevelEnabled: bvl, bevelSize: bvl ? 0.014 : 0, bevelThickness: 0.014, bevelSegments: 2 }); g.translate(0, 0, -dBack.d / 2); return g; }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
         addMesh('Back', geo, backHex, backCarv, 0, yB, backZ);
       }
     }
@@ -2905,7 +3014,21 @@
       link.href = URL.createObjectURL(blob); link.download = safeName + '_Model.stl';
       document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
-  </script>
+
+function toggleDesignAnalysis() {
+  const card = document.getElementById('design-analysis-card');
+  const icon = document.getElementById('da-toggle-icon');
+  if (!card || !icon) return;
+  card.classList.toggle('minimized');
+  if (card.classList.contains('minimized')) {
+    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+  } else {
+    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+  }
+}
+</script>
 </body>
 
 </html>
+
+

@@ -267,6 +267,21 @@
                 localStorage.setItem('myOrders', JSON.stringify(orders));
             }
             localStorage.setItem('currentActiveOrder', JSON.stringify(orderData));
+
+            // Notify User
+            sendUserNotification(sessionStorage.getItem('username') || 'User', `Order Update: Your item "${orderData.itemName}" is now "${newStatus}".`, "status");
+        }
+
+        function sendUserNotification(username, message, type = "status") {
+            let notifs = JSON.parse(localStorage.getItem('user_notifications_' + username) || '[]');
+            notifs.push({
+                id: Date.now(),
+                message: message,
+                type: type,
+                date: new Date().toISOString(),
+                read: false
+            });
+            localStorage.setItem('user_notifications_' + username, JSON.stringify(notifs));
         }
     </script>
 </body>

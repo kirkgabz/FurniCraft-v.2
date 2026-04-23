@@ -1235,13 +1235,11 @@
     }
 
     .prev-project-divider {
-      height: 1px;
-      background: #2a2a2a;
-      margin: 0 10px;
+      margin-bottom: 12px;
+      font-style: italic;
     }
   </style>
 </head>
-
 <body>
 
   <header>
@@ -1252,7 +1250,10 @@
       <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
         <i class="fas fa-arrow-left"></i> Back
       </button>
-      <button class="btn-export" onclick="goToExport()">
+      <button class="btn-export" id="btn-upload-template" onclick="uploadToTemplates()" style="display:none; background: linear-gradient(135deg,#10b981,#059669) !important;">
+        <i class="fas fa-cloud-upload-alt"></i> Upload to Templates
+      </button>
+      <button class="btn-export" id="btn-main-export" onclick="goToExport()">
         <i class="fas fa-file-export"></i> Export
       </button>
     </div>
@@ -1483,7 +1484,7 @@
     exportId: 'EXP-' + Date.now().toString().slice(-6),
     projectName: activeItem.name || 'Custom Chair',
     furnitureType: 'Chair Designer Pro',
-    estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
+    estimatedPriceText: 'â‚±' + numericPrice.toLocaleString('en-US'),
     previewDataUrl: previewImageURL,
     cadState: JSON.stringify({
       items: [{
@@ -1516,7 +1517,8 @@
         sessionStorage.setItem('prevProjectName', ai.name);
         sessionStorage.setItem('prevProjectPage', 'chair.html');
       }
-      window.location.href = 'craft.html';
+      const isShop = sessionStorage.getItem('craftMode') === 'shop';
+      window.location.href = isShop ? 'craft.html?mode=shop' : 'craft.html';
     }
     function goToPrevProject() {
       const p = sessionStorage.getItem('prevProjectPage');
@@ -1533,6 +1535,73 @@
       }
     }
 
+    /* â”€â”€ Shop Mode: Upload to Templates â”€â”€ */
+    (function initShopMode() {
+      if (sessionStorage.getItem('craftMode') !== 'shop') return;
+      const uploadBtn = document.getElementById('btn-upload-template');
+      const exportBtn = document.getElementById('btn-main-export');
+      if (uploadBtn) uploadBtn.style.display = 'flex';
+      if (exportBtn) exportBtn.style.display = 'none';
+      
+      // Update link on "Add New" button to stay in shop mode
+      const addBtn = document.querySelector('.btn-add');
+      if (addBtn) addBtn.onclick = () => window.location.href = 'craft.html?mode=shop';
+    })();
+
+    function uploadToTemplates() {
+      const nameInput = document.getElementById('project-name');
+      const projectName = (nameInput && nameInput.value.trim()) || 'Custom Chair Design';
+
+      const priceEl = document.getElementById('total-price');
+      const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+      const costVal = parseFloat(priceText) || 8000;
+
+      // Capture canvas screenshot
+      let previewDataUrl = '';
+      const canvas = document.querySelector('#canvas-container canvas');
+      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
+
+      const parts = ['Seat', 'Back', 'Legs', 'Armrests'];
+      const selections = {};
+      parts.forEach(p => { selections[p] = '#8B4513'; });
+
+      // Try to read actual active item material state
+      const ai = getActiveItem ? getActiveItem() : null;
+      if (ai && ai.selections) Object.assign(selections, ai.selections);
+
+      const tmpl = {
+        id: Date.now() + 10001,
+        type: 'chair',
+        name: projectName,
+        icon: 'fa-chair',
+        badge: 'new',
+        gender: 'neutral',
+        description: 'Custom chair crafted in the 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+        tags: ['Chair', 'Custom', 'Shop Design'],
+        parts: parts,
+        selections: selections,
+        carvings: Object.fromEntries(parts.map(p => [p, 'none'])),
+        shapes: Object.fromEntries(parts.map(p => [p, 'square'])),
+        dims: { Seat:{w:46,h:6,d:46}, Back:{w:46,h:42,d:5}, Legs:{w:5,h:46,d:5}, Armrests:{w:8,h:8,d:40} },
+        scale: { x:1, y:1, z:1 },
+        basePrice: costVal,
+        previewDataUrl: previewDataUrl,
+        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+        publishedAt: new Date().toISOString()
+      };
+
+      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      globals.unshift(tmpl);
+      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+
+      let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
+      custom.unshift(tmpl);
+      localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
+
+      sessionStorage.removeItem('craftMode');
+      alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
+      window.location.href = 'templates.html';
+    }
     function loadShopInfo() {
       const shopName = sessionStorage.getItem('selectedShopName');
       const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
@@ -1570,17 +1639,17 @@
     const tooltipData = {
       'left-panel-info': { icon: 'fas fa-folder-open', title: 'Design Projects', body: 'Manage all your chair design sessions here. Each project saves independently.', tip: 'Click "Add New Furniture Design" to go to the FurniCraft catalog and start a new project.' },
       'right-panel-info': { icon: 'fas fa-sliders-h', title: 'Properties Panel', body: 'The central control hub for your active chair design. All editable properties live here and update the 3D model in real time.', tip: 'Scroll down to find the Layers section where you can edit each individual chair part.' },
-      'score-info': { icon: 'fas fa-chart-bar', title: 'Design Analysis', body: 'Real-time quality scores calculated from the materials applied to each part.', tip: 'Use all Recommended (???) materials to hit 100% on both scores.' },
+      'score-info': { icon: 'fas fa-chart-bar', title: 'Design Analysis', body: 'Real-time quality scores calculated from the materials applied to each part.', tip: 'Use all Recommended materials to hit 100% on both scores.' },
       'proj-name-info': { icon: 'fas fa-tag', title: 'Project Name', body: 'Give your chair design a descriptive name. This label appears in the project list and becomes the filename on export.', tip: 'Use names like "Oak Farmhouse v2" or "Rocking Chair - Narra" to stay organized.' },
       'scale-info': { icon: 'fas fa-expand-arrows-alt', title: 'Global Scale', body: 'Uniformly resize the entire chair in three axes. Values range from 50% (half size) to 200% (double).', tip: 'Use Global Scale for quick size prototyping.' },
-      'material-info': { icon: 'fas fa-palette', title: 'Material Library', body: 'A curated palette of real-world furniture materials ??? Philippine hardwoods, stone, steel, and more. Each material carries unique Durability, Quality, and Price values.', tip: 'First click a Layer to select it, then click any material tile here to apply it instantly.' },
+      'material-info': { icon: 'fas fa-palette', title: 'Material Library', body: 'A curated palette of real-world furniture materials — Philippine hardwoods, stone, steel, and more. Each material carries unique Durability, Quality, and Price values.', tip: 'First click a Layer to select it, then click any material tile here to apply it instantly.' },
       'armrest-info': { icon: 'fas fa-grip-lines', title: 'Armrests Toggle', body: 'Show or hide the left and right armrests independently on the 3D model.', tip: 'Dining chairs are often designed without armrests. Toggle both off for a clean side-chair look.' },
-      'layers-info': { icon: 'fas fa-layer-group', title: 'Layers ??? Chair Parts', body: 'The chair is composed of 4 independent layers: Seat, Back, Legs, and Armrests. Click a layer row to select and expand it.', tip: 'Click the ???? eye icon on any layer header to focus the 3D camera directly on that part.' },
+      'layers-info': { icon: 'fas fa-layer-group', title: 'Layers — Chair Parts', body: 'The chair is composed of 4 independent layers: Seat, Back, Legs, and Armrests. Click a layer row to select and expand it.', tip: 'Click the eye icon on any layer header to focus the 3D camera directly on that part.' },
       'lyr-shape-info': { icon: 'fas fa-shapes', title: 'Shape / Base Style', body: 'Defines the fundamental 3D geometry of this chair part.', tip: 'Some shapes (like Padded Seat or Padded Back) automatically apply a fabric texture.' },
       'lyr-holes-info': { icon: 'fas fa-circle-notch', title: 'Cutouts / Holes', body: 'Adds decorative cutout patterns punched through the flat surface of this part.', tip: 'Cutouts work best on flat panel shapes.' },
       'lyr-carving-info': { icon: 'fas fa-drafting-compass', title: 'Carving / Texture', body: 'Applies a surface texture or carving pattern as a bump map onto this part.', tip: 'Tufted and leather textures pair best with fabric/leather-colored parts.' },
       'lyr-color-info': { icon: 'fas fa-eye-dropper', title: 'Hex Color', body: 'Set the exact color of this chair part using the color picker or a hex code.', tip: 'Use hex values that match a material in the Material Library for accurate cost estimates.' },
-      'lyr-dims-info': { icon: 'fas fa-ruler-combined', title: 'Dimensions (cm)', body: 'Set the exact physical dimensions of this part in centimetres.', tip: 'Standard dining chair seats are ~45??45cm. Leg posts are commonly 4???6cm wide and 43???48cm tall.' }
+      'lyr-dims-info': { icon: 'fas fa-ruler-combined', title: 'Dimensions (cm)', body: 'Set the exact physical dimensions of this part in centimeters.', tip: 'Standard chairs have a seat height of ~46cm and a seat width of ~45-50cm.' }
     };
 
     let activeTooltip = null;
@@ -1673,7 +1742,7 @@
       brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, qual: 97, price: 6.8, rec: false, note: 'Warm, vintage metallic accent for legs or inlays.' },
       marbled_gold: { name: 'Brushed Gold', icon: '🪙', hex: '#D4AF37', dura: 90, qual: 98, price: 7.5, rec: false, note: 'Ultra-premium metallic finish for luxury accents.' },
       smoked_glass: { name: 'Smoked Glass', icon: '🧊', hex: '#333333', dura: 75, qual: 94, price: 6.2, rec: false, note: 'Elegant darkened tempered glass.' },
-      brushed_steel: { name: 'Brushed Steel', icon: '🔩', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
+      brushed_steel: { name: 'Brushed Steel', icon: '🔨', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
     };
 
     const assetsDB = {

@@ -8,10 +8,142 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/three@0.128.0/build/three.min.js">
+    /* ― Shop Mode: Upload to Templates ― */
+    (function initShopMode() {
+      if (sessionStorage.getItem('craftMode') !== 'shop') return;
+      const uploadBtn = document.getElementById('btn-upload-template');
+      const exportBtn = document.getElementById('btn-main-export');
+      if (uploadBtn) uploadBtn.style.display = 'flex';
+      if (exportBtn) exportBtn.style.display = 'none';
+      const addBtn = document.querySelector('.btn-add');
+      if (addBtn) addBtn.onclick = () => window.location.href = 'craft.html?mode=shop';
+    })();
+
+    function uploadToTemplates() {
+      const nameInput = document.getElementById('project-name');
+      const projectName = (nameInput && nameInput.value.trim()) || 'Custom stool Design';
+      const priceEl = document.getElementById('total-price');
+      const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+      const costVal = parseFloat(priceText) || 8000;
+      let previewDataUrl = '';
+      const canvas = document.querySelector('#canvas-container canvas');
+      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
+      const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
+      const tmpl = {
+        id: Date.now() + 20002,
+        type: 'stool',
+        name: projectName,
+        description: 'Custom stool crafted in 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+        previewDataUrl: previewDataUrl,
+        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+        publishedAt: new Date().toISOString(),
+        basePrice: costVal,
+        designData: ai
+      };
+      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      globals.unshift(tmpl);
+      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+      
+      let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
+      custom.unshift(tmpl);
+      localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
+
+      sessionStorage.removeItem('craftMode');
+      alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
+      window.location.href = 'templates.html';
+    }
 </script>
   <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js">
+    /* ― Shop Mode: Upload to Templates ― */
+    (function initShopMode() {
+      if (sessionStorage.getItem('craftMode') !== 'shop') return;
+      const uploadBtn = document.getElementById('btn-upload-template');
+      const exportBtn = document.getElementById('btn-main-export');
+      if (uploadBtn) uploadBtn.style.display = 'flex';
+      if (exportBtn) exportBtn.style.display = 'none';
+      const addBtn = document.querySelector('.btn-add');
+      if (addBtn) addBtn.onclick = () => window.location.href = 'craft.html?mode=shop';
+    })();
+
+    function uploadToTemplates() {
+      const nameInput = document.getElementById('project-name');
+      const projectName = (nameInput && nameInput.value.trim()) || 'Custom stool Design';
+      const priceEl = document.getElementById('total-price');
+      const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+      const costVal = parseFloat(priceText) || 8000;
+      let previewDataUrl = '';
+      const canvas = document.querySelector('#canvas-container canvas');
+      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
+      const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
+      const tmpl = {
+        id: Date.now() + 20002,
+        type: 'stool',
+        name: projectName,
+        description: 'Custom stool crafted in 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+        previewDataUrl: previewDataUrl,
+        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+        publishedAt: new Date().toISOString(),
+        basePrice: costVal,
+        designData: ai
+      };
+      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      globals.unshift(tmpl);
+      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+      
+      let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
+      custom.unshift(tmpl);
+      localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
+
+      sessionStorage.removeItem('craftMode');
+      alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
+      window.location.href = 'templates.html';
+    }
 </script>
   <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js">
+    /* ― Shop Mode: Upload to Templates ― */
+    (function initShopMode() {
+      if (sessionStorage.getItem('craftMode') !== 'shop') return;
+      const uploadBtn = document.getElementById('btn-upload-template');
+      const exportBtn = document.getElementById('btn-main-export');
+      if (uploadBtn) uploadBtn.style.display = 'flex';
+      if (exportBtn) exportBtn.style.display = 'none';
+      const addBtn = document.querySelector('.btn-add');
+      if (addBtn) addBtn.onclick = () => window.location.href = 'craft.html?mode=shop';
+    })();
+
+    function uploadToTemplates() {
+      const nameInput = document.getElementById('project-name');
+      const projectName = (nameInput && nameInput.value.trim()) || 'Custom stool Design';
+      const priceEl = document.getElementById('total-price');
+      const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+      const costVal = parseFloat(priceText) || 8000;
+      let previewDataUrl = '';
+      const canvas = document.querySelector('#canvas-container canvas');
+      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
+      const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
+      const tmpl = {
+        id: Date.now() + 20002,
+        type: 'stool',
+        name: projectName,
+        description: 'Custom stool crafted in 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+        previewDataUrl: previewDataUrl,
+        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+        publishedAt: new Date().toISOString(),
+        basePrice: costVal,
+        designData: ai
+      };
+      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      globals.unshift(tmpl);
+      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+      
+      let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
+      custom.unshift(tmpl);
+      localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
+
+      sessionStorage.removeItem('craftMode');
+      alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
+      window.location.href = 'templates.html';
+    }
 </script>
 
   <style>
@@ -695,7 +827,7 @@ function goToCraft() {
         sessionStorage.setItem('prevProjectName', ai.name);
         sessionStorage.setItem('prevProjectPage', 'stool.html');
     }
-    window.location.href = 'craft.html';
+    const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'craft.html?mode=shop' : 'craft.html';
 }
 
 function goToExport() {
@@ -2087,8 +2219,53 @@ function toggleDesignAnalysis() {
     icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
   }
 }
+    /* ― Shop Mode: Upload to Templates ― */
+    (function initShopMode() {
+      if (sessionStorage.getItem('craftMode') !== 'shop') return;
+      const uploadBtn = document.getElementById('btn-upload-template');
+      const exportBtn = document.getElementById('btn-main-export');
+      if (uploadBtn) uploadBtn.style.display = 'flex';
+      if (exportBtn) exportBtn.style.display = 'none';
+      const addBtn = document.querySelector('.btn-add');
+      if (addBtn) addBtn.onclick = () => window.location.href = 'craft.html?mode=shop';
+    })();
+
+    function uploadToTemplates() {
+      const nameInput = document.getElementById('project-name');
+      const projectName = (nameInput && nameInput.value.trim()) || 'Custom stool Design';
+      const priceEl = document.getElementById('total-price');
+      const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+      const costVal = parseFloat(priceText) || 8000;
+      let previewDataUrl = '';
+      const canvas = document.querySelector('#canvas-container canvas');
+      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
+      const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
+      const tmpl = {
+        id: Date.now() + 20002,
+        type: 'stool',
+        name: projectName,
+        description: 'Custom stool crafted in 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+        previewDataUrl: previewDataUrl,
+        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+        publishedAt: new Date().toISOString(),
+        basePrice: costVal,
+        designData: ai
+      };
+      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      globals.unshift(tmpl);
+      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+      
+      let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
+      custom.unshift(tmpl);
+      localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
+
+      sessionStorage.removeItem('craftMode');
+      alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
+      window.location.href = 'templates.html';
+    }
 </script>
 </body>
 </html>
+
 
 

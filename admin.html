@@ -214,18 +214,19 @@
 
     .user-info span {
       display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
     }
 
     .user-info small {
       color: var(--text-muted);
-      font-size: 0.75rem;
+      font-size: 0.9rem;
     }
 
     .avatar {
-      width: 42px;
-      height: 42px;
+      width: 55px;
+      height: 55px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       display: flex;
@@ -233,7 +234,7 @@
       justify-content: center;
       color: white;
       font-weight: bold;
-      font-size: 1.1rem;
+      font-size: 1.4rem;
       box-shadow: var(--shadow-sm);
     }
 
@@ -731,49 +732,37 @@
 
 <body>
 
-  <!-- Sidebar -->
-  <aside id="sidebar">
-    <div class="sidebar-header">
-      <i class="fas fa-crown"></i>
-      <span>FurniCraft</span>
-    </div>
-    <div class="sidebar-nav">
-      <div class="nav-label">Core Management</div>
-      <div class="nav-item active">
-        <i class="fas fa-home"></i> <span>Executive Overview</span>
-      </div>
-      <div class="nav-item" onclick="manageUsers()">
-        <i class="fas fa-users-cog"></i> <span>User Directory</span>
-      </div>
-      <div class="nav-item" onclick="manageShops()">
-        <i class="fas fa-store-alt"></i> <span>Shop Ecosystem</span>
-      </div>
-      <div class="nav-item" onclick="approveShop()">
-        <i class="fas fa-certificate"></i> <span>Verifications</span>
-      </div>
 
-      <div class="nav-label">Platform Analytics</div>
-      <div class="nav-item" onclick="customAnalytics()">
-        <i class="fas fa-chart-line"></i> <span>Market Metrics</span>
-      </div>
-      <div class="nav-item"
-        onclick="openModal('System Reports', '<p style=padding:2rem>Generating platform-wide audit...<br><br><i class=\'fas fa-spinner fa-spin\'></i></p>')">
-        <i class="fas fa-file-invoice-dollar"></i> <span>Financial Reports</span>
-      </div>
-    </div>
-  </aside>
 
   <!-- Main Area -->
   <div id="main-content">
     <div class="bg-shape-1"></div>
     <div class="bg-shape-2"></div>
 
-    <header>
-      <div class="header-search">
-        <i class="fas fa-search"></i>
-        <input type="text" placeholder="Search across users, shops or logs...">
+    <header style="padding: 1.5rem 2.5rem;">
+      <div style="display: flex; align-items: center; gap: 2.5rem;">
+        <div style="font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 15px;">
+          <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.5em; width: auto; object-fit: contain; vertical-align: middle;">
+          <span style="letter-spacing: 0.5px;">FurniCraft <span style="font-size: 0.9rem; font-family: 'Inter', sans-serif; font-weight: 700; color: var(--primary); vertical-align: middle; margin-left: 10px; background: rgba(79, 70, 229, 0.1); padding: 6px 14px; border-radius: 20px; text-transform: uppercase;">Admin</span></span>
+        </div>
+        <div class="header-search">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search across users, shops or logs...">
+        </div>
       </div>
       <div class="header-user">
+        <div style="position:relative; cursor:pointer; margin-right:10px;" onclick="toggleAdminNotifs()">
+          <i class="fas fa-bell" style="color:var(--text-muted); font-size:1.3rem;"></i>
+          <div id="adminNotifBadge" style="display:none; position:absolute; top:-5px; right:-5px; background:var(--danger); color:white; font-size:0.65rem; border-radius:50%; width:16px; height:16px; align-items:center; justify-content:center; font-weight:bold;">0</div>
+          <div id="adminNotifDropdown" style="display:none; position:absolute; top:35px; right:-10px; width:320px; background:white; box-shadow:var(--shadow-dropdown); border-radius:0.5rem; border:1px solid var(--border-color); z-index:1000; overflow:hidden; text-align:left; cursor:default;" onclick="event.stopPropagation()">
+              <div style="padding:15px; border-bottom:1px solid var(--border-color); font-weight:bold; color:var(--text-main); display:flex; justify-content:space-between; align-items:center;">
+                  <span>Admin Notifications</span>
+              </div>
+              <div id="adminNotifList" style="max-height:300px; overflow-y:auto; padding:10px;">
+                  <div style="text-align:center; padding:10px; color:var(--text-muted);">No new notifications.</div>
+              </div>
+          </div>
+        </div>
         <div class="user-info">
           <span id="adminNameDisplay">System Admin</span>
           <small>Super Administrator</small>
@@ -834,11 +823,14 @@
             <button class="action-btn" onclick="addUser()">
               <i class="fas fa-user-plus"></i> Provision User
             </button>
-            <button class="action-btn danger" onclick="banUser()">
-              <i class="fas fa-user-slash"></i> Discipline Panel
+            <button class="action-btn danger" onclick="userReports()">
+              <i class="fas fa-gavel"></i> Infraction Reports
             </button>
-            <button class="action-btn" onclick="userReports()">
-              <i class="fas fa-clipboard-list"></i> Infraction Reports
+            <button class="action-btn" onclick="platformFeedback()">
+              <i class="fas fa-star-half-alt"></i> Marketplace Reviews
+            </button>
+            <button class="action-btn danger" onclick="bannedUsersList()" style="grid-column: span 2;">
+              <i class="fas fa-user-slash"></i> List of Banned and Suspended Users
             </button>
           </div>
         </div>
@@ -854,10 +846,32 @@
               <i class="fas fa-file-signature"></i> Permit Approvals
             </button>
             <button class="action-btn danger" onclick="suspendShop()">
-              <i class="fas fa-store-slash"></i> Halt Operations
+              <i class="fas fa-store-slash"></i> List of Banned and Suspended Furniture Shops
             </button>
             <button class="action-btn" onclick="shopAnalytics()">
               <i class="fas fa-chart-line"></i> Sales Metrics
+            </button>
+            <button class="action-btn" onclick="viewAllTransactions()" style="grid-column: span 2;">
+              <i class="fas fa-receipt"></i> Global Order Transactions
+            </button>
+          </div>
+        </div>
+
+        <!-- Infrastructure & Security -->
+        <div class="section-card">
+          <h2><i class="fas fa-shield-alt"></i> Infrastructure & Security</h2>
+          <div class="action-grid">
+            <button class="action-btn" onclick="openCloudBackup()">
+              <i class="fas fa-cloud-upload-alt"></i> Cloud Backup Vault
+            </button>
+            <button class="action-btn" onclick="viewSystemHealth()">
+              <i class="fas fa-server"></i> System Health
+            </button>
+            <button class="action-btn" onclick="openInfrastructureLogs()">
+              <i class="fas fa-history"></i> Access Logs
+            </button>
+            <button class="action-btn danger" onclick="emergencyLockdown()">
+              <i class="fas fa-lock"></i> Protocol Alpha
             </button>
           </div>
         </div>
@@ -908,24 +922,68 @@
     // ============================================
     function initMockData() {
       // Infraction Reports Database
-      let reports = localStorage.getItem('infraction_reports');
-      if (!reports) {
+      let reports = JSON.parse(localStorage.getItem('infraction_reports') || '[]');
+      let reportsUpdated = false;
+      if (reports.length === 0) {
         reports = [
-          { id: 501, userId: 104, userName: 'Alice Walker', reason: 'Suspicious login attempts from multiple countries', severity: 'Medium', date: '2026-04-16' },
-          { id: 502, userId: 201, userName: 'Mark Anthony', reason: 'Attempted to use duplicate payment methods', severity: 'High', date: '2026-04-17' }
+          { id: 501, userId: 104, userName: 'Alice Walker', reason: 'Suspicious login attempts from multiple countries', severity: 'Medium', date: '2026-04-16 09:42 AM' },
+          { id: 502, userId: 201, userName: 'Mark Anthony', reason: 'Attempted to use duplicate payment methods', severity: 'High', date: '2026-04-17 02:15 PM' }
         ];
+        reportsUpdated = true;
+      } else {
+        // Patch legacy records that only have a date
+        reports.forEach(r => {
+          if (r.date && !r.date.includes(':')) {
+            r.date += ' 10:00 AM'; // Apply default time to existing records
+            reportsUpdated = true;
+          }
+        });
+      }
+      if (reportsUpdated) {
         localStorage.setItem('infraction_reports', JSON.stringify(reports));
       }
 
       // Business Permits for Shop Verification
-      let permits = localStorage.getItem('shop_permits');
-      if (!permits) {
+      let permits = JSON.parse(localStorage.getItem('shop_permits') || '[]');
+      let needsUpdate = false;
+      
+      const mockMap = {
+          'Irawan Woodworks': { category: 'Custom Woodwork', address: 'Davao City, Philippines', contact: '0912 345 6789', email: 'irawan@wood.com' },
+          'Timber & Co.': { category: 'Sustainable Bamboo', address: 'Cebu City, Philippines', contact: '0922 888 9999', email: 'alice@timber.co', suspendedAt: new Date(Date.now() - 172800000).toISOString(), suspensionReason: 'Failure to provide proof of delivery for 3 consecutive orders.' },
+          'Modern Minimalist': { category: 'Modern Upholstery', address: 'Makati City, Metro Manila', contact: '0917 111 2222', email: 'john@modern.com' },
+          'Kirk Furniture Shop': { category: 'Artisan Metal/Wood', address: 'Pasig City, Metro Manila', contact: '0915 555 1234', email: 'kirk@furnicraft.ph' }
+      };
+
+      if (permits.length === 0) {
         permits = [
-          { id: 1, shopName: 'Irawan Woodworks', owner: 'Ramon Irawan', docType: 'DTI Registration & Permit', docLink: '#doc_view', status: 'approved', date: '2026-04-14' },
-          { id: 2, shopName: 'Timber & Co.', owner: 'Alice Dela Cruz', docType: 'Business License', docLink: '#doc_view', status: 'pending', date: '2026-04-15' },
-          { id: 3, shopName: 'Modern Minimalist', owner: 'John Smith', docType: 'BIR Certificate', docLink: '#doc_view', status: 'approved', date: '2026-04-10' }
+          { id: 1, shopName: 'Irawan Woodworks', owner: 'Ramon Irawan', ...mockMap['Irawan Woodworks'], docType: 'Full Permit Package', docLink: '#doc_view', status: 'approved', date: '2026-04-14' },
+          { id: 2, shopName: 'Timber & Co.', owner: 'Alice Dela Cruz', ...mockMap['Timber & Co.'], docType: 'Full Permit Package', docLink: '#doc_view', status: 'suspended', date: '2026-04-15' },
+          { id: 3, shopName: 'Modern Minimalist', owner: 'John Smith', ...mockMap['Modern Minimalist'], docType: 'Full Permit Package', docLink: '#doc_view', status: 'approved', date: '2026-04-10' }
         ];
+        needsUpdate = true;
+      } else {
+        // Patch existing records that are missing fields (like Kirk's shop in the screenshot)
+        permits.forEach(p => {
+          if (!p.category) {
+            const data = mockMap[p.shopName] || { category: 'General Furniture', address: 'Verified Business Address', contact: '0912 000 0000', email: 'contact@shop.com' };
+            Object.assign(p, data);
+            needsUpdate = true;
+          }
+        });
+      }
+
+      if (needsUpdate) {
         localStorage.setItem('shop_permits', JSON.stringify(permits));
+      }
+
+      // Shop Infraction Reports Database
+      let shopInfractions = localStorage.getItem('shop_infractions');
+      if (!shopInfractions) {
+        shopInfractions = [
+          { id: 901, shopId: 1, shopName: 'Irawan Woodworks', reason: 'Non-delivery of custom order #FC-102', date: '2026-04-20 11:00 AM' },
+          { id: 902, shopId: 2, shopName: 'Timber & Co.', reason: 'Item received does not match description', date: '2026-04-21 03:45 PM' }
+        ];
+        localStorage.setItem('shop_infractions', JSON.stringify(shopInfractions));
       }
 
       // Users - Authentic Profile Sync
@@ -943,6 +1001,22 @@
       });
 
       localStorage.setItem('admin_users', JSON.stringify(adminUsers));
+
+      // Demo Patch: Ensure at least one banned user exists for the list
+      let currentAdminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
+      if (!currentAdminUsers.find(u => u.status === 'banned')) {
+          currentAdminUsers.push({ 
+              id: 201, 
+              name: 'Mark Anthony', 
+              email: 'mark.a@gmail.com', 
+              role: 'Customer', 
+              status: 'banned', 
+              joined: '2026-03-15', 
+              bannedAt: new Date(Date.now() - 259200000).toISOString(), 
+              banReason: 'Repeated attempts to bypass payment security protocols.' 
+          });
+          localStorage.setItem('admin_users', JSON.stringify(currentAdminUsers));
+      }
     }
     initMockData();
 
@@ -966,7 +1040,10 @@
                 <td><span class="text-muted">${u.joined}</span></td>
                 <td>${u.status === 'active' ? '<span class="status-badge success">Active</span>' : '<span class="status-badge danger">Suspended</span>'}</td>
                 <td>
-                    <button class="btn btn-sm btn-secondary"><i class="fas fa-edit text-primary"></i> Edit</button>
+                    ${u.status === 'active' 
+                        ? `<button class="btn btn-sm btn-danger" onclick="toggleBan(${u.id})"><i class="fas fa-user-slash"></i> Ban</button>`
+                        : `<button class="btn btn-sm btn-success" onclick="toggleBan(${u.id})"><i class="fas fa-undo"></i> Restore</button>`
+                    }
                 </td>
             </tr>
         `).join('');
@@ -1018,38 +1095,7 @@
       alert('User securely provisioned and added to directory.');
     };
 
-    function banUser() {
-      let users = JSON.parse(localStorage.getItem('admin_users'));
-      let reports = JSON.parse(localStorage.getItem('infraction_reports') || '[]');
 
-      let rows = users.map(u => {
-        let userReports = reports.filter(r => r.userId == u.id);
-        let reportText = userReports.length > 0
-          ? `<span class="status-badge warning" style="cursor:pointer" onclick="viewReportsForUser(${u.id})">${userReports.length} Reports</span>`
-          : '<span class="text-muted">No Reports</span>';
-
-        let actionHtml = u.status === 'active'
-          ? `<button class="btn btn-sm btn-danger" onclick="toggleBan(${u.id})"><i class="fas fa-user-slash"></i> Ban User</button>`
-          : `<button class="btn btn-sm btn-success" onclick="toggleBan(${u.id})"><i class="fas fa-undo"></i> Restore</button>`;
-
-        return `
-            <tr>
-                <td><strong>${u.name}</strong><br><span class="text-muted" style="font-size:0.8rem">${u.email}</span></td>
-                <td>${reportText}</td>
-                <td>${u.status === 'active' ? '<span class="status-badge success">Active</span>' : '<span class="status-badge danger">Suspended</span>'}</td>
-                <td>${actionHtml}</td>
-            </tr>`;
-      }).join('');
-
-      openModal('<i class="fas fa-user-shield" style="color:var(--danger)"></i> Disciplinary Enforcement', `
-            <div class="table-responsive">
-                <table class="admin-table">
-                    <thead><tr><th>User Profile</th><th>Reports</th><th>Standing</th><th>Administrative Action</th></tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>
-        `);
-    }
 
     window.viewReportsForUser = function (userId) {
       let reports = JSON.parse(localStorage.getItem('infraction_reports') || '[]');
@@ -1063,6 +1109,7 @@
                     <span class="status-badge ${r.severity === 'High' ? 'danger' : 'warning'}">${r.severity} Severity</span>
                 </div>
                 <p style="font-size:0.9rem; margin-bottom:0.5rem;">${r.reason}</p>
+                ${r.proofImage ? `<p style="font-size:0.8rem; margin-bottom:0.5rem;"><a href="${r.proofImage}" target="_blank" style="color:var(--primary); text-decoration:underline;">View Proof/Evidence <i class="fas fa-external-link-alt"></i></a></p>` : ''}
                 <small class="text-muted">Reported on: ${r.date}</small>
             </div>
         `).join('');
@@ -1070,45 +1117,246 @@
       openModal(`<i class="fas fa-flag"></i> Reports for ${userName}`, `
             <div style="padding:0.5rem;">
                 ${reportList}
-                <button class="btn btn-secondary" onclick="banUser()" style="width:100%; margin-top:1rem;">Back to Discipline Panel</button>
+                <div style="display:flex; gap:10px; margin-top:2rem;">
+                    <button class="btn btn-secondary" onclick="userReports()" style="flex:1;">Back to Infraction Reports</button>
+                    ${userReports.length > 0 ? `<button class="btn btn-danger" onclick="confirmViolationAndBan(${userId})" style="flex:1;"><i class="fas fa-gavel"></i> Confirm Violation & Ban</button>` : ''}
+                </div>
             </div>
         `);
     }
+
+    window.confirmViolationAndBan = function(id) {
+        let users = JSON.parse(localStorage.getItem('admin_users'));
+        let user = users.find(u => u.id === id);
+        if (user) {
+            user.status = 'banned';
+            localStorage.setItem('admin_users', JSON.stringify(users));
+            
+            let username = user.name;
+            let notifs = JSON.parse(localStorage.getItem('user_notifications_' + username) || '[]');
+            notifs.push({
+                id: Date.now(),
+                message: 'Your account has been suspended and restricted due to a verified violation reported by a shop. Please contact support.',
+                date: new Date().toISOString()
+            });
+            localStorage.setItem('user_notifications_' + username, JSON.stringify(notifs));
+
+            alert('Violation confirmed. User banned and notified.');
+            userReports();
+            closeModal();
+        }
+    };
 
     window.toggleBan = function (id) {
       let users = JSON.parse(localStorage.getItem('admin_users'));
       let user = users.find(u => u.id === id);
       if (user) {
-        let reason = user.status === 'active' ? prompt('Enter reason for suspension:') : null;
-        if (user.status === 'active' && !reason) return; // cancel if no reason given
-
-        user.status = user.status === 'active' ? 'banned' : 'active';
+        if (user.status === 'active') {
+            let reason = prompt(`Reason for banning "${user.name}":`);
+            if (!reason) return;
+            user.status = 'banned';
+            user.banReason = reason;
+            user.bannedAt = new Date().toISOString();
+        } else {
+            user.status = 'active';
+            delete user.banReason;
+            delete user.bannedAt;
+        }
         localStorage.setItem('admin_users', JSON.stringify(users));
-
-        // Dynamic logging of the action
-        console.log(`[ADMIN ACTION] User ${id} standing updated to ${user.status}. Reason: ${reason || 'Account Restored'}`);
-
-        banUser();
+        userReports();
       }
     };
 
     function userReports() {
+      let users = JSON.parse(localStorage.getItem('admin_users') || '[]');
       let reports = JSON.parse(localStorage.getItem('infraction_reports') || '[]');
-      let rows = reports.map(r => `
-            <tr>
-                <td><strong>${r.userName}</strong></td>
-                <td>${r.reason}</td>
-                <td><span class="status-badge ${r.severity === 'High' ? 'danger' : 'warning'}">${r.severity}</span></td>
-                <td>${r.date}</td>
-                <td><button class="btn btn-sm btn-primary" onclick="viewReportsForUser(${r.userId})">Review</button></td>
-            </tr>
-      `).join('');
 
-      openModal('<i class="fas fa-clipboard-list" style="color:var(--warning)"></i> Platform Infraction Queue', `
+      // Only show users with reports or who are banned
+      let rows = users.filter(u => {
+          let userReportsList = reports.filter(r => r.userId == u.id);
+          return userReportsList.length > 0 || u.status !== 'active';
+      }).map(u => {
+        let userReportsList = reports.filter(r => r.userId == u.id);
+        let reportCountText = userReportsList.length > 0
+          ? `<span class="status-badge warning" style="cursor:pointer" onclick="viewReportsForUser(${u.id})">${userReportsList.length} Reports</span>`
+          : '<span class="text-muted">0 Reports</span>';
+
+        let latestReport = userReportsList.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+        let reportDateTime = latestReport ? latestReport.date : 'N/A';
+
+        let actionHtml = u.status === 'active'
+          ? `<button class="btn btn-sm btn-danger" onclick="toggleBan(${u.id})"><i class="fas fa-user-slash"></i> Ban User</button>`
+          : `<button class="btn btn-sm btn-success" onclick="toggleBan(${u.id})"><i class="fas fa-undo"></i> Restore</button>`;
+
+        return `
+            <tr>
+                <td><strong>${u.name}</strong><br><span class="text-muted" style="font-size:0.8rem">${u.email}</span></td>
+                <td>${reportDateTime}</td>
+                <td>${reportCountText}</td>
+                <td>${actionHtml}</td>
+            </tr>`;
+      }).join('');
+
+      openModal('<i class="fas fa-gavel" style="color:var(--danger)"></i> Infraction & Discipline', `
             <div class="table-responsive">
                 <table class="admin-table">
-                    <thead><tr><th>Flagged Profile</th><th>Violation Description</th><th>Severity</th><th>Report Date</th><th>Actions</th></tr></thead>
-                    <tbody>${rows}</tbody>
+                    <thead><tr><th>Flagged Profile</th><th>Report Date & Time</th><th>Number of Reports</th><th>Action</th></tr></thead>
+                    <tbody>${rows || '<tr><td colspan="4" class="text-center">No reports or infractions on file.</td></tr>'}</tbody>
+                </table>
+            </div>
+        `);
+    }
+
+    window.viewAllTransactions = function() {
+        let allTransactions = [];
+        // Pull transactions from active shops
+        for(let i=1; i<=20; i++) {
+            let orders = JSON.parse(localStorage.getItem(`projectProposals_shop_${i}`) || '[]');
+            orders.forEach(o => {
+                allTransactions.push({ ...o, shopId: i });
+            });
+        }
+        
+        allTransactions.sort((a, b) => new Date(b.date || Date.now()) - new Date(a.date || Date.now()));
+
+        let rows = allTransactions.map(t => {
+            let statusBadge = (t.status === 'Completed' || t.status === 'Paid' || t.status === 'Finished') ? '<span class="status-badge success">Completed</span>' :
+              (t.status === 'In Progress' || t.status === 'Accepted') ? '<span class="status-badge warning" style="color:#d97706">In Progress</span>' :
+              t.status === 'Pending' ? '<span class="status-badge warning">Pending</span>' :
+              `<span class="status-badge info">${t.status || 'Pending'}</span>`;
+            
+            let displayId = t.id || t.exportId || 'N/A';
+            return `
+            <tr>
+                <td><strong>${displayId}</strong></td>
+                <td>Shop #${t.shopId}</td>
+                <td>${t.customerName || t.name || 'Unknown'}</td>
+                <td>${t.price ? '₱' + t.price : (t.budget ? '₱' + t.budget : 'N/A')}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="viewTransactionDetails('${displayId}', ${t.shopId})"><i class="fas fa-eye"></i> View</button>
+                </td>
+            </tr>
+        `}).join('');
+
+        openModal('<i class="fas fa-receipt" style="color:var(--primary)"></i> Global Order Transactions', `
+            <div style="margin-bottom: 1.5rem; display:flex; gap: 1rem; align-items:center;">
+                <input type="text" id="transactionSearch" class="form-control" placeholder="Search by Order ID, Customer Name, or Shop ID..." onkeyup="filterTransactions()" style="flex:1;">
+                <button class="btn btn-secondary" onclick="viewAllTransactions()"><i class="fas fa-sync-alt"></i> Refresh</button>
+            </div>
+            <div class="table-responsive" style="max-height: 50vh; overflow-y: auto;">
+                <table class="admin-table" id="transactionsTable">
+                    <thead><tr style="position: sticky; top: 0; background: var(--bg-color); z-index: 1;"><th>Order ID</th><th>Shop</th><th>Customer</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody>${rows || '<tr><td colspan="6" class="text-center">No transactions found across the marketplace.</td></tr>'}</tbody>
+                </table>
+            </div>
+        `);
+    };
+
+    window.filterTransactions = function() {
+        let input = document.getElementById("transactionSearch");
+        let filter = input.value.toLowerCase();
+        let table = document.getElementById("transactionsTable");
+        let tr = table.getElementsByTagName("tr");
+        for (let i = 1; i < tr.length; i++) {
+            let tdId = tr[i].getElementsByTagName("td")[0]; // Order ID
+            let tdShop = tr[i].getElementsByTagName("td")[1]; // Shop
+            let tdCust = tr[i].getElementsByTagName("td")[2]; // Customer
+            if (tdId || tdShop || tdCust) {
+                let txtValueId = tdId.textContent || tdId.innerText;
+                let txtValueShop = tdShop.textContent || tdShop.innerText;
+                let txtValueCust = tdCust.textContent || tdCust.innerText;
+                if (txtValueId.toLowerCase().indexOf(filter) > -1 || 
+                    txtValueShop.toLowerCase().indexOf(filter) > -1 || 
+                    txtValueCust.toLowerCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    };
+
+    window.viewTransactionDetails = function(transactionId, shopId) {
+        let orders = JSON.parse(localStorage.getItem(`projectProposals_shop_${shopId}`) || '[]');
+        let order = orders.find(o => String(o.id) === String(transactionId) || String(o.exportId) === String(transactionId));
+        
+        if(order) {
+            let designPreview = order.designData ? `<div style="margin-top:1rem; padding:1rem; background:#f8fafc; border-radius:8px; border:1px solid var(--border-color); display:flex; align-items:center; gap:10px;"><i class="fas fa-cube text-primary" style="font-size:1.5rem"></i><div><strong>3D Design Attached</strong><br><span style="font-size:0.85rem; color:var(--text-muted)">The customer submitted a valid 3D configuration.</span></div></div>` : '';
+            
+            let displayId = order.id || order.exportId || 'N/A';
+            let formattedDate = order.date ? new Date(order.date).toLocaleString() : 'N/A';
+            
+            openModal(`<i class="fas fa-info-circle"></i> Transaction Details (ID: ${displayId})`, `
+                <div style="padding:0.5rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:1.5rem; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:1rem;">
+                        <div>
+                            <h3 style="margin:0; font-size:1.2rem;">Shop #${shopId}</h3>
+                            <span class="text-muted" style="font-size:0.85rem;"><i class="far fa-clock"></i> ${formattedDate}</span>
+                        </div>
+                        <div><span class="status-badge info" style="font-size:0.9rem;">${order.status || 'Pending'}</span></div>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+                        <div style="background:var(--bg-color); padding:1rem; border-radius:0.5rem; border:1px solid var(--border-color);">
+                            <h4 style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; margin-bottom:0.75rem"><i class="fas fa-user"></i> Customer Info</h4>
+                            <p style="margin-bottom:0.5rem;"><strong>Name:</strong> ${order.customerName || order.name || 'Unknown'}</p>
+                            <p style="margin-bottom:0.5rem;"><strong>Contact:</strong> ${order.email || order.contact || 'N/A'}</p>
+                            <p style="margin-bottom:0.5rem;"><strong>Address:</strong> ${order.address || 'N/A'}</p>
+                        </div>
+                        <div style="background:var(--bg-color); padding:1rem; border-radius:0.5rem; border:1px solid var(--border-color);">
+                            <h4 style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; margin-bottom:0.75rem"><i class="fas fa-box"></i> Order Specifics</h4>
+                            <p style="margin-bottom:0.5rem;"><strong>Budget/Price:</strong> ${order.price ? '₱' + parseFloat(order.price).toLocaleString() : (order.budget ? '₱' + parseFloat(order.budget).toLocaleString() : 'Pending Quote')}</p>
+                            <p style="margin-bottom:0.5rem;"><strong>Type:</strong> ${order.type || order.furnitureType || 'Custom Furniture'}</p>
+                            <p style="margin-bottom:0.5rem;"><strong>Platform Fee:</strong> ${order.price ? '₱' + (parseFloat(order.price) * 0.005).toLocaleString() : 'N/A'}</p>
+                        </div>
+                    </div>
+                    
+                    ${order.message ? `
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; margin-bottom:0.5rem">Customer Requirements</h4>
+                        <p style="background: white; padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem; box-shadow:inset 0 2px 4px rgba(0,0,0,0.02);">${order.message}</p>
+                    </div>` : ''}
+                    
+                    ${designPreview}
+                    
+                    <div style="margin-top: 2rem; display:flex; gap:10px;">
+                        <button class="btn btn-secondary" style="flex:1;" onclick="viewAllTransactions()"><i class="fas fa-arrow-left"></i> Back to Transactions</button>
+                    </div>
+                </div>
+            `);
+        } else {
+            alert('Transaction details not found or expired.');
+        }
+    };
+
+    function platformFeedback() {
+        let allReviews = [];
+        // Pull reviews from active shops (1-5 for this demo)
+        for(let i=1; i<=5; i++) {
+            let reviews = JSON.parse(localStorage.getItem(`shopReviews_${i}`) || '[]');
+            reviews.forEach(r => {
+                allReviews.push({ ...r, shopId: i });
+            });
+        }
+        
+        allReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        let rows = allReviews.map(r => `
+            <tr>
+                <td><strong>${r.customerName}</strong></td>
+                <td><div style="color:var(--warning)">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div></td>
+                <td><div style="max-width:250px; font-size:0.85rem;" class="text-truncate">${r.reviewText || 'No comment provided.'}</div></td>
+                <td>Shop #${r.shopId}</td>
+                <td>${new Date(r.date).toLocaleDateString()}</td>
+            </tr>
+        `).join('');
+
+        openModal('<i class="fas fa-star-half-alt" style="color:var(--primary)"></i> Global Marketplace Feedback', `
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead><tr><th>Customer</th><th>Rating</th><th>Comment</th><th>Shop Name</th><th>Date</th></tr></thead>
+                    <tbody>${rows || '<tr><td colspan="5" class="text-center">No feedback yet.</td></tr>'}</tbody>
                 </table>
             </div>
         `);
@@ -1118,18 +1366,76 @@
     // 2. SHOP MANAGEMENT & VERIFICATION
     // ============================================
     function manageShops() {
-      openModal('<i class="fas fa-store-alt" style="color:var(--primary)"></i> Active FurniCraft Shops', `
+      let permits = JSON.parse(localStorage.getItem('shop_permits') || '[]');
+      let shopReports = JSON.parse(localStorage.getItem('shop_infractions') || '[]');
+      
+      let rows = permits.map(p => {
+          let reportsForThisShop = shopReports.filter(sr => sr.shopId === p.id);
+          let reportCountBadge = reportsForThisShop.length > 0 
+            ? `<span class="status-badge warning" style="cursor:pointer" onclick="viewShopReports(${p.id})">${reportsForThisShop.length} Reports</span>`
+            : '<span class="text-muted">0 Reports</span>';
+
+          let statusLabel = p.status === 'suspended' ? '<span class="status-badge danger">Suspended</span>' : 
+                            p.status === 'approved' ? '<span class="status-badge success">Verified</span>' :
+                            p.status === 'pending' ? '<span class="status-badge warning">Pending</span>' :
+                            '<span class="status-badge info">Declined</span>';
+
+          let actionBtn = '';
+          if (p.status === 'approved' || p.status === 'suspended') {
+              actionBtn = p.status === 'suspended' 
+                ? `<button class="btn btn-sm btn-success" onclick="toggleShopSuspension(${p.id})"><i class="fas fa-undo"></i> Restore</button>`
+                : `<button class="btn btn-sm btn-danger" onclick="toggleShopSuspension(${p.id})"><i class="fas fa-ban"></i> Suspend</button>`;
+          } else if (p.status === 'pending') {
+              actionBtn = `<button class="btn btn-sm btn-primary" onclick="approveShop()"><i class="fas fa-search"></i> Review</button>`;
+          } else {
+              actionBtn = `<span class="text-muted" style="font-size:0.8rem">No Action</span>`;
+          }
+
+          return `
+            <tr>
+                <td><strong>${p.shopName}</strong></td>
+                <td>${Math.floor(Math.random() * 30) + 5} Items</td>
+                <td>⭐ ${(4 + Math.random()).toFixed(1)}</td>
+                <td>${statusLabel}</td>
+                <td>${reportCountBadge}</td>
+                <td>${actionBtn}</td>
+            </tr>`;
+      }).join('');
+
+      openModal('<i class="fas fa-store-alt" style="color:var(--primary)"></i> All Verified Shops', `
             <div class="table-responsive">
                 <table class="admin-table">
-                    <thead><tr><th>Shop Entity</th><th>Inventory Size</th><th>Customer Rating</th><th>Listing Status</th></tr></thead>
+                    <thead><tr><th>Shop Name</th><th>Inventory</th><th>Rating</th><th>Status</th><th>Reports</th><th>Actions</th></tr></thead>
                     <tbody>
-                        <tr><td><strong>Irawan Woodworks</strong></td><td>24 Custom Pieces</td><td>⭐ 4.9</td><td><span class="status-badge info">Premium Verified</span></td></tr>
-                        <tr><td><strong>Timber & Co.</strong></td><td>12 Ready Items</td><td>⭐ 4.2</td><td><span class="status-badge success">Active</span></td></tr>
+                        ${rows || '<tr><td colspan="6" class="text-center">No verified shops found in database.</td></tr>'}
                     </tbody>
                 </table>
             </div>
         `);
     }
+
+    window.viewShopReports = function(shopId) {
+        let shopReports = JSON.parse(localStorage.getItem('shop_infractions') || '[]');
+        let reports = shopReports.filter(r => r.shopId === shopId);
+        let shopName = reports[0] ? reports[0].shopName : 'Shop';
+
+        let listHtml = reports.map(r => `
+            <div style="background:var(--bg-color); padding:1rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid var(--warning)">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                    <strong>Report ID: #${r.id}</strong>
+                    <span class="text-muted">${r.date}</span>
+                </div>
+                <p style="font-size:0.9rem;">${r.reason}</p>
+            </div>
+        `).join('');
+
+        openModal(`<i class="fas fa-flag"></i> Reports for ${shopName}`, `
+            <div style="padding:0.5rem;">
+                ${listHtml || '<p class="text-center text-muted">No specific infraction details found.</p>'}
+                <button class="btn btn-secondary" onclick="manageShops()" style="width:100%; margin-top:1rem;">Back to Registry</button>
+            </div>
+        `);
+    };
 
     // Specially Requested: Example submitted permits logic
     function approveShop() {
@@ -1148,12 +1454,23 @@
 
         return `
             <tr>
-                <td><strong>${p.shopName}</strong><br><small class="text-muted">Proprietor: ${p.owner}</small></td>
                 <td>
-                    <a href="${p.docLink}" onclick="event.preventDefault(); alert('Opening Document Viewer Sandbox:\\nLoaded DTI/Permit PDF preview');" class="doc-link">
-                        <i class="fas fa-file-pdf"></i> ${p.docType}
-                    </a>
-                    <br><small class="text-muted" style="margin-top:0.25rem; display:block;">Uploaded on ${p.date}</small>
+                    <strong style="font-size: 1.1rem; color: var(--primary);">${p.shopName}</strong><br>
+                    <div style="font-size: 0.85rem; margin-top: 5px; line-height: 1.6;">
+                        <i class="fas fa-user-tie" style="width: 20px;"></i> <strong>Proprietor:</strong> ${p.owner}<br>
+                        <i class="fas fa-tag" style="width: 20px;"></i> <strong>Category:</strong> ${p.category || 'N/A'}<br>
+                        <i class="fas fa-map-marker-alt" style="width: 20px;"></i> <strong>Address:</strong> ${p.address || 'N/A'}<br>
+                        <i class="fas fa-envelope" style="width: 20px;"></i> <strong>Email:</strong> ${p.email || 'N/A'}<br>
+                        <i class="fas fa-phone" style="width: 20px;"></i> <strong>Contact:</strong> ${p.contact || 'N/A'}
+                    </div>
+                </td>
+                <td>
+                    <div style="background: rgba(79, 70, 229, 0.05); padding: 12px; border-radius: 8px; border: 1px dashed var(--primary);">
+                        <a href="${p.docLink}" onclick="event.preventDefault(); alert('Opening Document Viewer Sandbox:\\nLoaded DTI, Business Permit, BIR, and Owner ID bundle preview');" class="doc-link" style="font-weight: 600; color: var(--primary); text-decoration: none;">
+                            <i class="fas fa-file-archive"></i> Full Permit Package
+                        </a>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Submitted on ${p.date}</div>
+                    </div>
                 </td>
                 <td>${statusBadge}</td>
                 <td>${actionBtn}</td>
@@ -1178,29 +1495,191 @@
         `);
     }
 
+    function sendUserNotification(username, message, type = "status") {
+      let notifs = JSON.parse(localStorage.getItem('user_notifications_' + username) || '[]');
+      notifs.push({
+        id: Date.now(),
+        message: message,
+        type: type,
+        date: new Date().toISOString(),
+        read: false
+      });
+      localStorage.setItem('user_notifications_' + username, JSON.stringify(notifs));
+    }
+
     window.processPermit = function (id, newStatus) {
-      let permits = JSON.parse(localStorage.getItem('shop_permits'));
+      let permits = JSON.parse(localStorage.getItem('shop_permits') || '[]');
       let permit = permits.find(p => p.id === id);
       if (permit) {
         permit.status = newStatus;
         localStorage.setItem('shop_permits', JSON.stringify(permits));
+        
+        // Notify Shop Owner
+        const targetUser = permit.username || permit.owner;
+        if (newStatus === 'approved') {
+          sendUserNotification(targetUser, `Congratulations! Your shop "${permit.shopName}" has been verified. You can now start selling!`, "status");
+        } else {
+          sendUserNotification(targetUser, `Your application for "${permit.shopName}" was rejected. Please review your documents.`, "status");
+        }
+
         approveShop(); // reload modal view seamlessly
       }
     };
 
+    // Admin Notifications Logic
+    let adminNotifDropdownOpen = false;
+    window.toggleAdminNotifs = function() {
+        adminNotifDropdownOpen = !adminNotifDropdownOpen;
+        const dropdown = document.getElementById('adminNotifDropdown');
+        if(dropdown) dropdown.style.display = adminNotifDropdownOpen ? 'block' : 'none';
+        if (adminNotifDropdownOpen) {
+            let notifs = JSON.parse(localStorage.getItem('user_notifications_Admin') || '[]');
+            notifs.forEach(n => n.read = true);
+            localStorage.setItem('user_notifications_Admin', JSON.stringify(notifs));
+            document.getElementById('adminNotifBadge').style.display = 'none';
+            loadAdminNotifs();
+        }
+    };
+
+    function loadAdminNotifs() {
+      let notifs = JSON.parse(localStorage.getItem('user_notifications_Admin') || '[]');
+      let unreadCount = notifs.filter(n => !n.read).length;
+
+      const badge = document.getElementById('adminNotifBadge');
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      let listHTML = '';
+      if (notifs.length === 0) {
+        listHTML = '<div style="text-align:center; padding:1rem 0; color:var(--text-muted); font-size:0.85rem;">No notifications yet.</div>';
+      } else {
+        notifs.slice().reverse().forEach(n => {
+          listHTML += `
+                <div style="padding:12px 15px; border-bottom:1px solid var(--border-color); ${!n.read ? 'background:rgba(79,70,229,0.05); border-left:3px solid var(--primary);' : ''} transition:background 0.2s;">
+                    <div style="display:flex; gap:12px; align-items:flex-start;">
+                        <div style="width:32px; height:32px; border-radius:8px; background:rgba(79,70,229,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem;">
+                            <i class="fas fa-bullhorn" style="color:var(--primary);"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:0.8rem; color:var(--text-main); line-height:1.4; font-weight:${!n.read ? '600' : '400'};">${n.message}</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">${new Date(n.date).toLocaleDateString()} ${new Date(n.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+      }
+      document.getElementById('adminNotifList').innerHTML = listHTML;
+    }
+
+    // Initialize Polling
+    setInterval(loadAdminNotifs, 5000);
+    document.addEventListener('DOMContentLoaded', loadAdminNotifs);
+    
+    document.addEventListener('click', (e) => {
+        if(!e.target.closest('#adminNotifDropdown') && !e.target.closest('[onclick="toggleAdminNotifs()"]')) {
+            adminNotifDropdownOpen = false;
+            const dropdown = document.getElementById('adminNotifDropdown');
+            if(dropdown) dropdown.style.display = 'none';
+        }
+    });
+
     function suspendShop() {
-      openModal('<i class="fas fa-store-slash" style="color:var(--danger)"></i> Shop Suspensions', `
-            <p class="text-muted" style="margin-bottom:1.5rem;">Revoke selling privileges across the platform.</p>
+      let permits = JSON.parse(localStorage.getItem('shop_permits') || '[]');
+      let suspendedShops = permits.filter(p => p.status === 'suspended');
+      
+      let rows = suspendedShops.map(p => {
+        let atDate = p.suspendedAt ? new Date(p.suspendedAt) : new Date();
+        let now = new Date();
+        let diffMs = now - atDate;
+        let diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        let diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        let durationText = diffDays > 0 ? `${diffDays} days, ${diffHours} hours` : `${diffHours} hours`;
+
+        return `
+            <tr>
+                <td><strong>${p.shopName}</strong><br><small class="text-muted">${p.owner}</small></td>
+                <td>${p.suspendedAt ? new Date(p.suspendedAt).toLocaleString() : 'N/A'}</td>
+                <td><span style="color:var(--danger); font-weight:600;">${durationText}</span></td>
+                <td><div style="max-width:250px; font-size:0.85rem; font-style:italic;">"${p.suspensionReason || 'General Policy Violation'}"</div></td>
+            </tr>`;
+      }).join('');
+
+      openModal('<i class="fas fa-store-slash" style="color:var(--danger)"></i> List of Banned and Suspended Furniture Shops', `
+            <p class="text-muted" style="margin-bottom:1.5rem;">Audit log of all currently restricted furniture shop fronts and the reasons for their suspension.</p>
              <div class="table-responsive">
                 <table class="admin-table">
-                    <thead><tr><th>Entity Name</th><th>Owner</th><th>Violation Standing</th><th>Action</th></tr></thead>
+                    <thead><tr><th>Shop Details</th><th>Time Enacted</th><th>Current Duration</th><th>Violation Reason</th></tr></thead>
                     <tbody>
-                        <tr><td><strong>Timber & Co.</strong></td><td>Alice Dela Cruz</td><td>Clean</td><td><button class="btn btn-sm btn-danger" onclick="alert('Shop successfully suspended from listing.')">Suspend Operations</button></td></tr>
+                        ${rows || '<tr><td colspan="4" class="text-center">No furniture shops are currently suspended.</td></tr>'}
                     </tbody>
                 </table>
             </div>
         `);
     }
+    function bannedUsersList() {
+      let users = JSON.parse(localStorage.getItem('admin_users') || '[]');
+      let bannedUsers = users.filter(u => u.status === 'banned');
+      
+      let rows = bannedUsers.map(u => {
+        let atDate = u.bannedAt ? new Date(u.bannedAt) : new Date();
+        let now = new Date();
+        let diffMs = now - atDate;
+        let diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        let diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        let durationText = diffDays > 0 ? `${diffDays} days, ${diffHours} hours` : `${diffHours} hours`;
+
+        return `
+            <tr>
+                <td><strong>${u.name}</strong><br><small class="text-muted">${u.email}</small></td>
+                <td>${u.bannedAt ? new Date(u.bannedAt).toLocaleString() : 'N/A'}</td>
+                <td><span style="color:var(--danger); font-weight:600;">${durationText}</span></td>
+                <td><div style="max-width:250px; font-size:0.85rem; font-style:italic;">"${u.banReason || 'Policy Violation'}"</div></td>
+            </tr>`;
+      }).join('');
+
+      openModal('<i class="fas fa-user-slash" style="color:var(--danger)"></i> List of Banned and Suspended Users', `
+            <p class="text-muted" style="margin-bottom:1.5rem;">Audit log of all currently restricted user accounts and the reasons for their ban.</p>
+             <div class="table-responsive">
+                <table class="admin-table">
+                    <thead><tr><th>User Profile</th><th>Time Banned</th><th>Current Duration</th><th>Ban Reason</th></tr></thead>
+                    <tbody>
+                        ${rows || '<tr><td colspan="4" class="text-center">No users are currently banned.</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        `);
+    }
+    window.toggleShopSuspension = function(id) {
+        let permits = JSON.parse(localStorage.getItem('shop_permits') || '[]');
+        let permit = permits.find(p => p.id === id);
+        if (permit) {
+            if (permit.status !== 'suspended') {
+                let reason = prompt(`Reason for suspending "${permit.shopName}":`);
+                if (!reason) return;
+                permit.status = 'suspended';
+                permit.suspensionReason = reason;
+                permit.suspendedAt = new Date().toISOString();
+            } else {
+                permit.status = 'approved';
+                delete permit.suspensionReason;
+                delete permit.suspendedAt;
+            }
+            localStorage.setItem('shop_permits', JSON.stringify(permits));
+            
+            // Notify shop owner
+            const targetUser = permit.username || permit.owner;
+            const msg = permit.status === 'suspended' 
+                ? `URGENT: Your shop "${permit.shopName}" has been suspended due to: ${permit.suspensionReason}. Access restricted.` 
+                : `Your shop "${permit.shopName}" has been restored. Your listings are now visible again.`;
+            sendUserNotification(targetUser, msg, "status");
+            
+            manageShops(); // refresh modal
+        }
+    };
 
     function shopAnalytics() {
       openModal('<i class="fas fa-chart-line" style="color:var(--primary)"></i> Platform Financials', `
@@ -1209,8 +1688,8 @@
                 <div style="height: 180px; display:flex; align-items:flex-end; gap: 20px; margin-bottom: 2.5rem; border-bottom:2px solid var(--border-color); padding-bottom:5px;">
                     <div style="width: 15%; height: 40%; background: var(--border-color); border-radius: 4px 4px 0 0; position:relative;"><span style="position:absolute; top:-25px; width:100%; text-align:center; font-size:12px; font-weight:600; color:var(--text-muted)">Jan</span></div>
                     <div style="width: 15%; height: 50%; background: var(--border-color); border-radius: 4px 4px 0 0; position:relative;"><span style="position:absolute; top:-25px; width:100%; text-align:center; font-size:12px; font-weight:600; color:var(--text-muted)">Feb</span></div>
-                    <div style="width: 15%; height: 80%; background: var(--info); border-radius: 4px 4px 0 0; position:relative; box-shadow: 0 0 15px rgba(59,130,246,0.3);"><span style="position:absolute; top:-25px; width:100%; text-align:center; font-size:12px; font-weight:600; color:var(--info)">Mar</span</div>
-                    <div style="width: 15%; height: 100%; background: var(--primary); border-radius: 4px 4px 0 0; position:relative; box-shadow: 0 0 15px rgba(79,70,229,0.3);"><span style="position:absolute; top:-25px; width:100%; text-align:center; font-size:12px; font-weight:600; color:var(--primary)">Apr</span</div>
+                    <div style="width: 15%; height: 80%; background: var(--info); border-radius: 4px 4px 0 0; position:relative; box-shadow: 0 0 15px rgba(59,130,246,0.3);"><span style="position:absolute; top:-25px; width:100%; text-align:center; font-size:12px; font-weight:600; color:var(--info)">Mar</span></div>
+                    <div style="width: 15%; height: 100%; background: var(--primary); border-radius: 4px 4px 0 0; position:relative; box-shadow: 0 0 15px rgba(79,70,229,0.3);"><span style="position:absolute; top:-25px; width:100%; text-align:center; font-size:12px; font-weight:600; color:var(--primary)">Apr</span></div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-color); padding: 1.5rem; border-radius: 0.75rem; border:1px solid var(--border-color);">
                     <div>
@@ -1227,10 +1706,273 @@
     }
     window.customAnalytics = shopAnalytics;
 
+    // ============================================
+    // 3. SYSTEM INFRASTRUCTURE & BACKUP
+    // ============================================
+    function openCloudBackup() {
+      const lastBackup = localStorage.getItem('last_cloud_backup_timestamp') || 'Never';
+      
+      openModal('<i class="fas fa-cloud-shield" style="color:var(--primary)"></i> Cloud Backup & Recovery', `
+        <div style="padding: 1rem;">
+          <div style="display:flex; align-items:center; gap:20px; background:rgba(79, 70, 229, 0.05); padding:1.5rem; border-radius:1rem; border:1px solid rgba(79, 70, 229, 0.1); margin-bottom:2rem;">
+            <div style="font-size:3rem; color:var(--primary)"><i class="fas fa-cloud-check"></i></div>
+            <div>
+              <h4 style="margin:0; font-size:1.1rem; color:var(--text-main)">Cloud Synchronized</h4>
+              <p style="margin:5px 0 0; font-size:0.85rem; color:var(--text-muted)">Last successful backup: <strong>${lastBackup}</strong></p>
+            </div>
+          </div>
+          
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:2rem;">
+            <div style="background:white; border:1px solid var(--border-color); padding:1.25rem; border-radius:0.75rem; text-align:center;">
+              <i class="fas fa-upload" style="font-size:1.5rem; color:var(--primary); margin-bottom:1rem;"></i>
+              <h5 style="margin-bottom:0.5rem;">Backup Current State</h5>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:1rem;">Securely snapshot all marketplace data to cloud storage.</p>
+              <button class="btn btn-primary w-full" style="width:100%" onclick="performCloudBackup()">Start Backup</button>
+            </div>
+            <div style="background:white; border:1px solid var(--border-color); padding:1.25rem; border-radius:0.75rem; text-align:center;">
+              <i class="fas fa-download" style="font-size:1.5rem; color:var(--success); margin-bottom:1rem;"></i>
+              <h5 style="margin-bottom:0.5rem;">Restore from Cloud</h5>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:1rem;">Recover system state from the latest secure backup vault.</p>
+              <button class="btn btn-success w-full" style="width:100%" onclick="restoreFromCloud()">Restore System</button>
+            </div>
+          </div>
+          
+          <div style="background:var(--bg-color); padding:1rem; border-radius:0.5rem;">
+            <h6 style="text-transform:uppercase; font-size:0.7rem; color:var(--text-muted); margin-bottom:0.75rem; letter-spacing:0.5px;">Redundancy Protocols</h6>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+              <span style="font-size:0.85rem;">Automatic Daily Backups</span>
+              <div style="width:40px; height:20px; background:var(--primary); border-radius:20px; position:relative; cursor:pointer;"><div style="width:16px; height:16px; background:white; border-radius:50%; position:absolute; right:2px; top:2px;"></div></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.85rem;">Encrypted Data Vaulting</span>
+              <span class="status-badge success" style="font-size:0.65rem;">Active</span>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    window.performCloudBackup = function() {
+      const modalBody = document.getElementById('modalBody');
+      
+      modalBody.innerHTML = `
+        <div style="padding:3rem; text-align:center;">
+          <div class="spinner-container" style="position:relative; width:80px; height:80px; margin:0 auto 2rem;">
+            <i class="fas fa-cloud-upload-alt fa-3x" style="color:var(--primary); position:absolute; top:50%; left:50%; transform:translate(-50%, -50%)"></i>
+            <div style="width:100%; height:100%; border:4px solid rgba(79, 70, 229, 0.1); border-top-color:var(--primary); border-radius:50%; animation: spin 1s linear infinite;"></div>
+          </div>
+          <h3 id="backupStatus">Encrypting Marketplace Data...</h3>
+          <p class="text-muted">Bundling users, shops, and transactions for secure transit.</p>
+          <div style="width:100%; height:8px; background:#f1f5f9; border-radius:10px; margin-top:1.5rem; overflow:hidden;">
+            <div id="backupProgress" style="width:0%; height:100%; background:var(--primary); transition:width 0.3s ease;"></div>
+          </div>
+        </div>
+        <style>
+          @keyframes spin { to { transform: rotate(360deg); } }
+        </style>
+      `;
+      
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 100) progress = 100;
+        const progressBar = document.getElementById('backupProgress');
+        if (progressBar) progressBar.style.width = progress + '%';
+        
+        const statusText = document.getElementById('backupStatus');
+        if (statusText) {
+          if (progress > 30) statusText.innerText = 'Establishing Secure Connection...';
+          if (progress > 60) statusText.innerText = 'Uploading to Cloud Backups Vault...';
+          if (progress > 90) statusText.innerText = 'Finalizing Synchronization...';
+        }
+        
+        if (progress >= 100) {
+          clearInterval(interval);
+          
+          // Actual data bundling
+          const backupData = {
+            localStorage: {},
+            timestamp: new Date().toLocaleString()
+          };
+          
+          const keysToBackup = [
+            'users', 'admin_users', 'shop_permits', 'infraction_reports',
+            ...Array.from({length: 20}, (_, i) => `projectProposals_shop_${i+1}`),
+            ...Array.from({length: 20}, (_, i) => `shopReviews_${i+1}`),
+            ...Array.from({length: 20}, (_, i) => `shop_inventory_${i+1}`)
+          ];
+          
+          keysToBackup.forEach(key => {
+            const val = localStorage.getItem(key);
+            if (val) backupData.localStorage[key] = val;
+          });
+          
+          localStorage.setItem('cloud_backups_vault', JSON.stringify(backupData));
+          localStorage.setItem('last_cloud_backup_timestamp', backupData.timestamp);
+          
+          modalBody.innerHTML = `
+            <div style="padding:3rem; text-align:center;">
+              <div style="width:80px; height:80px; background:var(--success); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:2.5rem; margin:0 auto 1.5rem; box-shadow:0 10px 20px rgba(16, 185, 129, 0.2)">
+                <i class="fas fa-check"></i>
+              </div>
+              <h3>Backup Successful</h3>
+              <p class="text-muted">System availability ensured. The backup is safely stored in cloud backups.</p>
+              <button class="btn btn-primary" style="margin-top:2rem; padding:0.75rem 2rem;" onclick="openCloudBackup()">Return to Vault</button>
+            </div>
+          `;
+        }
+      }, 300);
+    };
+
+    window.restoreFromCloud = function() {
+      const backupDataRaw = localStorage.getItem('cloud_backups_vault');
+      if (!backupDataRaw) {
+        alert('No backup found in cloud storage.');
+        return;
+      }
+      
+      if (!confirm('WARNING: Restoring will overwrite all current system data. Proceed with cloud recovery?')) return;
+      
+      const backupData = JSON.parse(backupDataRaw);
+      const modalBody = document.getElementById('modalBody');
+      
+      modalBody.innerHTML = `
+        <div style="padding:3rem; text-align:center;">
+          <div class="spinner-container" style="position:relative; width:80px; height:80px; margin:0 auto 2rem;">
+            <i class="fas fa-cloud-download-alt fa-3x" style="color:var(--success); position:absolute; top:50%; left:50%; transform:translate(-50%, -50%)"></i>
+            <div style="width:100%; height:100%; border:4px solid rgba(16, 185, 129, 0.1); border-top-color:var(--success); border-radius:50%; animation: spin 1s linear infinite;"></div>
+          </div>
+          <h3>Downloading System State...</h3>
+          <p class="text-muted">Reconstructing user directories and shop ecosystems.</p>
+        </div>
+      `;
+      
+      setTimeout(() => {
+        if (backupData.localStorage) {
+          Object.entries(backupData.localStorage).forEach(([key, val]) => {
+            localStorage.setItem(key, val);
+          });
+        }
+        
+        modalBody.innerHTML = `
+          <div style="padding:3rem; text-align:center;">
+            <div style="width:80px; height:80px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:2.5rem; margin:0 auto 1.5rem;">
+              <i class="fas fa-history"></i>
+            </div>
+            <h3>System Restored</h3>
+            <p class="text-muted">All databases have been synchronized to the state from ${backupData.timestamp}.</p>
+            <button class="btn btn-primary" style="margin-top:2rem;" onclick="location.reload()">Refresh Dashboard</button>
+          </div>
+        `;
+      }, 2000);
+    };
+
+    function viewSystemHealth() {
+      openModal('<i class="fas fa-server"></i> Platform Health Monitor', `
+        <div style="padding:1rem;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+            <div style="background:#f8fafc; padding:1rem; border-radius:8px; border:1px solid var(--border-color);">
+              <small class="text-muted">CPU LOAD</small>
+              <div style="font-size:1.5rem; font-weight:700; color:var(--success)">12.4%</div>
+            </div>
+            <div style="background:#f8fafc; padding:1rem; border-radius:8px; border:1px solid var(--border-color);">
+              <small class="text-muted">MEMORY USAGE</small>
+              <div style="font-size:1.5rem; font-weight:700; color:var(--primary)">482MB</div>
+            </div>
+          </div>
+          <div style="margin-bottom:1.5rem;">
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:0.5rem;">
+              <span>Database Sync Status</span>
+              <span class="text-success">Perfect (14ms)</span>
+            </div>
+            <div style="width:100%; height:4px; background:#e2e8f0; border-radius:2px;">
+              <div style="width:98%; height:100%; background:var(--success); border-radius:2px;"></div>
+            </div>
+          </div>
+          <p class="text-muted" style="font-size:0.85rem;"><i class="fas fa-check-circle text-success"></i> All microservices are operational. System uptime: 99.998%</p>
+        </div>
+      `);
+    }
+
+    function emergencyLockdown() {
+      openModal('<i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i> Critical Authorization: Protocol Alpha', `
+        <div style="padding:1rem; text-align:center;">
+          <div style="width:70px; height:70px; background:rgba(239, 68, 68, 0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--danger); font-size:2rem; margin:0 auto 1.5rem; border:2px solid var(--danger);">
+            <i class="fas fa-lock"></i>
+          </div>
+          <h3 style="color:var(--text-main); margin-bottom:1rem;">Initiate System Lockdown?</h3>
+          <p class="text-muted" style="margin-bottom:2rem; line-height:1.6;">
+            <strong>Protocol Alpha</strong> is an emergency measure. Activating this will:<br>
+            • Instantly freeze all active marketplace transactions<br>
+            • Terminate all active user and shop owner sessions<br>
+            • Put the platform into "Restricted Maintenance" mode
+          </p>
+          
+          <div style="background:#fff1f2; border:1px solid #fecaca; padding:1rem; border-radius:0.5rem; margin-bottom:2rem; text-align:left;">
+            <small style="color:#b91c1c; font-weight:700; text-transform:uppercase; display:block; margin-bottom:0.5rem;">Verification Required</small>
+            <p style="font-size:0.85rem; color:#991b1b; margin:0;">Please confirm that you are authorized to execute this high-level security override.</p>
+          </div>
+
+          <div style="display:flex; gap:12px;">
+            <button class="btn btn-secondary" style="flex:1;" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-danger" style="flex:2;" onclick="executeProtocolAlpha()">
+              <i class="fas fa-skull-crossbones"></i> Confirm Protocol Alpha
+            </button>
+          </div>
+        </div>
+      `);
+    }
+
+    window.executeProtocolAlpha = function() {
+      const modalBody = document.getElementById('modalBody');
+      modalBody.innerHTML = `
+        <div style="padding:3rem; text-align:center;">
+          <div class="spinner-container" style="position:relative; width:80px; height:80px; margin:0 auto 2rem;">
+            <i class="fas fa-shield-alt fa-3x" style="color:var(--danger); position:absolute; top:50%; left:50%; transform:translate(-50%, -50%)"></i>
+            <div style="width:100%; height:100%; border:4px solid rgba(239, 68, 68, 0.1); border-top-color:var(--danger); border-radius:50%; animation: spin 1s linear infinite;"></div>
+          </div>
+          <h3 style="color:var(--danger)">Executing Protocol Alpha...</h3>
+          <p class="text-muted">Revoking access tokens and freezing database writes.</p>
+        </div>
+      `;
+      
+      setTimeout(() => {
+        alert('CRITICAL: System Lockdown Complete. All sessions purged.');
+        logout();
+      }, 2500);
+    };
+
+    function openInfrastructureLogs() {
+      const logs = [
+        `[${new Date(Date.now() - 3600000).toISOString()}] - [ADMIN] Kirk Gabo: System Login Successful`,
+        `[${new Date(Date.now() - 3400000).toISOString()}] - [USER] Alice Walker: Product Inquiry (Irawan Woodworks)`,
+        `[${new Date(Date.now() - 3200000).toISOString()}] - [SHOP] Timber & Co.: New Furniture Listing Uploaded`,
+        `[${new Date(Date.now() - 2800000).toISOString()}] - [ADMIN] Kirk Gabo: Shop Verification Approved (Kirk Furniture)`,
+        `[${new Date(Date.now() - 2400000).toISOString()}] - [USER] Mark Anthony: Order Placed #FC-8821`,
+        `[${new Date(Date.now() - 1800000).toISOString()}] - [SHOP] Irawan Woodworks: Order Status Updated to 'In Progress'`,
+        `[${new Date(Date.now() - 1200000).toISOString()}] - [SYSTEM] Database Sync: 114 Shop Records Verified`,
+        `[${new Date(Date.now() - 600000).toISOString()}] - [USER] Jane Smith: Account Profile Updated`,
+        `[${new Date().toISOString()}] - [ADMIN] Kirk Gabo: Access Logs Viewed`
+      ];
+      openModal('<i class="fas fa-history"></i> Global Platform Access Logs', `
+        <div style="background:#0f172a; color:#10b981; padding:1.5rem; border-radius:0.75rem; font-family:monospace; font-size:0.85rem; max-height:400px; overflow-y:auto; line-height:1.6;">
+          <div style="color:#94a3b8; margin-bottom:1rem; border-bottom:1px solid #1e293b; padding-bottom:0.5rem;">Showing comprehensive audit trail for Users, Shop Owners, and Administrators</div>
+          ${logs.map(l => `<div style="margin-bottom:0.6rem; border-bottom:1px solid rgba(16, 185, 129, 0.05); padding-bottom:0.4rem;">${l}</div>`).join('')}
+          <div style="color:#94a3b8; margin-top:1rem; border-top:1px solid #1e293b; padding-top:0.5rem;">> Waiting for new ecosystem events...</div>
+        </div>
+      `);
+    }
+
     function syncGlobalStats() {
       const users = JSON.parse(localStorage.getItem('admin_users') || '[]');
       if (document.getElementById('totalUsers')) {
         document.getElementById('totalUsers').innerText = users.length.toLocaleString();
+      }
+
+      let permits = JSON.parse(localStorage.getItem('shop_permits') || '[]');
+      let verifiedCount = permits.filter(p => p.status === 'approved' || p.status === 'suspended').length;
+      if(document.getElementById('totalShops')) {
+        document.getElementById('totalShops').innerText = verifiedCount.toLocaleString();
       }
       
       let platformFees = 0;

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Furniture Shop Registration | FurniCraft Partner Program</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #F9F7F4;
+            --accent: #8B5A2B;
+            --accent-hover: #724921;
+            --text-dark: #1F1915;
+            --text-muted: #6B5B53;
+            --white: #ffffff;
+            --border: #e2e2e2;
+            --success: #27ae60;
+            --shadow: 0 15px 35px rgba(0,0,0,0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--white);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--accent);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-body {
+            padding: 40px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        input, textarea, select {
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .file-upload-wrapper {
+            border: 2px dashed var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: var(--accent);
+            background: rgba(139, 90, 43, 0.02);
+        }
+
+        .file-upload-wrapper i {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .file-upload-wrapper p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-name {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .btn-submit {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(139, 90, 43, 0.2);
+        }
+
+        .success-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--white);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-overlay i {
+            font-size: 5rem;
+            color: var(--success);
+            margin-bottom: 20px;
+        }
+
+        .success-overlay h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .success-overlay p {
+            color: var(--text-muted);
+            max-width: 500px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .back-btn {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="formContainer">
+        <div class="header">
+            <h1>Furniture Shop Registration</h1>
+            <p>Join our elite network of furniture shops and craftsmen. Apply now to reach thousands of customers nationwide.</p>
+        </div>
+
+        <form class="form-body" id="registrationForm" onsubmit="handleRegistration(event)">
+            <div class="section-title">
+                <i class="fas fa-store"></i> Shop Information
+            </div>
+            <div class="grid">
+                <div class="form-group full">
+                    <label>Official Shop Name</label>
+                    <input type="text" id="shopName" placeholder="e.g. Heritage Woodworks" required>
+                </div>
+                <div class="form-group">
+                    <label>Proprietor / Owner Name</label>
+                    <input type="text" id="ownerName" placeholder="Full Legal Name" required>
+                </div>
+                <div class="form-group">
+                    <label>Business Category</label>
+                    <select id="category" required>
+                        <option value="Custom Woodwork">Custom Woodwork</option>
+                        <option value="Modern Upholstery">Modern Upholstery</option>
+                        <option value="Artisan Metal/Wood">Artisan Metal/Wood</option>
+                        <option value="Sustainable Bamboo">Sustainable Bamboo</option>
+                    </select>
+                </div>
+                <div class="form-group full">
+                    <label>Business Address</label>
+                    <input type="text" id="address" placeholder="Unit, Street, Barangay, City, Province" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact Number</label>
+                    <input type="tel" id="contact" placeholder="09XX XXX XXXX" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" placeholder="business@example.com" required>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <i class="fas fa-file-contract"></i> Legal Requirements
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">Please upload valid digital copies of your permits. (PDF, JPG, or PNG)</p>
+            
+            <div class="grid">
+                <div class="form-group">
+                    <label>DTI / SEC Registration</label>
+                    <div class="file-upload-wrapper">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload DTI/SEC Permit</p>
+                        <input type="file" id="dtiFile" accept="image/*,.pdf" required onchange="showFileName(this)">
+                        <div class="file-name" id="dtiName"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Mayor's / Business Permit</label>
+                    <div class="file-upload-wrapper">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload Business Permit</p>
+                        <input type="file" id="permitFile" accept="image/*,.pdf" required onchange="showFileName(this)">
+                        <div class="file-name" id="permitName"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>BIR 2303 Certificate</label>
+                    <div class="file-upload-wrapper">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload BIR Certificate</p>
+                        <input type="file" id="birFile" accept="image/*,.pdf" required onchange="showFileName(this)">
+                        <div class="file-name" id="birName"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Owner's Valid ID</label>
+                    <div class="file-upload-wrapper">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload ID (Passport/UMID/etc)</p>
+                        <input type="file" id="idFile" accept="image/*,.pdf" required onchange="showFileName(this)">
+                        <div class="file-name" id="idName"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                Submit Application <i class="fas fa-paper-plane"></i>
+            </button>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="front_page.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="success-overlay" id="successOverlay">
+        <i class="fas fa-check-circle"></i>
+        <h2>Application Received</h2>
+        <p>Your shop application and legal documents have been securely uploaded. Our administration team will review your permits within 2-3 business days.</p>
+        <p>You will receive an email notification once your digital shop is activated.</p>
+        <a href="front_page.html" class="btn-submit" style="text-decoration: none;">
+            Return to Homepage
+        </a>
+    </div>
+
+    <script>
+        function showFileName(input) {
+            const nameDiv = input.parentElement.querySelector('.file-name');
+            if (input.files.length > 0) {
+                nameDiv.textContent = input.files[0].name;
+                nameDiv.style.display = 'block';
+                input.parentElement.style.borderColor = 'var(--success)';
+            }
+        }
+
+        function sendUserNotification(username, message, type = "status") {
+            let notifs = JSON.parse(localStorage.getItem('user_notifications_' + username) || '[]');
+            notifs.push({
+                id: Date.now(),
+                message: message,
+                type: type,
+                date: new Date().toISOString(),
+                read: false
+            });
+            localStorage.setItem('user_notifications_' + username, JSON.stringify(notifs));
+        }
+
+        function handleRegistration(e) {
+            e.preventDefault();
+            
+            const shopName = document.getElementById('shopName').value;
+            const ownerName = document.getElementById('ownerName').value;
+            const category = document.getElementById('category').value;
+            const address = document.getElementById('address').value;
+            const contact = document.getElementById('contact').value;
+            const email = document.getElementById('email').value;
+            
+            const permits = JSON.parse(localStorage.getItem('shop_permits') || '[]');
+            
+            const currentUser = sessionStorage.getItem('username') || localStorage.getItem('currentUserName') || ownerName;
+            
+            const newPermit = {
+                id: Date.now(),
+                shopName: shopName,
+                owner: ownerName,
+                category: category,
+                address: address,
+                contact: contact,
+                email: email,
+                username: currentUser,
+                docLink: "#", // Simulated link
+                docType: "Full Permit Package",
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                status: 'pending'
+            };
+
+            permits.push(newPermit);
+            localStorage.setItem('shop_permits', JSON.stringify(permits));
+            
+            // Send Notifications
+            // 1. Notify the User (Applicant)
+            sendUserNotification(currentUser, `Your shop application for "${shopName}" has been submitted successfully and is now under review.`, "status");
+            
+            // 2. Notify the Admin
+            sendUserNotification("Admin", `NEW APPLICATION: "${shopName}" by ${ownerName} has submitted registration documents for review.`, "status");
+            
+            // Show Success UI
+            document.getElementById('formContainer').style.display = 'none';
+            document.getElementById('successOverlay').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

@@ -613,6 +613,40 @@
       appendMsg('user', msg);
       input.value = '';
       document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+
+      // Trigger Chatbot Response
+      setTimeout(() => chatbotResponse(msg), 800);
+    }
+
+    function chatbotResponse(userMsg) {
+      const input = userMsg.toLowerCase();
+      const shopName = activeShopName || "our shop";
+      let reply = "";
+
+      if (input.includes("furniture") || input.includes("design") || input.includes("canvas")) {
+        reply = `You can canvas all our available designs in the 'Pre-made Templates' section of your dashboard, or use our 3D builder to start a fresh custom craft for ${shopName} to evaluate.`;
+      } else if (input.includes("material") || input.includes("wood") || input.includes("finish")) {
+        reply = `We specialize in premium local hardwoods like Mahogany, Acacia, and Narra. Each piece is treated for durability and finished to your preference (Matte, Gloss, or Natural Oil).`;
+      } else if (input.includes("price") || input.includes("cost") || input.includes("budget") || input.includes("how much")) {
+        reply = `Since this project is custom, the final price depends on your measurements and material choice. Our shop manager will review your submission and provide a formal quote shortly.`;
+      } else if (input.includes("hello") || input.includes("hi") || input.includes("hey")) {
+        reply = `Hello! How can the ${shopName} team assist you with your furniture needs today?`;
+      } else if (input.includes("time") || input.includes("duration") || input.includes("long")) {
+        reply = `Typical production takes 2-4 weeks depending on complexity. You can track the progress bar on the right as we work on your piece!`;
+      } else if (input.includes("payment" ) || input.includes("downpayment") || input.includes("deposit")) {
+        reply = `Once we accept your order, a 'Pay Downpayment' button will appear on this screen. You can pay via GCash, Maya, or Bank Transfer using our universal QR code.`;
+      } else {
+        reply = `That's a great question. I've logged this for our shop manager to review. They will get back to you here in the chat as soon as possible.`;
+      }
+
+      const finalReply = reply + " Is there anything else you'd like to know about our process?";
+      
+      const messages = JSON.parse(localStorage.getItem(getDashChatKey()) || '[]');
+      messages.push({ id: Date.now(), sender: 'shop', customerName: getCustName(), text: finalReply, timestamp: new Date().toISOString() });
+      localStorage.setItem(getDashChatKey(), JSON.stringify(messages));
+      
+      appendMsg('shop', finalReply);
+      document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
     }
 
     // --- ORDER & PROGRESS SYNC ---
@@ -722,15 +756,20 @@
       if (commissions.find(c => c.exportId === exportDraft?.exportId)) { alert("You have already placed this precise order!"); return; }
       let numericPrice = parseFloat((exportDraft?.estimatedPriceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
 
+      const desc = `Design: ${exportDraft?.projectName || 'Custom'} (${exportDraft?.furnitureType || 'Item'})`;
       commissions.push({
         id: Date.now(), 
         customerName: getCustName(),
         exportId: exportDraft?.exportId,
         previewImage: exportDraft?.previewDataUrl,
-        description: `Design: ${exportDraft?.projectName || 'Custom'} (${exportDraft?.furnitureType || 'Item'})`,
+        description: desc,
         duration: 14, price: numericPrice, status: 'pending', submittedAt: new Date().toISOString()
       });
       localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
+      
+      // Notify User
+      sendUserNotification(getCustName(), `Your order for "${desc}" has been submitted for shop review.`, "status");
+      
       loadOrderStatus(); 
     }
 
@@ -760,8 +799,24 @@
         commissions[index].paidDpAmount = pIdp;
         
         localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
+        
+        // Notify User
+        sendUserNotification(getCustName(), `Payment proof submitted for "${commissions[index].description}". Status: Verifying.`, "payment");
+        
         closePaymentModal(); loadOrderStatus(); 
       }
+    }
+
+    function sendUserNotification(username, message, type = "status") {
+        let notifs = JSON.parse(localStorage.getItem('user_notifications_' + username) || '[]');
+        notifs.push({
+            id: Date.now(),
+            message: message,
+            type: type, // status, progress, payment, message
+            date: new Date().toISOString(),
+            read: false
+        });
+        localStorage.setItem('user_notifications_' + username, JSON.stringify(notifs));
     }
 
     let currentRating = 5;
@@ -810,7 +865,7 @@
         }
         
         closeRatingModal();
-        alert("Thank you for your feedback! Your review has been submitted securely.");
+        sendUserNotification(getCustName(), `Review Submitted: Thank you for rating "${exportDraft?.projectName || 'your project'}"!`, "status");
         loadOrderStatus();
     }
 

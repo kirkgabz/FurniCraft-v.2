@@ -87,8 +87,11 @@
     <a href="front_page.html" class="btn">Return to Homepage</a>
   </div>
   <script>
-    // Redundancy clearing of sessions just in case
+    // Completely clear session and local user identity
     sessionStorage.clear();
+    localStorage.removeItem('currentUserName');
+    localStorage.removeItem('currentUserEmail');
+    // We intentionally leave user_notifications intact in localStorage so history is preserved
   </script>
 </body>
 </html>

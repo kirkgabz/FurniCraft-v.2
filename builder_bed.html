@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FurniCraft CAD - 3D Template Builder (Bed)</title>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #1e1e1e;
+      --bg-panel: #252526;
+      --bg-header: #333333;
+      --accent: #8e44ad;
+      --accent2: #6c3483;
+      --select-blue: #007acc;
+      --text-main: #e0e0e0;
+      --text-dim: #999;
+      --border: #3e3e42;
+      --gold: #f1c40f;
+      --rec-bg: #2a1a35;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 45px;
+      background-color: var(--bg-header);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      border-bottom: 1px solid var(--border);
+      justify-content: space-between;
+    }
+
+    .brand {
+      font-weight: 600;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-actions { display: flex; gap: 10px; }
+
+    .btn-header {
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+
+    .btn-back { background: #444; color: white; }
+    .btn-back:hover { background: #555; }
+    .btn-publish { background: #10b981; color: white; }
+    .btn-publish:hover { background: #059669; }
+
+    .workspace { display: flex; flex: 1; height: calc(100vh - 45px); }
+
+    .panel-left {
+      width: 280px;
+      background-color: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #e0e0e0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #2a2a2e 0%, #252526 100%);
+    }
+
+    .scene-list { flex: 1; overflow-y: auto; padding: 8px; }
+
+    .scene-item {
+      padding: 13px 12px;
+      margin-bottom: 4px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      transition: 0.15s;
+    }
+
+    .scene-item:hover { background-color: #333; }
+    .scene-item.active { background-color: #37373d; border-left: 3px solid var(--accent); padding-left: 10px; }
+
+    .btn-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
+    .btn-delete:hover { color: #c0392b; background: rgba(192, 57, 43, 0.1); }
+
+    .btn-add {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: 0.2s;
+    }
+
+    .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); }
+    #canvas-container { width: 100%; height: 100%; outline: none; }
+
+    .viewport-controls {
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      padding: 5px;
+      border-radius: 20px;
+      border: 1px solid #555;
+      display: flex;
+      gap: 5px;
+      z-index: 10;
+    }
+
+    .vp-btn {
+      background: transparent;
+      border: none;
+      color: #ddd;
+      padding: 8px 15px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .vp-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+
+    .score-card {
+      position: absolute;
+      top: 90px;
+      right: 10px;
+      background: rgba(18, 18, 20, 0.92);
+      backdrop-filter: blur(6px);
+      padding: 18px 20px;
+      border-radius: 10px;
+      width: 260px;
+      border: 1px solid #444;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+      z-index: 20;
+    }
+    .score-card.minimized #design-analysis-content { display: none; }
+    .score-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #e8e8e8;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .score-metric-label { font-size: 0.85rem; color: #ccc; margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .score-bar-bg { width: 100%; height: 7px; background: #333; margin-bottom: 14px; border-radius: 4px; overflow: hidden; }
+    .score-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease; }
+    #rec-status { margin-top: 6px; font-size: 0.82rem; color: #aaa; border-top: 1px solid #333; padding-top: 8px; }
+
+    .panel-right {
+      width: 580px;
+      background-color: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+    }
+
+    .prop-scroll { flex: 1; overflow-y: auto; }
+    .prop-group { padding: 20px 18px; border-bottom: 1px solid var(--border); }
+
+    .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .section-icon { width: 26px; height: 26px; border-radius: 6px; background: rgba(142, 68, 173, 0.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.78rem; }
+    .prop-label { font-size: 0.78rem; font-weight: 800; color: #d0d0d0; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    input[type="text"], select, textarea {
+      width: 100%;
+      background: #3c3c3c;
+      border: 1px solid var(--border);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-family: inherit;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+    textarea { resize: vertical; min-height: 60px; }
+
+    .badge-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .badge-opt {
+      padding: 8px 4px; background: #333; border: 1px solid #444; border-radius: 4px;
+      font-size: 0.75rem; font-weight: 600; text-align: center; cursor: pointer; color: #888;
+      transition: 0.2s; text-transform: uppercase;
+    }
+    .badge-opt.active { background: rgba(142, 68, 173, 0.15); border-color: var(--accent); color: white; }
+
+    .mat-grid-large { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+    .mat-card-lg { background: #333; border: 1px solid var(--border); border-radius: 6px; padding: 12px 8px; text-align: center; cursor: pointer; transition: 0.2s; }
+    .mat-card-lg:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #5a2a7a; }
+    .mat-card-icon { font-size: 1.8rem; margin-bottom: 4px; }
+    .mat-card-name { font-size: 0.85rem; color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .layer-item { background: #2b2b2b; border-radius: 6px; margin-bottom: 10px; border: 1px solid #333; transition: 0.2s; }
+    .layer-item.active-layer { border: 1px solid var(--select-blue); }
+    .layer-header { padding: 12px; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #333; border-radius: 6px 6px 0 0; }
+    .layer-content { display: none; padding: 15px; background: #222; border-radius: 0 0 6px 6px; }
+    .layer-item.open .layer-content { display: block; }
+
+    .part-control-row { margin-bottom: 14px; }
+    .part-control-label { font-size: 0.72rem; font-weight: 700; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .clickable-design-val { font-size: 0.95rem; color: #ccc; padding: 9px 12px; background: #111; border-radius: 4px; border: 1px solid #444; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
+    .clickable-design-val:hover { border-color: var(--accent); color: white; }
+    .color-preview { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #777; }
+
+    .dim-row { display: flex; gap: 6px; }
+    .dim-group { flex: 1; }
+    .dim-input { width: 100%; background: #111; border: 1px solid #444; color: var(--accent); padding: 8px; text-align: center; border-radius: 3px; font-size: 0.9rem; outline: none; }
+    .dim-label { font-size: 0.75rem; color: #666; text-align: center; margin-top: 3px; }
+
+    .footer-bar { padding: 18px 20px; background: #202020; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .total-price { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .design-modal { background: #252526; width: 600px; max-height: 80vh; border-radius: 8px; padding: 20px; position: relative; display: flex; flex-direction: column; }
+    .modal-scroll { flex: 1; overflow-y: auto; }
+    .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+    .design-card { background: #333; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer; border: 1px solid #444; transition: 0.2s; }
+    .design-card:hover { border-color: var(--accent); background: #3e3e42; }
+    .design-card.active { border-color: var(--accent); background: rgba(142,68,173,0.1); }
+    .design-icon { font-size: 1.5rem; margin-bottom: 5px; color: #aaa; }
+    .design-name { font-size: 0.75rem; color: #ccc; }
+
+    .feature-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .toggle-btn { padding: 8px 12px; font-size: 0.85rem; background: #333; border: 1px solid #444; border-radius: 4px; cursor: pointer; color: #ccc; transition: 0.2s; text-align: left; display: flex; align-items: center; justify-content: space-between; }
+    .toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .toggle-btn:hover:not(.active) { background: #3e3e42; }
+
+    .range-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .range-row label { width: 50px; font-size: 0.85rem; color: #888; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); }
+    .val-display { width: 40px; text-align: right; font-size: 0.9rem; font-weight: bold; color: var(--accent); }
+
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">
+      <img src="images/FurniCraft Logo without name.png" alt="Logo" style="height: 1.3em;">
+      FurniCraft Studio - 3D Template Builder (Bed)
+    </div>
+    <div class="header-actions">
+      <button class="btn-header btn-back" onclick="window.location.href='shop_studio.html'">
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
+      <button class="btn-header btn-publish" onclick="publishTemplate()">
+        <i class="fas fa-cloud-upload-alt"></i> Upload to Templates
+      </button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="panel-left">
+      <div class="panel-header"><span><i class="fas fa-folder-open"></i> Design Projects</span></div>
+      <div class="scene-list" id="scene-list"></div>
+      <button class="btn-add" onclick="addNewProject()"><i class="fas fa-plus"></i> Add New Furniture Design</button>
+    </aside>
+
+    <main class="viewport">
+      <div class="viewport-controls">
+        <button class="vp-btn" id="btn-rotate" onclick="toggleRotation()"><i class="fas fa-pause"></i> Stop Rotate</button>
+        <button class="vp-btn" id="btn-dims" onclick="toggleDimensions()"><i class="fas fa-ruler-combined"></i> Hide Ruler</button>
+        <button class="vp-btn" onclick="resetView()"><i class="fas fa-sync"></i> Full View</button>
+      </div>
+
+      <div id="canvas-container"></div>
+
+      <div class="score-card" id="design-analysis-card">
+        <div class="score-title" onclick="toggleDesignAnalysis()">
+          <span><i class="fas fa-chart-bar"></i> Design Analysis</span>
+          <i class="fas fa-chevron-down" id="da-toggle-icon"></i>
+        </div>
+        <div id="design-analysis-content">
+          <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
+          <div class="score-bar-bg"><div id="bar-dura" class="score-bar-fill"></div></div>
+          <div class="score-metric-label"><span>Quality</span><span id="score-qual-val">0%</span></div>
+          <div class="score-bar-bg"><div id="bar-qual" class="score-bar-fill"></div></div>
+          <div id="rec-status"></div>
+        </div>
+      </div>
+
+      <div id="design-modal-overlay" class="modal-overlay" onclick="closeDesignModal()">
+        <div class="design-modal" onclick="event.stopPropagation()">
+          <button style="position:absolute; top:10px; right:15px; background:none; border:none; color:#aaa; font-size:1.5rem; cursor:pointer;" onclick="closeDesignModal()">&times;</button>
+          <div id="design-modal-title" style="font-weight:600; margin-bottom:15px;">Select Design</div>
+          <div id="design-modal-scroll" class="modal-scroll"></div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="panel-right">
+      <div class="panel-header"><span><i class="fas fa-sliders-h"></i> Properties</span></div>
+      <div class="prop-scroll">
+        
+        <!-- Metadata -->
+        <div class="prop-group">
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-id-card"></i></div>
+            <label class="prop-label">Gallery Presentation</label>
+          </div>
+          <div class="part-control-row">
+            <div class="part-control-label">Template Name</div>
+            <input type="text" id="project-name-input" oninput="updateProjectName(this.value)">
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="part-control-row">
+              <div class="part-control-label">Target Style</div>
+              <select id="template-gender" onchange="updateTemplateMeta()">
+                <option value="neutral">Neutral</option>
+                <option value="boy">Boy / Masculine</option>
+                <option value="girl">Girl / Feminine</option>
+              </select>
+            </div>
+            <div class="part-control-row">
+              <div class="part-control-label">Status Badge</div>
+              <div class="badge-select-grid">
+                <div class="badge-opt opt-new active" onclick="setTmplBadge('new', this)">New</div>
+                <div class="badge-opt opt-featured" onclick="setTmplBadge('featured', this)">Top</div>
+                <div class="badge-opt opt-premium" onclick="setTmplBadge('premium', this)">Pro</div>
+              </div>
+            </div>
+          </div>
+          <div class="part-control-row">
+            <div class="part-control-label">Description</div>
+            <textarea id="template-desc" placeholder="Enter gallery description..."></textarea>
+          </div>
+        </div>
+
+        <div class="prop-group">
+          <div class="section-header"><div class="section-icon"><i class="fas fa-expand-arrows-alt"></i></div><label class="prop-label">Global Scale</label></div>
+          <div class="range-row"><label>W</label><input type="range" id="inp-scale-x" min="50" max="200" value="100" oninput="updateGlobalScale('x', this.value)"><span class="val-display" id="gs-x">100</span></div>
+          <div class="range-row"><label>H</label><input type="range" id="inp-scale-y" min="50" max="200" value="100" oninput="updateGlobalScale('y', this.value)"><span class="val-display" id="gs-y">100</span></div>
+          <div class="range-row"><label>D</label><input type="range" id="inp-scale-z" min="50" max="200" value="100" oninput="updateGlobalScale('z', this.value)"><span class="val-display" id="gs-z">100</span></div>
+        </div>
+
+        <div class="prop-group">
+          <div class="section-header"><div class="section-icon"><i class="fas fa-palette"></i></div><label class="prop-label">Material Library</label></div>
+          <div style="font-size:0.8rem; color:var(--select-blue); margin-bottom:10px;">Apply to selected layer:</div>
+          <div class="mat-grid-large" id="mat-grid"></div>
+        </div>
+
+        <div class="prop-group">
+          <div class="section-header"><div class="section-icon"><i class="fas fa-bed"></i></div><label class="prop-label">Bed Options</label></div>
+          <div class="part-control-row">
+             <div class="part-control-label">Size Preset</div>
+             <select id="bed-size" onchange="updateSize(this.value)">
+                <option value="single">Single (90x190)</option>
+                <option value="double">Double (137x190)</option>
+                <option value="queen" selected>Queen (152x203)</option>
+                <option value="king">King (193x203)</option>
+             </select>
+          </div>
+          <div class="feature-btn-grid">
+            <button id="toggle-headboard" class="toggle-btn active" onclick="toggleFeature('hasHeadboard', this)">Headboard <i class="fas fa-check"></i></button>
+            <button id="toggle-footboard" class="toggle-btn active" onclick="toggleFeature('hasFootboard', this)">Footboard <i class="fas fa-check"></i></button>
+          </div>
+        </div>
+
+        <div class="prop-group">
+          <div class="section-header"><div class="section-icon"><i class="fas fa-layer-group"></i></div><label class="prop-label">Layers</label></div>
+          <div id="layers-container"></div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <span style="font-size:0.85rem; color:#888;">Suggested Gallery Price</span>
+        <div class="total-price" id="total-price">₱0.00</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       DATABASES
+       ========================================================================== */
+    const materialDB = {
+      narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2, rec: true },
+      ipil: { name: 'Ipil', icon: '🌳', hex: '#6B4226', dura: 98, qual: 96, price: 4.8, rec: true },
+      dao: { name: 'Dao', icon: '🪵', hex: '#4B3621', dura: 92, qual: 97, price: 4.5, rec: true },
+      guijo: { name: 'Guijo', icon: '🌳', hex: '#7D4F38', dura: 88, qual: 85, price: 3.2, rec: true },
+      apitong: { name: 'Apitong', icon: '🌳', hex: '#5E3A24', dura: 85, qual: 82, price: 2.8, rec: true },
+      kamagong: { name: 'Kamagong', icon: '🪵', hex: '#2c1a0e', dura: 97, qual: 99, price: 5.5, rec: true },
+      molave: { name: 'Molave', icon: '🌳', hex: '#C1A17B', dura: 96, qual: 95, price: 4.6, rec: true },
+      mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true },
+      tanguile: { name: 'Tanguile', icon: '🌳', hex: '#9E6B4F', dura: 80, qual: 78, price: 2.4, rec: true },
+      yakal: { name: 'Yakal', icon: '🌳', hex: '#7a4f2e', dura: 88, qual: 86, price: 3.1, rec: true },
+      oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true },
+      pine: { name: 'Pine', icon: '🌲', hex: '#c8a96e', dura: 55, qual: 58, price: 1.4, rec: true },
+      rattan: { name: 'Rattan', icon: '🧺', hex: '#D2B48C', dura: 75, qual: 85, price: 1.8, rec: true },
+      rubber_wood: { name: 'Rubber Wood', icon: '🌳', hex: '#E3C1A1', dura: 70, qual: 72, price: 1.9 },
+      bamboo: { name: 'Bamboo', icon: '🎋', hex: '#6B8E23', dura: 82, qual: 80, price: 2.1 },
+      walnut: { name: 'Walnut', icon: '🪵', hex: '#4B3C2B', dura: 90, qual: 94, price: 4.5 },
+      teak: { name: 'Teak', icon: '🌳', hex: '#B8860B', dura: 94, qual: 95, price: 4.8 },
+      maple: { name: 'Maple', icon: '🌳', hex: '#EEDC82', dura: 88, qual: 90, price: 3.8 },
+      fabric_gray: { name: 'Gray Fabric', icon: '🧶', hex: '#7f8c8d', dura: 65, qual: 75, price: 1.5 },
+      leather_brown: { name: 'Brown Leather', icon: '👞', hex: '#5c4033', dura: 85, qual: 92, price: 4.8 },
+      marble_white: { name: 'Marble', icon: '🪨', hex: '#e8e8e8', dura: 90, qual: 99, price: 8.0 },
+      glass_clear: { name: 'Glass', icon: '🔲', hex: '#a8d8ea', dura: 70, qual: 95, price: 5.0 },
+      brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, hex: '#B8860B', price: 6.8 },
+      brushed_steel: { name: 'Brushed Steel', icon: '🔨', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5 }
+    };
+
+    const shapeDB = {
+      headboard: [
+        { id: 'flat_panel', name: 'Flat Panel', icon: 'square-full', cat: 'Modern' },
+        { id: 'tufted_panel', name: 'Tufted Luxe', icon: 'th', cat: 'Modern', faIcon: true },
+        { id: 'floating_head', name: 'Floating Panel', icon: 'minus', cat: 'Modern' },
+        { id: 'baroque', name: 'Baroque Crown', icon: 'crown', cat: 'Classic', faIcon: true },
+        { id: 'carved_panel', name: 'Carved Panel', icon: 'signature', cat: 'Classic', faIcon: true },
+        { id: 'victorian_arch', name: 'Victorian Arch', icon: 'archway', cat: 'Classic', faIcon: true },
+        { id: 'gothic_arch', name: 'Gothic Point', icon: 'place-of-worship', cat: 'Classic', faIcon: true },
+        { id: 'sleigh_head', name: 'Sleigh Roll', icon: 'wave-square', cat: 'Classic', faIcon: true },
+        { id: 'spindle_head', name: 'Colonial Spindle', icon: 'bars', cat: 'Classic', faIcon: true },
+        { id: 'scroll_head', name: 'Scroll Carver', icon: 'scroll', cat: 'Classic', faIcon: true },
+        { id: 'bookcase_head', name: 'Bookcase Head', icon: 'book', cat: 'Modern', faIcon: true },
+        { id: 'canopy_posts', name: 'Canopy Posts', icon: 'columns', cat: 'Four-Poster', faIcon: true }
+      ],
+      footboard: [
+        { id: 'flat_foot', name: 'Flat Footer', icon: 'square-full', cat: 'Modern' },
+        { id: 'no_footboard', name: 'No Footboard', icon: 'times', cat: 'Modern' },
+        { id: 'spindle_foot', name: 'Spindle Rail', icon: 'bars', cat: 'Classic', faIcon: true },
+        { id: 'scroll_foot', name: 'Scroll Carver', icon: 'scroll', cat: 'Classic', faIcon: true },
+        { id: 'sleigh_foot', name: 'Sleigh Curve', icon: 'wave-square', cat: 'Classic', faIcon: true },
+        { id: 'bench_foot', name: 'Padded Bench', icon: 'couch', cat: 'Modern', faIcon: true },
+        { id: 'matching_low', name: 'Matching Low', icon: 'square', cat: 'Classic' }
+      ],
+      frame: [
+        { id: 'classic_rail', name: 'Classic Rails', icon: 'square-full', cat: 'Standard' },
+        { id: 'platform_frame', name: 'Solid Platform', icon: 'square', cat: 'Modern' },
+        { id: 'floating_frame', name: 'Shadow Frame', icon: 'minus', cat: 'Modern' },
+        { id: 'storage_frame', name: 'Drawer Base', icon: 'box', cat: 'Functional', faIcon: true },
+        { id: 'carved_rail', name: 'Carved Molding', icon: 'signature', cat: 'Classic', faIcon: true }
+      ],
+      platform: [
+        { id: 'solid_platform', name: 'Solid Deck', icon: 'square-full', cat: 'Standard' },
+        { id: 'wood_slats', name: 'Sturdy Slats', icon: 'bars', cat: 'Classic', faIcon: true },
+        { id: 'floating_platform', name: 'Floating Illusion', icon: 'minus', cat: 'Modern' },
+        { id: 'box_spring', name: 'Box Spring', icon: 'th', cat: 'Standard', faIcon: true },
+        { id: 'upholstered_platform', name: 'Padded Edge', icon: 'couch', cat: 'Upholstered', faIcon: true }
+      ],
+      legs: [
+        { id: 'turned_leg', name: 'Turned Post', icon: 'circle', cat: 'Classic' },
+        { id: 'cabriole', name: 'Victorian Curve', icon: 'signature', cat: 'Classic', faIcon: true },
+        { id: 'bun_foot', name: 'Bun Foot', icon: 'dot-circle', cat: 'Classic', faIcon: true },
+        { id: 'tapered_square', name: 'Mid-Century', icon: 'caret-down', cat: 'Modern', faIcon: true },
+        { id: 'block_foot', name: 'Modern Block', icon: 'square', cat: 'Modern' },
+        { id: 'hairpin', name: 'Metal Hairpin', icon: 'paperclip', cat: 'Modern', faIcon: true },
+        { id: 'no_legs', name: 'Floating/Low', icon: 'times', cat: 'Modern' }
+      ]
+    };
+
+    const carvingDB = {
+      none: { name: 'Smooth Finish', icon: 'circle' },
+      floral: { name: 'Floral Carving', icon: 'leaf' },
+      weave: { name: 'Woven Cane', icon: 'th' },
+      padded: { name: 'Standard Fabric', icon: 'couch', faIcon: true },
+      leather_tufted: { name: 'Diamond Leather', icon: 'gem', faIcon: true },
+      linear_groove: { name: 'Grooved', icon: 'align-justify' },
+      lattice: { name: 'Lattice', icon: 'th' },
+      geometric: { name: 'Geo', icon: 'braille' },
+      rustic: { name: 'Rustic', icon: 'tree' }
+    };
+
+    const assetsDB = { bed: { name: 'Custom Bed', parts: ['Headboard', 'Footboard', 'Frame', 'Platform', 'Legs'] } };
+
+    /* ==========================================================================
+       STATE & APP LOGIC
+       ========================================================================== */
+    let appState = { items: [], activeItemId: 0, activeLayer: 'Frame', tmplBadge: 'new', tmplGender: 'neutral' };
+    let isRotating = true, showDimensions = true, textureCache = {}, modalState = { partName: null, type: null };
+
+    window.onload = function () {
+      initApp();
+    };
+
+    function initApp() {
+      const saved = localStorage.getItem('builder_bed_drafts');
+      if (saved) appState.items = JSON.parse(saved);
+      if (appState.items.length === 0) {
+        appState.items.push(createNewDesignData('Elite Queen Bed'));
+      }
+      appState.activeItemId = appState.items[0].id;
+      renderUI(); init3D(); build3DScene();
+    }
+
+    function createNewDesignData(name) {
+      return {
+        id: Date.now(), name: name, type: 'bed',
+        description: 'A professional workshop-exclusive template.', tmplBadge: 'new', tmplGender: 'neutral',
+        selections: { Headboard: '#8B4513', Footboard: '#8B4513', Frame: '#8B4513', Platform: '#8B4513', Legs: '#8B4513' },
+        shapes: { Headboard: 'flat_panel', Footboard: 'flat_foot', Frame: 'classic_rail', Platform: 'solid_platform', Legs: 'turned_leg' },
+        dims: { 
+          Headboard: { w: 160, h: 120, d: 8 }, 
+          Footboard: { w: 160, h: 60, d: 8 }, 
+          Frame: { w: 160, h: 25, d: 210 }, 
+          Platform: { w: 156, h: 5, d: 200 }, 
+          Legs: { w: 8, h: 20, d: 8 } 
+        },
+        carvings: { Headboard: 'none', Footboard: 'none', Frame: 'none', Platform: 'none', Legs: 'none' },
+        globalScale: { x: 1, y: 1, z: 1 },
+        hasHeadboard: true, hasFootboard: true
+      };
+    }
+
+    function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
+
+    function renderUI() {
+      renderSceneList(); renderProperties(); calculateScore(); updatePrice();
+    }
+
+    function renderSceneList() {
+      const list = document.getElementById('scene-list'); list.innerHTML = '';
+      appState.items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
+        div.onclick = () => { appState.activeItemId = item.id; renderUI(); build3DScene(); };
+        div.innerHTML = `<span><i class="fas fa-bed"></i> ${item.name}</span><button class="btn-delete" onclick="event.stopPropagation(); deleteProject(${item.id})"><i class="fas fa-trash-alt"></i></button>`;
+        list.appendChild(div);
+      });
+    }
+
+    function renderProperties() {
+      const active = getActiveItem(); if (!active) return;
+      document.getElementById('project-name-input').value = active.name;
+      document.getElementById('template-desc').value = active.description || '';
+
+      const matGrid = document.getElementById('mat-grid'); matGrid.innerHTML = '';
+      Object.keys(materialDB).forEach(k => {
+        const m = materialDB[k];
+        const card = document.createElement('div'); card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
+        card.onclick = () => { active.selections[appState.activeLayer] = m.hex; renderUI(); build3DScene(); };
+        card.innerHTML = `<div class="mat-card-icon">${m.icon}</div><div class="mat-card-name">${m.name}</div>`;
+        matGrid.appendChild(card);
+      });
+
+      const container = document.getElementById('layers-container'); container.innerHTML = '';
+      assetsDB.bed.parts.forEach(part => {
+        const isActive = appState.activeLayer === part;
+        const hex = active.selections[part] || '#8B4513';
+        const shapeId = active.shapes[part] || 'flat_panel';
+        const shapeObj = (shapeDB[part.toLowerCase()] || []).find(s => s.id === shapeId);
+        const shapeName = shapeObj ? shapeObj.name : 'Standard';
+        const carvId = active.carvings[part] || 'none';
+        const carvName = carvingDB[carvId] ? carvingDB[carvId].name : 'Smooth';
+        
+        const div = document.createElement('div');
+        div.className = 'layer-item' + (isActive ? ' active-layer open' : '');
+        div.onclick = (e) => { if (!e.target.closest('.clickable-design-val') && !e.target.closest('input')) { appState.activeLayer = part; renderProperties(); } };
+        
+        div.innerHTML = `
+          <div class="layer-header"><span><i class="fas fa-layer-group"></i> ${part}</span><div class="color-preview" style="background:${hex}"></div></div>
+          <div class="layer-content">
+            <div class="part-control-row">
+              <div class="part-control-label">Style / Shape</div>
+              <div class="clickable-design-val" onclick="openDesignModal('${part}', 'shape')"><span>${shapeName}</span> <i class="fas fa-edit"></i></div>
+            </div>
+            <div class="part-control-row">
+              <div class="part-control-label">Texture / Carving</div>
+              <div class="clickable-design-val" onclick="openDesignModal('${part}', 'carving')"><span>${carvName}</span> <i class="fas fa-edit"></i></div>
+            </div>
+            <div class="part-control-row">
+              <div class="part-control-label">Dimensions (cm)</div>
+              <div class="dim-row">
+                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].w}" oninput="updateDim('${part}','w',this.value)"><div class="dim-label">W</div></div>
+                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].h}" oninput="updateDim('${part}','h',this.value)"><div class="dim-label">H</div></div>
+                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].d}" oninput="updateDim('${part}','d',this.value)"><div class="dim-label">D</div></div>
+              </div>
+            </div>
+          </div>`;
+        container.appendChild(div);
+      });
+
+      ['hasHeadboard', 'hasFootboard'].forEach(f => {
+         const btn = document.getElementById('toggle-' + f.replace('has','').toLowerCase());
+         if(btn) btn.classList.toggle('active', !!active[f]);
+      });
+    }
+
+    function updateDim(p, a, v) { getActiveItem().dims[p][a] = parseInt(v) || 1; build3DScene(); calculateScore(); updatePrice(); }
+    function updateGlobalScale(a, v) { getActiveItem().globalScale[a] = v / 100; document.getElementById('gs-' + a).innerText = v; build3DScene(); calculateScore(); updatePrice(); }
+    function updateProjectName(v) { getActiveItem().name = v; renderSceneList(); }
+    function setTmplBadge(b, el) { appState.tmplBadge = b; document.querySelectorAll('.badge-opt').forEach(x => x.classList.remove('active')); el.classList.add('active'); }
+    function updateTemplateMeta() { appState.tmplGender = document.getElementById('template-gender').value; }
+    function toggleFeature(f) { const active = getActiveItem(); active[f] = !active[f]; renderProperties(); build3DScene(); calculateScore(); updatePrice(); }
+    
+    function updateSize(v) {
+      const active = getActiveItem();
+      if(v === 'single') { active.dims.Frame = {w:90, h:25, d:190}; }
+      else if(v === 'double') { active.dims.Frame = {w:137, h:25, d:190}; }
+      else if(v === 'queen') { active.dims.Frame = {w:152, h:25, d:203}; }
+      else if(v === 'king') { active.dims.Frame = {w:193, h:25, d:203}; }
+      active.dims.Platform = {w: active.dims.Frame.w-4, h:5, d: active.dims.Frame.d-5};
+      active.dims.Headboard.w = active.dims.Frame.w;
+      active.dims.Footboard.w = active.dims.Frame.w;
+      renderProperties(); build3DScene(); calculateScore(); updatePrice();
+    }
+
+    function updatePrice() {
+      const active = getActiveItem(); if (!active) return;
+      let cost = 15000;
+      Object.keys(active.dims).forEach(p => {
+        const d = active.dims[p];
+        let vol = (d.w * d.h * d.d) / 2500;
+        const hex = active.selections[p];
+        const m = Object.values(materialDB).find(m => m.hex === hex) || materialDB.mahogany;
+        cost += vol * m.price;
+      });
+      const gs = active.globalScale || { x: 1, y: 1, z: 1 };
+      cost *= (gs.x * gs.y * gs.z || 1);
+      document.getElementById('total-price').innerText = '₱' + Math.round(cost).toLocaleString();
+    }
+
+    function calculateScore() {
+      const active = getActiveItem(); if (!active) return;
+      let d = 0, q = 0, count = 0;
+      const parts = assetsDB.bed.parts;
+      parts.forEach(p => {
+        const h = active.selections[p];
+        const m = Object.values(materialDB).find(m => m.hex === h) || { dura: 70, qual: 70 };
+        d += m.dura; q += m.qual; count++;
+      });
+      const ad = Math.round(d / count), aq = Math.round(q / count);
+      document.getElementById('score-dura-val').innerText = ad + '%'; document.getElementById('bar-dura').style.width = ad + '%';
+      document.getElementById('score-qual-val').innerText = aq + '%'; document.getElementById('bar-qual').style.width = aq + '%';
+      document.getElementById('rec-status').innerHTML = ad > 88 ? '<i class="fas fa-crown"></i> Elite Build' : '<i class="fas fa-check-circle"></i> Professional Standard';
+    }
+
+    function deleteProject(id) { if (appState.items.length > 1) { appState.items = appState.items.filter(i => i.id !== id); appState.activeItemId = appState.items[0].id; renderUI(); build3DScene(); } }
+
+    /* ==========================================================================
+       THREE.JS ENGINE
+       ========================================================================== */
+    let scene, camera, renderer, controls, currentGroup;
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene(); 
+      scene.background = new THREE.Color(0x1e1e1e);
+      
+      const grid = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+      grid.position.y = -0.01;
+      scene.add(grid);
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(15, 12, 18);
+      
+      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+      
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true; 
+      controls.dampingFactor = 0.05;
+      controls.autoRotate = isRotating;
+      
+      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+      const dl = new THREE.DirectionalLight(0xffffff, 1.0); 
+      dl.position.set(5, 10, 7); 
+      dl.castShadow = true; 
+      dl.shadow.mapSize.width = 2048;
+      dl.shadow.mapSize.height = 2048;
+      scene.add(dl);
+      
+      animate();
+    }
+    function animate() { requestAnimationFrame(animate); if(controls) controls.update(); if(renderer && scene && camera) renderer.render(scene, camera); }
+
+    /* ==========================================================================
+       TEXTURE GENERATOR (from bed.html)
+       ========================================================================== */
+    function createPatternTexture(style) {
+      if (textureCache[style]) return textureCache[style];
+      const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, 512, 512);
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 15;
+      if (style === 'linear_groove') { ctx.strokeStyle = '#2d2d2d'; ctx.lineWidth = 10; for (let i = 0; i <= 512; i += 64) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke(); } }
+      else if (style === 'lattice') { ctx.beginPath(); for (let i = -512; i < 1024; i += 64) { ctx.moveTo(i, 0); ctx.lineTo(i + 512, 512); ctx.moveTo(i, 512); ctx.lineTo(i + 512, 0); } ctx.stroke(); }
+      else if (style === 'leather_tufted') { for (let x = 25; x < 512; x += 100)for (let y = 25; y < 512; y += 100) { ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2); ctx.fill(); } }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+      textureCache[style] = texture; return texture;
+    }
+
+    /* ==========================================================================
+       MAIN 3D SCENE BUILD
+       ========================================================================== */
+    function build3DScene() {
+      if (!scene) return; if (currentGroup) scene.remove(currentGroup);
+      currentGroup = new THREE.Group();
+      const active = getActiveItem(); if (!active) return;
+      const SCALE = 50;
+
+      const getMat = (hex, carv) => {
+        const mat = new THREE.MeshStandardMaterial({ color: hex, roughness: 0.7, metalness: 0.1, side: THREE.DoubleSide });
+        if (carv && carv !== 'none') {
+           const tex = createPatternTexture(carv).clone();
+           tex.repeat.set(2, 2); tex.needsUpdate = true;
+           mat.bumpMap = tex; mat.bumpScale = 0.05;
+        }
+        if (hex.toLowerCase() === '#e8e8e8') { mat.roughness = 0.9; mat.metalness = 0; }
+        return mat;
+      };
+
+      const addMesh = (name, geo, hex, carv, x, y, z, rx=0, ry=0, rz=0) => {
+        const mesh = new THREE.Mesh(geo, getMat(hex, carv)); mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz);
+        mesh.name = name; mesh.castShadow = true; mesh.receiveShadow = true; currentGroup.add(mesh); return mesh;
+      };
+      const sg = (fn, fb) => { try { return fn(); } catch (e) { return fb; } };
+
+      const dH = { w: active.dims.Headboard.w / SCALE, h: active.dims.Headboard.h / SCALE, d: active.dims.Headboard.d / SCALE };
+      const dF = { w: active.dims.Footboard.w / SCALE, h: active.dims.Footboard.h / SCALE, d: active.dims.Footboard.d / SCALE };
+      const dR = { w: active.dims.Frame.w / SCALE, h: active.dims.Frame.h / SCALE, d: active.dims.Frame.d / SCALE };
+      const dP = { w: active.dims.Platform.w / SCALE, h: active.dims.Platform.h / SCALE, d: active.dims.Platform.d / SCALE };
+      const dL = { w: active.dims.Legs.w / SCALE, h: active.dims.Legs.h / SCALE, d: active.dims.Legs.d / SCALE };
+
+      const legH = dL.h, frameY = legH + dR.h / 2, platformY = legH + dR.h + dP.h / 2;
+      const headZ = -dR.d/2 - dH.d/2, footZ = dR.d/2 + dF.d/2;
+
+      // LEGS
+      if (active.shapes.Legs !== 'no_legs') {
+        const lx = dR.w/2 - dL.w/2, lz = dR.d/2 - dL.d/2;
+        const makeLegGeo = () => {
+          if (active.shapes.Legs === 'turned_leg') return new THREE.CylinderGeometry(dL.w/2, dL.w/3, dL.h, 16);
+          if (active.shapes.Legs === 'cabriole') return new THREE.CylinderGeometry(dL.w/2, dL.w/4, dL.h, 16); 
+          if (active.shapes.Legs === 'bun_foot') return new THREE.SphereGeometry(dL.w/2, 16, 12);
+          if (active.shapes.Legs === 'tapered_square') return new THREE.CylinderGeometry(dL.w/3, dL.w/2, dL.h, 4);
+          return new THREE.BoxGeometry(dL.w, dL.h, dL.d);
+        };
+        const lGeo = makeLegGeo();
+        [[-lx, -lz], [lx, -lz], [-lx, lz], [lx, lz]].forEach(pos => addMesh('Legs', lGeo, active.selections.Legs, active.carvings.Legs, pos[0], dL.h/2, pos[1]));
+      }
+
+      // FRAME
+      addMesh('Frame', new THREE.BoxGeometry(dR.w, dR.h, dR.d), active.selections.Frame, active.carvings.Frame, 0, frameY, 0);
+
+      // PLATFORM
+      addMesh('Platform', new THREE.BoxGeometry(dP.w, dP.h, dP.d), active.selections.Platform, active.carvings.Platform, 0, platformY, 0);
+
+      // MATTRESS (visual only)
+      addMesh('Mattress', new THREE.BoxGeometry(dP.w * 0.98, 0.4, dP.d * 0.98), '#e8e8e8', 'none', 0, platformY + dP.h/2 + 0.2, 0);
+
+      // HEADBOARD
+      if (active.hasHeadboard) {
+        buildHeadboard(active.shapes.Headboard, dH.w, dH.h, dH.d, legH + dR.h + dH.h/2, headZ, active.selections.Headboard, active.carvings.Headboard, addMesh, sg);
+      }
+
+      // FOOTBOARD
+      if (active.hasFootboard) {
+        buildFootboard(active.shapes.Footboard, dF.w, dF.h, dF.d, legH + dR.h + dF.h/2, footZ, active.selections.Footboard, active.carvings.Footboard, addMesh, sg);
+      }
+
+      currentGroup.scale.set(active.globalScale.x, active.globalScale.y, active.globalScale.z);
+      scene.add(currentGroup);
+    }
+
+    function buildHeadboard(shape, hW, hH, hT, hY, hZ, hex, carv, addMesh, sg) {
+      const bpW = Math.max(hW * 0.04, 0.06);
+
+      if (shape === 'flat_panel') {
+        const geo = sg(() => new THREE.BoxGeometry(hW, hH, hT), new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(hW + bpW, bpW * 0.6, hT + bpW), hex, 'none', 0, hY + hH / 2, hZ);
+
+      } else if (shape === 'baroque' || shape === 'carved_panel') {
+        const geo = sg(() => {
+          const s = new THREE.Shape();
+          const hw = hW / 2, hh = hH / 2;
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.45);
+          s.quadraticCurveTo(hw * 0.9, hh * 0.7, hw * 0.7, hh * 0.75);
+          s.quadraticCurveTo(hw * 0.5, hh * 1.05, hw * 0.35, hh * 0.88);
+          s.quadraticCurveTo(0, hh * 1.25, 0, hh * 1.1);
+          s.quadraticCurveTo(0, hh * 1.25, -hw * 0.35, hh * 0.88);
+          s.quadraticCurveTo(-hw * 0.5, hh * 1.05, -hw * 0.7, hh * 0.75);
+          s.quadraticCurveTo(-hw * 0.9, hh * 0.7, -hw, hh * 0.45);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT, bevelEnabled: true, bevelSize: 0.018, bevelThickness: 0.018, bevelSegments: 3 });
+          g.translate(0, 0, -hT / 2); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.5, hH * 1.1, hT), hex, carv, -hW / 2 + bpW * 0.75, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.5, hH * 1.1, hT), hex, carv, hW / 2 - bpW * 0.75, hY, hZ);
+
+      } else if (shape === 'victorian_arch') {
+        const geo = sg(() => {
+          const hw = hW / 2, hh = hH / 2;
+          const s = new THREE.Shape();
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.1);
+          s.quadraticCurveTo(hw, hh * 0.85, 0, hh);
+          s.quadraticCurveTo(-hw, hh * 0.85, -hw, hh * 0.1);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT, bevelEnabled: true, bevelSize: 0.016, bevelThickness: 0.016, bevelSegments: 2 });
+          g.translate(0, 0, -hT / 2); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.4, hH * 1.08, hT), hex, 'none', -hW / 2 + bpW * 0.7, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.4, hH * 1.08, hT), hex, 'none', hW / 2 - bpW * 0.7, hY, hZ);
+
+      } else if (shape === 'gothic_arch') {
+        const geo = sg(() => {
+          const hw = hW / 2, hh = hH / 2;
+          const s = new THREE.Shape();
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.2);
+          s.quadraticCurveTo(hw * 0.8, hh * 0.7, 0, hh * 1.08);
+          s.quadraticCurveTo(-hw * 0.8, hh * 0.7, -hw, hh * 0.2);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT, bevelEnabled: true, bevelSize: 0.014, bevelThickness: 0.014, bevelSegments: 2 });
+          g.translate(0, 0, -hT / 2); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        const tr = hW * 0.1;
+        addMesh('Headboard', new THREE.CylinderGeometry(tr, tr, hT * 1.05, 3), hex, 'none', 0, hY + hH * 0.65, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.5, hH * 1.05, hT), hex, 'none', -hW / 2 + bpW * 0.75, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.5, hH * 1.05, hT), hex, 'none', hW / 2 - bpW * 0.75, hY, hZ);
+
+      } else if (shape === 'sleigh_head') {
+        const geo = sg(() => {
+          const hw = hW / 2, hh = hH / 2;
+          const s = new THREE.Shape();
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.5);
+          s.bezierCurveTo(hw, hh * 0.9, hw * 0.2, hh * 1.15, 0, hh * 1.15);
+          s.bezierCurveTo(-hw * 0.2, hh * 1.15, -hw, hh * 0.9, -hw, hh * 0.5);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: hT, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 3 });
+          g.translate(0, 0, -hT / 2); return g;
+        }, new THREE.BoxGeometry(hW, hH, hT));
+        addMesh('Headboard', geo, hex, carv, 0, hY, hZ);
+        addMesh('Headboard', new THREE.TorusGeometry(hH * 0.12, hH * 0.038, 10, 20, Math.PI * 1.4), hex, 'none', -hW / 2 + hH * 0.12, hY + hH * 0.52, hZ, 0, Math.PI / 2, Math.PI * 0.8);
+        addMesh('Headboard', new THREE.TorusGeometry(hH * 0.12, hH * 0.038, 10, 20, Math.PI * 1.4), hex, 'none', hW / 2 - hH * 0.12, hY + hH * 0.52, hZ, 0, Math.PI / 2, -Math.PI * 0.8);
+
+      } else if (shape === 'spindle_head') {
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.8, hH * 1.05, hT), hex, carv, -hW / 2 + bpW * 0.9, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(bpW * 1.8, hH * 1.05, hT), hex, carv, hW / 2 - bpW * 0.9, hY, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(hW, bpW, hT), hex, 'none', 0, hY + hH / 2 - bpW / 2, hZ);
+        addMesh('Headboard', new THREE.BoxGeometry(hW, bpW, hT), hex, 'none', 0, hY - hH / 2 + bpW / 2, hZ);
+        const cnt = 9, sR = hW * 0.013, step = (hW - bpW * 3.6) / (cnt - 1);
+        for (let i = 0; i < cnt; i++) {
+          const sx = -hW / 2 + bpW * 1.8 + i * step;
+          addMesh('Headboard', new THREE.CylinderGeometry(sR, sR * 1.3, hH * 0.85, 10), hex, 'none', sx, hY, hZ);
+        }
+
+      } else if (shape === 'bookcase_head') {
+        addMesh('Headboard', new THREE.BoxGeometry(hW, hH, hT * 1.5), hex, carv, 0, hY, hZ);
+        const shelfH = hH * 0.28, shelfD = hH * 0.18;
+        for (let i = 0; i < 3; i++) {
+          const sy = hY - hH / 2 + shelfH * 0.5 + i * shelfH * 1.1;
+          addMesh('Headboard', new THREE.BoxGeometry(hW * 0.38, 0.015, shelfD), hex, 'none', -hW / 2 + hW * 0.2, sy, hZ - hT);
+          addMesh('Headboard', new THREE.BoxGeometry(hW * 0.38, 0.015, shelfD), hex, 'none', hW / 2 - hW * 0.2, sy, hZ - hT);
+        }
+
+      } else {
+        addMesh('Headboard', new THREE.BoxGeometry(hW, hH, hT), hex, carv, 0, hY, hZ);
+      }
+    }
+
+    function buildFootboard(shape, fW, fH, fT, fY, fZ, hex, carv, addMesh, sg) {
+      const bpW = Math.max(fW * 0.04, 0.06);
+
+      if (shape === 'matching_low' || shape === 'flat_foot') {
+        addMesh('Footboard', new THREE.BoxGeometry(fW, fH, fT), hex, carv, 0, fY, fZ);
+        addMesh('Footboard', new THREE.BoxGeometry(fW + bpW, bpW * 0.5, fT + bpW), hex, 'none', 0, fY + fH / 2, fZ);
+
+      } else if (shape === 'scroll_foot') {
+        addMesh('Footboard', new THREE.BoxGeometry(fW, fH, fT), hex, carv, 0, fY, fZ);
+        const sr = fH * 0.18, st = fH * 0.045;
+        addMesh('Footboard', new THREE.TorusGeometry(sr, st, 10, 20), hex, 'none', -fW / 2 - sr * 0.3, fY + fH * 0.3, fZ);
+        addMesh('Footboard', new THREE.TorusGeometry(sr, st, 10, 20), hex, 'none', fW / 2 + sr * 0.3, fY + fH * 0.3, fZ);
+
+      } else if (shape === 'sleigh_foot') {
+        const geo = sg(() => {
+          const hw = fW / 2, hh = fH / 2;
+          const s = new THREE.Shape();
+          s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.45);
+          s.bezierCurveTo(hw, hh * 0.85, hw * 0.18, hh * 1.12, 0, hh * 1.12);
+          s.bezierCurveTo(-hw * 0.18, hh * 1.12, -hw, hh * 0.85, -hw, hh * 0.45);
+          s.closePath();
+          const g = new THREE.ExtrudeGeometry(s, { depth: fT, bevelEnabled: true, bevelSize: 0.018, bevelThickness: 0.018, bevelSegments: 3 });
+          g.translate(0, 0, -fT / 2); return g;
+        }, new THREE.BoxGeometry(fW, fH, fT));
+        addMesh('Footboard', geo, hex, carv, 0, fY, fZ);
+
+      } else if (shape === 'spindle_foot') {
+        addMesh('Footboard', new THREE.BoxGeometry(bpW * 1.8, fH * 1.05, fT), hex, carv, -fW / 2 + bpW * 0.9, fY, fZ);
+        addMesh('Footboard', new THREE.BoxGeometry(bpW * 1.8, fH * 1.05, fT), hex, carv, fW / 2 - bpW * 0.9, fY, fZ);
+        addMesh('Footboard', new THREE.BoxGeometry(fW, bpW, fT), hex, 'none', 0, fY + fH / 2 - bpW / 2, fZ);
+        addMesh('Footboard', new THREE.BoxGeometry(fW, bpW, fT), hex, 'none', 0, fY - fH / 2 + bpW / 2, fZ);
+        const cnt = 7, sR = fW * 0.013, step = (fW - bpW * 3.6) / (cnt - 1);
+        for (let i = 0; i < cnt; i++) {
+          addMesh('Footboard', new THREE.CylinderGeometry(sR, sR * 1.25, fH * 0.82, 10), hex, 'none', -fW / 2 + bpW * 1.8 + i * step, fY, fZ);
+        }
+
+      } else if (shape === 'bench_foot') {
+        addMesh('Footboard', new THREE.BoxGeometry(fW * 0.82, fH * 0.7, 0.4), hex, carv, 0, fY, fZ - 0.1);
+        [[-fW * 0.32, fZ + 0.05], [fW * 0.32, fZ + 0.05]].forEach(([bx, bz]) => {
+          addMesh('Footboard', new THREE.BoxGeometry(0.06, fY - fH * 0.35, 0.06), hex, 'none', bx, fY - fH * 0.35 / 2 - fH * 0.15, bz);
+        });
+
+      } else {
+        addMesh('Footboard', new THREE.BoxGeometry(fW, fH, fT), hex, carv, 0, fY, fZ);
+      }
+    }
+
+    /* ==========================================================================
+       UTILITIES & PUBLISHING
+       ========================================================================== */
+    function toggleRotation() { isRotating = !isRotating; controls.autoRotate = isRotating; document.getElementById('btn-rotate').innerHTML = isRotating ? '<i class="fas fa-pause"></i> Stop Rotate' : '<i class="fas fa-play"></i> Start Rotate'; }
+    function toggleDimensions() { showDimensions = !showDimensions; build3DScene(); }
+    function resetView() { camera.position.set(15, 12, 18); controls.target.set(0, 1, 0); }
+    function toggleDesignAnalysis() { document.getElementById('design-analysis-card').classList.toggle('minimized'); }
+
+    function openDesignModal(p, t) {
+      modalState = { p, t }; document.getElementById('design-modal-overlay').classList.add('open');
+      const s = document.getElementById('design-modal-scroll'); s.innerHTML = '';
+      const title = document.getElementById('design-modal-title');
+      title.innerText = (t === 'shape' ? 'Select Style for ' : 'Select Texture for ') + p;
+      
+      let list = [];
+      if (t === 'shape') {
+        list = shapeDB[p.toLowerCase()] || [];
+      } else {
+        list = Object.keys(carvingDB).map(k => ({ id: k, name: carvingDB[k].name, icon: carvingDB[k].icon }));
+      }
+      
+      list.forEach(i => {
+        const currentId = (t === 'shape' ? getActiveItem().shapes[p] : getActiveItem().carvings[p]);
+        const c = document.createElement('div'); c.className = 'design-card' + (currentId === i.id ? ' active' : '');
+        c.onclick = () => { 
+          if (t === 'shape') getActiveItem().shapes[p] = i.id;
+          else getActiveItem().carvings[p] = i.id;
+          renderProperties(); build3DScene(); closeDesignModal(); 
+        };
+        const icon = i.icon || 'circle';
+        c.innerHTML = `<i class="design-icon fas fa-${icon}"></i><div class="design-name">${i.name}</div>`;
+        s.appendChild(c);
+      });
+    }
+    function closeDesignModal() { document.getElementById('design-modal-overlay').classList.remove('open'); }
+
+    function addNewProject() {
+      const p = createNewDesignData('New Custom Bed'); appState.items.push(p);
+      appState.activeItemId = p.id; renderUI(); build3DScene();
+    }
+
+    function publishTemplate() {
+      const active = getActiveItem();
+      renderer.render(scene, camera);
+      const preview = renderer.domElement.toDataURL('image/png');
+      
+      const tmpl = {
+        id: 'SHOP-TMPL-' + Date.now(),
+        type: 'bed',
+        name: document.getElementById('project-name-input').value.trim() || active.name,
+        description: document.getElementById('template-desc').value.trim(),
+        gender: appState.tmplGender,
+        badge: appState.tmplBadge,
+        previewDataUrl: preview,
+        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+        publishedAt: new Date().toISOString(),
+        basePrice: parseInt(document.getElementById('total-price').innerText.replace(/\D/g,'')),
+        config: JSON.parse(JSON.stringify(active))
+      };
+
+      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      globals.unshift(tmpl);
+      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+      
+      alert('✅ Template "' + tmpl.name + '" published successfully!');
+      window.location.href = 'templates.html';
+    }
+
+    localStorage.setItem('builder_bed_drafts', JSON.stringify(appState.items));
+    window.onbeforeunload = () => { localStorage.setItem('builder_bed_drafts', JSON.stringify(appState.items)); };
+
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FurniCraft - Choose Furniture</title>
+<title>FurniCraft - 3D Template Builder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -44,10 +44,10 @@
 
   /* ── Shop-mode banner ── */
   .shop-mode-banner {
-    display: none;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border-bottom: 2px solid rgba(129,140,248,0.4);
     padding: 0.65rem 3rem;
+    display: flex;
     align-items: center;
     gap: 1rem;
     font-size: 0.85rem;
@@ -72,7 +72,6 @@
     transition: all 0.2s;
   }
   .shop-mode-banner .back-dash:hover { background: rgba(129,140,248,0.28); }
-  .shop-mode-banner.visible { display: flex; }
 
   header {
     padding: 1.5rem 3rem;
@@ -269,8 +268,7 @@
 </head>
 <body>
 
-  <!-- Shop-mode banner (only visible when coming from shop_dashboard via ?mode=shop) -->
-  <div class="shop-mode-banner" id="shop-banner">
+  <div class="shop-mode-banner">
     <i class="fas fa-wand-magic-sparkles"></i>
     <span>Shop Owner Mode — Select a furniture type to customize &amp; publish as a template</span>
     <button class="back-dash" onclick="window.location.href='shop_dashboard.html'">
@@ -280,7 +278,7 @@
 
   <header>
     <div class="header-left">
-      <button class="back-btn" onclick="goBack()">
+      <button class="back-btn" onclick="window.location.href='shop_dashboard.html'">
         <i class="fas fa-arrow-left"></i>
       </button>
       <div class="logo">
@@ -288,7 +286,7 @@
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <div class="user-greeting" id="userGreeting">Welcome</div>
+      <div class="user-greeting" id="userGreeting">Welcome, Shop Owner</div>
       <button onclick="sessionStorage.clear(); window.location.href='logout.html';"
         style="background:transparent;border:1px solid #B26A38;color:#B26A38;padding:5px 12px;border-radius:30px;cursor:pointer;font-weight:600;font-size:0.85rem;transition:0.3s;"
         onmouseover="this.style.background='#B26A38';this.style.color='#fff';"
@@ -300,113 +298,79 @@
 
   <main>
     <div class="page-header">
-      <h1 id="page-title">Choose Your Furniture</h1>
-      <p id="page-subtitle">Select the perfect foundation to begin your crafting journey. Each piece can be deeply customized with premium materials, dimensions, and finishes.</p>
+      <h1>3D Template Builder</h1>
+      <p>Pick a furniture type to open the designer. When you're done, hit "Upload to Templates" inside the 3D studio to publish your design to the gallery.</p>
     </div>
 
     <div class="furniture-grid">
 
-      <div class="furniture-card" onclick="openBuilder('chair')">
+      <div class="furniture-card" onclick="openStudio('chair')">
         <div class="card-icon"><i class="fas fa-chair"></i></div>
         <h2>Dining Chair</h2>
-        <p>Comfortable and stylish seating. Customize backrest height, leg style, and upholstery fabrics to match your dining room.</p>
-        <button class="action-btn" id="btn-chair">Customize Chair</button>
+        <p>Comfortable and stylish seating. Customize backrest height, leg style, and upholstery fabrics for your template.</p>
+        <button class="action-btn">Design & Publish</button>
       </div>
 
-      <div class="furniture-card" onclick="openBuilder('table')">
+      <div class="furniture-card" onclick="openStudio('table')">
         <div class="card-icon"><i class="fas fa-table"></i></div>
         <h2>Dining Table</h2>
-        <p>The centerpiece of your home. Adjust dimensions for 4 to 8 seaters, choose heavy solid wood slabs or modern glass integrations.</p>
-        <button class="action-btn" id="btn-table">Customize Table</button>
+        <p>The centerpiece of your home. Adjust dimensions, choose heavy solid wood slabs or modern glass integrations.</p>
+        <button class="action-btn">Design & Publish</button>
       </div>
 
-      <div class="furniture-card" onclick="openBuilder('sofa')">
+      <div class="furniture-card" onclick="openStudio('sofa')">
         <div class="card-icon"><i class="fas fa-couch"></i></div>
         <h2>Living Room Sofa</h2>
-        <p>Deep seating comfort. Design custom sectionals, select premium foam densities, and wrap it in your choice of leather or linen.</p>
-        <button class="action-btn" id="btn-sofa">Customize Sofa</button>
+        <p>Deep seating comfort. Design custom sectionals, select premium foam densities, and wraps.</p>
+        <button class="action-btn">Design & Publish</button>
       </div>
 
-      <div class="furniture-card" onclick="openBuilder('cabinet')">
+      <div class="furniture-card" onclick="openStudio('cabinet')">
         <div class="card-icon"><i class="fas fa-box"></i></div>
         <h2>Storage Cabinet</h2>
-        <p>Versatile modular storage. Design exact interior shelving layouts, select marine plywood or MDF, and choose modern hardware.</p>
-        <button class="action-btn" id="btn-cabinet">Customize Cabinet</button>
+        <p>Versatile modular storage. Design exact interior shelving layouts and choose modern hardware.</p>
+        <button class="action-btn">Design & Publish</button>
       </div>
 
-      <div class="furniture-card" onclick="openBuilder('bed')">
+      <div class="furniture-card" onclick="openStudio('bed')">
         <div class="card-icon"><i class="fas fa-bed"></i></div>
         <h2>Bed</h2>
-        <p>Sturdy and elegant rest. Build a heavy hardwood frame, design an intricate headboard, or integrate seamless under-bed storage.</p>
-        <button class="action-btn" id="btn-bed">Customize Bed</button>
+        <p>Sturdy and elegant rest. Build a heavy hardwood frame or design an intricate headboard.</p>
+        <button class="action-btn">Design & Publish</button>
       </div>
 
-      <div class="furniture-card" onclick="openBuilder('bookshelf')">
+      <div class="furniture-card" onclick="openStudio('bookshelf')">
         <div class="card-icon"><i class="fas fa-book"></i></div>
         <h2>Bookshelf</h2>
-        <p>5-tier bookshelf perfect for displaying books, decor, and collectibles. Adjustable shelves for maximum flexibility.</p>
-        <button class="action-btn" id="btn-bookshelf">Customize Bookshelf</button>
+        <p>5-tier bookshelf perfect for displaying books, decor, and collectibles. Adjustable shelves.</p>
+        <button class="action-btn">Design & Publish</button>
       </div>
 
-      <div class="furniture-card" onclick="openBuilder('desk')">
+      <div class="furniture-card" onclick="openStudio('desk')">
         <div class="card-icon"><i class="fas fa-laptop-house"></i></div>
         <h2>Office Desk</h2>
-        <p>Your perfect workspace. Define exact ergonomic heights, add hidden cable management, and select heavy-duty iron frames.</p>
-        <button class="action-btn" id="btn-desk">Customize Desk</button>
+        <p>Your perfect workspace. Define exact ergonomic heights and select heavy-duty iron frames.</p>
+        <button class="action-btn">Design & Publish</button>
       </div>
 
-      <div class="furniture-card" onclick="openBuilder('stool')">
+      <div class="furniture-card" onclick="openStudio('stool')">
         <div class="card-icon"><i class="fas fa-chair"></i></div>
         <h2>Bar Stool</h2>
-        <p>Contemporary bar stool with adjustable height. Perfect for kitchen islands or home bars with comfortable seating.</p>
-        <button class="action-btn" id="btn-stool">Customize Stool</button>
+        <p>Contemporary bar stool with adjustable height. Perfect for kitchen islands or home bars.</p>
+        <button class="action-btn">Design & Publish</button>
       </div>
 
     </div>
   </main>
 
   <script>
-    const isShopMode = new URLSearchParams(window.location.search).get('mode') === 'shop';
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // Greet user
-      const userName = sessionStorage.getItem('username');
-      if (userName) {
-        document.getElementById('userGreeting').textContent = `Welcome, ${userName.split(' ')[0]}!`;
-      }
-
-      if (isShopMode) {
-        // Show banner
-        document.getElementById('shop-banner').classList.add('visible');
-        // Update page heading
-        document.getElementById('page-title').textContent = '3D Template Builder';
-        document.getElementById('page-subtitle').textContent =
-          'Pick a furniture type to open the designer. When you\'re done, hit "Upload to Templates" inside the 3D studio to publish your design to the gallery.';
-        // Relabel all action buttons
-        ['chair','table','sofa','cabinet','bed','bookshelf','desk','stool'].forEach(type => {
-          const el = document.getElementById('btn-' + type);
-          if (el) el.textContent = 'Design & Publish';
-        });
-      }
-    });
-
-    function goBack() {
-      if (isShopMode) {
-        window.location.href = 'shop_dashboard.html';
-      } else {
-        window.history.back();
-      }
-    }
-
-    function openBuilder(type) {
+    function openStudio(type) {
       sessionStorage.setItem('targetFurniture', type);
       sessionStorage.setItem('addNew', 'true');
-      if (isShopMode) {
-        sessionStorage.setItem('craftMode', 'shop');
-      } else {
-        sessionStorage.removeItem('craftMode');
-      }
-      window.location.href = type + '.html';
+      sessionStorage.setItem('craftMode', 'shop');
+      
+      // Route to specialized builder files
+      window.location.href = 'builder_' + type + '.html';
     }
 
     // Subtle click animation on cards

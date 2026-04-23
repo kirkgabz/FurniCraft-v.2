@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FurniCraft CAD - 3D Template Builder (Stool)</title>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #1e1e1e;
+      --bg-panel: #252526;
+      --bg-header: #333333;
+      --accent: #8e44ad;
+      --accent2: #6c3483;
+      --select-blue: #007acc;
+      --text-main: #e0e0e0;
+      --text-dim: #999;
+      --border: #3e3e42;
+      --gold: #f1c40f;
+      --rec-bg: #2a1a35;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 45px;
+      background-color: var(--bg-header);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      border-bottom: 1px solid var(--border);
+      justify-content: space-between;
+    }
+
+    .brand {
+      font-weight: 600;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-actions { display: flex; gap: 10px; }
+
+    .btn-header {
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+
+    .btn-back { background: #444; color: white; }
+    .btn-back:hover { background: #555; }
+    .btn-publish { background: #10b981; color: white; }
+    .btn-publish:hover { background: #059669; }
+
+    .workspace { display: flex; flex: 1; height: calc(100vh - 45px); }
+
+    .panel-left {
+      width: 280px;
+      background-color: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #e0e0e0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #2a2a2e 0%, #252526 100%);
+    }
+
+    .scene-list { flex: 1; overflow-y: auto; padding: 8px; }
+
+    .scene-item {
+      padding: 13px 12px;
+      margin-bottom: 4px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      transition: 0.15s;
+    }
+
+    .scene-item:hover { background-color: #333; }
+    .scene-item.active { background-color: #37373d; border-left: 3px solid var(--accent); padding-left: 10px; }
+
+    .btn-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
+    .btn-delete:hover { color: #c0392b; background: rgba(192, 57, 43, 0.1); }
+
+    .btn-add {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: 0.2s;
+    }
+
+    .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); }
+    #canvas-container { width: 100%; height: 100%; outline: none; }
+
+    .viewport-controls {
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      padding: 5px;
+      border-radius: 20px;
+      border: 1px solid #555;
+      display: flex;
+      gap: 5px;
+      z-index: 10;
+    }
+
+    .vp-btn {
+      background: transparent;
+      border: none;
+      color: #ddd;
+      padding: 8px 15px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .vp-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+
+    .panel-right {
+      width: 320px;
+      background-color: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .prop-scroll { flex: 1; overflow-y: auto; padding: 1rem; }
+
+    .prop-group { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .prop-label { font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block; }
+
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      background: #1e1e1e;
+      border: 1px solid var(--border);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    textarea { resize: vertical; min-height: 60px; }
+
+    .dim-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .dim-group { display: flex; flex-direction: column; gap: 4px; }
+    .dim-label { font-size: 0.65rem; color: #666; text-align: center; }
+    .dim-input { text-align: center; padding: 4px !important; font-size: 0.85rem; }
+
+    .layer-item {
+      background: #2d2d30;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .layer-item.active-layer { border-color: var(--accent); }
+    .layer-header { padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
+    .color-preview { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); }
+    .layer-content { padding: 10px; background: #252526; display: none; border-top: 1px solid var(--border); }
+    .layer-item.open .layer-content { display: block; }
+
+    .part-control-row { margin-bottom: 10px; }
+    .part-control-label { font-size: 0.7rem; color: #777; text-transform: uppercase; margin-bottom: 5px; }
+
+    .clickable-design-val {
+      background: #1e1e1e;
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+    .mat-card-lg {
+      aspect-ratio: 1;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+      background: #1e1e1e;
+    }
+    .mat-card-lg:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .mat-card-icon { font-size: 1.2rem; }
+    .mat-card-name { font-size: 0.6rem; margin-top: 4px; color: #999; text-align: center; }
+
+    .footer-bar {
+      height: 60px;
+      background: #2d2d30;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.2rem;
+    }
+    .total-price { font-size: 1.2rem; font-weight: 800; color: var(--gold); }
+
+    /* Modal */
+    .design-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85); z-index: 1000;
+      display: none; align-items: center; justify-content: center;
+    }
+    .design-modal-overlay.open { display: flex; }
+    .design-modal {
+      background: #252526; width: 500px; max-height: 80vh; border-radius: 12px;
+      border: 1px solid var(--border); display: flex; flex-direction: column;
+    }
+    .modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+    .modal-scroll { padding: 20px; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .design-card {
+      background: #2d2d30; border: 1px solid var(--border); border-radius: 8px;
+      padding: 15px; text-align: center; cursor: pointer; transition: 0.2s;
+    }
+    .design-card:hover { border-color: var(--accent); background: #37373d; }
+    .design-icon { font-size: 2rem; color: #888; margin-bottom: 10px; }
+    .design-name { font-size: 0.8rem; font-weight: 600; }
+
+    .score-card {
+      position: absolute; top: 90px; right: 10px;
+      background: rgba(18, 18, 20, 0.92); backdrop-filter: blur(6px);
+      padding: 18px 20px; border-radius: 10px; width: 260px;
+      border: 1px solid #444; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      z-index: 20;
+    }
+    .score-card.minimized #design-analysis-content { display: none; }
+    .score-title { font-size: 0.82rem; font-weight: 800; color: #e8e8e8; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">
+      <img src="images/FurniCraft Logo without name.png" alt="Logo" style="height: 1.3em;">
+      <span>3D Template Builder: Stool</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-header btn-back" onclick="window.location.href='shop_studio.html'"><i class="fas fa-arrow-left"></i> Exit Builder</button>
+      <button class="btn-header btn-publish" onclick="publishTemplate()"><i class="fas fa-cloud-upload-alt"></i> Upload to Templates</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="panel-left">
+      <div class="panel-header"><span><i class="fas fa-layer-group"></i> My Drafts</span></div>
+      <div class="scene-list" id="scene-list"></div>
+      <button class="btn-add" onclick="addNewProject()"><i class="fas fa-plus"></i> New Template Design</button>
+    </aside>
+
+    <main class="viewport">
+      <div class="viewport-controls">
+        <button class="vp-btn" onclick="toggleRotation()"><i class="fas fa-sync-alt"></i> Rotation</button>
+        <button class="vp-btn" onclick="toggleDimensions()"><i class="fas fa-ruler"></i> Dimensions</button>
+        <button class="vp-btn" onclick="resetView()"><i class="fas fa-eye"></i> Reset View</button>
+      </div>
+      <div id="canvas-container"></div>
+
+      <div class="score-card" id="design-analysis-card">
+        <div class="score-title" onclick="toggleDesignAnalysis()">
+          <span><i class="fas fa-chart-bar"></i> Design Score</span>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <div id="design-analysis-content" style="margin-top:15px;">
+           <div style="font-size:0.75rem; color:#aaa; margin-bottom:5px;">Stability</div>
+           <div style="height:6px; background:#333; border-radius:3px; overflow:hidden; margin-bottom:12px;">
+             <div id="bar-dura" style="height:100%; background:var(--accent); width:88%;"></div>
+           </div>
+           <div style="font-size:0.75rem; color:#aaa; margin-bottom:5px;">Durability</div>
+           <div style="height:6px; background:#333; border-radius:3px; overflow:hidden;">
+             <div id="bar-qual" style="height:100%; background:var(--gold); width:90%;"></div>
+           </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="panel-right">
+      <div class="panel-header"><span><i class="fas fa-sliders-h"></i> Configuration</span></div>
+      <div class="prop-scroll">
+        
+        <div class="prop-group">
+          <label class="prop-label">Project Identity</label>
+          <input type="text" id="project-name-input" placeholder="Template Name" oninput="updateProjectName(this.value)">
+          <textarea id="template-desc" placeholder="Brief description..." style="margin-top:8px;" oninput="updateProjectDesc(this.value)"></textarea>
+          
+          <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <select id="tmpl-gender" onchange="updateProjectGender(this.value)">
+              <option value="neutral">Neutral Style</option>
+              <option value="boy">Masculine</option>
+              <option value="girl">Feminine</option>
+            </select>
+            <select id="tmpl-badge" onchange="updateProjectBadge(this.value)">
+              <option value="new">New</option>
+              <option value="featured">Featured</option>
+              <option value="premium">Premium</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Stool Type</label>
+          <select id="stool-type-select" onchange="changeStoolType(this.value)">
+            <option value="low">Dining Stool (45cm)</option>
+            <option value="counter" selected>Counter Stool (65cm)</option>
+            <option value="bar">Bar Stool (75cm)</option>
+          </select>
+        </div>
+
+        <div class="prop-group">
+           <label class="prop-label">Global Scale</label>
+           <div class="range-row" style="display:flex; align-items:center; gap:10px; color:#aaa; font-size:0.8rem;">
+             <span>Scale</span>
+             <input type="range" id="gs-slider" min="50" max="150" value="100" style="flex:1;" oninput="updateGlobalScale('x', this.value)">
+             <span id="gs-x">100</span>%
+           </div>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Parts & Materials</label>
+          <div id="layers-container"></div>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Structural Details</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button class="vp-btn" id="toggle-footrest" onclick="toggleFeature('hasFootrest', this)" style="border:1px solid #444;">Footrest Ring</button>
+            <button class="vp-btn" id="toggle-back" onclick="toggleFeature('hasBack', this)" style="border:1px solid #444;">Short Backrest</button>
+          </div>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Material Library</label>
+          <div class="mat-grid" id="mat-grid"></div>
+        </div>
+
+      </div>
+      <div class="footer-bar">
+        <span style="font-size:0.8rem; color:#888;">Suggested Price</span>
+        <div class="total-price" id="total-price">₱0</div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="design-modal-overlay" class="design-modal-overlay" onclick="closeDesignModal()">
+    <div class="design-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="design-name" id="modal-title">Select Design</div>
+        <i class="fas fa-times" style="cursor:pointer;" onclick="closeDesignModal()"></i>
+      </div>
+      <div class="modal-scroll" id="design-modal-scroll"></div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       DATABASES & ASSETS
+       ========================================================================== */
+    const materialDB = {
+      narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2 },
+      mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8 },
+      oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5 },
+      steel: { name: 'Dark Steel', icon: '🔩', hex: '#2c2c2c', dura: 98, qual: 70, price: 3.5 },
+      leather: { name: 'Cognac Leather', icon: '🐄', hex: '#b35a1f', dura: 75, qual: 95, price: 4.8 }
+    };
+
+    const shapeDB = {
+      seat: [
+        { id: 'round', name: 'Round Seat', icon: 'circle' },
+        { id: 'square', name: 'Square Seat', icon: 'square' },
+        { id: 'ergo', name: 'Ergo Curve', icon: 'moon' }
+      ],
+      legs: [
+        { id: 'tapered', name: 'Tapered Legs', icon: 'caret-up' },
+        { id: 'square', name: 'Straight Square', icon: 'columns' },
+        { id: 'hairpin', name: 'Hairpin Metal', icon: 'paperclip' }
+      ],
+      footrest: [
+        { id: 'ring', name: 'Ring Support', icon: 'sync' },
+        { id: 'bars', name: 'Standard Bars', icon: 'grip-lines' }
+      ]
+    };
+
+    const assetsDB = { stool: { parts: ['Seat', 'Legs', 'Footrest'] } };
+
+    /* ==========================================================================
+       THREE.JS SETUP
+       ========================================================================== */
+    let scene, camera, renderer, controls, currentGroup;
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene(); scene.background = new THREE.Color(0x1e1e1e);
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(8, 6, 8);
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.shadowMap.enabled = true;
+      container.appendChild(renderer.domElement);
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true; controls.autoRotate = true;
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); scene.add(ambientLight);
+      const spotLight = new THREE.SpotLight(0xffffff, 0.8); spotLight.position.set(10, 20, 10); spotLight.castShadow = true; scene.add(spotLight);
+      animate(); window.addEventListener('resize', onWindowResize);
+    }
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+
+    /* ==========================================================================
+       STATE MANAGEMENT
+       ========================================================================== */
+    let appState = { items: [], activeItemId: 0, activeLayer: 'Seat' };
+    let isRotating = true;
+
+    function initApp() {
+      const saved = localStorage.getItem('builder_stool_drafts');
+      if (saved) appState.items = JSON.parse(saved);
+      if (appState.items.length === 0) {
+        appState.items.push(createNewDesignData('Modern Counter Stool'));
+      }
+      renderUI(); init3D(); build3DScene();
+    }
+
+    function createNewDesignData(name) {
+      return {
+        id: Date.now(), name: name, type: 'stool',
+        description: 'Chic minimalist stool template for bars or counters.', tmplBadge: 'featured', tmplGender: 'neutral',
+        selections: { Seat: '#8B4513', Legs: '#8B4513', Footrest: '#2c2c2c' },
+        shapes: { Seat: 'round', Legs: 'tapered', Footrest: 'ring' },
+        dims: {
+          Seat: { w: 35, h: 5, d: 35 },
+          Legs: { w: 4, h: 65, d: 4 },
+          Footrest: { w: 30, h: 2, d: 30 }
+        },
+        globalScale: { x: 1, y: 1, z: 1 },
+        hasFootrest: true, hasBack: false
+      };
+    }
+
+    function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId) || appState.items[0]; }
+
+    function renderUI() {
+      renderSceneList(); renderProperties(); updatePrice();
+    }
+
+    function renderSceneList() {
+      const list = document.getElementById('scene-list'); list.innerHTML = '';
+      appState.items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
+        div.onclick = () => { appState.activeItemId = item.id; renderUI(); build3DScene(); };
+        div.innerHTML = `<span><i class="fas fa-chair"></i> ${item.name}</span>
+          <button class="btn-delete" onclick="event.stopPropagation(); deleteProject(${item.id})"><i class="fas fa-trash"></i></button>`;
+        list.appendChild(div);
+      });
+    }
+
+    function renderProperties() {
+      const active = getActiveItem(); if (!active) return;
+      document.getElementById('project-name-input').value = active.name;
+      document.getElementById('template-desc').value = active.description || '';
+      document.getElementById('tmpl-gender').value = active.tmplGender || 'neutral';
+      document.getElementById('tmpl-badge').value = active.tmplBadge || 'new';
+
+      const matGrid = document.getElementById('mat-grid'); matGrid.innerHTML = '';
+      Object.keys(materialDB).forEach(k => {
+        const m = materialDB[k];
+        const card = document.createElement('div'); card.className = 'mat-card-lg';
+        card.onclick = () => { active.selections[appState.activeLayer] = m.hex; renderUI(); build3DScene(); };
+        card.innerHTML = `<div class="mat-card-icon">${m.icon}</div><div class="mat-card-name">${m.name}</div>`;
+        matGrid.appendChild(card);
+      });
+
+      const container = document.getElementById('layers-container'); container.innerHTML = '';
+      assetsDB.stool.parts.forEach(part => {
+        const isActive = appState.activeLayer === part;
+        const hex = active.selections[part];
+        const shape = (shapeDB[part.toLowerCase()] || []).find(s => s.id === active.shapes[part])?.name || 'Standard';
+        
+        const div = document.createElement('div');
+        div.className = 'layer-item' + (isActive ? ' active-layer open' : '');
+        div.onclick = (e) => { if (!e.target.closest('.clickable-design-val') && !e.target.closest('input')) { appState.activeLayer = part; renderProperties(); } };
+        
+        let html = `
+          <div class="layer-header"><span><i class="fas fa-layer-group"></i> ${part}</span><div class="color-preview" style="background:${hex}"></div></div>
+          <div class="layer-content">
+            <div class="part-control-row">
+              <div class="part-control-label">Shape / Style</div>
+              <div class="clickable-design-val" onclick="openDesignModal('${part}', 'shape')"><span>${shape}</span> <i class="fas fa-edit"></i></div>
+            </div>
+            <div class="part-control-row">
+              <div class="part-control-label">Dimensions (cm)</div>
+              <div class="dim-row">
+                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].w}" oninput="updateDim('${part}','w',this.value)"><div class="dim-label">W</div></div>
+                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].h}" oninput="updateDim('${part}','h',this.value)"><div class="dim-label">H</div></div>
+                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].d}" oninput="updateDim('${part}','d',this.value)"><div class="dim-label">D</div></div>
+              </div>
+            </div>
+          </div>`;
+        div.innerHTML = html; container.appendChild(div);
+      });
+
+      ['hasFootrest', 'hasBack'].forEach(f => {
+         const btn = document.getElementById('toggle-' + f.replace('has','').toLowerCase());
+         if(btn) btn.classList.toggle('active', !!active[f]);
+      });
+    }
+
+    function updateDim(p, a, v) { getActiveItem().dims[p][a] = parseInt(v) || 1; build3DScene(); updatePrice(); }
+    function updateGlobalScale(a, v) { getActiveItem().globalScale[a] = v / 100; document.getElementById('gs-' + a).innerText = v; build3DScene(); updatePrice(); }
+    function updateProjectName(v) { getActiveItem().name = v; renderSceneList(); }
+    function updateProjectDesc(v) { getActiveItem().description = v; }
+    function updateProjectGender(v) { getActiveItem().tmplGender = v; }
+    function updateProjectBadge(v) { getActiveItem().tmplBadge = v; }
+    function toggleFeature(f, b) { const active = getActiveItem(); active[f] = !active[f]; renderProperties(); build3DScene(); updatePrice(); }
+
+    function changeStoolType(v) {
+      const active = getActiveItem();
+      if(v === 'low') active.dims.Legs.h = 45;
+      if(v === 'counter') active.dims.Legs.h = 65;
+      if(v === 'bar') active.dims.Legs.h = 75;
+      renderProperties(); build3DScene(); updatePrice();
+    }
+
+    function updatePrice() {
+      const active = getActiveItem(); if (!active) return;
+      let cost = 3500;
+      Object.keys(active.dims).forEach(p => {
+        const d = active.dims[p]; const vol = (d.w * d.h * d.d) / 2000;
+        const hex = active.selections[p]; const m = Object.values(materialDB).find(m => m.hex === hex) || materialDB.mahogany;
+        cost += vol * m.price;
+      });
+      cost *= (active.globalScale.x);
+      document.getElementById('total-price').innerText = '₱' + Math.round(cost).toLocaleString();
+    }
+
+    /* ==========================================================================
+       3D SCENE CONSTRUCTION
+       ========================================================================== */
+    function build3DScene() {
+      if (!scene) return; if (currentGroup) scene.remove(currentGroup);
+      currentGroup = new THREE.Group();
+      const active = getActiveItem(); const SCALE = 50;
+
+      const getMat = (hex) => new THREE.MeshStandardMaterial({ color: hex, roughness: 0.7, metalness: 0.1 });
+      const addMesh = (geo, hex, x, y, z, rx=0, ry=0, rz=0) => {
+        const mesh = new THREE.Mesh(geo, getMat(hex)); mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz);
+        mesh.castShadow = true; mesh.receiveShadow = true; currentGroup.add(mesh); return mesh;
+      };
+
+      const dS = { w: active.dims.Seat.w / SCALE, h: active.dims.Seat.h / SCALE, d: active.dims.Seat.d / SCALE };
+      const dL = { w: active.dims.Legs.w / SCALE, h: active.dims.Legs.h / SCALE, d: active.dims.Legs.d / SCALE };
+      const dF = { w: active.dims.Footrest.w / SCALE, h: active.dims.Footrest.h / SCALE, d: active.dims.Footrest.d / SCALE };
+
+      // Seat
+      if(active.shapes.Seat === 'round') {
+        addMesh(new THREE.CylinderGeometry(dS.w/2, dS.w/2, dS.h, 32), active.selections.Seat, 0, dL.h + dS.h/2, 0);
+      } else {
+        addMesh(new THREE.BoxGeometry(dS.w, dS.h, dS.d), active.selections.Seat, 0, dL.h + dS.h/2, 0);
+      }
+
+      // Backrest
+      if(active.hasBack) {
+        addMesh(new THREE.BoxGeometry(dS.w, 0.4, 0.05), active.selections.Seat, 0, dL.h + dS.h + 0.2, -dS.d/2);
+      }
+
+      // Legs (Angular/Tapered)
+      const ang = 0.15;
+      [[ang, ang], [-ang, ang], [ang, -ang], [-ang, -ang]].forEach(([rx, rz]) => {
+        const leg = addMesh(new THREE.BoxGeometry(dL.w, dL.h, dL.d), active.selections.Legs, rx*dL.h, dL.h/2, rz*dL.h);
+        leg.rotation.set(rz*2, 0, -rx*2);
+      });
+
+      // Footrest Ring
+      if(active.hasFootrest) {
+        addMesh(new THREE.TorusGeometry(dF.w/2, 0.03, 16, 32), active.selections.Footrest, 0, dL.h*0.35, 0, Math.PI/2, 0, 0);
+      }
+
+      currentGroup.scale.set(active.globalScale.x, active.globalScale.y, active.globalScale.z);
+      scene.add(currentGroup);
+    }
+
+    /* ==========================================================================
+       UTILITIES & PUBLISHING
+       ========================================================================== */
+    function toggleRotation() { isRotating = !isRotating; controls.autoRotate = isRotating; }
+    function toggleDimensions() { showDimensions = !showDimensions; build3DScene(); }
+    function resetView() { camera.position.set(8, 6, 8); controls.target.set(0, 1, 0); }
+    function toggleDesignAnalysis() { document.getElementById('design-analysis-card').classList.toggle('minimized'); }
+
+    function openDesignModal(p, t) {
+      document.getElementById('design-modal-overlay').classList.add('open');
+      const s = document.getElementById('design-modal-scroll'); s.innerHTML = '';
+      const list = shapeDB[p.toLowerCase()] || [];
+      list.forEach(i => {
+        const c = document.createElement('div'); c.className = 'design-card';
+        c.onclick = () => { getActiveItem().shapes[p] = i.id; renderProperties(); build3DScene(); closeDesignModal(); };
+        c.innerHTML = `<i class="design-icon fas fa-${i.icon}"></i><div class="design-name">${i.name}</div>`;
+        s.appendChild(c);
+      });
+    }
+    function closeDesignModal() { document.getElementById('design-modal-overlay').classList.remove('open'); }
+
+    function addNewProject() {
+      const p = createNewDesignData('New Stool Template'); appState.items.push(p);
+      appState.activeItemId = p.id; renderUI(); build3DScene();
+    }
+
+    function publishTemplate() {
+      const active = getActiveItem();
+      renderer.render(scene, camera);
+      const preview = renderer.domElement.toDataURL('image/png');
+      
+      const tmpl = {
+        id: Date.now(),
+        type: 'stool',
+        name: active.name,
+        description: active.description,
+        gender: active.tmplGender,
+        badge: active.tmplBadge,
+        previewDataUrl: preview,
+        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+        publishedAt: new Date().toISOString(),
+        basePrice: parseInt(document.getElementById('total-price').innerText.replace(/\D/g,'')),
+        designData: active
+      };
+
+      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      globals.unshift(tmpl);
+      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+      
+      alert('\u2705 "' + active.name + '" published to marketplace!');
+      window.location.href = 'templates.html';
+    }
+
+    window.onload = initApp;
+  </script>
+</body>
+</html>

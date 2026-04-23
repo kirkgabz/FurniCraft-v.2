@@ -7,8 +7,12 @@
   <title>Irawan Woodworks - Partner Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <style>
     :root {
@@ -19,17 +23,19 @@
       --text-main: #1e293b;
       --text-muted: #64748b;
       --text-light: #94a3b8;
-      
-      --primary: #4f46e5; /* Indigo */
+
+      --primary: #4f46e5;
+      /* Indigo */
       --primary-soft: rgba(79, 70, 229, 0.1);
-      --accent: #c9a84c; /* Gold touch */
+      --accent: #c9a84c;
+      /* Gold touch */
       --accent-soft: rgba(201, 168, 76, 0.1);
-      
+
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
       --info: #3b82f6;
-      
+
       --border: rgba(226, 232, 240, 0.8);
       --radius-lg: 24px;
       --radius-md: 16px;
@@ -49,7 +55,7 @@
       color: var(--text-main);
       min-height: 100vh;
       line-height: 1.6;
-      background-image: 
+      background-image:
         radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(201, 168, 76, 0.05) 0px, transparent 50%);
     }
@@ -97,6 +103,16 @@
       padding: 0.5rem 1.2rem;
       border-radius: 100px;
       border: 1px solid rgba(79, 70, 229, 0.1);
+    }
+
+    .pill-success {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+      padding: 0.5rem 1.2rem;
+      border-radius: 100px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
     .btn {
@@ -207,10 +223,25 @@
       flex-shrink: 0;
     }
 
-    .stat-icon-box.indigo { background: rgba(79, 70, 229, 0.1); color: var(--primary); }
-    .stat-icon-box.emerald { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-    .stat-icon-box.amber { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-    .stat-icon-box.rose { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
+    .stat-icon-box.indigo {
+      background: rgba(79, 70, 229, 0.1);
+      color: var(--primary);
+    }
+
+    .stat-icon-box.emerald {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+
+    .stat-icon-box.amber {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+
+    .stat-icon-box.rose {
+      background: rgba(244, 63, 94, 0.1);
+      color: #f43f5e;
+    }
 
     .stat-info h3 {
       font-size: 2rem;
@@ -236,7 +267,9 @@
     }
 
     @media (max-width: 1100px) {
-      .main-grid { grid-template-columns: 1fr; }
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .section-card {
@@ -263,7 +296,9 @@
       color: var(--text-main);
     }
 
-    .section-header h2 i { color: var(--primary); }
+    .section-header h2 i {
+      color: var(--primary);
+    }
 
     /* Commission List */
     .commission-item {
@@ -324,11 +359,30 @@
       letter-spacing: 0.8px;
     }
 
-    .badge-pending { background: #e2e8f0; color: #475569; }
-    .badge-info { background: #dbeafe; color: #1d4ed8; }
-    .badge-warning { background: #fef3c7; color: #92400e; }
-    .badge-success { background: #d1fae5; color: #065f46; }
-    .badge-danger { background: #fee2e2; color: #b91c1c; }
+    .badge-pending {
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    .badge-info {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .badge-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-danger {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
 
     .payment-info-box {
       background: #ecfdf5;
@@ -365,7 +419,8 @@
       letter-spacing: 0.5px;
     }
 
-    select, input[type="text"] {
+    select,
+    input[type="text"] {
       width: 100%;
       background: #ffffff;
       border: 1px solid var(--border);
@@ -377,7 +432,8 @@
       transition: all 0.2s;
     }
 
-    select:focus, input[type="text"]:focus {
+    select:focus,
+    input[type="text"]:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px var(--primary-soft);
     }
@@ -426,7 +482,7 @@
       border-radius: 18px;
       font-size: 0.95rem;
       line-height: 1.5;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .msg.user {
@@ -501,10 +557,623 @@
       margin-bottom: 0.4rem;
     }
 
+    /* ══════════════════════════════
+       3D BUILDER
+    ══════════════════════════════ */
+    #builder-wrap {
+      margin-top: 4rem;
+      display: none;
+    }
+
+    .builder-shell {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    .builder-top-bar {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      padding: 1.4rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .builder-top-bar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .builder-top-bar h2 i {
+      color: #818cf8;
+    }
+
+    .builder-top-actions {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-builder-close {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      border-radius: 10px;
+      padding: 0.55rem 1.1rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-builder-close:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+    }
+
+    .btn-publish {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      border: none;
+      color: #fff;
+      border-radius: 10px;
+      padding: 0.55rem 1.4rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-family: inherit;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-publish:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+    }
+
+    .builder-body {
+      display: grid;
+      grid-template-columns: 260px 1fr 300px;
+      height: 780px;
+    }
+
+    @media (max-width: 1200px) {
+      .builder-body {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+    }
+
+    /* Left panel: furniture type picker */
+    .builder-left {
+      background: #0f172a;
+      border-right: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .bleft-header {
+      padding: 1rem 1.2rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #475569;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .furniture-type-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.6rem;
+    }
+
+    .ftype-item {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 3px;
+      color: #94a3b8;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.18s;
+      border: 1px solid transparent;
+    }
+
+    .ftype-item i {
+      width: 18px;
+      text-align: center;
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+
+    .ftype-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .ftype-item:hover i {
+      color: #818cf8;
+    }
+
+    .ftype-item.active {
+      background: rgba(79, 70, 229, 0.18);
+      color: #a5b4fc;
+      border-color: rgba(79, 70, 229, 0.35);
+    }
+
+    .ftype-item.active i {
+      color: #818cf8;
+    }
+
+    .ftype-count {
+      margin-left: auto;
+      font-size: 0.65rem;
+      background: rgba(79, 70, 229, 0.25);
+      color: #818cf8;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    /* Centre: Three.js canvas */
+    .builder-canvas-wrap {
+      background: radial-gradient(ellipse at center, #1a1f35 0%, #0d1117 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #builder-canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    .canvas-overlay-badge {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(129, 140, 248, 0.35);
+      border-radius: 20px;
+      padding: 7px 18px;
+      color: #e2e8f0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .canvas-overlay-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #818cf8;
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.3
+      }
+    }
+
+    .canvas-hint {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .canvas-hint-btn {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .canvas-hint-btn:hover {
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Right panel: properties */
+    .builder-right {
+      background: #0f172a;
+      border-left: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .bright-header {
+      padding: 1rem 1.2rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #475569;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .bright-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+
+    .bprop-section {
+      margin-bottom: 1.4rem;
+    }
+
+    .bprop-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+      margin-bottom: 0.7rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bprop-label i {
+      color: #818cf8;
+      font-size: 0.75rem;
+    }
+
+    .bprop-input {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      color: #e2e8f0;
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 0.5rem;
+    }
+
+    .bprop-input:focus {
+      border-color: #4f46e5;
+    }
+
+    .bprop-select {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      color: #e2e8f0;
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+    }
+
+    /* Parts/Layers */
+    .part-layer {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.18s;
+    }
+
+    .part-layer.active {
+      border-color: #4f46e5;
+    }
+
+    .part-layer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+
+    .part-layer.active .part-layer-head {
+      color: #a5b4fc;
+    }
+
+    .part-color-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      flex-shrink: 0;
+    }
+
+    .part-layer-body {
+      display: none;
+      padding: 0.8rem 1rem 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      background: #111827;
+    }
+
+    .part-layer.open .part-layer-body {
+      display: block;
+    }
+
+    .dim-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .dim-field {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      text-align: center;
+      color: #818cf8;
+      padding: 6px 4px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      width: 100%;
+      outline: none;
+    }
+
+    .dim-tag {
+      text-align: center;
+      font-size: 0.62rem;
+      color: #475569;
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Material grid */
+    .mat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+
+    .mat-chip {
+      background: #1e293b;
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: 7px;
+      padding: 6px 4px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 0.65rem;
+      color: #94a3b8;
+      transition: all 0.15s;
+    }
+
+    .mat-chip:hover {
+      border-color: #818cf8;
+      color: #e2e8f0;
+      transform: translateY(-1px);
+    }
+
+    .mat-chip.selected {
+      border-color: #4f46e5;
+      background: rgba(79, 70, 229, 0.2);
+      color: #a5b4fc;
+    }
+
+    .mat-chip-icon {
+      font-size: 1rem;
+      margin-bottom: 2px;
+    }
+
+    .hex-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .hex-color-picker {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 0;
+      background: none;
+    }
+
+    .hex-text {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: #818cf8;
+      font-size: 0.82rem;
+      font-family: monospace;
+      text-transform: uppercase;
+      outline: none;
+    }
+
+    /* Cost box */
+    .cost-box {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(124, 58, 237, 0.1));
+      border: 1px solid rgba(79, 70, 229, 0.3);
+      border-radius: 12px;
+      padding: 1.2rem;
+      margin-top: 1rem;
+    }
+
+    .cost-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #818cf8;
+      margin-bottom: 0.6rem;
+    }
+
+    .cost-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cost-currency {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #818cf8;
+    }
+
+    .cost-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(79, 70, 229, 0.4);
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      color: #e2e8f0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .cost-input:focus {
+      border-color: #818cf8;
+    }
+
+    /* Published designs list */
+    .published-list {
+      margin-top: 2rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.6rem;
+    }
+
+    .pub-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.2rem;
+    }
+
+    .pub-list-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .pub-list-header h3 i {
+      color: var(--primary);
+    }
+
+    .pub-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1rem;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 0.6rem;
+      gap: 1rem;
+      transition: all 0.2s;
+    }
+
+    .pub-item:hover {
+      box-shadow: var(--shadow-sm);
+      transform: translateX(3px);
+    }
+
+    .pub-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pub-item-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .pub-item-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .pub-item-cost {
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .btn-unpublish {
+      background: #fff0f0;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border-radius: 8px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-unpublish:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
     /* Verification Modal */
     .modal-overlay {
       position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: rgba(15, 23, 42, 0.4);
       backdrop-filter: blur(8px);
       display: none;
@@ -523,17 +1192,95 @@
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
 
-    .review-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
-    .review-item h5 { font-size: 0.95rem; margin-bottom: 0.2rem; color: var(--text-main); }
-    .review-item .stars { color: #f59e0b; margin-bottom: 0.5rem; font-size: 0.85rem; }
-    .review-item p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+    .review-item {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .review-item h5 {
+      font-size: 0.95rem;
+      margin-bottom: 0.2rem;
+      color: var(--text-main);
+    }
+
+    .review-item .stars {
+      color: #f59e0b;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .review-item p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
 
     /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
 
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Pagination Styling */
+    .pagination-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.8rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .pagination-btn {
+      min-width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-main);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-soft);
+      transform: translateY(-2px);
+    }
+
+    .pagination-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #f1f5f9;
+    }
   </style>
 </head>
 
@@ -542,24 +1289,25 @@
   <header>
     <div class="brand">
       <i class="fas fa-hammer"></i>
-      <span>Irawan Woodworks</span>
+      <span>AFMB Valeza Rattan Furniture and Fixtures</span>
     </div>
     <div class="header-actions">
       <div class="pill" id="dpText">DP: 20% Required</div>
-      <div class="pill" id="permitStatusText">
-        <i class="fas fa-shield-alt"></i> Verifying...
+      <div class="pill-success">
+        <i class="fas fa-check-circle"></i> Verified Shop
       </div>
-      <button class="btn btn-outline" onclick="openPermitModal()"><i class="fas fa-shield-check"></i> Verification</button>
       <button class="btn btn-primary" onclick="goToMain()"><i class="fas fa-external-link-alt"></i> Marketplace</button>
       <button class="btn btn-danger" onclick="logoutShop()"><i class="fas fa-sign-out-alt"></i></button>
     </div>
   </header>
 
   <div class="container">
-    
+
     <div class="dashboard-intro">
-      <p id="welcomeText" style="color: var(--primary); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; font-size: 0.85rem;">Partner Session Active</p>
-      <h1>Refreshing Dashboard</h1>
+      <p id="welcomeText"
+        style="color: var(--primary); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; font-size: 0.85rem;">
+        Partner Session Active</p>
+      <h1>Shop Dashboard</h1>
       <p>Your simplified space to manage furniture builds and customer connections.</p>
     </div>
 
@@ -569,7 +1317,7 @@
         <div class="stat-icon-box indigo"><i class="fas fa-shapes"></i></div>
         <div class="stat-info">
           <h3 id="statModels">0</h3>
-          <p>3D Models</p>
+          <p>3D template designs</p>
         </div>
       </div>
       <div class="stat-card">
@@ -607,16 +1355,18 @@
       <section class="section-card">
         <div class="section-header">
           <h2><i class="fas fa-list-check"></i> Orders & Progress</h2>
-          <button class="btn btn-outline" style="padding: 0.5rem 0.8rem;" onclick="loadCommissions()"><i class="fas fa-sync-alt"></i></button>
+          <button class="btn btn-outline" style="padding: 0.5rem 0.8rem;" onclick="loadCommissions()"><i
+              class="fas fa-sync-alt"></i></button>
         </div>
         <div id="commissionsList">
           <!-- Dynamically Injected -->
         </div>
+        <div id="commissionsPagination" class="pagination-container"></div>
       </section>
 
       <!-- Right: Side Panels -->
       <div style="display: flex; flex-direction: column; gap: 2rem;">
-        
+
         <section class="section-card">
           <div class="section-header">
             <h2 style="font-size: 1.3rem;"><i class="fas fa-coins"></i> Shop Policy</h2>
@@ -633,8 +1383,9 @@
           <div class="section-header">
             <h2 style="font-size: 1.3rem;"><i class="fas fa-star"></i> Customer Ratings</h2>
           </div>
-          <div id="reviewsContainer" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;">
-              <p style="text-align:center; color:var(--text-light); font-size:0.9rem;">No reviews yet.</p>
+          <div id="reviewsContainer"
+            style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;">
+            <p style="text-align:center; color:var(--text-light); font-size:0.9rem;">No reviews yet.</p>
           </div>
         </section>
 
@@ -642,13 +1393,16 @@
           <div class="section-header">
             <h2 style="font-size: 1.3rem;"><i class="fas fa-comment-alt"></i> Live Support</h2>
           </div>
-          <div style="margin-bottom: 1.2rem;">
-            <select id="customerThreadSelect" onchange="changeThread()"></select>
+          <div style="margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
+            <select id="customerThreadSelect" onchange="changeThread()" style="flex: 1;"></select>
+            <button class="btn btn-danger" style="padding: 0.8rem 1rem;" onclick="openReportModal()"
+              title="Report Customer"><i class="fas fa-flag"></i></button>
           </div>
           <div class="chat-container">
             <div id="messagesBox" class="chat-messages"></div>
             <div style="display:flex; gap:0.6rem;">
-              <input id="replyInput" type="text" placeholder="Type message..." onkeypress="if(event.key === 'Enter') sendReply()">
+              <input id="replyInput" type="text" placeholder="Type message..."
+                onkeypress="if(event.key === 'Enter') sendReply()">
               <button class="btn btn-primary" onclick="sendReply()"><i class="fas fa-paper-plane"></i></button>
             </div>
           </div>
@@ -663,48 +1417,120 @@
         <h2><i class="fas fa-toolbox"></i> Creative Suite</h2>
       </div>
       <div class="tools-grid">
-        <div class="tool-card" onclick="window.location.href='furniture-builder.html'">
-          <i class="fas fa-cube"></i>
-          <h4>3D Workshop</h4>
-          <p style="color: var(--text-muted); font-size: 0.9rem;">Create custom models from scratch</p>
+        <div class="tool-card" onclick="window.location.href='templates.html'">
+          <i class="fas fa-layer-group"></i>
+          <h4>Template Gallery</h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Browse and manage published designs</p>
         </div>
-        <div class="tool-card" onclick="window.location.href='craft.html'">
-          <i class="fas fa-drafting-table"></i>
-          <h4>Drafting Space</h4>
-          <p style="color: var(--text-muted); font-size: 0.9rem;">Review and edit dimensions</p>
-        </div>
-        <div class="tool-card" onclick="startCustomization()">
+        <div class="tool-card" onclick="window.location.href='shop_studio.html'">
           <i class="fas fa-wand-magic-sparkles"></i>
-          <h4>Template Lab</h4>
-          <p style="color: var(--text-muted); font-size: 0.9rem;">Design and publish pre-mades</p>
+          <h4>3D Template Builder</h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Customize furniture &amp; publish to gallery</p>
         </div>
       </div>
     </section>
 
-    <!-- Hidden Template Designer -->
-    <div id="customizationContainer" style="display:none; margin-top: 4rem;">
-        <div class="section-card">
-            <div class="section-header">
-                <h2><i class="fas fa-pen-nib"></i> Designer Frame</h2>
-                <div style="display:flex; gap: 0.8rem;">
-                    <button class="btn btn-outline" onclick="closeCustomizer()">Close</button>
-                    <button class="btn btn-primary" onclick="saveCustomTemplate()">Publish to Gallery</button>
-                </div>
-            </div>
-            
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                <input type="text" id="tdName" placeholder="Design Name">
-                <select id="tdType">
-                    <option value="chair">Chair</option><option value="table">Table</option>
-                    <option value="bed">Bed</option><option value="sofa">Sofa</option>
-                </select>
-                <select id="tdGender">
-                    <option value="neutral">Unisex</option><option value="boy">Boy</option><option value="girl">Girl</option>
-                </select>
-            </div>
-            <iframe id="customizationFrame" style="width:100%; height:800px; border:none; border-radius:24px; background:#f4f7fc;"></iframe>
+    <!-- ══ 3D BUILDER PANEL ══ -->
+    <div id="builder-wrap">
+
+      <!-- Three.js Shell -->
+      <div class="builder-shell">
+
+        <!-- Top Bar -->
+        <div class="builder-top-bar">
+          <h2><i class="fas fa-cube"></i> 3D Template Builder</h2>
+          <div class="builder-top-actions">
+            <button class="btn-builder-close" onclick="closeBuilderPanel()"><i class="fas fa-times"></i> Close</button>
+            <button class="btn-publish" id="btn-display-design" onclick="displayDesign()">
+              <i class="fas fa-paper-plane"></i> Display This Design
+            </button>
+          </div>
         </div>
-    </div>
+
+        <!-- Builder body (3 columns) -->
+        <div class="builder-body">
+
+          <!-- LEFT: Furniture types -->
+          <div class="builder-left">
+            <div class="bleft-header"><i class="fas fa-shapes"></i>&nbsp; Choose Furniture Type</div>
+            <div class="furniture-type-list" id="ftype-list"></div>
+          </div>
+
+          <!-- CENTRE: 3D Viewport -->
+          <div class="builder-canvas-wrap" id="builder-canvas-wrap">
+            <canvas id="builder-canvas"></canvas>
+            <div class="canvas-hint">
+              <button class="canvas-hint-btn" id="btn-brotate" onclick="toggleBRotation()"><i class="fas fa-pause"></i>
+                Pause</button>
+              <button class="canvas-hint-btn" onclick="resetBCamera()"><i class="fas fa-sync"></i> Reset View</button>
+            </div>
+            <div class="canvas-overlay-badge">
+              <div class="dot"></div>
+              <span id="b-overlay-name">Select a furniture type</span>
+              &nbsp;·&nbsp;
+              <span id="b-overlay-type" style="color:#818cf8;">3D Preview</span>
+            </div>
+          </div>
+
+          <!-- RIGHT: Properties -->
+          <div class="builder-right">
+            <div class="bright-header"><i class="fas fa-sliders-h"></i>&nbsp; Design Properties</div>
+            <div class="bright-scroll">
+
+              <!-- Design Meta -->
+              <div class="bprop-section">
+                <div class="bprop-label"><i class="fas fa-pen"></i> Design Name</div>
+                <input class="bprop-input" id="b-design-name" type="text" placeholder="e.g. Coastal Oak Chair">
+                <div class="bprop-label" style="margin-top:0.8rem;"><i class="fas fa-venus-mars"></i> Target Style</div>
+                <select class="bprop-select" id="b-gender">
+                  <option value="neutral">Unisex (Any)</option>
+                  <option value="boy">Masculine</option>
+                  <option value="girl">Feminine</option>
+                </select>
+                <div class="bprop-label" style="margin-top:0.8rem;"><i class="fas fa-tag"></i> Badge</div>
+                <select class="bprop-select" id="b-badge">
+                  <option value="new">New</option>
+                  <option value="featured">Featured</option>
+                  <option value="premium">Premium</option>
+                </select>
+                <div class="bprop-label" style="margin-top:0.8rem;"><i class="fas fa-align-left"></i> Description</div>
+                <textarea class="bprop-input" id="b-description" rows="3"
+                  placeholder="Brief description of this design..." style="resize:vertical;"></textarea>
+              </div>
+
+              <!-- Parts/Layers -->
+              <div class="bprop-section">
+                <div class="bprop-label"><i class="fas fa-layer-group"></i> Parts &amp; Materials</div>
+                <div id="b-layers-container"></div>
+              </div>
+
+              <!-- Cost -->
+              <div class="cost-box">
+                <div class="cost-label"><i class="fas fa-peso-sign"></i> Estimated Cost</div>
+                <div class="cost-input-wrap">
+                  <span class="cost-currency">₱</span>
+                  <input class="cost-input" id="b-cost" type="number" min="0" placeholder="0.00" value="5000">
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Published Designs List -->
+      <div class="published-list" id="published-list-wrap">
+        <div class="pub-list-header">
+          <h3><i class="fas fa-store"></i> Currently Displayed Designs</h3>
+          <span style="font-size:0.8rem; color:var(--text-muted);">Visible in Templates &amp; Marketplace</span>
+        </div>
+        <div id="published-designs-list">
+          <p style="color:var(--text-light); text-align:center; padding:2rem 0; font-size:0.9rem;">No designs published
+            yet.</p>
+        </div>
+      </div>
+
+    </div><!-- /builder-wrap -->
 
   </div>
 
@@ -712,13 +1538,14 @@
   <div class="modal-overlay" id="permitModal">
     <div class="modal-box">
       <h2 style="font-family:'Playfair Display'; margin-bottom:1rem;">Shop Verification</h2>
-      <p style="color:var(--text-muted); margin-bottom:2rem;">Submit your legal document link (DTI/BIR) to receive your verified partner badge.</p>
-      
+      <p style="color:var(--text-muted); margin-bottom:2rem;">Submit your legal document link (DTI/BIR) to receive your
+        verified partner badge.</p>
+
       <div class="control-group">
         <label>Document Link</label>
         <input type="text" id="permitLinkInput" placeholder="https://drive.google.com/share-link">
       </div>
-      
+
       <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2.5rem;">
         <button class="btn btn-outline" onclick="closePermitModal()">Cancel</button>
         <button class="btn btn-primary" onclick="submitPermit()">Apply Verification</button>
@@ -726,9 +1553,37 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="reportModal">
+    <div class="modal-box">
+      <h2 style="font-family:'Playfair Display'; margin-bottom:1rem; color:var(--danger)"><i
+          class="fas fa-exclamation-triangle"></i> Report Customer</h2>
+      <p style="color:var(--text-muted); margin-bottom:1.5rem;">Report this customer to the administration for violating
+        platform rules. Please provide evidence.</p>
+
+      <div class="control-group" style="margin-bottom: 1rem;">
+        <label>Customer Name</label>
+        <input type="text" id="reportCustomerName" readonly style="background:#f1f5f9; cursor:not-allowed;">
+      </div>
+      <div class="control-group" style="margin-bottom: 1rem;">
+        <label>Reason / Feedback</label>
+        <input type="text" id="reportReasonInput" placeholder="Describe the violation...">
+      </div>
+      <div class="control-group" style="margin-bottom: 1.5rem;">
+        <label>Proof Document/Image Link</label>
+        <input type="text" id="reportProofInput" placeholder="https://imgur.com/... (Required)">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2.5rem;">
+        <button class="btn btn-outline" onclick="closeReportModal()">Cancel</button>
+        <button class="btn btn-danger" onclick="submitReport()"><i class="fas fa-paper-plane"></i> Submit
+          Report</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    if (sessionStorage.getItem('isLoggedIn') !== 'true' || sessionStorage.getItem('userType') !== 'shop') { 
-        window.location.href = 'shop_login.html'; 
+    if (sessionStorage.getItem('isLoggedIn') !== 'true' || sessionStorage.getItem('userType') !== 'shop') {
+      window.location.href = 'shop_login.html';
     }
 
     const username = sessionStorage.getItem('username') || 'Shop Admin';
@@ -737,6 +1592,9 @@
     let managedShopId = 1;
     let activeCustomer = '';
     let currentDpRate = 20;
+
+    let commissionPage = 1;
+    const commissionItemsPerPage = 3;
 
     function getCommissionsKey() { return `projectProposals_shop_${managedShopId}`; }
     function getMessagesKey() { return `chatMessages_shop_${managedShopId}`; }
@@ -747,43 +1605,43 @@
     function closePermitModal() { document.getElementById('permitModal').style.display = 'none'; }
 
     function loadPermitStatus() {
-        const permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '[]');
-        const st = permits.find(p => p.id === managedShopId);
-        const statusEl = document.getElementById('permitStatusText');
-        if (st && st.status === 'approved') {
-            statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Verified Shop';
-            statusEl.style.color = 'var(--success)';
-            statusEl.style.backgroundColor = '#d1fae5';
-        } else if (st && st.status === 'pending') {
-            statusEl.innerHTML = '<i class="fas fa-clock"></i> Reviewing...';
-            statusEl.style.color = 'var(--warning)';
-            statusEl.style.backgroundColor = 'var(--primary-soft)';
-        } else {
-            statusEl.innerHTML = '<i class="fas fa-shield-alt"></i> Not Verified';
-            statusEl.style.color = 'var(--text-light)';
-            statusEl.style.backgroundColor = 'transparent';
-        }
+      const permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '[]');
+      const st = permits.find(p => p.id === managedShopId);
+      const statusEl = document.getElementById('permitStatusText');
+      if (st && st.status === 'approved') {
+        statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Verified Shop';
+        statusEl.style.color = 'var(--success)';
+        statusEl.style.backgroundColor = '#d1fae5';
+      } else if (st && st.status === 'pending') {
+        statusEl.innerHTML = '<i class="fas fa-clock"></i> Reviewing...';
+        statusEl.style.color = 'var(--warning)';
+        statusEl.style.backgroundColor = 'var(--primary-soft)';
+      } else {
+        statusEl.innerHTML = '<i class="fas fa-shield-alt"></i> Not Verified';
+        statusEl.style.color = 'var(--text-light)';
+        statusEl.style.backgroundColor = 'transparent';
+      }
     }
 
     function loadReviews() {
-        const reviewsKey = `shopReviews_${managedShopId}`;
-        const reviews = JSON.parse(localStorage.getItem(reviewsKey) || '[]');
-        const container = document.getElementById('reviewsContainer');
-        container.innerHTML = '';
-        
-        if (!reviews.length) {
-            container.innerHTML = '<p style="text-align:center; color:var(--text-light); font-size:0.9rem;">No reviews yet.</p>';
-            return;
+      const reviewsKey = `shopReviews_${managedShopId}`;
+      const reviews = JSON.parse(localStorage.getItem(reviewsKey) || '[]');
+      const container = document.getElementById('reviewsContainer');
+      container.innerHTML = '';
+
+      if (!reviews.length) {
+        container.innerHTML = '<p style="text-align:center; color:var(--text-light); font-size:0.9rem;">No reviews yet.</p>';
+        return;
+      }
+
+      reviews.slice().reverse().forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'review-item';
+        let starsHTML = '';
+        for (let i = 0; i < 5; i++) {
+          starsHTML += `<i class="fas fa-star" style="color: ${i < r.rating ? '#f59e0b' : '#cbd5e1'}"></i>`;
         }
-        
-        reviews.slice().reverse().forEach(r => {
-            const div = document.createElement('div');
-            div.className = 'review-item';
-            let starsHTML = '';
-            for(let i=0; i<5; i++){
-                starsHTML += `<i class="fas fa-star" style="color: ${i < r.rating ? '#f59e0b' : '#cbd5e1'}"></i>`;
-            }
-            div.innerHTML = `
+        div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <h5>${r.customerName}</h5>
                     <span style="font-size:0.75rem; color:var(--text-light);">${new Date(r.date).toLocaleDateString()}</span>
@@ -791,37 +1649,37 @@
                 <div class="stars">${starsHTML}</div>
                 ${r.reviewText ? `<p>${r.reviewText}</p>` : `<p style="font-style:italic;">No comment provided.</p>`}
             `;
-            container.appendChild(div);
-        });
+        container.appendChild(div);
+      });
     }
 
     function submitPermit() {
-        const link = document.getElementById('permitLinkInput').value.trim();
-        if (!link) return alert('Link required.');
-        let permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '[]');
-        const existingIdx = permits.findIndex(p => p.id === managedShopId);
-        const newPermit = { 
-            id: managedShopId, 
-            shopName: 'Irawan Woodworks', 
-            owner: 'Ramon Irawan', 
-            docType: 'DTI Registration & Permit', 
-            docLink: link, 
-            status: 'pending', 
-            date: new Date().toISOString().split('T')[0] 
-        };
-        
-        if (existingIdx !== -1) permits[existingIdx] = newPermit;
-        else permits.push(newPermit);
-        
-        localStorage.setItem(getPermitsKey(), JSON.stringify(permits));
-        closePermitModal();
-        loadPermitStatus();
+      const link = document.getElementById('permitLinkInput').value.trim();
+      if (!link) return alert('Link required.');
+      let permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '[]');
+      const existingIdx = permits.findIndex(p => p.id === managedShopId);
+      const newPermit = {
+        id: managedShopId,
+        shopName: 'AFMB Valeza Rattan Furniture and Fixtures Partner ',
+        owner: 'Ramon Irawan',
+        docType: 'DTI Registration & Permit',
+        docLink: link,
+        status: 'pending',
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      if (existingIdx !== -1) permits[existingIdx] = newPermit;
+      else permits.push(newPermit);
+
+      localStorage.setItem(getPermitsKey(), JSON.stringify(permits));
+      closePermitModal();
+      loadPermitStatus();
     }
 
     function updateDpRate(val) {
       currentDpRate = parseInt(val, 10);
       document.getElementById('dpValueDisplay').textContent = currentDpRate + '%';
-      document.getElementById('dpText').textContent = `DP: ${currentDpRate}% Required`;
+      if (document.getElementById('dpText')) document.getElementById('dpText').textContent = `DP: ${currentDpRate}% Required`;
       localStorage.setItem(getSettingsKey(), JSON.stringify({ dpRate: currentDpRate }));
       loadCommissions();
     }
@@ -829,14 +1687,26 @@
     function loadCommissions() {
       const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
       const container = document.getElementById('commissionsList');
+      const pagContainer = document.getElementById('commissionsPagination');
       container.innerHTML = '';
+      pagContainer.innerHTML = '';
 
       if (!commissions.length) {
         container.innerHTML = '<p style="text-align:center; padding:4rem 0; color:var(--text-light);">No active build requests yet.</p>';
         return;
       }
 
-      commissions.slice().reverse().forEach((c) => {
+      const reversedComms = commissions.slice().reverse();
+      const totalPages = Math.ceil(reversedComms.length / commissionItemsPerPage);
+
+      if (commissionPage > totalPages) commissionPage = totalPages;
+      if (commissionPage < 1) commissionPage = 1;
+
+      const start = (commissionPage - 1) * commissionItemsPerPage;
+      const end = start + commissionItemsPerPage;
+      const paginatedComms = reversedComms.slice(start, end);
+
+      paginatedComms.forEach((c) => {
         const st = c.status || 'pending';
         const price = c.price || 0;
         const dp = Math.round(price * (currentDpRate / 100));
@@ -914,6 +1784,43 @@
         `;
         container.appendChild(div);
       });
+
+      renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+      const pagContainer = document.getElementById('commissionsPagination');
+      if (totalPages <= 1) {
+        pagContainer.style.display = 'none';
+        return;
+      }
+      pagContainer.style.display = 'flex';
+      pagContainer.innerHTML = '';
+
+      // Prev Button
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'pagination-btn';
+      prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+      prevBtn.disabled = commissionPage === 1;
+      prevBtn.onclick = () => { commissionPage--; loadCommissions(); };
+      pagContainer.appendChild(prevBtn);
+
+      // Page Numbers
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'pagination-btn' + (i === commissionPage ? ' active' : '');
+        btn.textContent = i;
+        btn.onclick = () => { commissionPage = i; loadCommissions(); };
+        pagContainer.appendChild(btn);
+      }
+
+      // Next Button
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'pagination-btn';
+      nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+      nextBtn.disabled = commissionPage === totalPages;
+      nextBtn.onclick = () => { commissionPage++; loadCommissions(); };
+      pagContainer.appendChild(nextBtn);
     }
 
     function updateCommissionStatus(id, st) {
@@ -921,11 +1828,24 @@
       const i = comms.findIndex(x => x.id === id);
       if (i !== -1) {
         comms[i].status = st;
-        if (st === 'in_progress') { 
-            comms[i].progressValue = 10; 
-            comms[i].progressLabel = "Sourcing Materials"; 
+        if (st === 'in_progress') {
+          comms[i].progressValue = 10;
+          comms[i].progressLabel = "Sourcing Materials";
         }
         localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
+
+        // Notify Customer
+        const customer = comms[i].customerName;
+        let msg = "";
+        let type = "status";
+        if (st === 'approved') msg = `Order accepted! Please pay the downpayment for "${comms[i].description}".`;
+        if (st === 'payment_verifying') msg = `We are verifying your payment for "${comms[i].description}".`;
+        if (st === 'in_progress') msg = `Payment verified! Build started for "${comms[i].description}".`;
+        if (st === 'completed') msg = `Project Finished! Your "${comms[i].description}" is 100% complete.`;
+        if (st === 'declined') msg = `Order declined for "${comms[i].description}". Check shop chat for details.`;
+
+        if (msg) sendUserNotification(customer, msg, type);
+
         loadCommissions();
         updateStats();
       }
@@ -934,11 +1854,28 @@
     function updateProgress(id, select) {
       const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
       const i = comms.findIndex(x => x.id === id);
+      if (i === -1) return;
       const [val, lab] = select.value.split('|');
       comms[i].progressValue = parseInt(val);
       comms[i].progressLabel = lab;
       localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
+
+      // Notify Customer of Progress
+      sendUserNotification(comms[i].customerName, `Build Update: "${comms[i].description}" is now at ${val}% (${lab}).`, "progress");
+
       loadCommissions();
+    }
+
+    function sendUserNotification(username, message, type = "status") {
+      let notifs = JSON.parse(localStorage.getItem('user_notifications_' + username) || '[]');
+      notifs.push({
+        id: Date.now(),
+        message: message,
+        type: type,
+        date: new Date().toISOString(),
+        read: false
+      });
+      localStorage.setItem('user_notifications_' + username, JSON.stringify(notifs));
     }
 
     function loadMessages() {
@@ -965,6 +1902,10 @@
       const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
       msgs.push({ sender: 'shop', customerName: activeCustomer, text: txt, timestamp: new Date().toISOString() });
       localStorage.setItem(getMessagesKey(), JSON.stringify(msgs));
+
+      // Notify User of new message
+      sendUserNotification(activeCustomer, `New message from ${sessionStorage.getItem('shopName') || 'the Shop'}: "${txt.substring(0, 30)}${txt.length > 30 ? '...' : ''}"`, "message");
+
       inp.value = '';
       loadMessages();
     }
@@ -980,45 +1921,589 @@
       document.getElementById('statCommissions').textContent = c.length;
       document.getElementById('statPending').textContent = c.filter(x => x.status === 'pending').length;
       document.getElementById('statMessages').textContent = new Set(m.map(x => x.customerName)).size;
-      
+
       let totalFees = 0;
       c.forEach(order => {
-          if(order.price) { totalFees += (order.price * 0.005); }
+        if (order.price) { totalFees += (order.price * 0.005); }
       });
-      document.getElementById('statFees').textContent = '₱' + totalFees.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      document.getElementById('statFees').textContent = '₱' + totalFees.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    function startCustomization() {
-        const type = document.getElementById('tdType').value;
-        const name = document.getElementById('tdName').value || "New Design";
-        document.getElementById('customizationContainer').style.display = 'block';
-        document.getElementById('customizationFrame').src = `customization.html?type=${type}&name=${encodeURIComponent(name)}&mode=template`;
-        window.scrollTo({ top: document.getElementById('customizationContainer').offsetTop - 80, behavior: 'smooth' });
+    /* ══════════════════════════════════════════
+       3D BUILDER ENGINE
+    ══════════════════════════════════════════ */
+
+    // ── Furniture type definitions ──
+    const FTYPES = [
+      {
+        id: 'chair', label: 'Chair', icon: 'fa-chair', parts: ['Seat', 'Back', 'Legs'],
+        dims: { Seat: { w: 46, h: 6, d: 46 }, Back: { w: 46, h: 42, d: 5 }, Legs: { w: 5, h: 46, d: 5 } },
+        colors: { Seat: '#8B4513', Back: '#8B4513', Legs: '#5c3a21' }
+      },
+      {
+        id: 'table', label: 'Table', icon: 'fa-utensils', parts: ['Top', 'Legs'],
+        dims: { Top: { w: 150, h: 6, d: 80 }, Legs: { w: 8, h: 74, d: 8 } },
+        colors: { Top: '#5c3a21', Legs: '#f1c40f' }
+      },
+      {
+        id: 'sofa', label: 'Sofa', icon: 'fa-couch', parts: ['Frame', 'Cushions', 'Arms'],
+        dims: { Frame: { w: 220, h: 40, d: 85 }, Cushions: { w: 188, h: 16, d: 68 }, Arms: { w: 20, h: 60, d: 85 } },
+        colors: { Frame: '#2c3e50', Cushions: '#7b1fa2', Arms: '#2c3e50' }
+      },
+      {
+        id: 'bed', label: 'Bed', icon: 'fa-bed', parts: ['Headboard', 'Frame', 'Legs'],
+        dims: { Headboard: { w: 190, h: 100, d: 10 }, Frame: { w: 190, h: 28, d: 205 }, Legs: { w: 8, h: 18, d: 8 } },
+        colors: { Headboard: '#d4ac7d', Frame: '#d4ac7d', Legs: '#c9a96e' }
+      },
+      {
+        id: 'cabinet', label: 'Cabinet', icon: 'fa-door-closed', parts: ['Body', 'Doors'],
+        dims: { Body: { w: 110, h: 210, d: 62 }, Doors: { w: 48, h: 200, d: 5 } },
+        colors: { Body: '#8B4513', Doors: '#5c3a21' }
+      },
+      {
+        id: 'desk', label: 'Desk', icon: 'fa-desktop', parts: ['Top', 'Legs'],
+        dims: { Top: { w: 130, h: 5, d: 65 }, Legs: { w: 6, h: 74, d: 6 } },
+        colors: { Top: '#a8d8ea', Legs: '#1a1a1a' }
+      },
+      {
+        id: 'stool', label: 'Stool', icon: 'fa-circle', parts: ['Seat', 'Legs'],
+        dims: { Seat: { w: 34, h: 5, d: 34 }, Legs: { w: 4, h: 50, d: 4 } },
+        colors: { Seat: '#95a5a6', Legs: '#95a5a6' }
+      },
+      {
+        id: 'bookshelf', label: 'Bookshelf', icon: 'fa-book', parts: ['Body', 'Shelves'],
+        dims: { Body: { w: 90, h: 180, d: 32 }, Shelves: { w: 84, h: 3, d: 28 } },
+        colors: { Body: '#1a1a1a', Shelves: '#95a5a6' }
+      },
+    ];
+
+    const MATERIAL_DB = {
+      narra: { name: 'Narra', icon: '🌳', hex: '#8B4513' },
+      kamagong: { name: 'Kamagong', icon: '🌳', hex: '#1a0a00' },
+      molave: { name: 'Molave', icon: '🌳', hex: '#7a5230' },
+      mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21' },
+      oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d' },
+      pine: { name: 'Pine', icon: '🌲', hex: '#c9a96e' },
+      rubberwood: { name: 'Rubber Wood', icon: '🌿', hex: '#c8a87a' },
+      steel: { name: 'Steel', icon: '⚙️', hex: '#95a5a6' },
+      fabric: { name: 'Fabric', icon: '🧶', hex: '#34495e' },
+      leather: { name: 'Leather', icon: '🐄', hex: '#2c3e50' },
+      velvet: { name: 'Red Velvet', icon: '🧣', hex: '#7b1fa2' },
+      gold: { name: 'Gold Trim', icon: '✨', hex: '#f1c40f' },
+      glass: { name: 'Glass', icon: '💎', hex: '#a8d8ea' },
+      white_wood: { name: 'White Wood', icon: '⬜', hex: '#eeeeee' },
+      matte_black: { name: 'Matte Black', icon: '⬛', hex: '#1a1a1a' },
+      tanguile: { name: 'Tanguile', icon: '🌳', hex: '#a0522d' },
+    };
+
+    // ── State ──
+    let bScene, bCamera, bRenderer, bControls, bGroup, bAnimId;
+    let bRotating = true;
+    let bActive = { typeId: null, dims: {}, colors: {}, parts: [] };
+    let bActiveLayer = null;
+
+    // ── Open/Close Builder ──
+    function openBuilderPanel() {
+      const wrap = document.getElementById('builder-wrap');
+      wrap.style.display = 'block';
+      window.scrollTo({ top: wrap.offsetTop - 80, behavior: 'smooth' });
+      if (!bRenderer) initBuilder();
+      buildFtypeList();
+      if (!bActive.typeId) selectFtype('chair');
+      loadPublishedDesigns();
     }
-    function closeCustomizer() { document.getElementById('customizationContainer').style.display = 'none'; }
-    function saveCustomTemplate() { alert('Design linked to gallery.'); closeCustomizer(); }
+
+    function closeBuilderPanel() {
+      document.getElementById('builder-wrap').style.display = 'none';
+      if (bAnimId) { cancelAnimationFrame(bAnimId); bAnimId = null; }
+    }
+
+    // ── Three.js init ──
+    function initBuilder() {
+      const canvas = document.getElementById('builder-canvas');
+      const wrap = document.getElementById('builder-canvas-wrap');
+      const W = wrap.clientWidth || 600, H = wrap.clientHeight || 780;
+
+      bScene = new THREE.Scene();
+      bScene.background = new THREE.Color(0x0d1117);
+      bScene.fog = new THREE.Fog(0x0d1117, 30, 120);
+
+      bCamera = new THREE.PerspectiveCamera(45, W / H, 0.1, 500);
+      bCamera.position.set(0, 3, 12);
+
+      bRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+      bRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      bRenderer.setSize(W, H);
+      bRenderer.shadowMap.enabled = true;
+      bRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      // Lights
+      bScene.add(new THREE.AmbientLight(0xffffff, 0.55));
+      const dl = new THREE.DirectionalLight(0xffffff, 1.1);
+      dl.position.set(8, 14, 8); dl.castShadow = true; bScene.add(dl);
+      const dl2 = new THREE.DirectionalLight(0x818cf8, 0.4);
+      dl2.position.set(-6, 6, -4); bScene.add(dl2);
+      const pl = new THREE.PointLight(0xa5b4fc, 0.8, 40);
+      pl.position.set(0, 8, 0); bScene.add(pl);
+
+      // Grid floor
+      const grid = new THREE.GridHelper(40, 40, 0x1e293b, 0x1e293b);
+      grid.position.y = -0.01; bScene.add(grid);
+
+      // OrbitControls
+      bControls = new THREE.OrbitControls(bCamera, bRenderer.domElement);
+      bControls.enableDamping = true;
+      bControls.dampingFactor = 0.06;
+      bControls.autoRotate = true;
+      bControls.autoRotateSpeed = 1.2;
+      bControls.minDistance = 3;
+      bControls.maxDistance = 40;
+
+      // Resize
+      const ro = new ResizeObserver(() => {
+        const w = wrap.clientWidth, h = wrap.clientHeight;
+        bCamera.aspect = w / h;
+        bCamera.updateProjectionMatrix();
+        bRenderer.setSize(w, h);
+      });
+      ro.observe(wrap);
+
+      bLoop();
+    }
+
+    function bLoop() {
+      bAnimId = requestAnimationFrame(bLoop);
+      if (bControls) bControls.update();
+      if (bRenderer && bScene && bCamera) bRenderer.render(bScene, bCamera);
+    }
+
+    // ── Furniture Type List ──
+    function buildFtypeList() {
+      const list = document.getElementById('ftype-list');
+      list.innerHTML = '';
+      FTYPES.forEach(ft => {
+        const d = document.createElement('div');
+        d.className = 'ftype-item' + (bActive.typeId === ft.id ? ' active' : '');
+        d.id = 'ftype-' + ft.id;
+        d.onclick = () => selectFtype(ft.id);
+        d.innerHTML = `<i class="fas ${ft.icon}"></i>${ft.label}<span class="ftype-count">${ft.parts.length}P</span>`;
+        list.appendChild(d);
+      });
+    }
+
+    function selectFtype(id) {
+      const ft = FTYPES.find(f => f.id === id);
+      if (!ft) return;
+      // Deep copy
+      bActive.typeId = id;
+      bActive.parts = [...ft.parts];
+      bActive.dims = JSON.parse(JSON.stringify(ft.dims));
+      bActive.colors = JSON.parse(JSON.stringify(ft.colors));
+      bActiveLayer = ft.parts[0];
+
+      document.getElementById('b-overlay-name').textContent = ft.label;
+      document.getElementById('b-overlay-type').textContent = ft.id.toUpperCase();
+      buildFtypeList();
+      renderBLayers();
+      buildFurniture3D();
+    }
+
+    // ── Build 3D Model ──
+    function buildFurniture3D() {
+      if (!bScene) return;
+      if (bGroup) { bScene.remove(bGroup); bGroup.traverse(c => { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); }); }
+      bGroup = new THREE.Group();
+      const id = bActive.typeId;
+      const scale = 1 / 18; // cm to scene units
+
+      const makeMesh = (w, h, d, hex, opacity = 1, radius = 0.04) => {
+        const geo = new THREE.BoxGeometry(w * scale, h * scale, d * scale);
+        const mat = new THREE.MeshPhongMaterial({
+          color: new THREE.Color(hex),
+          shininess: 60,
+          transparent: opacity < 1,
+          opacity: opacity,
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        return mesh;
+      };
+
+      const c = bActive.colors;
+      const dims = bActive.dims;
+      const S = scale;
+
+      if (id === 'chair') {
+        const { Seat, Back, Legs } = dims;
+        const seat = makeMesh(Seat.w, Seat.h, Seat.d, c.Seat);
+        seat.position.y = Legs.h * S + Seat.h * S / 2;
+        bGroup.add(seat);
+        const back = makeMesh(Back.w, Back.h, Back.d, c.Back);
+        back.position.y = Legs.h * S + Seat.h * S + Back.h * S / 2;
+        back.position.z = -Seat.d * S / 2 + Back.d * S / 2;
+        bGroup.add(back);
+        const legPos = [[1, -1], [1, 1], [-1, -1], [-1, 1]];
+        legPos.forEach(([sx, sz]) => {
+          const leg = makeMesh(Legs.w, Legs.h, Legs.w, c.Legs);
+          leg.position.set(sx * (Seat.w * S / 2 - Legs.w * S / 2), Legs.h * S / 2, sz * (Seat.d * S / 2 - Legs.w * S / 2));
+          bGroup.add(leg);
+        });
+      } else if (id === 'table') {
+        const { Top, Legs } = dims;
+        const top = makeMesh(Top.w, Top.h, Top.d, c.Top);
+        top.position.y = Legs.h * S + Top.h * S / 2;
+        bGroup.add(top);
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+          const leg = makeMesh(Legs.w, Legs.h, Legs.w, c.Legs);
+          leg.position.set(sx * (Top.w * S / 2 - Legs.w * S), Legs.h * S / 2, sz * (Top.d * S / 2 - Legs.w * S));
+          bGroup.add(leg);
+        });
+      } else if (id === 'sofa') {
+        const { Frame, Cushions, Arms } = dims;
+        const frame = makeMesh(Frame.w, Frame.h, Frame.d, c.Frame);
+        frame.position.y = Frame.h * S / 2;
+        bGroup.add(frame);
+        const cush = makeMesh(Cushions.w, Cushions.h, Cushions.d, c.Cushions);
+        cush.position.y = Frame.h * S + Cushions.h * S / 2;
+        bGroup.add(cush);
+        [-1, 1].forEach(sx => {
+          const arm = makeMesh(Arms.w, Arms.h, Arms.d, c.Arms);
+          arm.position.set(sx * (Frame.w * S / 2 - Arms.w * S / 2), Arms.h * S / 2, 0);
+          bGroup.add(arm);
+        });
+        // Backrest
+        const backR = makeMesh(Frame.w, Frame.h * 1.6, 10, c.Frame);
+        backR.position.set(0, Frame.h * S + (Frame.h * 1.6 * S) / 2 - Frame.h * S / 2 - 0.05, -Frame.d * S / 2 + 5 * S);
+        bGroup.add(backR);
+      } else if (id === 'bed') {
+        const { Headboard, Frame, Legs } = dims;
+        const frame = makeMesh(Frame.w, Frame.h, Frame.d, c.Frame);
+        frame.position.y = Legs.h * S + Frame.h * S / 2;
+        bGroup.add(frame);
+        const head = makeMesh(Headboard.w, Headboard.h, Headboard.d, c.Headboard);
+        head.position.set(0, Legs.h * S + Headboard.h * S / 2, -Frame.d * S / 2 - Headboard.d * S / 2);
+        bGroup.add(head);
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+          const leg = makeMesh(Legs.w, Legs.h, Legs.w, c.Legs);
+          leg.position.set(sx * (Frame.w * S / 2 - Legs.w * S * 1.5), Legs.h * S / 2, sz * (Frame.d * S / 2 - Legs.w * S * 1.5));
+          bGroup.add(leg);
+        });
+        // Mattress
+        const mat = makeMesh(Frame.w * 0.95, 14, Frame.d * 0.92, '#f0e6d3');
+        mat.position.y = Legs.h * S + Frame.h * S + 14 * S / 2;
+        bGroup.add(mat);
+      } else if (id === 'cabinet') {
+        const { Body, Doors } = dims;
+        const body = makeMesh(Body.w, Body.h, Body.d, c.Body);
+        body.position.y = Body.h * S / 2;
+        bGroup.add(body);
+        // 2 doors
+        [-1, 1].forEach(sx => {
+          const door = makeMesh(Doors.w, Doors.h, Doors.d, c.Doors);
+          door.position.set(sx * Body.w * S / 4, Body.h * S / 2 - (Body.h - Doors.h) * S / 2, Body.d * S / 2 + Doors.d * S / 2 + 0.01);
+          bGroup.add(door);
+        });
+        // Shelves
+        for (let i = 1; i <= 3; i++) {
+          const shelf = makeMesh(Body.w * 0.9, 3, Body.d * 0.9, '#cccccc', 0.7);
+          shelf.position.y = (Body.h * S / 4) * i;
+          shelf.position.z = -Doors.d * S;
+          bGroup.add(shelf);
+        }
+      } else if (id === 'desk') {
+        const { Top, Legs } = dims;
+        const top = makeMesh(Top.w, Top.h, Top.d, c.Top);
+        top.position.y = Legs.h * S + Top.h * S / 2;
+        bGroup.add(top);
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+          const leg = makeMesh(Legs.w, Legs.h, Legs.w, c.Legs);
+          leg.position.set(sx * (Top.w * S / 2 - Legs.w * S), Legs.h * S / 2, sz * (Top.d * S / 2 - Legs.w * S));
+          bGroup.add(leg);
+        });
+      } else if (id === 'stool') {
+        const { Seat, Legs } = dims;
+        const seat = makeMesh(Seat.w, Seat.h, Seat.d, c.Seat);
+        seat.position.y = Legs.h * S + Seat.h * S / 2;
+        bGroup.add(seat);
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+          const leg = makeMesh(Legs.w, Legs.h, Legs.w, c.Legs);
+          leg.position.set(sx * (Seat.w * S / 2 - Legs.w * S), Legs.h * S / 2, sz * (Seat.d * S / 2 - Legs.w * S));
+          bGroup.add(leg);
+        });
+      } else if (id === 'bookshelf') {
+        const { Body, Shelves } = dims;
+        const body = makeMesh(Body.w, Body.h, Body.d, c.Body);
+        body.position.y = Body.h * S / 2;
+        bGroup.add(body);
+        for (let i = 0; i <= 4; i++) {
+          const sh = makeMesh(Body.w * 0.9, Shelves.h, Shelves.d, c.Shelves);
+          sh.position.y = (Body.h * S * i) / 4 + Shelves.h * S / 2;
+          sh.position.z = (Body.d * S - Shelves.d * S) / 2 - 0.02;
+          bGroup.add(sh);
+        }
+      }
+
+      // Center the group
+      const box = new THREE.Box3().setFromObject(bGroup);
+      const center = box.getCenter(new THREE.Vector3());
+      bGroup.position.sub(center);
+      bGroup.position.y += box.getSize(new THREE.Vector3()).y / 2;
+      bScene.add(bGroup);
+
+      // Fit camera
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const fov = bCamera.fov * (Math.PI / 180);
+      const dist = Math.abs(maxDim / Math.sin(fov / 2)) * 0.65;
+      bCamera.position.set(dist * 0.7, dist * 0.5, dist);
+      if (bControls) bControls.target.set(0, 0, 0);
+    }
+
+    // ── Render Layers/Parts ──
+    function renderBLayers() {
+      const container = document.getElementById('b-layers-container');
+      container.innerHTML = '';
+      if (!bActive.parts.length) return;
+      bActive.parts.forEach(part => {
+        const hex = bActive.colors[part] || '#8B4513';
+        const dims = bActive.dims[part] || { w: 100, h: 50, d: 50 };
+        const isActive = bActiveLayer === part;
+        const div = document.createElement('div');
+        div.className = 'part-layer' + (isActive ? ' active open' : '');
+        div.onclick = (e) => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+          bActiveLayer = part;
+          div.classList.toggle('active');
+          div.classList.toggle('open');
+          renderBLayers();
+        };
+        div.innerHTML = `
+          <div class="part-layer-head">
+            <span><i class="fas fa-layer-group" style="margin-right:7px;color:#475569;"></i>${part}${isActive ? ' <span style="font-size:.65rem;color:#818cf8;">(Active)</span>' : ''}</span>
+            <div class="part-color-dot" style="background:${hex}"></div>
+          </div>
+          <div class="part-layer-body">
+            <div class="bprop-label" style="margin-bottom:6px;"><i class="fas fa-palette"></i> Material</div>
+            <div class="mat-grid" id="mat-grid-${part}">${buildMatGrid(part, hex)}</div>
+            <div class="hex-row">
+              <input type="color" class="hex-color-picker" value="${hex}" oninput="applyBColor('${part}', this.value)">
+              <input type="text" class="hex-text" value="${hex}" onchange="applyBColor('${part}', this.value)">
+            </div>
+            <div class="bprop-label" style="margin:10px 0 6px;"><i class="fas fa-ruler-combined"></i> Dimensions (cm)</div>
+            <div class="dim-grid">
+              <div><input class="dim-field" type="number" value="${dims.w}" oninput="applyBDim('${part}','w',this.value)"><div class="dim-tag">Width</div></div>
+              <div><input class="dim-field" type="number" value="${dims.h}" oninput="applyBDim('${part}','h',this.value)"><div class="dim-tag">Height</div></div>
+              <div><input class="dim-field" type="number" value="${dims.d}" oninput="applyBDim('${part}','d',this.value)"><div class="dim-tag">Depth</div></div>
+            </div>
+          </div>`;
+        container.appendChild(div);
+      });
+    }
+
+    function buildMatGrid(part, activeHex) {
+      return Object.entries(MATERIAL_DB).map(([k, m]) => {
+        const sel = m.hex.toLowerCase() === activeHex.toLowerCase() ? ' selected' : '';
+        return `<div class="mat-chip${sel}" onclick="applyBColor('${part}','${m.hex}')" title="${m.name}">
+          <div class="mat-chip-icon">${m.icon}</div>
+          <div>${m.name.split(' ')[0]}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function applyBColor(part, hex) {
+      if (!hex.startsWith('#')) hex = '#' + hex;
+      bActive.colors[part] = hex;
+      renderBLayers();
+      buildFurniture3D();
+    }
+
+    function applyBDim(part, axis, val) {
+      const v = Math.max(parseInt(val) || 1, 1);
+      if (!bActive.dims[part]) bActive.dims[part] = { w: 100, h: 50, d: 50 };
+      bActive.dims[part][axis] = v;
+      buildFurniture3D();
+    }
+
+    function toggleBRotation() {
+      bRotating = !bRotating;
+      if (bControls) bControls.autoRotate = bRotating;
+      const btn = document.getElementById('btn-brotate');
+      btn.innerHTML = bRotating ? '<i class="fas fa-pause"></i> Pause' : '<i class="fas fa-play"></i> Rotate';
+    }
+
+    function resetBCamera() {
+      if (!bCamera) return;
+      bCamera.position.set(8, 5, 12);
+      if (bControls) { bControls.target.set(0, 0, 0); bControls.update(); }
+    }
+
+    // ── Display / Publish ──
+    function displayDesign() {
+      const name = document.getElementById('b-design-name').value.trim();
+      if (!name) { alert('Please enter a design name first.'); document.getElementById('b-design-name').focus(); return; }
+      if (!bActive.typeId) { alert('Please select a furniture type.'); return; }
+
+      const ft = FTYPES.find(f => f.id === bActive.typeId);
+      const costVal = parseFloat(document.getElementById('b-cost').value) || 5000;
+      const gender = document.getElementById('b-gender').value;
+      const badge = document.getElementById('b-badge').value;
+      const desc = document.getElementById('b-description').value.trim() ||
+        `Custom ${ft.label} designed by ${sessionStorage.getItem('username') || 'Shop Owner'}.`;
+
+      // Capture 3D preview snapshot
+      let previewDataUrl = '';
+      if (bRenderer && bScene && bCamera) {
+        const oldBg = bScene.background;
+        bScene.background = new THREE.Color(0x1e1e24);
+        bRenderer.render(bScene, bCamera);
+        previewDataUrl = bRenderer.domElement.toDataURL('image/png');
+        bScene.background = oldBg;
+      }
+
+      const iconMap = {
+        chair: 'fa-chair', table: 'fa-utensils', sofa: 'fa-couch', bed: 'fa-bed',
+        cabinet: 'fa-door-closed', desk: 'fa-desktop', stool: 'fa-circle', bookshelf: 'fa-book'
+      };
+
+      const newTemplate = {
+        id: Date.now() + 10001, // IDs > 10001 = shop-published
+        type: bActive.typeId,
+        name: name,
+        icon: iconMap[bActive.typeId] || 'fa-cube',
+        badge: badge,
+        gender: gender,
+        description: desc,
+        tags: [ft.label, gender === 'neutral' ? 'Unisex' : (gender === 'boy' ? 'Masculine' : 'Feminine'), 'Custom'],
+        parts: [...bActive.parts],
+        selections: { ...bActive.colors },
+        carvings: Object.fromEntries(bActive.parts.map(p => [p, 'none'])),
+        shapes: Object.fromEntries(bActive.parts.map(p => [p, 'square'])),
+        dims: JSON.parse(JSON.stringify(bActive.dims)),
+        scale: { x: 1, y: 1, z: 1 },
+        basePrice: costVal,
+        previewDataUrl: previewDataUrl,
+        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+        publishedAt: new Date().toISOString(),
+      };
+
+      // Save to shop_templates_global → consumed by templates.html
+      let globalTemplates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      globalTemplates.unshift(newTemplate);
+      localStorage.setItem('shop_templates_global', JSON.stringify(globalTemplates));
+
+      // Save to shop_custom_designs → consumed by main.html / shop.html
+      let customDesigns = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
+      customDesigns.unshift(newTemplate);
+      localStorage.setItem('shop_custom_designs', JSON.stringify(customDesigns));
+
+      // Update stat counter
+      const statEl = document.getElementById('statModels');
+      if (statEl) statEl.textContent = parseInt(statEl.textContent || '0') + 1;
+
+      loadPublishedDesigns();
+
+      // Flash success
+      const btn = document.getElementById('btn-display-design');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-check"></i> Published!';
+      btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+      setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2200);
+    }
+
+    // ── Load Published Designs ──
+    function loadPublishedDesigns() {
+      const list = document.getElementById('published-designs-list');
+      const templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      if (!templates.length) {
+        list.innerHTML = '<p style="color:var(--text-light); text-align:center; padding:2rem 0; font-size:0.9rem;">No designs published yet.</p>';
+        return;
+      }
+      list.innerHTML = templates.map((t, i) => `
+        <div class="pub-item">
+          ${t.previewDataUrl ? `<img src="${t.previewDataUrl}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;background:#1e293b;border:1px solid var(--border);flex-shrink:0;">` : '<div style="width:48px;height:48px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-cube" style="color:#94a3b8;"></i></div>'}
+          <div class="pub-item-info">
+            <div class="pub-item-name">${t.name}</div>
+            <div class="pub-item-meta"><i class="fas fa-${t.icon.replace('fa-', '')}"></i> ${t.type.toUpperCase()} · ${t.badge} · ${t.gender} · ${new Date(t.publishedAt).toLocaleDateString()}</div>
+          </div>
+          <div class="pub-item-cost">₱${(t.basePrice || 0).toLocaleString()}</div>
+          <button class="btn-unpublish" onclick="unpublishDesign(${i})"><i class="fas fa-trash"></i></button>
+        </div>`).join('');
+    }
+
+    function unpublishDesign(idx) {
+      if (!confirm('Remove this design from the gallery and marketplace?')) return;
+      let templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      const removed = templates.splice(idx, 1);
+      localStorage.setItem('shop_templates_global', JSON.stringify(templates));
+      // also remove from custom designs
+      if (removed.length) {
+        let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
+        custom = custom.filter(c => c.id !== removed[0].id);
+        localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
+        const statEl = document.getElementById('statModels');
+        if (statEl) statEl.textContent = Math.max(0, parseInt(statEl.textContent || '0') - 1);
+      }
+      loadPublishedDesigns();
+    }
+
+    function openReportModal() {
+      if (!activeCustomer) return alert('No customer selected.');
+      document.getElementById('reportCustomerName').value = activeCustomer;
+      document.getElementById('reportReasonInput').value = '';
+      document.getElementById('reportProofInput').value = '';
+      document.getElementById('reportModal').style.display = 'flex';
+    }
+    function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
+    function submitReport() {
+      const reason = document.getElementById('reportReasonInput').value.trim();
+      const proof = document.getElementById('reportProofInput').value.trim();
+      if (!reason || !proof) return alert('Reason and Proof link are required to file a report.');
+
+      let adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
+      let reportedUser = adminUsers.find(u => u.name === activeCustomer);
+      let reportedId = reportedUser ? reportedUser.id : Math.floor(Math.random() * 1000);
+
+      let reports = JSON.parse(localStorage.getItem('infraction_reports') || '[]');
+      reports.push({
+        id: Date.now(),
+        userId: reportedId,
+        userName: activeCustomer,
+        reason: reason,
+        severity: 'High',
+        proofImage: proof,
+        date: new Date().toISOString().split('T')[0]
+      });
+      localStorage.setItem('infraction_reports', JSON.stringify(reports));
+      alert('Report with evidence submitted to administration for review.');
+      closeReportModal();
+    }
 
     function logoutShop() { sessionStorage.clear(); window.location.href = 'shop_login.html'; }
     function goToMain() { window.location.href = 'front_page.html'; }
 
     window.onload = () => {
-        const s = JSON.parse(localStorage.getItem(getSettingsKey()) || '{"dpRate": 20}');
-        updateDpRate(s.dpRate);
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const sel = document.getElementById('customerThreadSelect');
-        users.forEach(u => {
-            if (!u.role || u.role === 'customer') {
-                const o = document.createElement('option');
-                o.value = u.name; o.textContent = u.name;
-                sel.appendChild(o);
-            }
-        });
-        if (sel.options.length) { activeCustomer = sel.value; loadMessages(); }
-        loadPermitStatus();
-        loadCommissions();
-        loadReviews();
-        updateStats();
+      const s = JSON.parse(localStorage.getItem(getSettingsKey()) || '{"dpRate": 20}');
+      updateDpRate(s.dpRate);
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const sel = document.getElementById('customerThreadSelect');
+      users.forEach(u => {
+        if (!u.role || u.role === 'customer') {
+          const o = document.createElement('option');
+          o.value = u.name; o.textContent = u.name;
+          sel.appendChild(o);
+        }
+      });
+      if (sel.options.length) { activeCustomer = sel.value; loadMessages(); }
+      loadPermitStatus();
+      loadCommissions();
+      loadReviews();
+      updateStats();
+      // Sync 3D Models counter
+      const modelsCount = JSON.parse(localStorage.getItem('shop_templates_global') || '[]').length;
+      document.getElementById('statModels').textContent = modelsCount;
     };
   </script>
 </body>
+
 </html>

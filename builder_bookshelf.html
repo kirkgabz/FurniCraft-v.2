@@ -2,175 +2,446 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FurniCraft CAD - 3D Template Builder (Bookshelf)</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FurniCraft CAD - Bookshelf Designer Pro</title>
 
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+    <script>
+        /* ― Shop Mode Logic ― */
+        (function initShopMode() {
+            if (sessionStorage.getItem('craftMode') !== 'shop') return;
+            window.addEventListener('load', () => {
+                const uploadBtn = document.getElementById('btn-upload-template');
+                const exportBtn = document.getElementById('btn-main-export');
+                if (uploadBtn) uploadBtn.style.display = 'flex';
+                if (exportBtn) exportBtn.style.display = 'none';
+                const addBtn = document.querySelector('.btn-add');
+                if (addBtn) addBtn.onclick = () => window.location.href = 'shop_studio.html';
+            });
+        })();
 
-  <style>
-    :root {
-      --bg-dark: #1e1e1e;
-      --bg-panel: #252526;
-      --bg-header: #333333;
-      --accent: #8e44ad;
-      --accent2: #6c3483;
-      --select-blue: #007acc;
-      --text-main: #e0e0e0;
-      --text-dim: #999;
-      --border: #3e3e42;
-      --gold: #f1c40f;
-      --rec-bg: #2a1a35;
-    }
+        function uploadToTemplates() {
+            const nameInput = document.getElementById('project-name');
+            const projectName = (nameInput && nameInput.value.trim()) || 'Custom Bookshelf Design';
+            const priceEl = document.getElementById('total-price');
+            const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+            const costVal = parseFloat(priceText) || 8000;
+            let previewDataUrl = '';
+            const canvas = document.querySelector('#canvas-container canvas');
+            if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
+            const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
+            const tmpl = {
+                id: Date.now() + 20004,
+                type: 'bookshelf',
+                name: projectName,
+                description: 'Custom bookshelf crafted in 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+                previewDataUrl: previewDataUrl,
+                publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+                publishedAt: new Date().toISOString(),
+                basePrice: costVal,
+                designData: ai
+            };
+            let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+            globals.unshift(tmpl);
+            localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+            
+            let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
+            custom.unshift(tmpl);
+            localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+            sessionStorage.removeItem('craftMode');
+            alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
+            window.location.href = 'templates.html';
+        }
+    </script>
 
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
+    <style>
+        :root {
+            --bg-dark:#1e1e1e; --bg-panel:#252526; --bg-header:#333333;
+            --accent:#8e44ad; --accent2:#6c3483; --select-blue:#007acc; --text-main:#e0e0e0;
+            --text-dim:#999; --border:#3e3e42; --gold:#f1c40f; --rec-bg:#2a1a35;
+        }
 
-    header {
-      height: 45px;
-      background-color: var(--bg-header);
-      display: flex;
-      align-items: center;
-      padding: 0 1rem;
-      border-bottom: 1px solid var(--border);
-      justify-content: space-between;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .brand {
-      font-weight: 600;
-      color: white;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
 
-    .header-actions { display: flex; gap: 10px; }
+        header {
+            height: 60px;
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+            z-index: 10;
+        }
 
-    .btn-header {
-      padding: 5px 14px;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      border: none;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: 0.2s;
-    }
+        .brand {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-    .btn-back { background: #444; color: white; }
-    .btn-back:hover { background: #555; }
-    .btn-publish { background: #10b981; color: white; }
-    .btn-publish:hover { background: #059669; }
+        .btn-export {
+            background: var(--select-blue);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    .workspace { display: flex; flex: 1; height: calc(100vh - 45px); }
+        .btn-export:hover {
+            background: #008ae6;
+            transform: translateY(-1px);
+        }
 
-    .panel-left {
-      width: 280px;
-      background-color: var(--bg-panel);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      z-index: 5;
-    }
+        .workspace {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
 
-    .panel-header {
-      padding: 14px 16px;
-      font-size: 0.82rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #e0e0e0;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #2a2a2e 0%, #252526 100%);
-    }
+        .panel-left {
+            width: 280px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+        }
 
-    .scene-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .panel-header {
+            padding: 18px 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
 
-    .scene-item {
-      padding: 13px 12px;
-      margin-bottom: 4px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.95rem;
-      transition: 0.15s;
-    }
+        .scene-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
 
-    .scene-item:hover { background-color: #333; }
-    .scene-item.active { background-color: #37373d; border-left: 3px solid var(--accent); padding-left: 10px; }
+        .scene-item {
+            padding: 12px 14px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+        }
 
-    .btn-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
-    .btn-delete:hover { color: #c0392b; background: rgba(192, 57, 43, 0.1); }
+        .scene-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+        }
 
-    .btn-add {
-      width: 100%;
-      padding: 14px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: 0.2s;
-    }
+        .scene-item.active {
+            background: rgba(142, 68, 173, 0.15);
+            border-color: var(--accent);
+            color: white;
+        }
 
-    .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); }
-    #canvas-container { width: 100%; height: 100%; outline: none; }
+        .scene-item i {
+            margin-right: 10px;
+            color: var(--text-dim);
+        }
 
-    .viewport-controls {
-      position: absolute;
-      top: 25px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      padding: 5px;
-      border-radius: 20px;
-      border: 1px solid #555;
-      display: flex;
-      gap: 5px;
-      z-index: 10;
-    }
+        .scene-item.active i {
+            color: var(--accent);
+        }
 
-    .vp-btn {
-      background: transparent;
-      border: none;
-      color: #ddd;
-      padding: 8px 15px;
-      border-radius: 15px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: 0.2s;
-    }
-    .vp-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .btn-delete {
+            opacity: 0;
+            background: none;
+            border: none;
+            color: #ff4d4d;
+            cursor: pointer;
+            padding: 4px;
+            transition: 0.2s;
+        }
 
-    .score-card {
+        .scene-item:hover .btn-delete {
+            opacity: 1;
+        }
+
+        .btn-add {
+            margin: 15px;
+            background: none;
+            border: 1px dashed #555;
+            color: #888;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .btn-add:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(142, 68, 173, 0.05);
+        }
+
+        .viewport {
+            flex: 1;
+            position: relative;
+            background: #111;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .viewport-controls {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .vp-btn {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid #444;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .vp-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* ── Design Selection Modal ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .design-modal {
+            background: #252526;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            border-radius: 12px;
+            border: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .modal-title {
+            padding: 24px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-bottom: 1px solid #333;
+        }
+
+        .btn-close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .modal-section-title {
+            font-size: 0.85rem;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 20px 0 12px;
+        }
+
+        .design-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+        }
+
+        .design-card {
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.15s;
+            position: relative;
+        }
+
+        .design-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            background: #3e3e42;
+        }
+
+        .design-card.active {
+            border-color: var(--accent);
+            background: rgba(142, 68, 173, 0.1);
+        }
+
+        .design-icon {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .design-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .render-status-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .render-status-badge.ok {
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.4);
+        }
+
+        .render-status-badge.warn {
+            color: #f1c40f;
+            border: 1px solid rgba(241, 196, 15, 0.4);
+        }
+
+        .render-status-badge.bad {
+            color: #e74c3c;
+            border: 1px solid rgba(192, 57, 43, 0.4);
+        }
+
+        .render-broken-overlay {
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(-45deg, transparent, transparent 6px, rgba(180, 20, 20, 0.08) 6px, rgba(180, 20, 20, 0.08) 12px);
+            pointer-events: none;
+            border-radius: 4px;
+        }
+
+        .render-legend {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 8px 12px;
+            background: #1c1c1e;
+            border: 1px solid #333;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .render-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            color: #999;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .legend-dot.ok {
+            background: #2ecc71;
+            border: 1px solid #27ae60;
+        }
+
+        .legend-dot.warn {
+            background: #f1c40f;
+            border: 1px solid #d4ac0d;
+        }
+
+        .legend-dot.bad {
+            background: #e74c3c;
+            border: 1px solid #c0392b;
+        }
+
+            .score-card {
       position: absolute;
       top: 90px;
       right: 10px;
@@ -180,11 +451,47 @@
       border-radius: 10px;
       width: 260px;
       border: 1px solid #444;
+      pointer-events: auto;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
       transition: all 0.3s ease;
-      z-index: 20;
     }
-    .score-card.minimized #design-analysis-content { display: none; }
+
+    .score-card.minimized {
+      padding: 10px 15px;
+    }
+
+    .score-card.minimized #design-analysis-content {
+      display: none;
+    }
+
+    .score-card.minimized .score-title {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .score-toggle-btn {
+      background: rgba(142, 68, 173, 0.15);
+      border: 1px solid rgba(142, 68, 173, 0.3);
+      color: var(--accent);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      margin-left: auto;
+      pointer-events: auto;
+    }
+
+    .score-toggle-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
     .score-title {
       font-size: 0.82rem;
       font-weight: 800;
@@ -192,561 +499,2366 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
       margin-bottom: 14px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 6px;
-      justify-content: space-between;
+      justify-content: flex-start;
       cursor: pointer;
     }
 
-    .score-metric-label { font-size: 0.85rem; color: #ccc; margin-bottom: 4px; display: flex; justify-content: space-between; }
-    .score-bar-bg { width: 100%; height: 7px; background: #333; margin-bottom: 14px; border-radius: 4px; overflow: hidden; }
-    .score-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease; }
-    #rec-status { margin-top: 6px; font-size: 0.82rem; color: #aaa; border-top: 1px solid #333; padding-top: 8px; }
+        .score-info-btn {
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            background: #2e2e2e;
+            border: 1px solid #4a4a4a;
+            color: #777;
+            font-size: 0.6rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.18s;
+            pointer-events: auto;
+            flex-shrink: 0;
+            margin-left: 4px;
+        }
 
-    .panel-right {
-      width: 580px;
-      background-color: var(--bg-panel);
-      border-left: 1px solid var(--border);
+        .score-info-btn:hover {
+            background: var(--select-orange);
+            border-color: var(--select-orange);
+            color: white;
+            transform: scale(1.2);
+        }
+
+        .score-metric-label {
+            font-size: 0.85rem;
+            color: #ccc;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .score-metric-label span:last-child {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .score-bar-bg {
+            width: 100%;
+            height: 7px;
+            background: #333;
+            margin-bottom: 14px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        #rec-status {
+            margin-top: 6px;
+            font-size: 0.82rem;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-top: 8px;
+            border-top: 1px solid #333;
+        }
+
+        .panel-right {
+            width: 560px;
+            background-color: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+        }
+
+        .prop-scroll {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .prop-group {
+            padding: 20px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            min-width: 0;
+        }
+
+        .section-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            flex-shrink: 0;
+            background: rgba(142, 68, 173, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(230, 74, 25, 0.25);
+        }
+
+        .prop-label {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #d0d0d0;
+            display: inline;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            white-space: nowrap;
+            line-height: 1.2;
+            flex-shrink: 0;
+        }
+
+        .info-btn {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2e2e2e;
+            border: 1px solid #4a4a4a;
+            color: #777;
+            font-size: 0.65rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.18s;
+        }
+
+        .info-btn:hover {
+            background: var(--select-orange);
+            border-color: var(--select-orange);
+            color: white;
+            transform: scale(1.2);
+            box-shadow: 0 0 8px rgba(255, 87, 34, 0.45);
+        }
+
+        .info-tooltip {
+            position: fixed;
+            z-index: 9999;
+            background: #1a1a1e;
+            border: 1px solid var(--select-blue); border-radius: 10px; padding: 16px 18px; width: 300px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(142, 68, 173, 0.15);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(6px) scale(0.97);
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .info-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .info-tooltip-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .info-tooltip-title i {
+            font-size: 0.85rem;
+        }
+
+        .info-tooltip-body {
+            font-size: 0.88rem;
+            color: #c0c0c0;
+            line-height: 1.6;
+        }
+
+        .info-tooltip-tip {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #2d2d33;
+            font-size: 0.8rem;
+            color: #f1c40f;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .info-tooltip-tip i {
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            background: #3c3c3c;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 11px 12px;
+            border-radius: 4px;
+            font-family: inherit;
+            margin-bottom: 5px;
+            font-size: 1.05rem;
+        }
+
+        .range-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .range-row label {
+            width: 55px;
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--accent);
+            height: 6px;
+        }
+
+        .val-display {
+            width: 48px;
+            text-align: right;
+            color: var(--accent);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .mat-section-title {
+            color: var(--gold);
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mat-grid-large {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .mat-card-lg {
+            background: #333;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.15s;
+            position: relative;
+        }
+
+        .mat-card-lg:hover {
+            transform: translateY(-2px);
+            background: #3e3e42;
+            border-color: white;
+        }
+
+        .mat-card-lg.recommended {
+            background: var(--rec-bg); border-color: #5a2a7a;
+        }
+
+        .mat-card-icon {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+        }
+
+        .mat-card-name {
+            font-size: 0.88rem;
+            color: #ccc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .shelf-count-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 6px;
+            font-size: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .shelf-count-label {
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 15px;
+            cursor: pointer;
+            color: #ccc;
+            transition: 0.15s;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .layer-item {
+            background: #2b2b2b;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #333;
+            transition: all 0.2s;
+        }
+
+        .layer-item.active-layer { border: 1px solid var(--select-blue); box-shadow: 0 0 10px rgba(142, 68, 173, 0.25); }
+
+        .layer-header {
+            padding: 13px 12px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            background: #333;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .layer-header:hover {
+            background: #3c3c3c;
+        }
+
+        .color-preview {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1px solid #777;
+            flex-shrink: 0;
+        }
+
+        .layer-content {
+            display: none;
+            padding: 16px;
+            background: #222;
+            border-top: 1px solid #444;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .layer-item.open .layer-content {
+            display: block;
+        }
+
+        .part-control-row {
+            margin-bottom: 16px;
+        }
+
+        .part-control-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #888;
+            margin-bottom: 7px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .part-control-label .lbl-info-btn {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #2a2a2a;
+            border: 1px solid #484848;
+            color: #666;
+            font-size: 0.6rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.18s;
+            margin-left: 2px;
+        }
+
+        .part-control-label .lbl-info-btn:hover {
+            background: var(--select-orange);
+            border-color: var(--select-orange);
+            color: white;
+            transform: scale(1.2);
+        }
+
+        .clickable-design-val {
+            font-size: 1rem;
+            color: var(--text-dim);
+            padding: 10px 12px;
+            background: #111;
+            border-radius: 4px;
+            border: 1px solid #444;
+            cursor: pointer;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .clickable-design-val:hover {
+            background: #000;
+            border-color: var(--select-orange);
+            color: white;
+        }
+
+        .clickable-design-val i {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .hex-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            background: none;
+            padding: 0;
+            border-radius: 4px;
+        }
+
+        .hex-text-input {
+            width: 110px !important;
+            margin: 0 !important;
+            font-family: monospace;
+            text-transform: uppercase;
+            font-size: 1rem;
+        }
+
+        .dim-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .dim-group {
+            flex: 1;
+        }
+
+        .dim-input {
+            width: 100%;
+            background: #111;
+            border: 1px solid #444;
+            color: var(--accent);
+            padding: 10px;
+            text-align: center;
+            font-size: 1.05rem;
+            border-radius: 3px;
+        }
+
+        .dim-label {
+            font-size: 0.82rem;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .footer-bar {
+            padding: 18px 20px;
+            background: #202020;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-bar span {
+            font-size: 0.88rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .total-price {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .instruction-text {
+            font-size: 0.88rem;
+            color: var(--select-orange);
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .view-focus-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-left: auto;
+            margin-right: 10px;
+        }
+
+        .view-focus-btn:hover {
+            color: var(--select-orange);
+        }
+
+        .prev-project-bar {
+            margin: 8px 8px 0;
+            background: #1a1a1c;
+            border: 1px solid #2e2e32;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .prev-project-label {
+            padding: 6px 10px 4px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #555;
+        }
+
+        .prev-project-item {
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .prev-project-item:hover {
+            background: #222;
+        }
+
+        .prev-project-name {
+            font-size: 0.82rem;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .prev-project-name i {
+            color: #555;
+            font-size: 0.75rem;
+        }
+
+        .prev-project-link {
+            font-size: 0.7rem;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .prev-project-link:hover {
+            color: var(--select-orange);
+        }
+
+        .prev-project-divider {
+            height: 1px;
+            background: #2a2a2a;
+            margin: 0 10px;
+        }
+    /* ── Shop Info Badge ── */
+    .shop-info-badge {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(18, 18, 20, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(142, 68, 173, 0.25);
+      z-index: 100;
+      max-width: 320px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      pointer-events: auto;
+      animation: fadeUpShop 0.6s ease both;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .shop-info-header {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      gap: 15px;
+    }
+
+    .shop-info-toggle-btn {
+      background: rgba(142, 68, 173, 0.15);
+      border: 1px solid rgba(142, 68, 173, 0.3);
+      color: var(--accent);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .shop-info-toggle-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .shop-info-badge.minimized {
+      padding: 10px 15px;
+    }
+
+    .shop-info-badge.minimized #shop-info-content {
+      display: none;
+    }
+
+    @keyframes fadeUpShop {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .shop-info-name {
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .shop-info-mats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .shop-mat-tag {
+      font-size: 0.68rem;
+      background: rgba(142, 68, 173, 0.12);
+      color: #e0e0e0;
+      padding: 3px 9px;
+      border-radius: 5px;
+      border: 1px solid rgba(142, 68, 173, 0.3);
+      white-space: nowrap;
+    }
+
+    .shop-info-label {
+      font-size: 0.6rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .warn-icon {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      color: #f1c40f;
+      font-size: 0.8rem;
+      text-shadow: 0 0 10px rgba(0,0,0,0.5);
       z-index: 5;
     }
 
-    .prop-scroll { flex: 1; overflow-y: auto; }
-    .prop-group { padding: 20px 18px; border-bottom: 1px solid var(--border); }
-
-    .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
-    .section-icon { width: 26px; height: 26px; border-radius: 6px; background: rgba(142, 68, 173, 0.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.78rem; }
-    .prop-label { font-size: 0.78rem; font-weight: 800; color: #d0d0d0; text-transform: uppercase; letter-spacing: 0.1em; }
-
-    input[type="text"], select, textarea {
-      width: 100%;
-      background: #3c3c3c;
-      border: 1px solid var(--border);
-      color: white;
-      padding: 10px 12px;
-      border-radius: 4px;
-      font-family: inherit;
-      margin-bottom: 10px;
-      font-size: 0.95rem;
+    .elite-bonus {
+      color: #2ecc71;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+      animation: pulseGreen 2s infinite;
     }
-    textarea { resize: vertical; min-height: 60px; }
 
-    .badge-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-    .badge-opt {
-      padding: 8px 4px; background: #333; border: 1px solid #444; border-radius: 4px;
-      font-size: 0.75rem; font-weight: 600; text-align: center; cursor: pointer; color: #888;
-      transition: 0.2s; text-transform: uppercase;
+    @keyframes pulseGreen {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
     }
-    .badge-opt.active { background: rgba(142, 68, 173, 0.15); border-color: var(--accent); color: white; }
-
-    .mat-grid-large { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
-    .mat-card-lg { background: #333; border: 1px solid var(--border); border-radius: 6px; padding: 12px 8px; text-align: center; cursor: pointer; transition: 0.2s; }
-    .mat-card-lg:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #5a2a7a; }
-    .mat-card-icon { font-size: 1.8rem; margin-bottom: 4px; }
-    .mat-card-name { font-size: 0.85rem; color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    .layer-item { background: #2b2b2b; border-radius: 6px; margin-bottom: 10px; border: 1px solid #333; transition: 0.2s; }
-    .layer-item.active-layer { border: 1px solid var(--select-blue); }
-    .layer-header { padding: 12px; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #333; border-radius: 6px 6px 0 0; }
-    .layer-content { display: none; padding: 15px; background: #222; border-radius: 0 0 6px 6px; }
-    .layer-item.open .layer-content { display: block; }
-
-    .part-control-row { margin-bottom: 14px; }
-    .part-control-label { font-size: 0.72rem; font-weight: 700; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .clickable-design-val { font-size: 0.95rem; color: #ccc; padding: 9px 12px; background: #111; border-radius: 4px; border: 1px solid #444; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
-    .clickable-design-val:hover { border-color: var(--accent); color: white; }
-    .color-preview { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #777; }
-
-    .dim-row { display: flex; gap: 6px; }
-    .dim-group { flex: 1; }
-    .dim-input { width: 100%; background: #111; border: 1px solid #444; color: var(--accent); padding: 8px; text-align: center; border-radius: 3px; font-size: 0.9rem; outline: none; }
-    .dim-label { font-size: 0.75rem; color: #666; text-align: center; margin-top: 3px; }
-
-    .footer-bar { padding: 18px 20px; background: #202020; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .total-price { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
-
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; }
-    .modal-overlay.open { display: flex; }
-    .design-modal { background: #252526; width: 600px; max-height: 80vh; border-radius: 8px; padding: 20px; position: relative; display: flex; flex-direction: column; }
-    .modal-scroll { flex: 1; overflow-y: auto; }
-    .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
-    .design-card { background: #333; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer; border: 1px solid #444; transition: 0.2s; }
-    .design-card:hover { border-color: var(--accent); background: #3e3e42; }
-    .design-card.active { border-color: var(--accent); background: rgba(142,68,173,0.1); }
-    .design-icon { font-size: 1.5rem; margin-bottom: 5px; color: #aaa; }
-    .design-name { font-size: 0.75rem; color: #ccc; }
-
-    .feature-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .toggle-btn { padding: 8px 12px; font-size: 0.85rem; background: #333; border: 1px solid #444; border-radius: 4px; cursor: pointer; color: #ccc; transition: 0.2s; text-align: left; display: flex; align-items: center; justify-content: space-between; }
-    .toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-    .toggle-btn:hover:not(.active) { background: #3e3e42; }
-
-    .range-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .range-row label { width: 50px; font-size: 0.85rem; color: #888; }
-    input[type="range"] { flex: 1; accent-color: var(--accent); }
-    .val-display { width: 40px; text-align: right; font-size: 0.9rem; font-weight: bold; color: var(--accent); }
-
-  </style>
+    </style>
 </head>
 
 <body>
-  <header>
-    <div class="brand">
-      <img src="images/FurniCraft Logo without name.png" alt="Logo" style="height: 1.3em;">
-      FurniCraft Studio - 3D Template Builder (Bookshelf)
-    </div>
-    <div class="header-actions">
-      <button class="btn-header btn-back" onclick="window.location.href='shop_studio.html'">
-        <i class="fas fa-arrow-left"></i> Back
-      </button>
-      <button class="btn-header btn-publish" onclick="publishTemplate()">
-        <i class="fas fa-cloud-upload-alt"></i> Upload to Templates
-      </button>
-    </div>
-  </header>
 
-  <div class="workspace">
-    <aside class="panel-left">
-      <div class="panel-header"><span><i class="fas fa-folder-open"></i> Design Projects</span></div>
-      <div class="scene-list" id="scene-list"></div>
-      <button class="btn-add" onclick="addNewProject()"><i class="fas fa-plus"></i> Add New Furniture Design</button>
-    </aside>
+    <header>
+        <div class="brand">
+            <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft Studio - Bookshelf Designer Pro
+        </div>
+        <div class="header-controls" style="display: flex; gap: 10px;">
+            <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button class="btn-export" style="background: linear-gradient(135deg,#10b981,#059669) !important;" id="btn-upload-template" onclick="uploadToTemplates()" style="display:none">
+                <i class="fas fa-cloud-upload-alt"></i> Upload to Templates
+            </button>
+            <button class="btn-export" id="btn-main-export" onclick="exportSTL()">
+                <i class="fas fa-download"></i> Export STL
+            </button>
+        </div>
+    </header>
 
-    <main class="viewport">
-      <div class="viewport-controls">
-        <button class="vp-btn" id="btn-rotate" onclick="toggleRotation()"><i class="fas fa-pause"></i> Stop Rotate</button>
-        <button class="vp-btn" id="btn-dims" onclick="toggleDimensions()"><i class="fas fa-ruler-combined"></i> Hide Ruler</button>
-        <button class="vp-btn" onclick="resetView()"><i class="fas fa-sync"></i> Full View</button>
-      </div>
+    <div class="workspace">
+        <aside class="panel-left">
+            <div class="panel-header">
+                <span><i class="fas fa-folder-open" style="color:var(--accent);margin-right:8px;"></i>Design
+                    Projects</span>
+                <button class="info-btn" onclick="showTooltip(event,'left-panel-info')" title="About Design Projects"><i
+                        class="fas fa-info"></i></button>
+            </div>
+            <div class="scene-list" id="scene-list"></div>
+            <div id="prev-project-bar" class="prev-project-bar" style="display:none">
+                <div class="prev-project-label">Previous Project</div>
+                <div class="prev-project-divider"></div>
+                <div class="prev-project-item" onclick="goToPrevProject()">
+                    <span class="prev-project-name"><i class="fas fa-history"></i><span
+                            id="prev-project-name-text">—</span></span>
+                    <span class="prev-project-link"><i class="fas fa-external-link-alt"></i> Open</span>
+                </div>
+            </div>
+            <button class="btn-add" onclick="goToCraft()">
+                <i class="fas fa-plus"></i> Add New Furniture Design
+            </button>
+        </aside>
 
-      <div id="canvas-container"></div>
+        <main class="viewport">
+            <div class="viewport-controls">
+                <button class="vp-btn" id="btn-rotate" onclick="toggleRotation()">
+                    <i class="fas fa-pause"></i> Stop Rotate
+                </button>
+                <button class="vp-btn" id="btn-dims" onclick="toggleDimensions()">
+                    <i class="fas fa-ruler-combined"></i> Hide Ruler
+                </button>
+                <button class="vp-btn" onclick="resetView()">
+                    <i class="fas fa-sync"></i> Full View
+                </button>
+            </div>
 
-      <div class="score-card" id="design-analysis-card">
-        <div class="score-title" onclick="toggleDesignAnalysis()">
-          <span><i class="fas fa-chart-bar"></i> Design Analysis</span>
-          <i class="fas fa-chevron-down" id="da-toggle-icon"></i>
+            <!-- Shop Info Badge -->
+            <div id="shop-info-badge" class="shop-info-badge" style="display:none">
+                <div class="shop-info-header" onclick="toggleShopBadge()">
+                    <div class="shop-info-label">
+                        <i class="fas fa-hammer"></i> Active Workshop
+                    </div>
+                    <div class="shop-info-toggle-btn" id="shop-badge-toggle-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div id="shop-info-content">
+                    <div class="shop-info-name" id="selected-shop-display-name">
+                        <i class="fas fa-store"></i> Furniture Shop
+                    </div>
+                    <div class="shop-info-label" style="margin-bottom:8px">Available Materials:</div>
+                    <div class="shop-info-mats" id="shop-materials-list">
+                        <!-- Dynamic -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="canvas-container"></div>
+
+            <div class="score-card" id="design-analysis-card">
+                <div class="score-title" onclick="toggleDesignAnalysis()">
+                    <span><i class="fas fa-chart-bar" style="color:var(--accent); margin-right:7px;"></i> Design
+                        Analysis</span>
+                    <button class="score-info-btn" onclick="showTooltip(event,'score-info')"
+                        title="About Design Analysis"><i class="fas fa-info"></i></button>
+          <div class="score-toggle-btn"><i class="fas fa-chevron-down" id="da-toggle-icon"></i></div>
         </div>
         <div id="design-analysis-content">
-          <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
-          <div class="score-bar-bg"><div id="bar-dura" class="score-bar-fill"></div></div>
-          <div class="score-metric-label"><span>Quality</span><span id="score-qual-val">0%</span></div>
-          <div class="score-bar-bg"><div id="bar-qual" class="score-bar-fill"></div></div>
-          <div id="rec-status"></div>
-        </div>
+                <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
+                <div class="score-bar-bg">
+                    <div id="bar-dura" class="score-bar-fill" style="width:0%"></div>
+                </div>
+                <div class="score-metric-label"><span>Material Quality</span><span id="score-qual-val">0%</span></div>
+                <div class="score-bar-bg">
+                    <div id="bar-qual" class="score-bar-fill" style="width:0%"></div>
+                </div>
+                <div id="rec-status"></div>
+            </div>
       </div>
 
-      <div id="design-modal-overlay" class="modal-overlay" onclick="closeDesignModal()">
-        <div class="design-modal" onclick="event.stopPropagation()">
-          <button style="position:absolute; top:10px; right:15px; background:none; border:none; color:#aaa; font-size:1.5rem; cursor:pointer;" onclick="closeDesignModal()">&times;</button>
-          <div id="design-modal-title" style="font-weight:600; margin-bottom:15px;">Select Design</div>
-          <div id="design-modal-scroll" class="modal-scroll"></div>
-        </div>
-      </div>
-    </main>
+            <div id="design-modal-overlay" class="modal-overlay design-modal-overlay" onclick="closeDesignModal(event)">
+                <div class="design-modal" onclick="event.stopPropagation()">
+                    <button class="btn-close-modal" onclick="closeDesignModal()">×</button>
+                    <div id="design-modal-title" class="modal-title">Select Design</div>
+                    <div id="design-modal-scroll" class="modal-scroll-area"></div>
+                </div>
+            </div>
+        </main>
 
-    <aside class="panel-right">
-      <div class="panel-header"><span><i class="fas fa-sliders-h"></i> Properties</span></div>
-      <div class="prop-scroll">
+        <aside class="panel-right">
+            <div class="panel-header">
+                <span><i class="fas fa-sliders-h" style="color:var(--accent);margin-right:8px;"></i>Properties</span>
+                <button class="info-btn" onclick="showTooltip(event,'right-panel-info')"
+                    title="About Properties Panel"><i class="fas fa-info"></i></button>
+            </div>
+            <div class="prop-scroll">
+                <div class="prop-group">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-tag"></i></div>
+                        <label class="prop-label">Project Name</label>
+                        <button class="info-btn" onclick="showTooltip(event,'proj-name-info')"><i
+                                class="fas fa-info"></i></button>
+                    </div>
+                    <input type="text" id="project-name" placeholder="Project Name"
+                        oninput="updateProjectName(this.value)">
+                </div>
+
+                <div class="prop-group">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-venus-mars"></i></div>
+                        <label class="prop-label">Gender Preference</label>
+                    </div>
+                    <select id="gender-pref" onchange="updateGenderPref(this.value)">
+                        <option value="neutral">Neutral / Unisex</option>
+                        <option value="male">Masculine / Male</option>
+                        <option value="female">Feminine / Female</option>
+                    </select>
+                </div>
+
+                <div class="prop-group">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-expand-arrows-alt"></i></div>
+                        <label class="prop-label">Global Scale</label>
+                        <button class="info-btn" onclick="showTooltip(event,'scale-info')"><i
+                                class="fas fa-info"></i></button>
+                    </div>
+                    <div class="range-row"><label>Width</label><input type="range" id="inp-scale-x" min="50" max="200"
+                            value="100" oninput="updateGlobalScale('x', this.value)"><span class="val-display"
+                            id="gs-x">100</span></div>
+                    <div class="range-row"><label>Height</label><input type="range" id="inp-scale-y" min="50" max="200"
+                            value="100" oninput="updateGlobalScale('y', this.value)"><span class="val-display"
+                            id="gs-y">100</span></div>
+                    <div class="range-row"><label>Depth</label><input type="range" id="inp-scale-z" min="50" max="200"
+                            value="100" oninput="updateGlobalScale('z', this.value)"><span class="val-display"
+                            id="gs-z">100</span></div>
+                </div>
+
+                <div class="prop-group">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-palette"></i></div>
+                        <label class="prop-label">Material Library</label>
+                        <button class="info-btn" onclick="showTooltip(event,'material-info')"><i
+                                class="fas fa-info"></i></button>
+                    </div>
+                    <div class="instruction-text">Select a Layer below, then click a Material here to apply.</div>
+                    <div id="rec-mat-container" style="display:none">
+                        <div class="mat-section-title"><i class="fas fa-star"></i> Recommended</div>
+                        <div class="mat-grid-large" id="rec-mat-grid"></div>
+                    </div>
+                    <div class="mat-section-title" style="color:#777; margin-top:10px;">All Materials</div>
+                    <div class="mat-grid-large" id="all-mat-grid"></div>
+                </div>
+
+                <div class="prop-group">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-th-large"></i></div>
+                        <label class="prop-label">Shelf Count</label>
+                        <button class="info-btn" onclick="showTooltip(event,'shelf-count-info')"><i
+                                class="fas fa-info"></i></button>
+                    </div>
+                    <div class="shelf-count-row">
+                        <span class="shelf-count-label">Shelves:</span>
+                        <button class="toggle-btn" onclick="changeShelfCount(-1)"><i class="fas fa-minus"></i></button>
+                        <span id="shelf-count-display"
+                            style="font-size:1.2rem;font-weight:700;color:var(--accent);min-width:24px;text-align:center;">3</span>
+                        <button class="toggle-btn" onclick="changeShelfCount(1)"><i class="fas fa-plus"></i></button>
+                        <span class="shelf-count-label" style="margin-left:12px;">Back Panel:</span>
+                        <button id="toggle-back-panel" class="toggle-btn active"
+                            onclick="toggleBackPanel(this)">Visible</button>
+                    </div>
+                </div>
+
+                <div class="prop-group">
+                    <div class="section-header">
+                        <div class="section-icon"><i class="fas fa-layer-group"></i></div>
+                        <label class="prop-label">Layers</label>
+                        <button class="info-btn" onclick="showTooltip(event,'layers-info')"><i
+                                class="fas fa-info"></i></button>
+                    </div>
+                    <div id="layers-container"></div>
+                </div>
+            </div>
+            <div class="footer-bar">
+                <span>Estimated Cost</span>
+                <div class="total-price" id="total-price" contenteditable="true" oninput="this.dataset.manual='true'">&#8369;0.00</div>
+            </div>
+        </aside>
+    </div>
+
+    <div id="info-tooltip" class="info-tooltip">
+        <div class="info-tooltip-title" id="tt-title"></div>
+        <div class="info-tooltip-body" id="tt-body"></div>
+        <div class="info-tooltip-tip" id="tt-tip"></div>
+    </div>
+
+    <script>
+        /* ==========================================================================
+            NAVIGATION
+        ========================================================================== */
+        function goToCraft() {
+            if (typeof saveState === 'function') saveState();
+            const ai = getActiveItem();
+            if (ai) {
+                sessionStorage.setItem('prevProjectName', ai.name);
+                sessionStorage.setItem('prevProjectPage', 'builder_bookshelf.html');
+            }
+            const isShop = sessionStorage.getItem('craftMode') === 'shop';
+            window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
+        }
+
+        function uploadToTemplates() {
+      try {
+        // Capture 3D preview screenshot (Downscaled to prevent localStorage QuotaExceededError)
+        let previewDataUrl = '';
+        try {
+          if (typeof controls !== 'undefined') controls.autoRotate = false;
+          if (typeof showDimensions !== 'undefined' && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
+          if (typeof renderer !== 'undefined' && typeof scene !== 'undefined' && typeof camera !== 'undefined') renderer.render(scene, camera);
+          
+          const canvas = document.querySelector('#canvas-container canvas');
+          if (canvas) {
+            const tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width = 400; // max width
+            tmpCanvas.height = Math.floor(400 * (canvas.height / canvas.width));
+            const ctx = tmpCanvas.getContext('2d');
+            ctx.drawImage(canvas, 0, 0, tmpCanvas.width, tmpCanvas.height);
+            previewDataUrl = tmpCanvas.toDataURL('image/jpeg', 0.6); // heavily compress
+          }
+          
+          if (typeof controls !== 'undefined') controls.autoRotate = true;
+          if (typeof showDimensions !== 'undefined' && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
+        } catch(e) { console.warn("Screenshot failed:", e); }
+
+        const nameInput = document.getElementById('project-name');
+        const projectName = (nameInput && nameInput.value ? nameInput.value.trim() : '') || 'Custom Bookshelf';
+        const priceEl = document.getElementById('total-price');
+        const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+        const costVal = parseFloat(priceText) || 8000;
+
+        const ai = (typeof getActiveItem === 'function') ? getActiveItem() : null;
+        let selections = {}, carvings = {}, shapes = {}, dims = {}, scale = {x:1,y:1,z:1};
+        try {
+          selections = (ai && ai.selections) ? JSON.parse(JSON.stringify(ai.selections)) : {};
+          carvings = (ai && ai.carvings) ? JSON.parse(JSON.stringify(ai.carvings)) : {};
+          shapes = (ai && ai.shapes) ? JSON.parse(JSON.stringify(ai.shapes)) : {};
+          dims = (ai && ai.dims) ? JSON.parse(JSON.stringify(ai.dims)) : {};
+          scale = (ai && ai.globalScale) ? JSON.parse(JSON.stringify(ai.globalScale)) : {x:1,y:1,z:1};
+        } catch(e) { console.warn("Deep copy failed:", e); }
         
-        <!-- Metadata -->
-        <div class="prop-group">
-          <div class="section-header">
-            <div class="section-icon"><i class="fas fa-id-card"></i></div>
-            <label class="prop-label">Gallery Presentation</label>
-          </div>
-          <div class="part-control-row">
-            <div class="part-control-label">Template Name</div>
-            <input type="text" id="project-name-input" oninput="updateProjectName(this.value)">
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div class="part-control-row">
-              <div class="part-control-label">Target Style</div>
-              <select id="template-gender" onchange="updateTemplateMeta()">
-                <option value="neutral">Neutral</option>
-                <option value="boy">Boy / Masculine</option>
-                <option value="girl">Girl / Feminine</option>
-              </select>
-            </div>
-            <div class="part-control-row">
-              <div class="part-control-label">Status Badge</div>
-              <div class="badge-select-grid">
-                <div class="badge-opt opt-new active" onclick="setTmplBadge('new', this)">New</div>
-                <div class="badge-opt opt-featured" onclick="setTmplBadge('featured', this)">Top</div>
-                <div class="badge-opt opt-premium" onclick="setTmplBadge('premium', this)">Pro</div>
-              </div>
-            </div>
-          </div>
-          <div class="part-control-row">
-            <div class="part-control-label">Description</div>
-            <textarea id="template-desc" placeholder="Enter gallery description..."></textarea>
-          </div>
-        </div>
+        const partsList = (ai && ai.parts) ? ai.parts : Object.keys(selections);
 
-        <div class="prop-group">
-          <div class="section-header"><div class="section-icon"><i class="fas fa-expand-arrows-alt"></i></div><label class="prop-label">Global Scale</label></div>
-          <div class="range-row"><label>W</label><input type="range" id="inp-scale-x" min="50" max="200" value="100" oninput="updateGlobalScale('x', this.value)"><span class="val-display" id="gs-x">100</span></div>
-          <div class="range-row"><label>H</label><input type="range" id="inp-scale-y" min="50" max="200" value="100" oninput="updateGlobalScale('y', this.value)"><span class="val-display" id="gs-y">100</span></div>
-          <div class="range-row"><label>D</label><input type="range" id="inp-scale-z" min="50" max="200" value="100" oninput="updateGlobalScale('z', this.value)"><span class="val-display" id="gs-z">100</span></div>
-        </div>
+        const tmpl = {
+          id: Date.now() + Math.floor(Math.random()*9000+10000),
+          type: 'bookshelf', name: projectName, icon: 'fa-book', badge: 'new',
+          gender: (ai && ai.gender) ? ai.gender : 'neutral',
+          description: 'Custom bookshelf crafted in the 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+          tags: ['Bookshelf','Custom','Shop Design'], parts: partsList, selections: selections,
+          carvings: carvings, shapes: shapes, dims: dims, scale: scale, basePrice: costVal,
+          previewDataUrl: previewDataUrl, publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+          publishedAt: new Date().toISOString(), designData: ai
+        };
 
-        <div class="prop-group">
-          <div class="section-header"><div class="section-icon"><i class="fas fa-palette"></i></div><label class="prop-label">Material Library</label></div>
-          <div style="font-size:0.8rem; color:var(--select-blue); margin-bottom:10px;">Apply to selected layer:</div>
-          <div class="mat-grid-large" id="mat-grid"></div>
-        </div>
+        let globals = [];
+        try { globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]'); } catch(e) { globals = []; }
+        if (!Array.isArray(globals)) globals = [];
+        
+        // Remove older templates if we exceed 20 to prevent quota issues even with compression
+        if (globals.length > 20) globals = globals.slice(0, 20);
+        
+        globals.unshift(tmpl);
+        localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+        
+        let custom = [];
+        try { custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]'); } catch(e) { custom = []; }
+        if (!Array.isArray(custom)) custom = [];
+        
+        if (custom.length > 20) custom = custom.slice(0, 20);
+        
+        custom.unshift(tmpl);
+        localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
 
-        <div class="prop-group">
-          <div class="section-header"><div class="section-icon"><i class="fas fa-layer-group"></i></div><label class="prop-label">Bookshelf Options</label></div>
-          <div class="part-control-row">
-             <div class="part-control-label">Tiers (Shelves)</div>
-             <input type="range" id="tiers-count" min="2" max="10" value="4" oninput="updateTiers(this.value)">
-             <div class="val-display" id="tiers-val" style="width:100%; text-align:center;">4</div>
-          </div>
-          <div class="feature-btn-grid">
-            <button id="toggle-sides" class="toggle-btn active" onclick="toggleFeature('hasSides', this)">Side Panels <i class="fas fa-check"></i></button>
-            <button id="toggle-back" class="toggle-btn active" onclick="toggleFeature('hasBack', this)">Back Panel <i class="fas fa-check"></i></button>
-          </div>
-        </div>
-
-        <div class="prop-group">
-          <div class="section-header"><div class="section-icon"><i class="fas fa-layer-group"></i></div><label class="prop-label">Layers</label></div>
-          <div id="layers-container"></div>
-        </div>
-      </div>
-      <div class="footer-bar">
-        <span style="font-size:0.85rem; color:#888;">Suggested Gallery Price</span>
-        <div class="total-price" id="total-price">₱0.00</div>
-      </div>
-    </aside>
-  </div>
-
-  <script>
-    /* ==========================================================================
-       DATABASES
-       ========================================================================== */
-    const materialDB = {
-      narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2, rec: true },
-      ipil: { name: 'Ipil', icon: '🌳', hex: '#6B4226', dura: 98, qual: 96, price: 4.8, rec: true },
-      dao: { name: 'Dao', icon: '🪵', hex: '#4B3621', dura: 92, qual: 97, price: 4.5, rec: true },
-      kamagong: { name: 'Kamagong', icon: '🪵', hex: '#2c1a0e', dura: 97, qual: 99, price: 5.5, rec: true },
-      mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true },
-      yakal: { name: 'Yakal', icon: '🌳', hex: '#7a4f2e', dura: 88, qual: 86, price: 3.1, rec: true },
-      oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true },
-      pine: { name: 'Pine', icon: '🌲', hex: '#c8a96e', dura: 55, qual: 58, price: 1.4, rec: true },
-      rattan: { name: 'Rattan', icon: '🧺', hex: '#D2B48C', dura: 75, qual: 85, price: 1.8, rec: true },
-      fabric_gray: { name: 'Gray Fabric', icon: '🧶', hex: '#7f8c8d', dura: 65, qual: 75, price: 1.5 },
-      leather_brown: { name: 'Brown Leather', icon: '👞', hex: '#5c4033', dura: 85, qual: 92, price: 4.8 },
-      marble_white: { name: 'Marble', icon: '🪨', hex: '#e8e8e8', dura: 90, qual: 99, price: 8.0 },
-      glass_clear: { name: 'Glass', icon: '🔲', hex: '#a8d8ea', dura: 70, qual: 95, price: 5.0 },
-      brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, qual: 97, price: 6.8 },
-      brushed_steel: { name: 'Brushed Steel', icon: '🔨', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5 }
-    };
-
-    const shapeDB = {
-      frame: [
-        { id: 'standard_box', name: 'Standard Case', icon: 'square' },
-        { id: 'ladder', name: 'Ladder Style', icon: 'stream', faIcon: true },
-        { id: 'cube', name: 'Modular Cube', icon: 'th-large', faIcon: true }
-      ],
-      shelves: [
-        { id: 'solid_plank', name: 'Solid Wood', icon: 'minus' },
-        { id: 'glass_shelf', name: 'Glass Plate', icon: 'window-minimize', faIcon: true }
-      ],
-      legs: [
-        { id: 'plinth', name: 'Plinth Base', icon: 'minus' },
-        { id: 'square_feet', name: 'Block Feet', icon: 'square' },
-        { id: 'tapered', name: 'Tapered Wood', icon: 'caret-down', faIcon: true }
-      ]
-    };
-
-    const carvingDB = {
-      none: { name: 'Smooth Finish', icon: 'circle' },
-      floral: { name: 'Floral Carving', icon: 'leaf' },
-      weave: { name: 'Woven Cane', icon: 'th' },
-      padded: { name: 'Standard Fabric', icon: 'couch', faIcon: true },
-      leather_tufted: { name: 'Diamond Leather', icon: 'gem', faIcon: true },
-      linear_groove: { name: 'Grooved', icon: 'align-justify' },
-      lattice: { name: 'Lattice', icon: 'th' },
-      geometric: { name: 'Geo', icon: 'braille' },
-      rustic: { name: 'Rustic', icon: 'tree' }
-    };
-
-    const assetsDB = { bookshelf: { name: 'Custom Bookshelf', parts: ['Frame', 'Shelves', 'Legs'] } };
-
-    /* ==========================================================================
-       STATE & APP LOGIC
-       ========================================================================== */
-    let appState = { items: [], activeItemId: 0, activeLayer: 'Frame', tmplBadge: 'new', tmplGender: 'neutral' };
-    let isRotating = true, showDimensions = true, textureCache = {}, modalState = { partName: null, type: null };
-
-    window.onload = function () {
-      initApp();
-    };
-
-    function initApp() {
-      const saved = localStorage.getItem('builder_bookshelf_drafts');
-      if (saved) appState.items = JSON.parse(saved);
-      if (appState.items.length === 0) {
-        appState.items.push(createNewDesignData('Elite Library Shelf'));
+        if (typeof saveState === 'function') saveState();
+        alert('\u2705 "' + tmpl.name + '" has been uploaded to Templates!');
+        window.location.href = 'templates.html';
+      } catch (err) {
+        alert("Error saving template: " + err.message + "\n\nTry clearing your browser cache/storage if quota exceeded.");
+        console.error(err);
       }
-      appState.activeItemId = appState.items[0].id;
-      renderUI(); init3D(); build3DScene();
     }
 
-    function createNewDesignData(name) {
-      return {
-        id: Date.now(), name: name, type: 'bookshelf',
-        description: 'A professional workshop-exclusive template.', tmplBadge: 'new', tmplGender: 'neutral',
-        selections: { Frame: '#5c3a21', Shelves: '#5c3a21', Legs: '#2c1a0e' },
-        shapes: { Frame: 'standard_box', Shelves: 'solid_plank', Legs: 'plinth' },
-        dims: { Frame: { w: 120, h: 200, d: 35 }, Shelves: { w: 115, h: 2, d: 32 }, Legs: { w: 120, h: 8, d: 35 } },
-        carvings: { Frame: 'none', Shelves: 'none', Legs: 'none' },
-        globalScale: { x: 1, y: 1, z: 1 },
-        tiers: 4, hasSides: true, hasBack: true
-      };
-    }
+        function goToPrevProject() { const p = sessionStorage.getItem('prevProjectPage'); if (p) window.location.href = p; }
+        function loadPrevProjectBar() {
+            const prevName = sessionStorage.getItem('prevProjectName');
+            const prevPage = sessionStorage.getItem('prevProjectPage');
+            const bar = document.getElementById('prev-project-bar');
+            const nameEl = document.getElementById('prev-project-name-text');
+            if (prevName && prevPage && bar && nameEl) { nameEl.textContent = prevName; bar.style.display = 'block'; }
+        }
 
-    function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
+        /* ==========================================================================
+            TOOLTIP SYSTEM
+        ========================================================================== */
+        const tooltipData = {
+            'left-panel-info': { icon: 'fas fa-folder-open', title: 'Design Projects', body: 'Manage all your bookshelf design sessions here. Each project saves independently.', tip: 'Click "Add New Furniture Design" to go to the FurniCraft catalog and start a new project.' },
+            'right-panel-info': { icon: 'fas fa-sliders-h', title: 'Properties Panel', body: 'The central control hub for your active bookshelf design. All editable properties live here and update the 3D model in real time.', tip: 'Scroll down to find the Layers section where you can edit each individual bookshelf part.' },
+            'score-info': { icon: 'fas fa-chart-bar', title: 'Design Analysis', body: 'Real-time quality scores calculated from the materials applied to each part.', tip: 'Use all Recommended (⭐) materials to hit 100% on both scores.' },
+            'proj-name-info': { icon: 'fas fa-tag', title: 'Project Name', body: 'Give your bookshelf design a descriptive name. This label appears in the project list and becomes the filename on export.', tip: 'Use names like "Narra Library Shelf v2" or "Floating Wall Shelf - Oak" to stay organized.' },
+            'scale-info': { icon: 'fas fa-expand-arrows-alt', title: 'Global Scale', body: 'Uniformly resize the entire bookshelf in three axes. Values range from 50% (half size) to 200% (double).', tip: 'Use Global Scale for quick size prototyping before committing to exact dimensions.' },
+            'material-info': { icon: 'fas fa-palette', title: 'Material Library', body: 'A curated palette of real-world furniture materials — Philippine hardwoods, stone, steel, and more. Each material carries unique Durability, Quality, and Price values.', tip: 'First click a Layer to select it, then click any material tile here to apply it instantly.' },
+            'shelf-count-info': { icon: 'fas fa-th-large', title: 'Shelf Count & Back Panel', body: 'Control how many horizontal shelves appear inside the bookshelf. Toggle the back panel for an open or closed look.', tip: 'Open-back bookshelves are popular for room dividers and modern interiors.' },
+            'layers-info': { icon: 'fas fa-layer-group', title: 'Layers — Bookshelf Parts', body: 'The bookshelf is composed of 4 independent layers: Frame, Shelves, Back Panel, and Crown. Click a layer row to select and expand it.', tip: 'Click the 👁 eye icon on any layer header to focus the 3D camera directly on that part.' },
+            'lyr-shape-info': { icon: 'fas fa-shapes', title: 'Shape / Base Style', body: 'Defines the fundamental 3D geometry of this bookshelf part — frame silhouette, crown type, or shelf edge profile.', tip: 'Try an arched crown or ladder legs for a classic old-fashion look.' },
+            'lyr-holes-info': { icon: 'fas fa-circle-notch', title: 'Cutouts / Decorative Panels', body: 'Adds decorative cutout patterns on the back panel or side panels for visual character.', tip: 'Cutouts on the back panel create a dramatic display effect with wall colour showing through.' },
+            'lyr-carving-info': { icon: 'fas fa-drafting-compass', title: 'Carving / Texture', body: 'Applies a surface texture or carving pattern as a bump map onto this part.', tip: 'Rustic and floral textures pair beautifully with Philippine hardwoods.' },
+            'lyr-color-info': { icon: 'fas fa-eye-dropper', title: 'Hex Color', body: 'Set the exact color of this bookshelf part using the color picker or a hex code.', tip: 'Use hex values that match a material in the Material Library for accurate cost estimates.' },
+            'lyr-dims-info': { icon: 'fas fa-ruler-combined', title: 'Dimensions (cm)', body: 'Set the exact physical dimensions of this part in centimetres.', tip: 'Standard bookshelves are ~80–100cm wide, 180–200cm tall, and 28–35cm deep. Shelf spacing is typically 30–35cm.' }
+        };
 
-    function renderUI() {
-      renderSceneList(); renderProperties(); calculateScore(); updatePrice();
-    }
+        let activeTooltip = null;
+        function showTooltip(event, key) {
+            event.stopPropagation();
+            const data = tooltipData[key]; if (!data) return;
+            const tooltip = document.getElementById('info-tooltip');
+            if (activeTooltip === key && tooltip.classList.contains('visible')) { hideTooltip(); return; }
+            activeTooltip = key;
+            document.getElementById('tt-title').innerHTML = '<i class="' + data.icon + '"></i>&nbsp;' + data.title;
+            document.getElementById('tt-body').textContent = data.body;
+            document.getElementById('tt-tip').innerHTML = '<i class="fas fa-lightbulb"></i> ' + data.tip;
+            const btn = event.currentTarget, rect = btn.getBoundingClientRect();
+            const tipW = 300, tipH = 200;
+            let left = rect.left - tipW - 12, top = rect.top - 10;
+            if (left < 8) left = rect.right + 12;
+            if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+            if (top + tipH > window.innerHeight - 10) top = window.innerHeight - tipH - 10;
+            if (top < 8) top = 8;
+            tooltip.style.left = left + 'px'; tooltip.style.top = top + 'px';
+            tooltip.classList.add('visible');
+        }
+        function hideTooltip() { const t = document.getElementById('info-tooltip'); if (t) t.classList.remove('visible'); activeTooltip = null; }
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.info-btn') && !e.target.closest('.score-info-btn') && !e.target.closest('.lbl-info-btn') && !e.target.closest('#info-tooltip')) hideTooltip();
+        });
 
-    function renderSceneList() {
-      const list = document.getElementById('scene-list'); list.innerHTML = '';
-      appState.items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
-        div.onclick = () => { appState.activeItemId = item.id; renderUI(); build3DScene(); };
-        div.innerHTML = `<span><i class="fas fa-book"></i> ${item.name}</span><button class="btn-delete" onclick="event.stopPropagation(); deleteProject(${item.id})"><i class="fas fa-trash-alt"></i></button>`;
-        list.appendChild(div);
-      });
-    }
+        /* ==========================================================================
+            DATABASES
+        ========================================================================== */
+        const materialDB = {
+            narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2, rec: true, note: 'National tree of PH. Dense, golden-brown hardwood.' },
+            ipil: { name: 'Ipil', icon: '🌳', hex: '#6B4226', dura: 98, qual: 96, price: 4.8, rec: true, note: 'Highly durable, termite-resistant local hardwood.' },
+            dao: { name: 'Dao', icon: '🪵', hex: '#4B3621', dura: 92, qual: 97, price: 4.5, rec: true, note: 'Premium local wood with distinctive dark streaks.' },
+            guijo: { name: 'Guijo', icon: '🌳', hex: '#8B4513', dura: 96, qual: 94, price: 4.1, rec: true, note: 'Extremely dense and strong for heavy slabs.' },
+            apitong: { name: 'Apitong', icon: '🌲', hex: '#A0522D', dura: 94, qual: 88, price: 3.6, rec: true, note: 'Tough, resilient wood ideal for structural bases.' },
+            kamagong: { name: 'Kamagong', icon: '🪵', hex: '#2c1a0e', dura: 97, qual: 99, price: 5.5, rec: true, note: 'Philippine Ebony. Extremely hard and durable.' },
+            molave: { name: 'Molave', icon: '🌳', hex: '#6b4226', dura: 93, qual: 95, price: 4.0, rec: true, note: 'Very hard PH hardwood. Termite-resistant.' },
+            mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true, note: 'Classic furniture wood. Rich reddish-brown.' },
+            tanguile: { name: 'Tanguile', icon: '🌲', hex: '#a0522d', dura: 80, qual: 82, price: 2.2, rec: true, note: 'Philippine red lauan. Common furniture grade.' },
+            yakal: { name: 'Yakal', icon: '🌳', hex: '#7a4f2e', dura: 88, qual: 86, price: 3.1, rec: true, note: 'Heavy PH hardwood. Strong and resistant.' },
+            rattan: { name: 'Rattan', icon: '🧺', hex: '#D2B48C', dura: 75, qual: 85, price: 1.8, rec: true, note: 'Classic woven cane for heritage textures.' },
+            capiz: { name: 'Capiz Shell', icon: '🐚', hex: '#F5F5DC', dura: 60, qual: 95, price: 5.2, rec: true, note: 'Translucent, pearlescent shell for elegant inlays.' },
+            walnut: { name: 'Walnut', icon: '🪵', hex: '#3D2B1F', dura: 88, qual: 96, price: 6.2, rec: false, note: 'Luxurious, fine-grained dark brown wood.' },
+            teak: { name: 'Teak', icon: '🌲', hex: '#C19A6B', dura: 95, qual: 94, price: 7.5, rec: false, note: 'Premium, naturally weather-resistant golden-brown wood.' },
+            maple: { name: 'Maple', icon: '🌲', hex: '#F4A460', dura: 82, qual: 88, price: 3.8, rec: false, note: 'Hard, light-colored wood for clean, modern finishes.' },
+            oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true, note: 'Imported. Tight grain, very workable.' },
+            pine: { name: 'Pine', icon: '🌲', hex: '#c8a96e', dura: 55, qual: 58, price: 1.4, rec: true, note: 'Soft imported wood. Budget-friendly but less durable.' },
+            rubber_wood: { name: 'Rubber Wood', icon: '🌿', hex: '#d4b896', dura: 62, qual: 65, price: 1.6, rec: true, note: 'Hevea wood. Eco-friendly, medium hardness.' },
+            bamboo: { name: 'Bamboo', icon: '🎋', hex: '#bdb76b', dura: 70, qual: 72, price: 1.2, rec: true, note: 'Sustainable. Harder than most softwoods.' },
+            epoxy: { name: 'Epoxy Resin', icon: '🌊', hex: '#00CED1', dura: 85, qual: 90, price: 4.5, rec: false, note: 'Translucent colorful filler for trendy river tables.' },
+            terrazzo: { name: 'Terrazzo', icon: '🪨', hex: '#E0E0E0', dura: 92, qual: 88, price: 5.8, rec: false, note: 'Scratch-resistant composite with stone or glass chips.' },
+            iron: { name: 'Black Iron', icon: '⛓️', hex: '#1A1A1A', dura: 98, qual: 82, price: 3.2, rec: false, note: 'Heavy-duty standard for industrial table legs.' },
+            brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, qual: 97, price: 6.8, rec: false, note: 'Warm, vintage metallic accent for frames or inlays.' },
+            marble_white: { name: 'Marble White', icon: '🪨', hex: '#e8e8e8', dura: 90, qual: 99, price: 8.0, rec: false, note: 'Premium stone top. Heavy and luxurious.' },
+            marble_black: { name: 'Marble Black', icon: '⬛', hex: '#2a2a2a', dura: 90, qual: 99, price: 9.0, rec: false, note: 'Premium black stone. Bold and elegant.' },
+            glass_clear: { name: 'Glass Clear', icon: '🔲', hex: '#a8d8ea', dura: 70, qual: 95, price: 5.0, rec: false, note: 'Tempered glass top. Modern look.' },
+            brushed_steel: { name: 'Brushed Steel', icon: '🔩', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
+        };
 
-    function renderProperties() {
-      const active = getActiveItem(); if (!active) return;
-      document.getElementById('project-name-input').value = active.name;
-      document.getElementById('template-desc').value = active.description || '';
-      document.getElementById('tiers-count').value = active.tiers;
-      document.getElementById('tiers-val').innerText = active.tiers;
 
-      const matGrid = document.getElementById('mat-grid'); matGrid.innerHTML = '';
-      Object.keys(materialDB).forEach(k => {
-        const m = materialDB[k];
-        const card = document.createElement('div'); card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
-        card.onclick = () => { active.selections[appState.activeLayer] = m.hex; renderUI(); build3DScene(); };
-        card.innerHTML = `<div class="mat-card-icon">${m.icon}</div><div class="mat-card-name">${m.name}</div>`;
-        matGrid.appendChild(card);
-      });
+        const assetsDB = { bookshelf: { name: 'Bookshelf', basePrice: 1200, parts: ['Frame', 'Shelves', 'Back Panel', 'Crown'] } };
 
-      const container = document.getElementById('layers-container'); container.innerHTML = '';
-      assetsDB.bookshelf.parts.forEach(part => {
-        const isActive = appState.activeLayer === part;
-        const hex = active.selections[part] || '#8B4513';
-        const shape = (shapeDB[part.toLowerCase()] || []).find(s => s.id === active.shapes[part])?.name || 'Standard';
-        
-        const div = document.createElement('div');
-        div.className = 'layer-item' + (isActive ? ' active-layer open' : '');
-        div.onclick = (e) => { if (!e.target.closest('.clickable-design-val') && !e.target.closest('input')) { appState.activeLayer = part; renderProperties(); } };
-        
-        let html = `
-          <div class="layer-header"><span><i class="fas fa-layer-group"></i> ${part}</span><div class="color-preview" style="background:${hex}"></div></div>
+        /* Shape options per part */
+        const shapeDB = {
+            frame: [
+                { id: 'straight_frame', name: 'Straight Classic', icon: 'square', cat: 'Classic Forms' },
+                { id: 'tapered_frame', name: 'Tapered Sides', icon: 'caret-up', faIcon: true, cat: 'Classic Forms' },
+                { id: 'arched_top', name: 'Arched Top Frame', icon: 'archway', faIcon: true, cat: 'Classic Forms' },
+                { id: 'stepped_frame', name: 'Stepped / Staircase', icon: 'sort-amount-up', faIcon: true, cat: 'Classic Forms' },
+                { id: 'hairpin_frame', name: 'Metal Hairpin Legs', icon: 'paperclip', faIcon: true, cat: 'Modern Forms' },
+                { id: 'ladder_frame', name: 'Ladder / Leaning', icon: 'bars', faIcon: true, cat: 'Modern Forms' },
+                { id: 'cube_frame', name: 'Modular Cube Grid', icon: 'th', faIcon: true, cat: 'Modern Forms' },
+                { id: 'floating_frame', name: 'Floating / Mounted', icon: 'minus', faIcon: true, cat: 'Modern Forms' },
+                { id: 'pedestal_frame', name: 'Pedestal Base', icon: 'monument', faIcon: true, cat: 'Ornate' },
+                { id: 'carved_frame', name: 'Carved Ornate Frame', icon: 'fan', faIcon: true, cat: 'Ornate' },
+            ],
+            shelves: [
+                { id: 'flat_shelf', name: 'Flat Board', icon: 'minus', faIcon: true, cat: 'Standard Shelves' },
+                { id: 'lipped_shelf', name: 'Lipped Edge', icon: 'window-maximize', cat: 'Standard Shelves' },
+                { id: 'thick_shelf', name: 'Thick Chunky Shelf', icon: 'square-full', cat: 'Standard Shelves' },
+                { id: 'rounded_shelf', name: 'Rounded Front Edge', icon: 'circle', cat: 'Standard Shelves' },
+                { id: 'glass_shelf', name: 'Tempered Glass', icon: 'border-none', faIcon: true, cat: 'Glass & Metal' },
+                { id: 'wire_shelf', name: 'Wire / Metal Grid', icon: 'th', faIcon: true, cat: 'Glass & Metal' },
+                { id: 'floating_shelf', name: 'Floating (Invisible Bracket)', icon: 'level-up-alt', faIcon: true, cat: 'Glass & Metal' },
+                { id: 'angled_shelf', name: 'Display Angled', icon: 'angle-down', faIcon: true, cat: 'Specialty' },
+                { id: 'drawer_shelf', name: 'Shelf With Drawer', icon: 'inbox', faIcon: true, cat: 'Specialty' },
+                { id: 'carved_shelf', name: 'Carved Moulded Edge', icon: 'fan', faIcon: true, cat: 'Specialty' },
+            ],
+            backpanel: [
+                { id: 'solid_back', name: 'Solid Panel', icon: 'square-full', cat: 'Solid Backs' },
+                { id: 'beadboard_back', name: 'Bead Board (Vertical)', icon: 'align-justify', faIcon: true, cat: 'Solid Backs' },
+                { id: 'shiplap_back', name: 'Shiplap / Horizontal', icon: 'bars', faIcon: true, cat: 'Solid Backs' },
+                { id: 'mirror_back', name: 'Mirror Panel', icon: 'circle', cat: 'Solid Backs' },
+                { id: 'open_back', name: 'Open / No Back', icon: 'border-none', faIcon: true, cat: 'Open Backs' },
+                { id: 'lattice_back', name: 'Lattice Grid', icon: 'th', faIcon: true, cat: 'Open Backs' },
+                { id: 'arch_panel_back', name: 'Arched Panel', icon: 'archway', faIcon: true, cat: 'Open Backs' },
+                { id: 'spindle_back', name: 'Spindle / Dowel', icon: 'grip-lines-vertical', faIcon: true, cat: 'Open Backs' },
+                { id: 'cane_back', name: 'Cane Weave Insert', icon: 'box', faIcon: true, cat: 'Textured Backs' },
+                { id: 'carved_panel_back', name: 'Carved Decorative', icon: 'drafting-compass', faIcon: true, cat: 'Textured Backs' },
+            ],
+            crown: [
+                { id: 'flat_top', name: 'Flat Top / No Crown', icon: 'minus', faIcon: true, cat: 'Simple Tops' },
+                { id: 'stepped_crown', name: 'Stepped Moulding', icon: 'sort-amount-up', faIcon: true, cat: 'Classic Crown' },
+                { id: 'arched_crown', name: 'Arched Pediment', icon: 'archway', faIcon: true, cat: 'Classic Crown' },
+                { id: 'broken_pediment', name: 'Broken Pediment', icon: 'angle-up', faIcon: true, cat: 'Classic Crown' },
+                { id: 'ogee_crown', name: 'Ogee / S-Curve Moulding', icon: 'wave-square', faIcon: true, cat: 'Classic Crown' },
+                { id: 'dentil_crown', name: 'Dentil Trim', icon: 'grip-horizontal', faIcon: true, cat: 'Ornate Crown' },
+                { id: 'scroll_crown', name: 'Scroll Finials', icon: 'scroll', faIcon: true, cat: 'Ornate Crown' },
+                { id: 'dome_crown', name: 'Dome / Cathedral Top', icon: 'monument', faIcon: true, cat: 'Ornate Crown' },
+                { id: 'glass_door_top', name: 'Glass Door Cabinet Top', icon: 'border-none', faIcon: true, cat: 'Modern Crown' },
+                { id: 'shed_crown', name: 'Shed / Slanted Roof', icon: 'caret-up', faIcon: true, cat: 'Modern Crown' },
+            ]
+        };
+
+        const holeDB = {
+            frame: [{ id: 'none', name: 'Solid (No Cutouts)', icon: 'square', cat: 'Basic' }],
+            shelves: [{ id: 'none', name: 'Solid (No Cutouts)', icon: 'square', cat: 'Basic' }],
+            backpanel: [
+                { id: 'none', name: 'Solid (No Cutouts)', icon: 'square', cat: 'Basic' },
+                { id: 'center_arch', name: 'Center Arch Window', icon: 'archway', faIcon: true, cat: 'Shaped Cutouts' },
+                { id: 'three_arches', name: 'Three Arched Windows', icon: 'align-justify', faIcon: true, cat: 'Shaped Cutouts' },
+                { id: 'diamond_pattern', name: 'Diamond Pattern', icon: 'gem', faIcon: true, cat: 'Shaped Cutouts' },
+                { id: 'rect_grid', name: 'Rectangular Grid', icon: 'th', faIcon: true, cat: 'Patterns' },
+                { id: 'vertical_slots', name: 'Vertical Slots', icon: 'pause', cat: 'Patterns' },
+                { id: 'herringbone', name: 'Herringbone / V-Lines', icon: 'angle-up', faIcon: true, cat: 'Patterns' },
+                { id: 'circle_cutouts', name: 'Circle Cutouts', icon: 'circle', cat: 'Patterns' },
+            ],
+            crown: [{ id: 'none', name: 'No Extra Cutouts', icon: 'square', cat: 'Basic' }],
+            default: [{ id: 'none', name: 'Solid (No Cutouts)', icon: 'square', cat: 'Basic' }]
+        };
+
+        const carvingDB = {
+            none: { name: 'Smooth Finish', icon: 'circle-minus', cat: 'Basic Finishes' },
+            rustic: { name: 'Antique Distressed', icon: 'tree', cat: 'Basic Finishes' },
+            floral: { name: 'Floral Carving', icon: 'fan', cat: 'Wood Carvings' },
+            geometric: { name: 'Geometric Pattern', icon: 'dice-d20', cat: 'Wood Carvings' },
+            linear_groove: { name: 'Linear Grooves', icon: 'grip-lines', cat: 'Wood Carvings' },
+            lattice: { name: 'Wood Lattice Detail', icon: 'th', cat: 'Wood Carvings' },
+            weave: { name: 'Woven Cane / Rattan', icon: 'box', style: { repeatX: 3, repeatY: 3 }, cat: 'Inserts & Upholstery' },
+            padded: { name: 'Standard Fabric', icon: 'couch', faIcon: true, cat: 'Inserts & Upholstery' },
+            studded: { name: 'Tufted Buttons', icon: 'braille', faIcon: true, style: { repeatX: 2, repeatY: 2 }, cat: 'Inserts & Upholstery' },
+            leather_tufted: { name: 'Diamond Leather', icon: 'gem', faIcon: true, style: { repeatX: 2, repeatY: 2 }, cat: 'Inserts & Upholstery' }
+        };
+
+        /* ==========================================================================
+            STATE
+        ========================================================================== */
+        var appState = { items: [], activeItemId: 0, activeLayer: null };
+        var isRotating = true, showDimensions = true, textureCache = {}, modalState = { partName: null, type: null };
+
+        window.onload = function () {
+            try {
+                let savedState = sessionStorage.getItem('cadState_bookshelf_v1');
+                if (savedState) { appState = JSON.parse(savedState); if (!appState.items) appState.items = []; }
+            } catch (e) { appState.items = []; }
+            
+            const shouldAdd = sessionStorage.getItem('addNew');
+            if (appState.items.length === 0 || shouldAdd === 'true') {
+                createNewBookshelf(false);
+                sessionStorage.removeItem('addNew');
+            }
+            const activeItem = getActiveItem();
+            if (activeItem && !appState.activeLayer) appState.activeLayer = assetsDB.bookshelf.parts[0];
+            renderUI(); updatePrice();
+            loadPrevProjectBar();
+            loadShopInfo();
+            setTimeout(() => { init3D(); }, 100);
+        };
+
+        function toggleShopBadge() {
+            const badge = document.getElementById('shop-info-badge');
+            const icon = document.getElementById('shop-badge-toggle-icon');
+            badge.classList.toggle('minimized');
+            if (icon) {
+                icon.innerHTML = badge.classList.contains('minimized') ? '<i class="fas fa-chevron-up"></i>' : '<i class="fas fa-chevron-down"></i>';
+            }
+        }
+
+        function loadShopInfo() {
+            const shopName = sessionStorage.getItem('selectedShopName');
+            const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+            const badge = document.getElementById('shop-info-badge');
+
+            if (shopName) {
+                badge.style.display = 'block';
+                document.getElementById('selected-shop-display-name').innerHTML = `<i class="fas fa-store"></i> ${shopName}`;
+                const matList = document.getElementById('shop-materials-list');
+                matList.innerHTML = '';
+                if (shopMatsRaw) {
+                    const mats = JSON.parse(shopMatsRaw);
+                    mats.forEach(m => {
+                        const span = document.createElement('span');
+                        span.className = 'shop-mat-tag';
+                        span.innerText = m;
+                        matList.appendChild(span);
+                    });
+                }
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
+        function saveState() { sessionStorage.setItem('cadState_bookshelf_v1', JSON.stringify(appState)); }
+
+        function createNewBookshelf(shouldRender = true) {
+            const newItem = {
+                id: Date.now(), type: 'bookshelf', name: 'Custom Bookshelf Design ' + (appState.items.length + 1),
+                selections: { 'Frame': '#8B4513', 'Shelves': '#8B4513', 'Back Panel': '#8B4513', 'Crown': '#8B4513' },
+                dims: { 'Frame': { w: 90, h: 180, d: 30 }, 'Shelves': { w: 88, h: 3, d: 28 }, 'Back Panel': { w: 90, h: 180, d: 2 }, 'Crown': { w: 94, h: 12, d: 32 } },
+                carvings: { 'Frame': 'none', 'Shelves': 'none', 'Back Panel': 'none', 'Crown': 'none' },
+                shapes: { 'Frame': 'straight_frame', 'Shelves': 'flat_shelf', 'Back Panel': 'solid_back', 'Crown': 'flat_top' },
+                holes: { 'Frame': 'none', 'Shelves': 'none', 'Back Panel': 'none', 'Crown': 'none' },
+                globalScale: { x: 1, y: 1, z: 1 },
+                shelfCount: 3,
+                hasBackPanel: true
+            };
+            appState.items.push(newItem);
+            appState.activeItemId = newItem.id;
+            appState.activeLayer = 'Frame';
+            saveState();
+            if (shouldRender && scene) { renderUI(); build3DScene(); updatePrice(); }
+        }
+
+        function createFloatingBookshelf() {
+            const newItem = {
+                id: Date.now(), type: 'bookshelf', name: 'Floating Shelf Set ' + (appState.items.length + 1),
+                selections: { 'Frame': '#d4ac7d', 'Shelves': '#d4ac7d', 'Back Panel': '#8d9498', 'Crown': '#d4ac7d' },
+                dims: { 'Frame': { w: 100, h: 80, d: 25 }, 'Shelves': { w: 98, h: 4, d: 23 }, 'Back Panel': { w: 100, h: 80, d: 2 }, 'Crown': { w: 102, h: 6, d: 26 } },
+                carvings: { 'Frame': 'none', 'Shelves': 'none', 'Back Panel': 'none', 'Crown': 'none' },
+                shapes: { 'Frame': 'floating_frame', 'Shelves': 'flat_shelf', 'Back Panel': 'open_back', 'Crown': 'flat_top' },
+                holes: { 'Frame': 'none', 'Shelves': 'none', 'Back Panel': 'none', 'Crown': 'none' },
+                globalScale: { x: 1, y: 1, z: 1 },
+                shelfCount: 3,
+                hasBackPanel: false
+            };
+            appState.items.push(newItem);
+            appState.activeItemId = newItem.id;
+            appState.activeLayer = 'Frame';
+            saveState();
+            if (scene) { renderUI(); build3DScene(); updatePrice(); }
+        }
+
+        function changeShelfCount(delta) {
+            const item = getActiveItem(); if (!item) return;
+            item.shelfCount = Math.min(8, Math.max(1, (item.shelfCount || 3) + delta));
+            document.getElementById('shelf-count-display').textContent = item.shelfCount;
+            saveState(); build3DScene(); updatePrice();
+        }
+
+        function toggleBackPanel(btn) {
+            const item = getActiveItem(); if (!item) return;
+            item.hasBackPanel = !item.hasBackPanel;
+            btn.classList.toggle('active', item.hasBackPanel);
+            btn.textContent = item.hasBackPanel ? 'Visible' : 'Hidden';
+            saveState(); build3DScene(); updatePrice();
+        }
+
+        function toggleRotation() {
+            isRotating = !isRotating;
+            if (controls) controls.autoRotate = isRotating;
+            document.getElementById('btn-rotate').innerHTML = isRotating ? '<i class="fas fa-pause"></i> Stop Rotate' : '<i class="fas fa-play"></i> Auto Rotate';
+        }
+        function toggleDimensions() {
+            showDimensions = !showDimensions; build3DScene();
+            document.getElementById('btn-dims').innerHTML = showDimensions ? '<i class="fas fa-ruler-combined"></i> Hide Ruler' : '<i class="fas fa-ruler-combined"></i> Show Ruler';
+        }
+        function resetView() { resetCamera(); resetFocus(); build3DScene(); }
+        function updateGlobalScale(axis, val) {
+            const item = getActiveItem();
+            if (!item.globalScale) item.globalScale = { x: 1, y: 1, z: 1 };
+            item.globalScale[axis] = val / 100;
+            document.getElementById('gs-' + axis).innerText = val;
+            saveState(); build3DScene(); updatePrice();
+        }
+
+        /* ==========================================================================
+            UI RENDERING
+        ========================================================================== */
+        function renderUI() { renderSceneList(); renderProperties(); calculateScore(); updatePrice(); }
+
+        function renderSceneList() {
+            const list = document.getElementById('scene-list');
+            list.innerHTML = '';
+
+            const floatBtn = document.createElement('div');
+            floatBtn.style.cssText = 'margin:8px 0 4px;padding:10px 12px;border-radius:6px;background:#2e1004;border:1px dashed #79280a;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#ff8a65;transition:0.15s;';
+            floatBtn.innerHTML = '<i class="fas fa-layer-group" style="color:#ff8a65"></i><span>+ New Floating Shelf</span>';
+            floatBtn.onmouseover = () => floatBtn.style.background = '#4a1906';
+            floatBtn.onmouseout = () => floatBtn.style.background = '#2e1004';
+            floatBtn.onclick = () => createFloatingBookshelf();
+            list.appendChild(floatBtn);
+
+            appState.items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
+                div.onclick = (e) => {
+                    if (e.target.closest('.btn-delete')) return;
+                    appState.activeItemId = item.id; appState.activeLayer = 'Frame';
+                    renderUI(); build3DScene();
+                };
+                const isFloating = item.shapes && item.shapes['Frame'] === 'floating_frame';
+                const icon = isFloating ? 'fas fa-layer-group' : 'fas fa-book-open';
+                div.innerHTML = '<span><i class="' + icon + '"></i> ' + item.name + '</span><button class="btn-delete" onclick="deleteItem(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>';
+                list.appendChild(div);
+            });
+        }
+
+        function renderProperties() {
+            const item = getActiveItem(); if (!item) return;
+            document.getElementById('project-name').value = item.name;
+            if (item.gender && document.getElementById('gender-pref')) {
+                document.getElementById('gender-pref').value = item.gender;
+            }
+            const gs = item.globalScale || { x: 1, y: 1, z: 1 };
+            ['x', 'y', 'z'].forEach(axis => {
+                const val = Math.round(gs[axis] * 100);
+                if (document.getElementById('gs-' + axis)) document.getElementById('gs-' + axis).innerText = val;
+                if (document.getElementById('inp-scale-' + axis)) document.getElementById('inp-scale-' + axis).value = val;
+            });
+
+            document.getElementById('shelf-count-display').textContent = item.shelfCount || 3;
+            const backBtn = document.getElementById('toggle-back-panel');
+            backBtn.classList.toggle('active', item.hasBackPanel !== false);
+            backBtn.textContent = item.hasBackPanel !== false ? 'Visible' : 'Hidden';
+
+            const recGrid = document.getElementById('rec-mat-grid');
+            const allGrid = document.getElementById('all-mat-grid');
+            const recContainer = document.getElementById('rec-mat-container');
+            const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+            const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
+            const shopName = sessionStorage.getItem('selectedShopName') || 'the selected shop';
+
+            recGrid.innerHTML = ''; allGrid.innerHTML = '';
+            let hasRecs = false;
+            Object.keys(materialDB).forEach(k => {
+                const m = materialDB[k]; if (m.rec) hasRecs = true;
+                const card = document.createElement('div');
+                card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
+
+                const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+                if (!isInShop) {
+                    card.innerHTML += `<div class="warn-icon" title="[NOT IN SHOP LIST]"><i class="fas fa-exclamation-triangle"></i></div>`;
+                }
+
+                card.onclick = () => {
+                    if (!isInShop) {
+                        alert(`This material is not available at the selected workshop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
+                        return;
+                    }
+                    applyMaterialToActiveLayer(m.hex);
+                };
+                card.innerHTML += `<div class="mat-card-icon">${m.icon}</div><div class="mat-card-name">${m.name}</div>`;
+                if (m.rec) recGrid.appendChild(card); else allGrid.appendChild(card);
+            });
+            recContainer.style.display = hasRecs ? 'block' : 'none';
+
+            const container = document.getElementById('layers-container');
+            container.innerHTML = '';
+            const shapes = item.shapes || {}, holes = item.holes || {};
+            const carvings = item.carvings || {}, selections = item.selections || {};
+            const itemDims = item.dims || {};
+
+            assetsDB.bookshelf.parts.forEach(part => {
+                const hex = selections[part] || '#8B4513';
+                const dims = itemDims[part] || { w: 90, h: 10, d: 30 };
+                const currentCarving = carvings[part] || 'none';
+                const partKey = part.toLowerCase().replace(' ', '');
+                const currentShapeId = shapes[part] || 'flat_shelf';
+                const currentHoleId = holes[part] || 'none';
+
+                const shapeList = shapeDB[partKey] || shapeDB['frame'];
+                let shapeName = 'Standard';
+                const foundS = shapeList && shapeList.find(s => s.id === currentShapeId);
+                if (foundS) shapeName = foundS.name;
+
+                const holeList = holeDB[partKey] || holeDB.default;
+                let holeName = 'Solid';
+                const foundH = holeList.find(s => s.id === currentHoleId);
+                if (foundH) holeName = foundH.name;
+                let carvingName = carvingDB[currentCarving] ? carvingDB[currentCarving].name : 'Smooth';
+
+                const isActive = (appState.activeLayer === part);
+                const layer = document.createElement('div');
+                layer.className = 'layer-item' + (isActive ? ' active-layer open' : '');
+                layer.onclick = (e) => {
+                    if (e.target.closest('.view-focus-btn') || e.target.tagName === 'INPUT' || e.target.closest('.clickable-design-val')) return;
+                    setActiveLayer(part);
+                };
+
+                let dimensionLabels = { w: 'Width', h: 'Height', d: 'Depth' };
+                if (part === 'Shelves') dimensionLabels = { w: 'Width', h: 'Thickness', d: 'Depth' };
+                if (part === 'Crown') dimensionLabels = { w: 'Width', h: 'Height', d: 'Depth' };
+
+                layer.innerHTML = `
+          <div class="layer-header">
+            <span><i class="fas fa-layer-group"></i> ${part} ${isActive ? '(Selected)' : ''}</span>
+            <button class="view-focus-btn" onclick="focusOnPart('${part}')">${isActive ? '<i class="fas fa-eye"></i>' : '<i class="far fa-eye"></i>'}</button>
+            <div class="color-preview" style="background:${hex}"></div>
+          </div>
           <div class="layer-content">
             <div class="part-control-row">
-              <div class="part-control-label">Shape</div>
-              <div class="clickable-design-val" onclick="openDesignModal('${part}', 'shape')"><span>${shape}</span> <i class="fas fa-edit"></i></div>
+              <div class="part-control-label">Shape / Base Style <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-shape-info')"><i class="fas fa-info"></i></button></div>
+              <div class="clickable-design-val" onclick="openDesignModal('${part}', 'shape')"><span>${shapeName}</span> <i class="fas fa-edit"></i></div>
             </div>
             <div class="part-control-row">
-              <div class="part-control-label">Dimensions (cm)</div>
-              <div class="dim-row">
-                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].w}" oninput="updateDim('${part}','w',this.value)"><div class="dim-label">W</div></div>
-                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].h}" oninput="updateDim('${part}','h',this.value)"><div class="dim-label">H</div></div>
-                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].d}" oninput="updateDim('${part}','d',this.value)"><div class="dim-label">D</div></div>
+              <div class="part-control-label">Cutouts / Decorative <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-holes-info')"><i class="fas fa-info"></i></button></div>
+              <div class="clickable-design-val" onclick="openDesignModal('${part}', 'holes')"><span>${holeName}</span> <i class="fas fa-edit"></i></div>
+            </div>
+            <div class="part-control-row">
+              <div class="part-control-label">Carving / Texture <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-carving-info')"><i class="fas fa-info"></i></button></div>
+              <div class="clickable-design-val" onclick="openDesignModal('${part}', 'carving')"><span>${carvingName}</span> <i class="fas fa-edit"></i></div>
+            </div>
+            <div class="part-control-row">
+              <div class="part-control-label">Hex Color <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-color-info')"><i class="fas fa-info"></i></button></div>
+              <div class="hex-wrapper">
+                <input type="color" value="${hex}" oninput="updateColor('${part}', this.value)">
+                <input type="text" class="hex-text-input" value="${hex}" onchange="updateColor('${part}', this.value)">
               </div>
             </div>
-          </div>`;
-        div.innerHTML = html; container.appendChild(div);
-      });
+            <div class="part-control-row">
+              <div class="part-control-label">Dimensions (cm) <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-dims-info')"><i class="fas fa-info"></i></button></div>
+              <div class="dim-row">
+                <div class="dim-group"><input class="dim-input" type="number" value="${dims.w}" oninput="updateDim('${part}','w',this.value)"><div class="dim-label">${dimensionLabels.w}</div></div>
+                <div class="dim-group"><input class="dim-input" type="number" value="${dims.h}" oninput="updateDim('${part}','h',this.value)"><div class="dim-label">${dimensionLabels.h}</div></div>
+                <div class="dim-group"><input class="dim-input" type="number" value="${dims.d}" oninput="updateDim('${part}','d',this.value)"><div class="dim-label">${dimensionLabels.d}</div></div>
+              </div>
+            </div>
+          </div>
+        `;
+                container.appendChild(layer);
+            });
+        }
 
-      ['hasSides', 'hasBack'].forEach(f => {
-         const btn = document.getElementById('toggle-' + f.replace('has','').toLowerCase());
-         if(btn) btn.classList.toggle('active', !!active[f]);
-      });
-    }
+        function setActiveLayer(partName) { appState.activeLayer = partName; renderProperties(); focusOnPart(partName); }
+        function applyMaterialToActiveLayer(hex) { if (!appState.activeLayer) return; updateColor(appState.activeLayer, hex); renderProperties(); }
+        function updateColor(part, hex) { const item = getActiveItem(); if (!item.selections) item.selections = {}; item.selections[part] = hex; build3DScene(); saveState(); calculateScore(); updatePrice(); }
+        function updateDim(part, axis, val) { const item = getActiveItem(); if (!item.dims) item.dims = {}; if (!item.dims[part]) item.dims[part] = { w: 90, h: 10, d: 30 }; item.dims[part][axis] = parseInt(val) || 0; saveState(); build3DScene(); updatePrice(); }
+        function updateGenderPref(val){ const ai=getActiveItem(); if(ai){ ai.gender=val; saveState(); } }
+        function updateProjectName(val) { getActiveItem().name = val; renderSceneList(); saveState(); }
 
-    function updateDim(p, a, v) { getActiveItem().dims[p][a] = parseInt(v) || 1; build3DScene(); updatePrice(); }
-    function updateGlobalScale(a, v) { getActiveItem().globalScale[a] = v / 100; document.getElementById('gs-' + a).innerText = v; build3DScene(); updatePrice(); }
-    function updateProjectName(v) { getActiveItem().name = v; renderSceneList(); }
-    function setTmplBadge(b, el) { appState.tmplBadge = b; document.querySelectorAll('.badge-opt').forEach(x => x.classList.remove('active')); el.classList.add('active'); }
-    function updateTemplateMeta() { appState.tmplGender = document.getElementById('template-gender').value; }
-    function toggleFeature(f, b) { const active = getActiveItem(); active[f] = !active[f]; renderProperties(); build3DScene(); updatePrice(); }
-    function updateTiers(v) { const active = getActiveItem(); active.tiers = parseInt(v); document.getElementById('tiers-val').innerText = v; build3DScene(); updatePrice(); }
+        function updatePrice() {
+            const activeItem = getActiveItem(); if (!activeItem) return;
+            let addedCost = 0;
+            const selections = activeItem.selections || {};
+            const itemDims = activeItem.dims || {};
+            assetsDB.bookshelf.parts.forEach(part => {
+                if (part === 'Back Panel' && !activeItem.hasBackPanel) return;
+                const hex = selections[part] || '#8B4513';
+                const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase()) || 'mahogany';
+                const matData = materialDB[matKey] || materialDB['mahogany'];
+                const d = itemDims[part] || { w: 90, h: 10, d: 30 };
+                let vol = (d.w * d.h * d.d) / 5000;
+                if (part === 'Shelves') vol *= (activeItem.shelfCount || 3);
+                addedCost += vol * matData.price;
+            });
+            const gs = activeItem.globalScale || { x: 1, y: 1, z: 1 };
+            const scaleMultiplier = gs.x * gs.y * gs.z;
+            const priceEl = document.getElementById('total-price');
+            if (priceEl && priceEl.dataset.manual === 'true') return;
+            priceEl.innerHTML = '&#8369;' + Math.round((assetsDB.bookshelf.basePrice + addedCost) * scaleMultiplier).toLocaleString();
+        }
 
-    function updatePrice() {
-      const active = getActiveItem(); if (!active) return;
-      let cost = 8000;
-      Object.keys(active.dims).forEach(p => {
-        const d = active.dims[p];
-        let vol = (d.w * d.h * d.d) / 2500;
-        const hex = active.selections[p];
-        const m = Object.values(materialDB).find(m => m.hex === hex) || materialDB.mahogany;
-        cost += vol * m.price;
-      });
-      cost += active.tiers * 600;
-      const gs = active.globalScale || { x: 1, y: 1, z: 1 };
-      cost *= (gs.x * gs.y * gs.z || 1);
-      document.getElementById('total-price').innerText = '₱' + Math.round(cost).toLocaleString();
-    }
+        function calculateScore() {
+            const activeItem = getActiveItem(); if (!activeItem) return;
+            const selections = activeItem.selections || {};
+            const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+            const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
 
-    function calculateScore() {
-      const active = getActiveItem(); let d = 0, q = 0; const ps = Object.values(active.selections);
-      ps.forEach(h => { const m = Object.values(materialDB).find(m => m.hex === h) || { dura: 70, qual: 70 }; d += m.dura; q += m.qual; });
-      const ad = Math.round(d / ps.length), aq = Math.round(q / ps.length);
-      document.getElementById('score-dura-val').innerText = ad + '%'; document.getElementById('bar-dura').style.width = ad + '%';
-      document.getElementById('score-qual-val').innerText = aq + '%'; document.getElementById('bar-qual').style.width = aq + '%';
-      document.getElementById('rec-status').innerHTML = ad > 88 ? 'Elite Construction' : 'Standard Build';
-    }
+            let totalDura = 0, totalQual = 0, recCount = 0, inShopCount = 0;
+            const parts = Object.values(selections);
+            const totalParts = parts.length;
 
-    function deleteProject(id) { if (appState.items.length > 1) { appState.items = appState.items.filter(i => i.id !== id); appState.activeItemId = appState.items[0].id; renderUI(); build3DScene(); } }
+            parts.forEach(hex => {
+                const mk = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
+                if (mk) {
+                    const m = materialDB[mk];
+                    let partDura = m.dura;
+                    let partQual = m.qual;
 
-    /* ==========================================================================
-       THREE.JS ENGINE
-       ========================================================================== */
-    let scene, camera, renderer, controls, currentGroup;
+                    const isRec = !!m.rec;
+                    const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
 
-    function init3D() {
-      const container = document.getElementById('canvas-container');
-      scene = new THREE.Scene(); scene.background = new THREE.Color(0x1e1e1e);
-      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-      camera.position.set(12, 10, 15);
-      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      renderer.shadowMap.enabled = true;
-      container.appendChild(renderer.domElement);
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true; controls.autoRotate = isRotating;
-      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-      const dl = new THREE.DirectionalLight(0xffffff, 1.0); dl.position.set(5, 10, 7); dl.castShadow = true; scene.add(dl);
-      animate();
-    }
-    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+                    if (isRec) {
+                        partDura = Math.min(100, partDura + 6);
+                        partQual = Math.min(100, partQual + 4);
+                        recCount++;
+                    } else {
+                        partDura -= 12;
+                        partQual -= 15;
+                    }
 
-    function build3DScene() {
-      if (!scene) return; if (currentGroup) scene.remove(currentGroup);
-      currentGroup = new THREE.Group();
-      const active = getActiveItem(); const SCALE = 50;
+                    if (!isInShop) {
+                        partQual -= 25;
+                        partDura -= 8;
+                    } else {
+                        inShopCount++;
+                    }
 
-      const getMat = (hex) => new THREE.MeshStandardMaterial({ color: hex, roughness: 0.7, metalness: 0.1 });
-      const addMesh = (geo, hex, x, y, z, rx=0, ry=0, rz=0) => {
-        const mesh = new THREE.Mesh(geo, getMat(hex)); mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz);
-        mesh.castShadow = true; mesh.receiveShadow = true; currentGroup.add(mesh); return mesh;
-      };
+                    totalDura += partDura;
+                    totalQual += partQual;
+                } else {
+                    totalDura += 45; totalQual += 40;
+                }
+            });
 
-      const dF = { w: active.dims.Frame.w / SCALE, h: active.dims.Frame.h / SCALE, d: active.dims.Frame.d / SCALE };
-      const dL = { w: active.dims.Legs.w / SCALE, h: active.dims.Legs.h / SCALE, d: active.dims.Legs.d / SCALE };
-      const dT = 0.04;
+            const avgDura = totalParts > 0 ? Math.max(0, Math.min(100, Math.round(totalDura / totalParts))) : 0;
+            const avgQual = totalParts > 0 ? Math.max(0, Math.min(100, Math.round(totalQual / totalParts))) : 0;
 
-      const yL = dL.h / 2, yF = dL.h + dF.h / 2;
+            const barDura = document.getElementById('bar-dura');
+            const barQual = document.getElementById('bar-qual');
+            const valDura = document.getElementById('score-dura-val');
+            const valQual = document.getElementById('score-qual-val');
 
-      // Sides
-      if(active.hasSides) {
-        addMesh(new THREE.BoxGeometry(dT, dF.h, dF.d), active.selections.Frame, -dF.w/2, yF, 0);
-        addMesh(new THREE.BoxGeometry(dT, dF.h, dF.d), active.selections.Frame, dF.w/2, yF, 0);
-      } else {
-        // Vertical Rails instead
-        addMesh(new THREE.BoxGeometry(0.1, dF.h, 0.1), active.selections.Frame, -dF.w/2, yF, -dF.d/2);
-        addMesh(new THREE.BoxGeometry(0.1, dF.h, 0.1), active.selections.Frame, -dF.w/2, yF, dF.d/2);
-        addMesh(new THREE.BoxGeometry(0.1, dF.h, 0.1), active.selections.Frame, dF.w/2, yF, -dF.d/2);
-        addMesh(new THREE.BoxGeometry(0.1, dF.h, 0.1), active.selections.Frame, dF.w/2, yF, dF.d/2);
-      }
+            if (barDura) {
+                barDura.style.width = avgDura + '%';
+                barDura.style.background = avgDura > 85 ? '#2ecc71' : (avgDura > 65 ? 'orange' : '#e74c3c');
+            }
+            if (valDura) valDura.innerText = avgDura + '%';
+            if (barQual) barQual.style.width = avgQual + '%';
+            if (valQual) valQual.innerText = avgQual + '%';
 
-      // Top & Bottom
-      addMesh(new THREE.BoxGeometry(dF.w, dT, dF.d), active.selections.Frame, 0, dL.h + dF.h, 0);
-      addMesh(new THREE.BoxGeometry(dF.w, dT, dF.d), active.selections.Frame, 0, dL.h, 0);
+            let finalScore = ((avgDura + avgQual) / 2) + ((recCount / totalParts) * 15);
+            if (inShopCount < totalParts && shopMats.length > 0) finalScore -= 15;
+            finalScore = Math.max(0, Math.min(100, Math.round(finalScore)));
 
-      // Back Panel
-      if(active.hasBack) {
-        addMesh(new THREE.BoxGeometry(dF.w, dF.h, dT), active.selections.Frame, 0, yF, -dF.d/2);
-      }
+            const status = document.getElementById('rec-status');
+            if (status) {
+                if (finalScore >= 95) {
+                    status.innerHTML = '<i class="fas fa-crown" style="color:#f1c40f"></i> <span style="color:#f1c40f;font-weight:bold">Elite Design Configuration</span>';
+                } else if (finalScore >= 80) {
+                    status.innerHTML = '<i class="fas fa-check-circle" style="color:#2ecc71"></i> Optimal Material Synergy';
+                } else if (finalScore >= 60) {
+                    status.innerHTML = '<i class="fas fa-info-circle" style="color:#3498db"></i> Standard Professional Build';
+                } else {
+                    status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#e74c3c"></i> Sub-optimal Material Choice';
+                }
+                if (recCount > 0 && finalScore < 95) {
+                    status.innerHTML += `<div class="elite-bonus"><i class="fas fa-arrow-up"></i> Recommended Material Bonus Applied</div>`;
+                }
+            }
+        }
 
-      // Tiers
-      const tierSpacing = dF.h / active.tiers;
-      for(let i=1; i<active.tiers; i++) {
-        addMesh(new THREE.BoxGeometry(dF.w - 0.1, dT, dF.d - 0.05), active.selections.Shelves, 0, dL.h + i * tierSpacing, 0);
-      }
+        function deleteItem(id) {
+            if (confirm('Delete?')) {
+                appState.items = appState.items.filter(i => i.id !== id);
+                if (appState.items.length === 0) createNewBookshelf(true); else appState.activeItemId = appState.items[0].id;
+                appState.activeLayer = 'Frame'; saveState(); renderUI(); build3DScene();
+            }
+        }
 
-      // Legs
-      if(active.shapes.Legs === 'plinth') {
-        addMesh(new THREE.BoxGeometry(dF.w, dL.h, dF.d), active.selections.Legs, 0, yL, 0);
-      } else {
-        [[-dF.w*0.4, -dF.d*0.4], [dF.w*0.4, -dF.d*0.4], [-dF.w*0.4, dF.d*0.4], [dF.w*0.4, dF.d*0.4]].forEach(([lx, lz]) => {
-          addMesh(new THREE.BoxGeometry(0.12, dL.h, 0.12), active.selections.Legs, lx, yL, lz);
+        /* ==========================================================================
+            DESIGN MODAL
+        ========================================================================== */
+        function openDesignModal(partName, type) {
+            modalState = { partName, type };
+            document.getElementById('design-modal-title').innerText = 'Select ' + type.charAt(0).toUpperCase() + type.slice(1) + ' for ' + partName;
+            const scrollArea = document.getElementById('design-modal-scroll');
+            scrollArea.innerHTML = '';
+            const legend = document.createElement('div');
+            legend.className = 'render-legend';
+            legend.innerHTML = '<div class="render-legend-item"><div class="legend-dot ok"></div> Fully Supported</div><div class="render-legend-item"><div class="legend-dot warn"></div> Limited / Approximated</div><div class="render-legend-item"><div class="legend-dot bad"></div> Not Rendering</div>';
+            scrollArea.appendChild(legend);
+
+            const activeItem = getActiveItem();
+            let db, activeId;
+            const partKey = partName.toLowerCase().replace(' ', '');
+            if (type === 'shape') { db = shapeDB[partKey] || shapeDB.frame; activeId = (activeItem.shapes || {})[partName]; }
+            else if (type === 'holes') { db = holeDB[partKey] || holeDB.default; activeId = (activeItem.holes || {})[partName]; }
+            else { db = carvingDB; activeId = (activeItem.carvings || {})[partName]; }
+
+            let groups = {};
+            if (Array.isArray(db)) {
+                db.forEach(item => { const cat = item.cat || 'Options'; if (!groups[cat]) groups[cat] = []; groups[cat].push(item); });
+            } else {
+                Object.keys(db).forEach(key => { const item = Object.assign({ id: key }, db[key]); const cat = item.cat || 'Options'; if (!groups[cat]) groups[cat] = []; groups[cat].push(item); });
+            }
+            Object.keys(groups).forEach(catName => {
+                const title = document.createElement('div'); title.className = 'modal-section-title'; title.innerText = catName;
+                scrollArea.appendChild(title);
+                const grid = document.createElement('div'); grid.className = 'design-grid';
+                groups[catName].forEach(item => {
+                    const card = document.createElement('div');
+                    let cardClass = 'design-card';
+                    if (item.id === activeId) cardClass += ' active';
+                    card.className = cardClass;
+                    card.onclick = () => selectDesign(item.id);
+                    const finalIcon = item.faIcon ? item.icon : (carvingDB[item.id] ? carvingDB[item.id].icon : (item.icon || 'circle'));
+                    card.innerHTML = `<i class="design-icon fas fa-${finalIcon}"></i><div class="design-name">${item.name}</div>`;
+                    grid.appendChild(card);
+                });
+                scrollArea.appendChild(grid);
+            });
+            document.getElementById('design-modal-overlay').classList.add('open');
+            focusOnPart(partName);
+        }
+
+        function closeDesignModal(e) {
+            if (e && e.target !== document.getElementById('design-modal-overlay')) return;
+            document.getElementById('design-modal-overlay').classList.remove('open'); modalState = { partName: null, type: null };
+        }
+        document.getElementById('design-modal-overlay').addEventListener('click', function (e) {
+            if (e.target === this) closeDesignModal(e);
         });
-      }
 
-      currentGroup.scale.set(active.globalScale.x, active.globalScale.y, active.globalScale.z);
-      scene.add(currentGroup);
-    }
+        function selectDesign(newId) {
+            const item = getActiveItem();
+            if (modalState.type === 'shape') {
+                if (!item.shapes) item.shapes = {};
+                item.shapes[modalState.partName] = newId;
+                if (newId === 'open_back') item.hasBackPanel = false;
+            } else if (modalState.type === 'holes') {
+                if (!item.holes) item.holes = {};
+                item.holes[modalState.partName] = newId;
+            } else {
+                if (!item.carvings) item.carvings = {};
+                item.carvings[modalState.partName] = newId;
+            }
+            build3DScene(); saveState(); renderProperties(); calculateScore(); updatePrice();
+            document.getElementById('design-modal-overlay').classList.remove('open');
+            modalState = { partName: null, type: null };
+        }
 
-    /* ==========================================================================
-       UTILITIES & PUBLISHING
-       ========================================================================== */
-    function toggleRotation() { isRotating = !isRotating; controls.autoRotate = isRotating; document.getElementById('btn-rotate').innerHTML = isRotating ? '<i class="fas fa-pause"></i> Stop Rotate' : '<i class="fas fa-play"></i> Start Rotate'; }
-    function toggleDimensions() { showDimensions = !showDimensions; build3DScene(); }
-    function resetView() { camera.position.set(12, 10, 15); controls.target.set(0, 2, 0); }
-    function toggleDesignAnalysis() { document.getElementById('design-analysis-card').classList.toggle('minimized'); }
+        /* ==========================================================================
+            TEXTURE GENERATOR
+        ========================================================================== */
+        function createPatternTexture(style) {
+            if (textureCache[style]) return textureCache[style];
+            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, 512, 512);
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 15;
+            if (style === 'linear_groove') { ctx.strokeStyle = '#2d2d2d'; ctx.lineWidth = 10; for (let i = 0; i <= 512; i += 64) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke(); } }
+            else if (style === 'lattice') { ctx.beginPath(); for (let i = -512; i < 1024; i += 64) { ctx.moveTo(i, 0); ctx.lineTo(i + 512, 512); ctx.moveTo(i, 512); ctx.lineTo(i + 512, 0); } ctx.stroke(); }
+            else if (style === 'studded' || style === 'leather_tufted') { for (let x = 25; x < 512; x += 100) for (let y = 25; y < 512; y += 100) { const grad = ctx.createRadialGradient(x, y, 5, x, y, 40); grad.addColorStop(0, "white"); grad.addColorStop(1, "#808080"); ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(x, y, 35, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.arc(x, y, 10, 0, Math.PI * 2); ctx.fill(); } }
+            else if (style === 'weave') { return createCaneWeaveTexture(); }
+            else if (style === 'geometric') { ctx.lineWidth = 10; ctx.strokeRect(50, 50, 412, 412); ctx.strokeRect(150, 150, 212, 212); ctx.beginPath(); ctx.arc(256, 256, 60, 0, Math.PI * 2); ctx.stroke(); }
+            else if (style === 'floral') { ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(256, 50); ctx.bezierCurveTo(150, 50, 150, 200, 256, 200); ctx.bezierCurveTo(362, 200, 362, 50, 256, 50); ctx.moveTo(256, 462); ctx.bezierCurveTo(150, 462, 150, 312, 256, 312); ctx.bezierCurveTo(362, 312, 362, 462, 256, 462); ctx.fill(); ctx.lineWidth = 8; ctx.strokeStyle = "#ffffff"; ctx.beginPath(); ctx.arc(100, 256, 50, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.arc(412, 256, 50, 0, Math.PI * 2); ctx.stroke(); }
+            else if (style === 'rustic') { for (let i = 0; i < 5000; i++) { ctx.fillStyle = 'rgba(128,128,128,' + (Math.random() * 0.5) + ')'; const x = Math.random() * 512; const y = Math.random() * 512; const s = Math.random() * 4; ctx.fillRect(x, y, s, s * 4); } }
+            else if (style === 'padded') { for (let i = 0; i < 10000; i++) { ctx.fillStyle = 'rgba(128,128,128,' + (Math.random() * 0.2) + ')'; ctx.fillRect(Math.random() * 512, Math.random() * 512, 1, 1); } }
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+            textureCache[style] = texture; return texture;
+        }
+        function createCaneWeaveTexture() {
+            if (textureCache['weave']) return textureCache['weave'];
+            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#C19A6B'; ctx.fillRect(0, 0, 512, 512);
+            ctx.lineWidth = 15; const step = 40;
+            for (let y = step / 2; y < 512; y += step) { for (let x = 0; x < 512; x += step) { ctx.strokeStyle = '#99734D'; ctx.beginPath(); ctx.moveTo(x + 5, y); ctx.lineTo(x + step / 2 - 5, y); ctx.stroke(); ctx.strokeStyle = '#D7BDA0'; ctx.beginPath(); ctx.moveTo(x + step / 2 + 5, y); ctx.lineTo(x + step - 5, y); ctx.stroke(); } }
+            for (let x = step / 2; x < 512; x += step) { for (let y = 0; y < 512; y += step) { ctx.strokeStyle = '#D7BDA0'; ctx.beginPath(); ctx.moveTo(x, y + 5); ctx.lineTo(x, y + step / 2 - 5); ctx.stroke(); ctx.strokeStyle = '#99734D'; ctx.beginPath(); ctx.moveTo(x, y + step / 2 + 5); ctx.lineTo(x, y + step - 5); ctx.stroke(); } }
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+            textureCache['weave'] = texture; return texture;
+        }
 
-    function openDesignModal(p, t) {
-      modalState = { p, t }; document.getElementById('design-modal-overlay').classList.add('open');
-      const s = document.getElementById('design-modal-scroll'); s.innerHTML = '';
-      const list = shapeDB[p.toLowerCase()];
-      list.forEach(i => {
-        const c = document.createElement('div'); c.className = 'design-card' + (getActiveItem().shapes[p] === i.id ? ' active' : '');
-        c.onclick = () => { getActiveItem().shapes[p] = i.id; renderProperties(); build3DScene(); closeDesignModal(); };
-        c.innerHTML = `<i class="design-icon fas fa-${i.icon}"></i><div class="design-name">${i.name}</div>`;
-        s.appendChild(c);
-      });
-    }
-    function closeDesignModal() { document.getElementById('design-modal-overlay').classList.remove('open'); }
+        /* ==========================================================================
+            3D ENGINE
+        ========================================================================== */
+        var scene, camera, renderer, currentGroup, controls, dimGroup;
 
-    function addNewProject() {
-      const p = createNewDesignData('New Custom Bookshelf'); appState.items.push(p);
-      appState.activeItemId = p.id; renderUI(); build3DScene();
-    }
+        function init3D() {
+  if(typeof scene !== "undefined" && scene) return;
+            const container = document.getElementById('canvas-container');
+            const width = container.clientWidth || 800, height = container.clientHeight || 600;
+            scene = new THREE.Scene(); scene.background = new THREE.Color(0x1e1e1e);
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
+            renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+            renderer.setSize(width, height);
+            renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.innerHTML = ''; container.appendChild(renderer.domElement);
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; controls.autoRotate = isRotating; controls.autoRotateSpeed = 0.4;
+            scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.3);
+            dirLight.position.set(8, 15, 10); dirLight.castShadow = true; scene.add(dirLight);
+            const fillLight = new THREE.DirectionalLight(0xffffff, 0.35);
+            fillLight.position.set(-6, 8, -8); scene.add(fillLight);
+            const bottomLight = new THREE.DirectionalLight(0xffffff, 0.2);
+            bottomLight.position.set(0, -5, 5); scene.add(bottomLight);
+            scene.add(new THREE.GridHelper(30, 30, 0x444444, 0x2a2a2a));
+            dimGroup = new THREE.Group(); scene.add(dimGroup);
+            resetCamera(); build3DScene(); animate();
+        }
+        function animate() { requestAnimationFrame(animate); if (controls) controls.update(); if (renderer && scene && camera) renderer.render(scene, camera); }
+        function resetCamera() { if (camera) camera.position.set(12, 9, 14); if (controls) controls.target.set(0, 3, 0); resetFocus(); }
+        function resetFocus() { document.querySelectorAll('.view-focus-btn').forEach(btn => btn.innerHTML = '<i class="far fa-eye"></i>'); }
 
-    function publishTemplate() {
-      const active = getActiveItem();
-      renderer.render(scene, camera);
-      const preview = renderer.domElement.toDataURL('image/png');
-      
-      const tmpl = {
-        id: 'SHOP-TMPL-' + Date.now(),
-        type: 'bookshelf',
-        name: document.getElementById('project-name-input').value.trim() || active.name,
-        description: document.getElementById('template-desc').value.trim(),
-        gender: appState.tmplGender,
-        badge: appState.tmplBadge,
-        previewDataUrl: preview,
-        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
-        publishedAt: new Date().toISOString(),
-        basePrice: parseInt(document.getElementById('total-price').innerText.replace(/\D/g,'')),
-        config: JSON.parse(JSON.stringify(active))
-      };
+        function focusOnPart(partName) {
+            if (!currentGroup || !controls) return;
+            const meshes = currentGroup.children.filter(m => m.name === partName);
+            if (meshes.length === 0) return;
+            resetFocus();
+            const box = new THREE.Box3(); meshes.forEach(m => box.expandByObject(m));
+            const center = new THREE.Vector3(); box.getCenter(center);
+            controls.target.set(center.x, center.y, center.z);
+            const size = new THREE.Vector3(); box.getSize(size);
+            const dist = Math.max(size.x, size.y, size.z) * 1.5 + 3;
+            camera.position.set(center.x + dist, center.y + dist * 0.5, center.z + dist);
+        }
 
-      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
-      globals.unshift(tmpl);
-      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
-      
-      alert('✅ Template "' + tmpl.name + '" published successfully!');
-      window.location.href = 'templates.html';
-    }
+        function createDimensionLine(start, end, label, offset) {
+            if (!showDimensions) return;
+            const safeOffset = offset || new THREE.Vector3(0, 0, 0);
+            const p1 = start.clone().add(safeOffset), p2 = end.clone().add(safeOffset);
+            const mat = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
+            dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1, p2]), mat));
+            const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
+            canvas.width = 512; canvas.height = 128;
+            ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0, 0, 512, 128);
+            ctx.font = "Bold 80px Segoe UI"; ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 4; ctx.fillText(label, 256, 64);
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
+            sprite.position.copy(p1).lerp(p2, 0.5); sprite.position.y += 0.05;
+            sprite.scale.set(1.2, 0.3, 1);
+            dimGroup.add(sprite);
+        }
 
-    localStorage.setItem('builder_bookshelf_drafts', JSON.stringify(appState.items));
-    window.onbeforeunload = () => { localStorage.setItem('builder_bookshelf_drafts', JSON.stringify(appState.items)); };
+        /* ==========================================================================
+            3D BOOKSHELF BUILD
+        ========================================================================== */
+        function build3DScene() {
+            if (!scene) return;
+            if (currentGroup) scene.remove(currentGroup);
+            currentGroup = new THREE.Group(); dimGroup.clear();
 
-  </script>
+            const activeItem = getActiveItem(); if (!activeItem) return;
+            const SCALE = 50;
+
+            const itemDims = activeItem.dims || {};
+            const itemShapes = activeItem.shapes || {};
+            const itemHoles = activeItem.holes || {};
+            const itemCarvings = activeItem.carvings || {};
+            const itemSelections = activeItem.selections || {};
+            const shelfCount = activeItem.shelfCount || 3;
+            const hasBackPanel = activeItem.hasBackPanel !== false;
+
+            const getDims = p => { const d = itemDims[p] || { w: 90, h: 180, d: 30 }; return { w: d.w / SCALE, h: d.h / SCALE, d: d.d / SCALE }; };
+
+            const dFrame = getDims('Frame');
+            const dShelf = getDims('Shelves');
+            const dBack = getDims('Back Panel');
+            const dCrown = getDims('Crown');
+
+            const frameShape = itemShapes['Frame'] || 'straight_frame';
+            const shelfShape = itemShapes['Shelves'] || 'flat_shelf';
+            const backShape = itemShapes['Back Panel'] || 'solid_back';
+            const crownShape = itemShapes['Crown'] || 'flat_top';
+            const backHole = itemHoles['Back Panel'] || 'none';
+
+            const frameHex = itemSelections['Frame'] || '#8B4513';
+            const shelfHex = itemSelections['Shelves'] || '#8B4513';
+            const backHex = itemSelections['Back Panel'] || '#8B4513';
+            const crownHex = itemSelections['Crown'] || '#8B4513';
+            const frameCarv = itemCarvings['Frame'] || 'none';
+            const shelfCarv = itemCarvings['Shelves'] || 'none';
+            const backCarv = itemCarvings['Back Panel'] || 'none';
+            const crownCarv = itemCarvings['Crown'] || 'none';
+
+            /* ── MATERIAL FACTORY ── */
+            const getMat = (hex, ck) => {
+                ck = ck || 'none';
+                const cStyle = carvingDB[ck] || carvingDB.none;
+                const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
+                const roughnessMap = { narra: 0.35, kamagong: 0.2, molave: 0.32, mahogany: 0.28, tanguile: 0.38, yakal: 0.22, oak: 0.42, pine: 0.5, rubberwood: 0.46, bamboo: 0.44, marble_white: 0.1, marble_black: 0.08, glass_clear: 0.05, brushed_steel: 0.35 };
+                const roughness = roughnessMap[matKey] !== undefined ? roughnessMap[matKey] : 0.5;
+                const metalness = matKey === 'brushed_steel' ? 0.85 : matKey === 'glass_clear' ? 0.1 : (matKey === 'marble_white' || matKey === 'marble_black') ? 0.06 : 0.04;
+                const mat = new THREE.MeshStandardMaterial({ color: hex, roughness, metalness, side: THREE.DoubleSide });
+                if (matKey === 'glass_clear') { mat.transparent = true; mat.opacity = 0.45; }
+                if (ck !== 'none') {
+                    const tex = createPatternTexture(ck).clone();
+                    const rx = (cStyle.style && cStyle.style.repeatX) ? cStyle.style.repeatX : 2;
+                    const ry = (cStyle.style && cStyle.style.repeatY) ? cStyle.style.repeatY : 2;
+                    tex.repeat.set(rx, ry); tex.needsUpdate = true;
+                    mat.bumpMap = tex; mat.bumpScale = 0.08;
+                }
+                return mat;
+            };
+
+            const addMesh = (name, geo, hex, carving, x, y, z, rx = 0, ry = 0, rz = 0) => {
+                if (!geo) return;
+                const mesh = new THREE.Mesh(geo, getMat(hex, carving));
+                mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz);
+                mesh.name = name; mesh.castShadow = true; mesh.receiveShadow = true;
+                currentGroup.add(mesh); return mesh;
+            };
+
+            const sg = (fn, fb) => {
+                try { const g = fn(); return (g && g.attributes && g.attributes.position && g.attributes.position.count > 0) ? g : fb; }
+                catch (e) { return fb; }
+            };
+
+            /* ── Dimensions shorthand ── */
+            const FW = dFrame.w;   // frame width
+            const FH = dFrame.h;   // frame height
+            const FD = dFrame.d;   // frame depth
+            const panelT = Math.max(dShelf.h, 0.03); // panel/side thickness
+            const shelfD = Math.min(dShelf.d, FD - panelT * 2);
+            const shelfW = FW - panelT * 2;
+
+            /* ═══════════════════════════════════════════════════════
+               FRAME BUILDER — Dispatches by frameShape
+            ═══════════════════════════════════════════════════════ */
+            if (frameShape === 'floating_frame') {
+                buildFloatingFrame(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, frameHex, frameCarv, shelfCount);
+            } else if (frameShape === 'ladder_frame') {
+                buildLadderFrame(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, frameHex, frameCarv, shelfCount);
+            } else if (frameShape === 'cube_frame') {
+                buildCubeFrame(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, frameHex, frameCarv, shelfCount);
+            } else if (frameShape === 'hairpin_frame') {
+                buildHairpinFrame(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, frameHex, frameCarv, shelfCount);
+            } else {
+                buildStandardFrame(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, frameHex, frameCarv, shelfCount, shelfShape, frameShape);
+            }
+
+            /* ── BACK PANEL ── */
+            if (hasBackPanel && backShape !== 'open_back') {
+                buildBackPanel(addMesh, getMat, sg, FW, FH, FD, panelT, backHex, backCarv, backShape, backHole);
+            }
+
+            /* ── CROWN / TOP ── */
+            if (crownShape !== 'flat_top') {
+                buildCrown(addMesh, getMat, sg, FW, FH, FD, dCrown, crownHex, crownCarv, crownShape);
+            }
+
+            /* ── DECORATIVE BOOKS (colored boxes to fill shelves) ── */
+            buildDecorativeBooks(currentGroup, FW, FH, FD, panelT, shelfD, shelfCount);
+
+            /* ── Global scale ── */
+            const gs = activeItem.globalScale || { x: 1, y: 1, z: 1 };
+            currentGroup.scale.set(gs.x || 1, gs.y || 1, gs.z || 1);
+            scene.add(currentGroup);
+
+            /* ── Dimension rulers ── */
+            if (showDimensions) {
+                const gx = gs.x || 1, gy = gs.y || 1, gz = gs.z || 1;
+                createDimensionLine(new THREE.Vector3(-FW / 2 * gx, 0, FD / 2 * gz), new THREE.Vector3(FW / 2 * gx, 0, FD / 2 * gz), Math.round(FW * SCALE * gx) + 'cm W', new THREE.Vector3(0, 0, 0.3 * gz));
+                createDimensionLine(new THREE.Vector3(-FW / 2 * gx - 0.25, 0, 0), new THREE.Vector3(-FW / 2 * gx - 0.25, FH * gy, 0), Math.round(FH * SCALE * gy) + 'cm H', new THREE.Vector3(-0.1 * gx, 0, 0));
+                createDimensionLine(new THREE.Vector3(FW / 2 * gx + 0.15, FH / 2 * gy, -FD / 2 * gz), new THREE.Vector3(FW / 2 * gx + 0.15, FH / 2 * gy, FD / 2 * gz), Math.round(FD * SCALE * gz) + 'cm D', new THREE.Vector3(0.1 * gx, 0, 0));
+            }
+        }
+
+        /* ── Standard / Ornate Frame (straight, tapered, arched, stepped, pedestal, carved) ── */
+        function buildStandardFrame(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, frameHex, frameCarv, shelfCount, shelfShape, frameShape) {
+            const sideH = FH;
+            const bottomT = panelT;
+
+            /* Left & Right side panels */
+            let leftGeo, rightGeo;
+            if (frameShape === 'arched_top') {
+                leftGeo = rightGeo = sg(() => {
+                    const hw = panelT / 2, hh = sideH / 2;
+                    const shape = new THREE.Shape();
+                    shape.moveTo(-hw, -hh); shape.lineTo(hw, -hh); shape.lineTo(hw, hh - hw);
+                    shape.absarc(0, hh - hw, hw, 0, Math.PI, false);
+                    shape.lineTo(-hw, -hh); shape.closePath();
+                    const g = new THREE.ExtrudeGeometry(shape, { depth: FD, bevelEnabled: false });
+                    g.rotateY(Math.PI / 2); g.translate(-FD / 2, 0, 0); return g;
+                }, new THREE.BoxGeometry(panelT, sideH, FD));
+            } else if (frameShape === 'tapered_frame') {
+                leftGeo = rightGeo = sg(() => {
+                    // Slightly tapered sides
+                    const shape = new THREE.Shape();
+                    const bot = panelT * 0.6, top = panelT;
+                    shape.moveTo(0, -sideH / 2); shape.lineTo(bot, -sideH / 2);
+                    shape.lineTo(top, sideH / 2); shape.lineTo(0, sideH / 2); shape.closePath();
+                    const g = new THREE.ExtrudeGeometry(shape, { depth: FD, bevelEnabled: false });
+                    g.rotateX(Math.PI / 2); g.rotateZ(Math.PI / 2); g.translate(0, 0, FD / 2); return g;
+                }, new THREE.BoxGeometry(panelT, sideH, FD));
+            } else {
+                leftGeo = rightGeo = new THREE.BoxGeometry(panelT, sideH, FD);
+            }
+
+            addMesh('Frame', leftGeo, frameHex, frameCarv, -FW / 2 + panelT / 2, FH / 2, 0);
+            addMesh('Frame', rightGeo, frameHex, frameCarv, FW / 2 - panelT / 2, FH / 2, 0);
+
+            /* Top panel */
+            addMesh('Frame', new THREE.BoxGeometry(FW, panelT, FD), frameHex, frameCarv, 0, FH - panelT / 2, 0);
+            /* Bottom panel */
+            addMesh('Frame', new THREE.BoxGeometry(FW, bottomT, FD), frameHex, frameCarv, 0, bottomT / 2, 0);
+
+            /* ── Stepped frame: decorative side notches ── */
+            if (frameShape === 'stepped_frame') {
+                const notchW = panelT * 1.2, notchH = FH * 0.15, notchD = FD * 0.5;
+                [-FW / 2 + panelT * 0.1, FW / 2 - panelT * 0.1].forEach((xOff, i) => {
+                    const dir = i === 0 ? -1 : 1;
+                    [0.25, 0.5, 0.75].forEach(frac => {
+                        addMesh('Frame', new THREE.BoxGeometry(notchW, panelT * 0.5, FD * 0.12), frameHex, 'none', xOff + dir * notchW / 2, FH * frac, FD / 2 - FD * 0.06);
+                    });
+                });
+            }
+
+            /* ── Pedestal base ── */
+            if (frameShape === 'pedestal_frame') {
+                addMesh('Frame', new THREE.BoxGeometry(FW + panelT * 2, panelT * 1.5, FD + panelT * 2), frameHex, frameCarv, 0, -panelT * 0.75, 0);
+                addMesh('Frame', new THREE.BoxGeometry(FW + panelT * 1.5, panelT, FD + panelT * 1.5), frameHex, frameCarv, 0, -panelT * 1.8, 0);
+            }
+
+            /* ── Carved ornate frame: decorative pilasters ── */
+            if (frameShape === 'carved_frame') {
+                const pR = panelT * 0.35;
+                addMesh('Frame', new THREE.CylinderGeometry(pR, pR * 1.4, FH, 12), frameHex, 'floral', -FW / 2 + panelT, FH / 2, FD / 2 - pR);
+                addMesh('Frame', new THREE.CylinderGeometry(pR, pR * 1.4, FH, 12), frameHex, 'floral', FW / 2 - panelT, FH / 2, FD / 2 - pR);
+                addMesh('Frame', new THREE.CylinderGeometry(pR, pR * 1.4, FH, 12), frameHex, 'floral', -FW / 2 + panelT, FH / 2, -FD / 2 + pR);
+                addMesh('Frame', new THREE.CylinderGeometry(pR, pR * 1.4, FH, 12), frameHex, 'floral', FW / 2 - panelT, FH / 2, -FD / 2 + pR);
+            }
+
+            /* ── Horizontal shelves ── */
+            buildShelves(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, shelfCount, shelfShape);
+        }
+
+        /* ── Floating / Wall-mounted Frame ── */
+        function buildFloatingFrame(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, frameHex, frameCarv, shelfCount) {
+            /* Thin side rails only */
+            const railH = FH;
+            addMesh('Frame', new THREE.BoxGeometry(panelT * 0.7, railH, FD * 0.3), frameHex, frameCarv, -FW / 2 + panelT * 0.35, railH / 2, 0);
+            addMesh('Frame', new THREE.BoxGeometry(panelT * 0.7, railH, FD * 0.3), frameHex, frameCarv, FW / 2 - panelT * 0.35, railH / 2, 0);
+            buildShelves(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, shelfCount, 'flat_shelf');
+        }
+
+        /* ── Ladder / Leaning Frame ── */
+        function buildLadderFrame(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, frameHex, frameCarv, shelfCount) {
+            const leanAngle = -0.12;
+            /* Two tall rails */
+            addMesh('Frame', new THREE.BoxGeometry(panelT * 1.1, FH, panelT * 1.1), frameHex, frameCarv, -FW / 2 + panelT * 0.55, FH / 2, 0, leanAngle, 0, 0);
+            addMesh('Frame', new THREE.BoxGeometry(panelT * 1.1, FH, panelT * 1.1), frameHex, frameCarv, FW / 2 - panelT * 0.55, FH / 2, 0, leanAngle, 0, 0);
+
+            /* Shelves as rungs, slightly angled */
+            const shelfGap = (FH - panelT) / (shelfCount + 1);
+            for (let i = 1; i <= shelfCount; i++) {
+                const yPos = i * shelfGap;
+                addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT * 0.9, shelfD * 0.6), shelfHex, shelfCarv, 0, yPos, 0, leanAngle, 0, 0);
+            }
+        }
+
+        /* ── Cube / Modular Grid Frame ── */
+        function buildCubeFrame(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, frameHex, frameCarv, shelfCount) {
+            const cols = Math.max(1, Math.round(FW / FH * shelfCount));
+            const cellW = FW / cols;
+            const cellH = FH / shelfCount;
+
+            /* Outer frame */
+            addMesh('Frame', new THREE.BoxGeometry(FW + panelT, panelT, FD), frameHex, frameCarv, 0, 0, 0);
+            addMesh('Frame', new THREE.BoxGeometry(FW + panelT, panelT, FD), frameHex, frameCarv, 0, FH, 0);
+            addMesh('Frame', new THREE.BoxGeometry(panelT, FH + panelT, FD), frameHex, frameCarv, -FW / 2, FH / 2, 0);
+            addMesh('Frame', new THREE.BoxGeometry(panelT, FH + panelT, FD), frameHex, frameCarv, FW / 2, FH / 2, 0);
+            /* Inner vertical dividers */
+            for (let c = 1; c < cols; c++) {
+                const xOff = -FW / 2 + c * cellW;
+                addMesh('Frame', new THREE.BoxGeometry(panelT, FH, FD), frameHex, frameCarv, xOff, FH / 2, 0);
+            }
+            /* Inner horizontal shelves */
+            for (let r = 1; r < shelfCount; r++) {
+                const yOff = r * cellH;
+                addMesh('Shelves', new THREE.BoxGeometry(FW, panelT, FD), shelfHex, shelfCarv, 0, yOff, 0);
+            }
+        }
+
+        /* ── Hairpin Metal Legs Frame ── */
+        function buildHairpinFrame(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, frameHex, frameCarv, shelfCount) {
+            const legR = 0.018;
+            const legH = FH * 0.22;
+            /* Hairpin legs at 4 corners */
+            const positions = [[-FW / 2 + 0.08, FD / 2 - 0.08], [FW / 2 - 0.08, FD / 2 - 0.08], [-FW / 2 + 0.08, -FD / 2 + 0.08], [FW / 2 - 0.08, -FD / 2 + 0.08]];
+            positions.forEach(([x, z]) => {
+                /* Two prongs per hairpin */
+                addMesh('Frame', new THREE.CylinderGeometry(legR, legR, legH, 8), frameHex, 'none', x - legR * 2, legH / 2, z);
+                addMesh('Frame', new THREE.CylinderGeometry(legR, legR, legH, 8), frameHex, 'none', x + legR * 2, legH / 2, z);
+                /* Cross bar at bottom */
+                addMesh('Frame', new THREE.CylinderGeometry(legR, legR, legR * 6, 8), frameHex, 'none', x, legR * 2, z, 0, 0, Math.PI / 2);
+            });
+
+            /* Top board */
+            addMesh('Frame', new THREE.BoxGeometry(FW, panelT * 1.5, FD), frameHex, frameCarv, 0, legH + panelT * 0.75, 0);
+
+            /* Shelves above legs */
+            const shelfBaseY = legH + panelT * 1.5;
+            const usableH = FH - shelfBaseY - panelT;
+            const shelfGap = usableH / (shelfCount - 1 || 1);
+            for (let i = 0; i < shelfCount; i++) {
+                const yPos = shelfBaseY + i * shelfGap;
+                addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT, shelfD), shelfHex, shelfCarv, 0, yPos, 0);
+            }
+            addMesh('Frame', new THREE.BoxGeometry(panelT, usableH + panelT, panelT * 0.8), frameHex, 'none', -FW / 2 + panelT / 2, shelfBaseY + usableH / 2, 0);
+            addMesh('Frame', new THREE.BoxGeometry(panelT, usableH + panelT, panelT * 0.8), frameHex, 'none', FW / 2 - panelT / 2, shelfBaseY + usableH / 2, 0);
+        }
+
+        /* ── Shared Shelf Builder ── */
+        function buildShelves(addMesh, getMat, sg, FW, FH, FD, panelT, shelfW, shelfD, shelfHex, shelfCarv, shelfCount, shelfShape) {
+            const shelfGap = (FH - panelT * 2) / (shelfCount + 1);
+
+            for (let i = 1; i <= shelfCount; i++) {
+                const yPos = i * shelfGap;
+                let shelfGeo;
+
+                if (shelfShape === 'lipped_shelf') {
+                    shelfGeo = sg(() => {
+                        const g = new THREE.Group();
+                        // Main board
+                        const board = new THREE.BoxGeometry(shelfW, panelT, shelfD);
+                        // Front lip
+                        const lip = new THREE.BoxGeometry(shelfW, panelT * 1.5, panelT * 0.5);
+                        const boardMesh = new THREE.Mesh(board);
+                        const lipMesh = new THREE.Mesh(lip);
+                        lipMesh.position.set(0, panelT * 0.25, shelfD / 2 - panelT * 0.25);
+                        const merged = new THREE.BoxGeometry(shelfW, panelT, shelfD);
+                        return merged;
+                    }, new THREE.BoxGeometry(shelfW, panelT, shelfD));
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT, shelfD), shelfHex, shelfCarv, 0, yPos, 0);
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT * 1.5, panelT * 0.4), shelfHex, shelfCarv, 0, yPos + panelT * 0.25, shelfD / 2);
+                } else if (shelfShape === 'thick_shelf') {
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT * 2.5, shelfD), shelfHex, shelfCarv, 0, yPos, 0);
+                } else if (shelfShape === 'glass_shelf') {
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT * 0.6, shelfD), shelfHex === '#8B4513' ? '#a8d8ea' : shelfHex, shelfCarv, 0, yPos, 0);
+                    /* Metal brackets */
+                    addMesh('Shelves', new THREE.BoxGeometry(panelT * 0.3, panelT * 2, panelT * 0.3), '#8d9498', 'none', -shelfW / 2 + panelT * 0.3, yPos, shelfD / 2 - panelT * 0.2);
+                    addMesh('Shelves', new THREE.BoxGeometry(panelT * 0.3, panelT * 2, panelT * 0.3), '#8d9498', 'none', shelfW / 2 - panelT * 0.3, yPos, shelfD / 2 - panelT * 0.2);
+                } else if (shelfShape === 'wire_shelf') {
+                    const wireR = panelT * 0.08;
+                    const wireCount = Math.round(shelfW / 0.08);
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, wireR * 2, wireR * 2), shelfHex, 'none', 0, yPos, -shelfD / 2 + wireR);
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, wireR * 2, wireR * 2), shelfHex, 'none', 0, yPos, shelfD / 2 - wireR);
+                    for (let w = 0; w <= 5; w++) {
+                        const xOff = -shelfW / 2 + w * (shelfW / 5);
+                        addMesh('Shelves', new THREE.BoxGeometry(wireR * 2, wireR * 2, shelfD), shelfHex, 'none', xOff, yPos, 0);
+                    }
+                } else if (shelfShape === 'angled_shelf') {
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT, shelfD), shelfHex, shelfCarv, 0, yPos, 0, 0.08, 0, 0);
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT * 2, panelT * 0.4), shelfHex, shelfCarv, 0, yPos - panelT, shelfD / 2);
+                } else if (shelfShape === 'drawer_shelf') {
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT, shelfD), shelfHex, shelfCarv, 0, yPos, 0);
+                    if (i % 2 === 0) {
+                        addMesh('Shelves', new THREE.BoxGeometry(shelfW * 0.45, panelT * 4, shelfD * 0.7), shelfHex, shelfCarv, -shelfW * 0.22, yPos + panelT * 2, 0);
+                        addMesh('Shelves', new THREE.CylinderGeometry(panelT * 0.3, panelT * 0.3, panelT * 0.6, 8), '#8d9498', 'none', -shelfW * 0.22, yPos + panelT * 4, shelfD * 0.35 + panelT * 0.1, Math.PI / 2, 0, 0);
+                    }
+                } else if (shelfShape === 'carved_shelf') {
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT * 1.5, shelfD), shelfHex, 'floral', 0, yPos, 0);
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT * 0.5, panelT * 0.4), shelfHex, 'geometric', 0, yPos - panelT * 0.5, shelfD / 2);
+                } else {
+                    addMesh('Shelves', new THREE.BoxGeometry(shelfW, panelT, shelfD), shelfHex, shelfCarv, 0, yPos, 0);
+                }
+            }
+        }
+
+        /* ── Back Panel Builder ── */
+        function buildBackPanel(addMesh, getMat, sg, FW, FH, FD, panelT, backHex, backCarv, backShape, backHole) {
+            const bpZ = -FD / 2 + panelT / 2;
+
+            if (backShape === 'beadboard_back') {
+                /* Vertical bead strips */
+                const stripCount = Math.round(FW / 0.08);
+                const stripW = FW / stripCount;
+                for (let i = 0; i < stripCount; i++) {
+                    const xOff = -FW / 2 + i * stripW + stripW / 2;
+                    addMesh('Back Panel', new THREE.BoxGeometry(stripW * 0.7, FH, panelT * 0.8), backHex, backCarv, xOff, FH / 2, bpZ);
+                    addMesh('Back Panel', new THREE.BoxGeometry(stripW * 0.15, FH, panelT * 1.2), backHex, 'none', xOff - stripW * 0.4, FH / 2, bpZ);
+                }
+            } else if (backShape === 'shiplap_back') {
+                const plankCount = Math.round(FH / 0.12);
+                const plankH = FH / plankCount;
+                for (let i = 0; i < plankCount; i++) {
+                    const yOff = i * plankH + plankH / 2;
+                    addMesh('Back Panel', new THREE.BoxGeometry(FW, plankH * 0.88, panelT), backHex, backCarv, 0, yOff, bpZ);
+                }
+            } else if (backShape === 'mirror_back') {
+                addMesh('Back Panel', new THREE.BoxGeometry(FW, FH, panelT * 0.5), '#c0c8d0', 'none', 0, FH / 2, bpZ);
+                /* Frame around mirror */
+                const fT = panelT;
+                addMesh('Back Panel', new THREE.BoxGeometry(FW + fT * 2, fT, panelT * 1.2), backHex, backCarv, 0, FH - fT / 2, bpZ);
+                addMesh('Back Panel', new THREE.BoxGeometry(FW + fT * 2, fT, panelT * 1.2), backHex, backCarv, 0, fT / 2, bpZ);
+                addMesh('Back Panel', new THREE.BoxGeometry(fT, FH + fT * 2, panelT * 1.2), backHex, backCarv, -FW / 2 - fT / 2, FH / 2, bpZ);
+                addMesh('Back Panel', new THREE.BoxGeometry(fT, FH + fT * 2, panelT * 1.2), backHex, backCarv, FW / 2 + fT / 2, FH / 2, bpZ);
+            } else if (backShape === 'lattice_back') {
+                const barCount = 6, barT = panelT * 0.6;
+                for (let i = 0; i <= barCount; i++) {
+                    const xOff = -FW / 2 + i * (FW / barCount);
+                    addMesh('Back Panel', new THREE.BoxGeometry(barT, FH, barT), backHex, backCarv, xOff, FH / 2, bpZ);
+                }
+                const hBarCount = Math.round(FH / (FW / barCount));
+                for (let j = 0; j <= hBarCount; j++) {
+                    const yOff = j * (FH / hBarCount);
+                    addMesh('Back Panel', new THREE.BoxGeometry(FW, barT, barT), backHex, backCarv, 0, yOff, bpZ);
+                }
+            } else if (backShape === 'arch_panel_back') {
+                addMesh('Back Panel', new THREE.BoxGeometry(FW, FH * 0.55, panelT), backHex, backCarv, 0, FH * 0.275, bpZ);
+                const archSeg = 24;
+                const archR = FW * 0.42;
+                const pts = [];
+                for (let a = 0; a <= archSeg; a++) {
+                    const angle = Math.PI * (a / archSeg);
+                    pts.push(new THREE.Vector3(Math.cos(angle) * archR, Math.sin(angle) * archR * 0.7, 0));
+                }
+                const archGeo = sg(() => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), archSeg, panelT * 0.5, 6, false), new THREE.BoxGeometry(FW, FH * 0.4, panelT));
+                addMesh('Back Panel', archGeo, backHex, backCarv, 0, FH * 0.55, bpZ);
+            } else if (backShape === 'spindle_back') {
+                const sCount = Math.round(FW / 0.1);
+                const sStep = FW / sCount;
+                for (let i = 0; i < sCount; i++) {
+                    const xOff = -FW / 2 + i * sStep + sStep / 2;
+                    addMesh('Back Panel', new THREE.CylinderGeometry(panelT * 0.25, panelT * 0.3, FH, 8), backHex, backCarv, xOff, FH / 2, bpZ);
+                }
+                addMesh('Back Panel', new THREE.BoxGeometry(FW, panelT * 0.6, panelT * 0.8), backHex, 'none', 0, FH - panelT * 0.3, bpZ);
+                addMesh('Back Panel', new THREE.BoxGeometry(FW, panelT * 0.6, panelT * 0.8), backHex, 'none', 0, panelT * 0.3, bpZ);
+            } else if (backShape === 'cane_back') {
+                addMesh('Back Panel', new THREE.BoxGeometry(FW, FH, panelT * 0.7), backHex, 'weave', 0, FH / 2, bpZ);
+                /* Frame border */
+                const fT = panelT * 0.8;
+                addMesh('Back Panel', new THREE.BoxGeometry(FW + fT * 2, fT, panelT), backHex, 'none', 0, FH - fT / 2, bpZ + panelT * 0.1);
+                addMesh('Back Panel', new THREE.BoxGeometry(FW + fT * 2, fT, panelT), backHex, 'none', 0, fT / 2, bpZ + panelT * 0.1);
+                addMesh('Back Panel', new THREE.BoxGeometry(fT, FH, panelT), backHex, 'none', -FW / 2 - fT / 2, FH / 2, bpZ + panelT * 0.1);
+                addMesh('Back Panel', new THREE.BoxGeometry(fT, FH, panelT), backHex, 'none', FW / 2 + fT / 2, FH / 2, bpZ + panelT * 0.1);
+            } else if (backShape === 'carved_panel_back') {
+                addMesh('Back Panel', new THREE.BoxGeometry(FW, FH, panelT), backHex, 'floral', 0, FH / 2, bpZ);
+                /* Raised panel border */
+                const iW = FW * 0.85, iH = FH * 0.9;
+                addMesh('Back Panel', new THREE.BoxGeometry(iW, panelT * 0.3, panelT * 1.2), backHex, 'none', 0, FH * 0.55 + iH / 2 + panelT * 0.15, bpZ + panelT * 0.3);
+                addMesh('Back Panel', new THREE.BoxGeometry(iW, panelT * 0.3, panelT * 1.2), backHex, 'none', 0, FH * 0.55 - iH / 2 - panelT * 0.15, bpZ + panelT * 0.3);
+                addMesh('Back Panel', new THREE.BoxGeometry(panelT * 0.3, iH, panelT * 1.2), backHex, 'none', -iW / 2 - panelT * 0.15, FH * 0.55, bpZ + panelT * 0.3);
+                addMesh('Back Panel', new THREE.BoxGeometry(panelT * 0.3, iH, panelT * 1.2), backHex, 'none', iW / 2 + panelT * 0.15, FH * 0.55, bpZ + panelT * 0.3);
+            } else {
+                /* Solid back with optional hole cutouts (simple punched panel) */
+                const geo = sg(() => buildBackPanelWithHoles(FW, FH, panelT, backHole), new THREE.BoxGeometry(FW, FH, panelT));
+                addMesh('Back Panel', geo, backHex, backCarv, 0, FH / 2, bpZ);
+            }
+        }
+
+        function buildBackPanelWithHoles(FW, FH, panelT, backHole) {
+            const hw = FW / 2, hh = FH / 2;
+            const shape = new THREE.Shape();
+            shape.moveTo(-hw, -hh); shape.lineTo(hw, -hh); shape.lineTo(hw, hh); shape.lineTo(-hw, hh); shape.closePath();
+
+            if (backHole === 'center_arch') {
+                const h = new THREE.Path();
+                const aw = FW * 0.3, ab = -FH * 0.2, at = FH * 0.1;
+                h.moveTo(-aw, ab); h.lineTo(-aw, at); h.absarc(0, at, aw, Math.PI, 0, true); h.lineTo(aw, ab); h.closePath();
+                shape.holes.push(h);
+            } else if (backHole === 'three_arches') {
+                for (let i = -1; i <= 1; i++) {
+                    const h = new THREE.Path();
+                    const cx = i * FW * 0.28, aw = FW * 0.09, ab = -FH * 0.15, at = 0;
+                    h.moveTo(cx - aw, ab); h.lineTo(cx - aw, at); h.absarc(cx, at, aw, Math.PI, 0, true); h.lineTo(cx + aw, ab); h.closePath();
+                    shape.holes.push(h);
+                }
+            } else if (backHole === 'diamond_pattern') {
+                [[0, FH * 0.2], [FW * 0.18, 0], [0, -FH * 0.2], [-FW * 0.18, 0]].forEach(([dx, dy]) => {
+                    const h = new THREE.Path(); const r = FW * 0.08;
+                    h.moveTo(dx, dy + r); h.lineTo(dx + r, dy); h.lineTo(dx, dy - r); h.lineTo(dx - r, dy); h.closePath();
+                    shape.holes.push(h);
+                });
+            } else if (backHole === 'rect_grid') {
+                for (let xi = -1; xi <= 1; xi++) for (let yi = -1; yi <= 1; yi++) {
+                    const h = new THREE.Path(); const gw = FW * 0.12, gh = FH * 0.11;
+                    h.moveTo(xi * FW * 0.28 - gw, yi * FH * 0.28 - gh); h.lineTo(xi * FW * 0.28 + gw, yi * FH * 0.28 - gh);
+                    h.lineTo(xi * FW * 0.28 + gw, yi * FH * 0.28 + gh); h.lineTo(xi * FW * 0.28 - gw, yi * FH * 0.28 + gh); h.closePath();
+                    shape.holes.push(h);
+                }
+            } else if (backHole === 'vertical_slots') {
+                for (let i = -2; i <= 2; i++) {
+                    const h = new THREE.Path(); const sw = FW * 0.04, sh = FH * 0.3;
+                    h.moveTo(i * FW * 0.18 - sw, -sh); h.lineTo(i * FW * 0.18 + sw, -sh); h.lineTo(i * FW * 0.18 + sw, sh); h.lineTo(i * FW * 0.18 - sw, sh); h.closePath();
+                    shape.holes.push(h);
+                }
+            } else if (backHole === 'circle_cutouts') {
+                [[0, FH * 0.22], [FW * 0.22, 0], [0, -FH * 0.22], [-FW * 0.22, 0], [0, 0]].forEach(([cx, cy]) => {
+                    const h = new THREE.Path(); h.absarc(cx, cy, FW * 0.07, 0, Math.PI * 2, true); shape.holes.push(h);
+                });
+            }
+
+            const geo = new THREE.ExtrudeGeometry(shape, { depth: panelT, bevelEnabled: false });
+            geo.translate(0, 0, -panelT / 2);
+            return geo;
+        }
+
+        /* ── Crown Builder ── */
+        function buildCrown(addMesh, getMat, sg, FW, FH, FD, dCrown, crownHex, crownCarv, crownShape) {
+            const cH = dCrown.h || 0.22;
+            const cD = Math.max(FD, dCrown.d || FD);
+            const cW = FW + 0.05;
+            const baseY = FH;
+
+            if (crownShape === 'stepped_crown') {
+                addMesh('Crown', new THREE.BoxGeometry(cW + 0.04, cH * 0.4, cD + 0.04), crownHex, crownCarv, 0, baseY + cH * 0.2, 0);
+                addMesh('Crown', new THREE.BoxGeometry(cW + 0.02, cH * 0.35, cD + 0.02), crownHex, crownCarv, 0, baseY + cH * 0.4 + cH * 0.175, 0);
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.25, cD), crownHex, crownCarv, 0, baseY + cH * 0.75 + cH * 0.125, 0);
+            } else if (crownShape === 'arched_crown') {
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.4, cD), crownHex, crownCarv, 0, baseY + cH * 0.2, 0);
+                const archR = FW * 0.4;
+                const pts = [];
+                for (let a = 0; a <= 20; a++) {
+                    const angle = Math.PI * (a / 20);
+                    pts.push(new THREE.Vector3(Math.cos(angle) * archR, Math.sin(angle) * cH * 0.9, 0));
+                }
+                const archGeo = sg(() => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 20, cH * 0.22, 8, false), new THREE.BoxGeometry(FW, cH, 0.1));
+                addMesh('Crown', archGeo, crownHex, crownCarv, 0, baseY + cH * 0.4, 0);
+            } else if (crownShape === 'broken_pediment') {
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.3, cD), crownHex, crownCarv, 0, baseY + cH * 0.15, 0);
+                /* Two angled slabs with gap in center */
+                const ang = Math.atan2(cH * 0.7, FW / 2 * 0.85);
+                const hypL = Math.sqrt(Math.pow(FW / 2 * 0.85, 2) + Math.pow(cH * 0.7, 2));
+                addMesh('Crown', new THREE.BoxGeometry(hypL * 0.88, cH * 0.22, cD * 0.7), crownHex, crownCarv, -FW * 0.25, baseY + cH * 0.65, 0, 0, 0, ang);
+                addMesh('Crown', new THREE.BoxGeometry(hypL * 0.88, cH * 0.22, cD * 0.7), crownHex, crownCarv, FW * 0.25, baseY + cH * 0.65, 0, 0, 0, -ang);
+                /* Finial in center */
+                addMesh('Crown', new THREE.CylinderGeometry(cH * 0.06, cH * 0.1, cH * 0.5, 8), crownHex, crownCarv, 0, baseY + cH * 1.2, 0);
+            } else if (crownShape === 'dentil_crown') {
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.5, cD), crownHex, crownCarv, 0, baseY + cH * 0.25, 0);
+                /* Dentil teeth */
+                const toothCount = Math.round(FW / 0.06);
+                const toothW = FW / toothCount;
+                for (let i = 0; i < toothCount; i++) {
+                    if (i % 2 === 0) {
+                        const xOff = -FW / 2 + i * toothW + toothW / 2;
+                        addMesh('Crown', new THREE.BoxGeometry(toothW * 0.7, cH * 0.35, cD * 0.4), crownHex, 'none', xOff, baseY + cH * 0.675, cD / 2 - cD * 0.2);
+                    }
+                }
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.2, cD), crownHex, crownCarv, 0, baseY + cH * 0.9, 0);
+            } else if (crownShape === 'scroll_crown') {
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.4, cD), crownHex, crownCarv, 0, baseY + cH * 0.2, 0);
+                /* Scroll finials at each top corner */
+                addMesh('Crown', new THREE.TorusGeometry(cH * 0.18, cH * 0.07, 6, 12, Math.PI * 1.5), crownHex, crownCarv, -FW / 2 + cH * 0.25, baseY + cH * 0.55, cD / 2, Math.PI / 2, 0, 0);
+                addMesh('Crown', new THREE.TorusGeometry(cH * 0.18, cH * 0.07, 6, 12, Math.PI * 1.5), crownHex, crownCarv, FW / 2 - cH * 0.25, baseY + cH * 0.55, cD / 2, Math.PI / 2, 0, Math.PI);
+            } else if (crownShape === 'dome_crown') {
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.3, cD), crownHex, crownCarv, 0, baseY + cH * 0.15, 0);
+                addMesh('Crown', new THREE.SphereGeometry(FW * 0.35, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), crownHex, crownCarv, 0, baseY + cH * 0.3, 0);
+            } else if (crownShape === 'ogee_crown') {
+                addMesh('Crown', new THREE.BoxGeometry(cW + 0.04, cH * 0.35, cD + 0.04), crownHex, crownCarv, 0, baseY + cH * 0.175, 0);
+                addMesh('Crown', new THREE.BoxGeometry(cW + 0.02, cH * 0.3, cD + 0.02), crownHex, crownCarv, 0, baseY + cH * 0.5, 0);
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.35, cD), crownHex, crownCarv, 0, baseY + cH * 0.825, 0);
+            } else if (crownShape === 'shed_crown') {
+                /* Slanted roof crown */
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.3, cD), crownHex, crownCarv, 0, baseY + cH * 0.15, 0);
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.22, cD), crownHex, crownCarv, 0, baseY + cH * 0.55, 0, 0.15, 0, 0);
+            } else if (crownShape === 'glass_door_top') {
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.3, cD), crownHex, crownCarv, 0, baseY + cH * 0.15, 0);
+                /* Glass door panels */
+                const doorW = FW / 2 - 0.04;
+                addMesh('Crown', new THREE.BoxGeometry(doorW, cH * 2, 0.03), '#a8d8ea', 'none', -FW / 4, baseY + cH * 0.3 + cH, 0.02);
+                addMesh('Crown', new THREE.BoxGeometry(doorW, cH * 2, 0.03), '#a8d8ea', 'none', FW / 4, baseY + cH * 0.3 + cH, 0.02);
+                addMesh('Crown', new THREE.BoxGeometry(0.03, cH * 2, 0.03), crownHex, 'none', -FW / 2 + 0.015, baseY + cH * 0.3 + cH, 0.02);
+                addMesh('Crown', new THREE.BoxGeometry(0.03, cH * 2, 0.03), crownHex, 'none', 0, baseY + cH * 0.3 + cH, 0.02);
+                addMesh('Crown', new THREE.BoxGeometry(0.03, cH * 2, 0.03), crownHex, 'none', FW / 2 - 0.015, baseY + cH * 0.3 + cH, 0.02);
+                addMesh('Crown', new THREE.BoxGeometry(cW, cH * 0.3, cD * 0.25), crownHex, crownCarv, 0, baseY + cH * 2.45, 0);
+            }
+        }
+
+        /* ── Decorative Books ── */
+        function buildDecorativeBooks(group, FW, FH, FD, panelT, shelfD, shelfCount) {
+            const bookColors = ['#c0392b', '#27ae60', '#2980b9', '#8e44ad', '#e67e22', '#16a085', '#f39c12', '#2c3e50', '#e74c3c', '#1abc9c'];
+            const shelfGap = (FH - panelT * 2) / (shelfCount + 1);
+
+            for (let s = 1; s <= shelfCount; s++) {
+                const yPos = s * shelfGap + panelT * 0.5;
+                const numBooks = Math.floor(FW * 6 + Math.random() * 4);
+                
+                for (let b = 0; b < numBooks; b++) {
+                    const bW = 0.03 + Math.random() * 0.03;
+                    const bH = shelfGap * (0.6 + Math.random() * 0.3);
+                    const bD = shelfD * (0.5 + Math.random() * 0.4);
+                    const color = bookColors[Math.floor(Math.random() * bookColors.length)];
+                    const xPos = -FW / 2 + panelT + (b * 0.08) + bW / 2;
+                    if (xPos > FW / 2 - panelT - bW) break;
+                    
+                    const book = new THREE.Mesh(new THREE.BoxGeometry(bW, bH, bD), new THREE.MeshStandardMaterial({ color: color, roughness: 0.7 }));
+                    book.position.set(xPos, yPos + bH / 2, -FD / 2 + panelT + bD / 2 + 0.01);
+                    book.castShadow = true;
+                    group.add(book);
+                }
+            }
+        }
+
+        function toggleDesignAnalysis() {
+            const card = document.getElementById('design-analysis-card');
+            const icon = document.getElementById('da-toggle-icon');
+            if (!card || !icon) return;
+            card.classList.toggle('minimized');
+            if (card.classList.contains('minimized')) {
+                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+            } else {
+                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            }
+        }
+
+        function exportSTL() {
+            if (!currentGroup) return;
+            const exporter = new THREE.STLExporter();
+            const result = exporter.parse(currentGroup);
+            const blob = new Blob([result], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = (getActiveItem().name || 'design') + '.stl';
+            link.click();
+        }
+
+        function goToCraft() {
+            if (typeof saveState === 'function') saveState();
+            window.location.href = 'shop_studio.html';
+        }
+
+        /* initShopMode handled in head */
+    </script>
 </body>
+
 </html>

@@ -8,31 +8,40 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Inter:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     /* Premium Admin Theme Variables */
     :root {
-      --primary: #4f46e5;
-      --primary-hover: #4338ca;
+      --bg-base: #F9F7F4;
+      --bg-glass: rgba(255, 255, 255, 0.6);
+      --accent-primary: #8B5A2B;
+      --accent-hover: #724921;
+      --accent-glow: rgba(139, 90, 43, 0.25);
+      --text-dark: #1F1915;
+      --text-muted: #6B5B53;
+      --border-light: rgba(139, 90, 43, 0.1);
+
+      --primary: var(--accent-primary);
+      --primary-hover: var(--accent-hover);
       --secondary: #ec4899;
-      --bg-color: #f8fafc;
-      --sidebar-bg: #0f172a;
-      --sidebar-hover: #1e293b;
-      --sidebar-text: #94a3b8;
+      --bg-color: var(--bg-base);
+      --sidebar-bg: #1f1915;
+      --sidebar-hover: #2d241e;
+      --sidebar-text: #a89a91;
       --sidebar-text-active: #ffffff;
-      --card-bg: rgba(255, 255, 255, 0.85);
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --border-color: rgba(226, 232, 240, 0.8);
+      --card-bg: #ffffff;
+      --text-main: var(--text-dark);
+      --text-muted: var(--text-muted);
+      --border-color: var(--border-light);
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
       --info: #3b82f6;
-      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-      --shadow-dropdown: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+      --shadow-sm: 0 4px 15px rgba(44, 30, 22, 0.03);
+      --shadow-md: 0 10px 30px rgba(44, 30, 22, 0.06);
+      --shadow-dropdown: 0 20px 50px rgba(44, 30, 22, 0.12);
     }
 
     * {
@@ -48,6 +57,17 @@
       display: flex;
       height: 100vh;
       overflow: hidden;
+      position: relative;
+    }
+
+    /* Subtle textured grain across the bg */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23000000" stroke-width="0.3" opacity="0.02"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23000000" stroke-width="0.2" opacity="0.015"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      pointer-events: none;
+      z-index: 1000;
     }
 
     /* Layout Components */
@@ -532,24 +552,24 @@
     }
 
     .admin-table th {
-      padding: 1rem 1.5rem;
+      padding: 1.2rem 1.5rem;
       text-align: left;
-      background: var(--bg-color);
+      background: rgba(139, 90, 43, 0.04);
       color: var(--text-muted);
-      font-size: 0.75rem;
+      font-size: 0.85rem;
       text-transform: uppercase;
       font-weight: 700;
       border-bottom: 1px solid var(--border-color);
       white-space: nowrap;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.05em;
     }
 
     .admin-table td {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--border-color);
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid rgba(139, 90, 43, 0.04);
       vertical-align: middle;
       color: var(--text-main);
-      font-size: 0.95rem;
+      font-size: 1rem;
     }
 
     .admin-table tbody tr:last-child td {
@@ -561,7 +581,7 @@
     }
 
     .admin-table tbody tr:hover {
-      background: #f8fafc;
+      background: rgba(139, 90, 43, 0.02);
     }
 
     /* Elegant Buttons & Badges */
@@ -586,14 +606,35 @@
     }
 
     .btn-primary {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
       color: white;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 20px var(--accent-glow);
+    }
+
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transform: skewX(-25deg);
+      animation: shine 4s infinite 2s;
+    }
+
+    @keyframes shine {
+      0% { left: -100%; }
+      20% { left: 200%; }
+      100% { left: 200%; }
     }
 
     .btn-primary:hover {
       background: var(--primary-hover);
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-      transform: translateY(-1px);
+      box-shadow: 0 12px 25px var(--accent-glow);
+      transform: translateY(-2px);
     }
 
     .btn-success {
@@ -731,6 +772,10 @@
 </head>
 
 <body>
+
+  <!-- Backdrops -->
+  <div class="ambient-blob blob-1"></div>
+  <div class="ambient-blob blob-2"></div>
 
 
 
@@ -1225,6 +1270,10 @@
               t.status === 'Pending' ? '<span class="status-badge warning">Pending</span>' :
               `<span class="status-badge info">${t.status || 'Pending'}</span>`;
             
+            if (t.modifiedAt) {
+                statusBadge += ' <span class="status-badge warning" style="font-size:0.65rem; background:#fff3cd; color:#856404; margin-left:4px;"><i class="fas fa-history"></i> Modified</span>';
+            }
+            
             let displayId = t.id || t.exportId || 'N/A';
             return `
             <tr>
@@ -1307,8 +1356,10 @@
                         <div style="background:var(--bg-color); padding:1rem; border-radius:0.5rem; border:1px solid var(--border-color);">
                             <h4 style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; margin-bottom:0.75rem"><i class="fas fa-box"></i> Order Specifics</h4>
                             <p style="margin-bottom:0.5rem;"><strong>Budget/Price:</strong> ${order.price ? '₱' + parseFloat(order.price).toLocaleString() : (order.budget ? '₱' + parseFloat(order.budget).toLocaleString() : 'Pending Quote')}</p>
+                            ${order.modificationFee ? `<p style="margin-bottom:0.5rem; color:var(--accent-primary);"><strong>Modification Fee:</strong> ₱${order.modificationFee.toLocaleString()}</p>` : ''}
+                            ${order.totalAdjustedPrice ? `<p style="margin-bottom:0.5rem; font-weight:700;"><strong>Total Adjusted:</strong> ₱${order.totalAdjustedPrice.toLocaleString()}</p>` : ''}
                             <p style="margin-bottom:0.5rem;"><strong>Type:</strong> ${order.type || order.furnitureType || 'Custom Furniture'}</p>
-                            <p style="margin-bottom:0.5rem;"><strong>Platform Fee:</strong> ${order.price ? '₱' + (parseFloat(order.price) * 0.005).toLocaleString() : 'N/A'}</p>
+                            <p style="margin-bottom:0.5rem;"><strong>Platform Fee (0.5%):</strong> ${order.price ? '₱' + (parseFloat(order.price) * 0.005).toLocaleString() : 'N/A'}</p>
                         </div>
                     </div>
                     

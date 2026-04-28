@@ -8,27 +8,32 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Inter:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <style>
     :root {
-      /* Refreshing Light Theme Palette */
-      --bg-main: #f8fafc;
+      --bg-base: #F9F7F4;
+      --bg-glass: rgba(255, 255, 255, 0.6);
+      --accent-primary: #8B5A2B;
+      --accent-hover: #724921;
+      --accent-glow: rgba(139, 90, 43, 0.25);
+      --text-dark: #1F1915;
+      --text-muted: #6B5B53;
+      --border-light: rgba(139, 90, 43, 0.1);
+      
+      --bg-main: var(--bg-base);
       --bg-side: #ffffff;
-      --card-bg: rgba(255, 255, 255, 0.8);
-      --text-main: #1e293b;
-      --text-muted: #64748b;
+      --card-bg: #ffffff;
+      --text-main: var(--text-dark);
       --text-light: #94a3b8;
 
-      --primary: #4f46e5;
-      /* Indigo */
-      --primary-soft: rgba(79, 70, 229, 0.1);
+      --primary: var(--accent-primary);
+      --primary-soft: rgba(139, 90, 43, 0.08);
       --accent: #c9a84c;
-      /* Gold touch */
       --accent-soft: rgba(201, 168, 76, 0.1);
 
       --success: #10b981;
@@ -36,11 +41,11 @@
       --danger: #ef4444;
       --info: #3b82f6;
 
-      --border: rgba(226, 232, 240, 0.8);
-      --radius-lg: 24px;
+      --border: var(--border-light);
+      --radius-lg: 32px;
       --radius-md: 16px;
-      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-sm: 0 4px 15px rgba(44, 30, 22, 0.03);
+      --shadow-md: 0 10px 30px rgba(44, 30, 22, 0.06);
     }
 
     * {
@@ -50,15 +55,36 @@
     }
 
     body {
-      font-family: 'Outfit', sans-serif;
-      background-color: var(--bg-main);
-      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-dark);
       min-height: 100vh;
       line-height: 1.6;
-      background-image:
-        radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(201, 168, 76, 0.05) 0px, transparent 50%);
+      position: relative;
+      overflow-x: hidden;
     }
+
+    /* Subtle textured grain across the bg */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23000000" stroke-width="0.3" opacity="0.02"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23000000" stroke-width="0.2" opacity="0.015"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* --- BLURRED SHADOW BLOBS --- */
+    .ambient-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      z-index: -1;
+      pointer-events: none;
+    }
+    .blob-1 { width: 500px; height: 500px; background: #E8D5C4; top: -100px; right: -100px; }
+    .blob-2 { width: 600px; height: 600px; background: #F1E5D8; bottom: -200px; left: -200px; }
 
     header {
       background: rgba(255, 255, 255, 0.8);
@@ -78,7 +104,7 @@
       font-family: 'Playfair Display', serif;
       font-size: 1.5rem;
       font-weight: 800;
-      color: var(--text-main);
+      color: var(--text-dark);
       display: flex;
       align-items: center;
       gap: 0.8rem;
@@ -130,15 +156,34 @@
     }
 
     .btn-primary {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
       color: #ffffff;
-      box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.3);
+      box-shadow: 0 8px 20px var(--accent-glow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transform: skewX(-25deg);
+      animation: shine 4s infinite 2s;
+    }
+
+    @keyframes shine {
+      0% { left: -100%; }
+      20% { left: 200%; }
+      100% { left: 200%; }
     }
 
     .btn-primary:hover {
-      background: #4338ca;
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+      box-shadow: 0 12px 25px var(--accent-glow);
     }
 
     .btn-outline {
@@ -1286,10 +1331,14 @@
 
 <body>
 
+  <!-- Backdrops -->
+  <div class="ambient-blob blob-1"></div>
+  <div class="ambient-blob blob-2"></div>
+
   <header>
     <div class="brand">
-      <i class="fas fa-hammer"></i>
-      <span>AFMB Valeza Rattan Furniture and Fixtures</span>
+      <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.4em; width: auto;">
+      FurniCraft
     </div>
     <div class="header-actions">
       <div class="pill" id="dpText">DP: 20% Required</div>
@@ -1727,14 +1776,20 @@
             ${c.previewImage ? `<div style="width:100px; height:100px; border-radius:12px; overflow:hidden; background:var(--bg-main); border:1px solid var(--border); margin-right:15px; flex-shrink:0;"><img src="${c.previewImage}" style="width:100%; height:100%; object-fit:contain;" /></div>` : ''}
             <div class="item-main-info" style="flex:1;">
               <span class="badge ${badgeClass}">${badgeText}</span>
+              ${c.modifiedAt ? `<span class="badge badge-warning" style="background:#fff3cd; color:#856404; border:1px solid #ffeeba; margin-left:5px;"><i class="fas fa-history"></i> Modified</span>` : ''}
               <h4 style="margin-top: 0.8rem;">${c.description || 'Custom Request'}</h4>
               <div class="item-meta">
                 <span><i class="fas fa-user-circle"></i> ${c.customerName}</span>
                 <span><i class="far fa-clock"></i> ${new Date(c.id).toLocaleDateString()}</span>
+                ${c.modifiedAt ? `<span style="color:var(--text-muted); font-size:0.75rem;"><i class="fas fa-edit"></i> Last: ${new Date(c.modifiedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>` : ''}
                 <span style="color:#ef4444; font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Fee (0.5%): ₱${(price * 0.005).toLocaleString()}</span>
               </div>
             </div>
-            <div class="price-tag" style="flex-shrink:0;">₱${price.toLocaleString()}</div>
+            <div class="price-tag" style="flex-shrink:0; text-align:right;">
+              ₱${price.toLocaleString()}
+              ${c.modificationFee ? `<div style="font-size:0.7rem; color:var(--accent-primary); margin-top:4px;">+ ₱${c.modificationFee} Mod Fee</div>` : ''}
+              ${c.totalAdjustedPrice ? `<div style="font-size:0.85rem; font-weight:800; color:var(--text-main); margin-top:4px; border-top:1px solid var(--border); padding-top:4px;">Total: ₱${c.totalAdjustedPrice.toLocaleString()}</div>` : ''}
+            </div>
           </div>
 
           ${c.referenceNumber ? `

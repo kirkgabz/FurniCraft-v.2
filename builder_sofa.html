@@ -1,746 +1,3183 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FurniCraft CAD - 3D Template Builder (Sofa)</title>
+
+  <title>FurniCraft CAD - Living Room Sofa Designer Pro</title>
+
+
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
   <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
-
-  <style>
-    :root {
-      --bg-dark: #1e1e1e;
-      --bg-panel: #252526;
-      --bg-header: #333333;
-      --accent: #8e44ad;
-      --accent2: #6c3483;
-      --select-blue: #007acc;
-      --text-main: #e0e0e0;
-      --text-dim: #999;
-      --border: #3e3e42;
-      --gold: #f1c40f;
-      --rec-bg: #2a1a35;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      height: 45px;
-      background-color: var(--bg-header);
-      display: flex;
-      align-items: center;
-      padding: 0 1rem;
-      border-bottom: 1px solid var(--border);
-      justify-content: space-between;
-    }
-
-    .brand {
-      font-weight: 600;
-      color: white;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .header-actions { display: flex; gap: 10px; }
-
-    .btn-header {
-      padding: 5px 14px;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      border: none;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: 0.2s;
-    }
-
-    .btn-back { background: #444; color: white; }
-    .btn-back:hover { background: #555; }
-    .btn-publish { background: #10b981; color: white; }
-    .btn-publish:hover { background: #059669; }
-
-    .workspace { display: flex; flex: 1; height: calc(100vh - 45px); }
-
-    .panel-left {
-      width: 280px;
-      background-color: var(--bg-panel);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      z-index: 5;
-    }
-
-    .panel-header {
-      padding: 14px 16px;
-      font-size: 0.82rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #e0e0e0;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #2a2a2e 0%, #252526 100%);
-    }
-
-    .scene-list { flex: 1; overflow-y: auto; padding: 8px; }
-
-    .scene-item {
-      padding: 13px 12px;
-      margin-bottom: 4px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.95rem;
-      transition: 0.15s;
-    }
-
-    .scene-item:hover { background-color: #333; }
-    .scene-item.active { background-color: #37373d; border-left: 3px solid var(--accent); padding-left: 10px; }
-
-    .btn-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
-    .btn-delete:hover { color: #c0392b; background: rgba(192, 57, 43, 0.1); }
-
-    .btn-add {
-      width: 100%;
-      padding: 14px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: 0.2s;
-    }
-
-    .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); }
-    #canvas-container { width: 100%; height: 100%; outline: none; }
-
-    .viewport-controls {
-      position: absolute;
-      top: 25px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      padding: 5px;
-      border-radius: 20px;
-      border: 1px solid #555;
-      display: flex;
-      gap: 5px;
-      z-index: 10;
-    }
-
-    .vp-btn {
-      background: transparent;
-      border: none;
-      color: #ddd;
-      padding: 8px 15px;
-      border-radius: 15px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: 0.2s;
-    }
-    .vp-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; }
-
-    .score-card {
-      position: absolute;
-      top: 90px;
-      right: 10px;
-      background: rgba(18, 18, 20, 0.92);
-      backdrop-filter: blur(6px);
-      padding: 18px 20px;
-      border-radius: 10px;
-      width: 260px;
-      border: 1px solid #444;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-      transition: all 0.3s ease;
-      z-index: 20;
-    }
-    .score-card.minimized #design-analysis-content { display: none; }
-    .score-title {
-      font-size: 0.82rem;
-      font-weight: 800;
-      color: #e8e8e8;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      justify-content: space-between;
-      cursor: pointer;
-    }
-
-    .score-metric-label { font-size: 0.85rem; color: #ccc; margin-bottom: 4px; display: flex; justify-content: space-between; }
-    .score-bar-bg { width: 100%; height: 7px; background: #333; margin-bottom: 14px; border-radius: 4px; overflow: hidden; }
-    .score-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease; }
-    #rec-status { margin-top: 6px; font-size: 0.82rem; color: #aaa; border-top: 1px solid #333; padding-top: 8px; }
-
-    .panel-right {
-      width: 580px;
-      background-color: var(--bg-panel);
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      z-index: 5;
-    }
-
-    .prop-scroll { flex: 1; overflow-y: auto; }
-    .prop-group { padding: 20px 18px; border-bottom: 1px solid var(--border); }
-
-    .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
-    .section-icon { width: 26px; height: 26px; border-radius: 6px; background: rgba(142, 68, 173, 0.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.78rem; }
-    .prop-label { font-size: 0.78rem; font-weight: 800; color: #d0d0d0; text-transform: uppercase; letter-spacing: 0.1em; }
-
-    input[type="text"], select, textarea {
-      width: 100%;
-      background: #3c3c3c;
-      border: 1px solid var(--border);
-      color: white;
-      padding: 10px 12px;
-      border-radius: 4px;
-      font-family: inherit;
-      margin-bottom: 10px;
-      font-size: 0.95rem;
-    }
-    textarea { resize: vertical; min-height: 60px; }
-
-    .badge-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-    .badge-opt {
-      padding: 8px 4px; background: #333; border: 1px solid #444; border-radius: 4px;
-      font-size: 0.75rem; font-weight: 600; text-align: center; cursor: pointer; color: #888;
-      transition: 0.2s; text-transform: uppercase;
-    }
-    .badge-opt.active { background: rgba(142, 68, 173, 0.15); border-color: var(--accent); color: white; }
-
-    .mat-grid-large { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
-    .mat-card-lg { background: #333; border: 1px solid var(--border); border-radius: 6px; padding: 12px 8px; text-align: center; cursor: pointer; transition: 0.2s; }
-    .mat-card-lg:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #5a2a7a; }
-    .mat-card-icon { font-size: 1.8rem; margin-bottom: 4px; }
-    .mat-card-name { font-size: 0.85rem; color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    .layer-item { background: #2b2b2b; border-radius: 6px; margin-bottom: 10px; border: 1px solid #333; transition: 0.2s; }
-    .layer-item.active-layer { border: 1px solid var(--select-blue); }
-    .layer-header { padding: 12px; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #333; border-radius: 6px 6px 0 0; }
-    .layer-content { display: none; padding: 15px; background: #222; border-radius: 0 0 6px 6px; }
-    .layer-item.open .layer-content { display: block; }
-
-    .part-control-row { margin-bottom: 14px; }
-    .part-control-label { font-size: 0.72rem; font-weight: 700; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .clickable-design-val { font-size: 0.95rem; color: #ccc; padding: 9px 12px; background: #111; border-radius: 4px; border: 1px solid #444; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
-    .clickable-design-val:hover { border-color: var(--accent); color: white; }
-    .color-preview { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #777; }
-
-    .dim-row { display: flex; gap: 6px; }
-    .dim-group { flex: 1; }
-    .dim-input { width: 100%; background: #111; border: 1px solid #444; color: var(--accent); padding: 8px; text-align: center; border-radius: 3px; font-size: 0.9rem; outline: none; }
-    .dim-label { font-size: 0.75rem; color: #666; text-align: center; margin-top: 3px; }
-
-    .footer-bar { padding: 18px 20px; background: #202020; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .total-price { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
-
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; }
-    .modal-overlay.open { display: flex; }
-    .design-modal { background: #252526; width: 600px; max-height: 80vh; border-radius: 8px; padding: 20px; position: relative; display: flex; flex-direction: column; }
-    .modal-scroll { flex: 1; overflow-y: auto; }
-    .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
-    .design-card { background: #333; padding: 10px; border-radius: 4px; text-align: center; cursor: pointer; border: 1px solid #444; transition: 0.2s; }
-    .design-card:hover { border-color: var(--accent); background: #3e3e42; }
-    .design-card.active { border-color: var(--accent); background: rgba(142,68,173,0.1); }
-    .design-icon { font-size: 1.5rem; margin-bottom: 5px; color: #aaa; }
-    .design-name { font-size: 0.75rem; color: #ccc; }
-
-    .feature-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .toggle-btn { padding: 8px 12px; font-size: 0.85rem; background: #333; border: 1px solid #444; border-radius: 4px; cursor: pointer; color: #ccc; transition: 0.2s; text-align: left; display: flex; align-items: center; justify-content: space-between; }
-    .toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-    .toggle-btn:hover:not(.active) { background: #3e3e42; }
-
-    .range-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .range-row label { width: 50px; font-size: 0.85rem; color: #888; }
-    input[type="range"] { flex: 1; accent-color: var(--accent); }
-    .val-display { width: 40px; text-align: right; font-size: 0.9rem; font-weight: bold; color: var(--accent); }
-
-  </style>
-</head>
-
-<body>
-  <header>
-    <div class="brand">
-      <img src="images/FurniCraft Logo without name.png" alt="Logo" style="height: 1.3em;">
-      FurniCraft Studio - 3D Template Builder (Sofa)
-    </div>
-    <div class="header-actions">
-      <button class="btn-header btn-back" onclick="window.location.href='shop_studio.html'">
-        <i class="fas fa-arrow-left"></i> Back
-      </button>
-      <button class="btn-header btn-publish" onclick="publishTemplate()">
-        <i class="fas fa-cloud-upload-alt"></i> Upload to Templates
-      </button>
-    </div>
-  </header>
-
-  <div class="workspace">
-    <aside class="panel-left">
-      <div class="panel-header"><span><i class="fas fa-folder-open"></i> Design Projects</span></div>
-      <div class="scene-list" id="scene-list"></div>
-      <button class="btn-add" onclick="addNewProject()"><i class="fas fa-plus"></i> Add New Furniture Design</button>
-    </aside>
-
-    <main class="viewport">
-      <div class="viewport-controls">
-        <button class="vp-btn" id="btn-rotate" onclick="toggleRotation()"><i class="fas fa-pause"></i> Stop Rotate</button>
-        <button class="vp-btn" id="btn-dims" onclick="toggleDimensions()"><i class="fas fa-ruler-combined"></i> Hide Ruler</button>
-        <button class="vp-btn" onclick="resetView()"><i class="fas fa-sync"></i> Full View</button>
-      </div>
-
-      <div id="canvas-container"></div>
-
-      <div class="score-card" id="design-analysis-card">
-        <div class="score-title" onclick="toggleDesignAnalysis()">
-          <span><i class="fas fa-chart-bar"></i> Design Analysis</span>
-          <i class="fas fa-chevron-down" id="da-toggle-icon"></i>
-        </div>
-        <div id="design-analysis-content">
-          <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
-          <div class="score-bar-bg"><div id="bar-dura" class="score-bar-fill"></div></div>
-          <div class="score-metric-label"><span>Quality</span><span id="score-qual-val">0%</span></div>
-          <div class="score-bar-bg"><div id="bar-qual" class="score-bar-fill"></div></div>
-          <div id="rec-status"></div>
-        </div>
-      </div>
-
-      <div id="design-modal-overlay" class="modal-overlay" onclick="closeDesignModal()">
-        <div class="design-modal" onclick="event.stopPropagation()">
-          <button style="position:absolute; top:10px; right:15px; background:none; border:none; color:#aaa; font-size:1.5rem; cursor:pointer;" onclick="closeDesignModal()">&times;</button>
-          <div id="design-modal-title" style="font-weight:600; margin-bottom:15px;">Select Design</div>
-          <div id="design-modal-scroll" class="modal-scroll"></div>
-        </div>
-      </div>
-    </main>
-
-    <aside class="panel-right">
-      <div class="panel-header"><span><i class="fas fa-sliders-h"></i> Properties</span></div>
-      <div class="prop-scroll">
-        
-        <!-- Metadata -->
-        <div class="prop-group">
-          <div class="section-header">
-            <div class="section-icon"><i class="fas fa-id-card"></i></div>
-            <label class="prop-label">Gallery Presentation</label>
-          </div>
-          <div class="part-control-row">
-            <div class="part-control-label">Template Name</div>
-            <input type="text" id="project-name-input" oninput="updateProjectName(this.value)">
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div class="part-control-row">
-              <div class="part-control-label">Target Style</div>
-              <select id="template-gender" onchange="updateTemplateMeta()">
-                <option value="neutral">Neutral</option>
-                <option value="boy">Boy / Masculine</option>
-                <option value="girl">Girl / Feminine</option>
-              </select>
-            </div>
-            <div class="part-control-row">
-              <div class="part-control-label">Status Badge</div>
-              <div class="badge-select-grid">
-                <div class="badge-opt opt-new active" onclick="setTmplBadge('new', this)">New</div>
-                <div class="badge-opt opt-featured" onclick="setTmplBadge('featured', this)">Top</div>
-                <div class="badge-opt opt-premium" onclick="setTmplBadge('premium', this)">Pro</div>
-              </div>
-            </div>
-          </div>
-          <div class="part-control-row">
-            <div class="part-control-label">Description</div>
-            <textarea id="template-desc" placeholder="Enter gallery description..."></textarea>
-          </div>
-        </div>
-
-        <div class="prop-group">
-          <div class="section-header"><div class="section-icon"><i class="fas fa-expand-arrows-alt"></i></div><label class="prop-label">Global Scale</label></div>
-          <div class="range-row"><label>W</label><input type="range" id="inp-scale-x" min="50" max="200" value="100" oninput="updateGlobalScale('x', this.value)"><span class="val-display" id="gs-x">100</span></div>
-          <div class="range-row"><label>H</label><input type="range" id="inp-scale-y" min="50" max="200" value="100" oninput="updateGlobalScale('y', this.value)"><span class="val-display" id="gs-y">100</span></div>
-          <div class="range-row"><label>D</label><input type="range" id="inp-scale-z" min="50" max="200" value="100" oninput="updateGlobalScale('z', this.value)"><span class="val-display" id="gs-z">100</span></div>
-        </div>
-
-        <div class="prop-group">
-          <div class="section-header"><div class="section-icon"><i class="fas fa-palette"></i></div><label class="prop-label">Material Library</label></div>
-          <div style="font-size:0.8rem; color:var(--select-blue); margin-bottom:10px;">Apply to selected layer:</div>
-          <div class="mat-grid-large" id="mat-grid"></div>
-        </div>
-
-        <div class="prop-group">
-          <div class="section-header"><div class="section-icon"><i class="fas fa-couch"></i></div><label class="prop-label">Sofa Options</label></div>
-          <div class="part-control-row">
-             <div class="part-control-label">Seating Capacity</div>
-             <select id="sofa-capacity" onchange="updateCapacity(this.value)">
-                <option value="1">Single (Armchair)</option>
-                <option value="2" selected>Loveseat (2 Seats)</option>
-                <option value="3">Full Sofa (3 Seats)</option>
-                <option value="4">Extra Large (4 Seats)</option>
-             </select>
-          </div>
-          <div class="feature-btn-grid">
-            <button id="toggle-arms" class="toggle-btn active" onclick="toggleFeature('hasArms', this)">Armrests <i class="fas fa-check"></i></button>
-            <button id="toggle-back" class="toggle-btn active" onclick="toggleFeature('hasBack', this)">Backrest <i class="fas fa-check"></i></button>
-          </div>
-        </div>
-
-        <div class="prop-group">
-          <div class="section-header"><div class="section-icon"><i class="fas fa-layer-group"></i></div><label class="prop-label">Layers</label></div>
-          <div id="layers-container"></div>
-        </div>
-      </div>
-      <div class="footer-bar">
-        <span style="font-size:0.85rem; color:#888;">Suggested Gallery Price</span>
-        <div class="total-price" id="total-price">₱0.00</div>
-      </div>
-    </aside>
-  </div>
-
   <script>
-    /* ==========================================================================
-       DATABASES
-       ========================================================================== */
-    const materialDB = {
-      narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2, rec: true },
-      ipil: { name: 'Ipil', icon: '🌳', hex: '#6B4226', dura: 98, qual: 96, price: 4.8, rec: true },
-      dao: { name: 'Dao', icon: '🪵', hex: '#4B3621', dura: 92, qual: 97, price: 4.5, rec: true },
-      kamagong: { name: 'Kamagong', icon: '🪵', hex: '#2c1a0e', dura: 97, qual: 99, price: 5.5, rec: true },
-      mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true },
-      yakal: { name: 'Yakal', icon: '🌳', hex: '#7a4f2e', dura: 88, qual: 86, price: 3.1, rec: true },
-      oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true },
-      pine: { name: 'Pine', icon: '🌲', hex: '#c8a96e', dura: 55, qual: 58, price: 1.4, rec: true },
-      rattan: { name: 'Rattan', icon: '🧺', hex: '#D2B48C', dura: 75, qual: 85, price: 1.8, rec: true },
-      fabric_gray: { name: 'Gray Fabric', icon: '🧶', hex: '#7f8c8d', dura: 65, qual: 75, price: 1.5 },
-      leather_brown: { name: 'Brown Leather', icon: '👞', hex: '#5c4033', dura: 85, qual: 92, price: 4.8 },
-      marble_white: { name: 'Marble', icon: '🪨', hex: '#e8e8e8', dura: 90, qual: 99, price: 8.0 },
-      glass_clear: { name: 'Glass', icon: '🔲', hex: '#a8d8ea', dura: 70, qual: 95, price: 5.0 },
-      brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, qual: 97, price: 6.8 },
-      brushed_steel: { name: 'Brushed Steel', icon: '🔨', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5 }
-    };
-
-    const shapeDB = {
-      base: [
-        { id: 'block_base', name: 'Solid Block', icon: 'square-full' },
-        { id: 'platform', name: 'Slim Platform', icon: 'minus' },
-        { id: 'floating', name: 'Floating Style', icon: 'cloud', faIcon: true }
-      ],
-      cushions: [
-        { id: 'soft_padded', name: 'Overstuffed', icon: 'cloud', faIcon: true },
-        { id: 'firm_square', name: 'Modern Firm', icon: 'square-full' },
-        { id: 'tufted', name: 'Button Tufted', icon: 'th', faIcon: true }
-      ],
-      legs: [
-        { id: 'hidden', name: 'Hidden Glides', icon: 'eye-slash', faIcon: true },
-        { id: 'stump', name: 'Stump Feet', icon: 'square' },
-        { id: 'tapered', name: 'Tapered Wood', icon: 'caret-down', faIcon: true },
-        { id: 'metal_bar', name: 'Modern Metal', icon: 'bars', faIcon: true }
-      ]
-    };
-
-    const carvingDB = {
-      none: { name: 'Smooth Finish', icon: 'circle' },
-      floral: { name: 'Floral Carving', icon: 'leaf' },
-      weave: { name: 'Woven Cane', icon: 'th' },
-      padded: { name: 'Standard Fabric', icon: 'couch', faIcon: true },
-      leather_tufted: { name: 'Diamond Leather', icon: 'gem', faIcon: true },
-      linear_groove: { name: 'Grooved', icon: 'align-justify' },
-      lattice: { name: 'Lattice', icon: 'th' },
-      geometric: { name: 'Geo', icon: 'braille' },
-      rustic: { name: 'Rustic', icon: 'tree' }
-    };
-
-    const assetsDB = { sofa: { name: 'Custom Sofa', parts: ['Base', 'Cushions', 'Legs'] } };
-
-    /* ==========================================================================
-       STATE & APP LOGIC
-       ========================================================================== */
-    let appState = { items: [], activeItemId: 0, activeLayer: 'Cushions', tmplBadge: 'new', tmplGender: 'neutral' };
-    let isRotating = true, showDimensions = true, textureCache = {}, modalState = { partName: null, type: null };
-
-    window.onload = function () {
-      initApp();
-    };
-
-    function initApp() {
-      const saved = localStorage.getItem('builder_sofa_drafts');
-      if (saved) appState.items = JSON.parse(saved);
-      if (appState.items.length === 0) {
-        appState.items.push(createNewDesignData('Modern Loveseat'));
-      }
-      appState.activeItemId = appState.items[0].id;
-      renderUI(); init3D(); build3DScene();
-    }
-
-    function createNewDesignData(name) {
-      return {
-        id: Date.now(), name: name, type: 'sofa',
-        description: 'A professional workshop-exclusive template.', tmplBadge: 'new', tmplGender: 'neutral',
-        selections: { Base: '#5c3a21', Cushions: '#7f8c8d', Legs: '#2c1a0e' },
-        shapes: { Base: 'block_base', Cushions: 'soft_padded', Legs: 'stump' },
-        dims: { Base: { w: 160, h: 20, d: 85 }, Cushions: { w: 140, h: 45, d: 75 }, Legs: { w: 10, h: 5, d: 10 } },
-        carvings: { Base: 'none', Cushions: 'none', Legs: 'none' },
-        globalScale: { x: 1, y: 1, z: 1 },
-        capacity: 2, hasArms: true, hasBack: true
-      };
-    }
-
-    function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
-
-    function renderUI() {
-      renderSceneList(); renderProperties(); calculateScore(); updatePrice();
-    }
-
-    function renderSceneList() {
-      const list = document.getElementById('scene-list'); list.innerHTML = '';
-      appState.items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
-        div.onclick = () => { appState.activeItemId = item.id; renderUI(); build3DScene(); };
-        div.innerHTML = `<span><i class="fas fa-couch"></i> ${item.name}</span><button class="btn-delete" onclick="event.stopPropagation(); deleteProject(${item.id})"><i class="fas fa-trash-alt"></i></button>`;
-        list.appendChild(div);
+    /* ― Shop Mode Logic ― */
+    (function initShopMode() {
+      if (sessionStorage.getItem('craftMode') !== 'shop') return;
+      window.addEventListener('load', () => {
+        const uploadBtn = document.getElementById('btn-upload-template');
+        const exportBtn = document.getElementById('btn-main-export');
+        if (uploadBtn) uploadBtn.style.display = 'flex';
+        if (exportBtn) exportBtn.style.display = 'none';
+        const addBtn = document.querySelector('.btn-add');
+        if (addBtn) addBtn.onclick = () => window.location.href = 'shop_studio.html';
       });
-    }
+    })();
 
-    function renderProperties() {
-      const active = getActiveItem(); if (!active) return;
-      document.getElementById('project-name-input').value = active.name;
-      document.getElementById('template-desc').value = active.description || '';
-      document.getElementById('sofa-capacity').value = active.capacity;
-
-      const matGrid = document.getElementById('mat-grid'); matGrid.innerHTML = '';
-      Object.keys(materialDB).forEach(k => {
-        const m = materialDB[k];
-        const card = document.createElement('div'); card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
-        card.onclick = () => { active.selections[appState.activeLayer] = m.hex; renderUI(); build3DScene(); };
-        card.innerHTML = `<div class="mat-card-icon">${m.icon}</div><div class="mat-card-name">${m.name}</div>`;
-        matGrid.appendChild(card);
-      });
-
-      const container = document.getElementById('layers-container'); container.innerHTML = '';
-      assetsDB.sofa.parts.forEach(part => {
-        const isActive = appState.activeLayer === part;
-        const hex = active.selections[part] || '#8B4513';
-        const shape = (shapeDB[part.toLowerCase()] || []).find(s => s.id === active.shapes[part])?.name || 'Standard';
-        
-        const div = document.createElement('div');
-        div.className = 'layer-item' + (isActive ? ' active-layer open' : '');
-        div.onclick = (e) => { if (!e.target.closest('.clickable-design-val') && !e.target.closest('input')) { appState.activeLayer = part; renderProperties(); } };
-        
-        let html = `
-          <div class="layer-header"><span><i class="fas fa-layer-group"></i> ${part}</span><div class="color-preview" style="background:${hex}"></div></div>
-          <div class="layer-content">
-            <div class="part-control-row">
-              <div class="part-control-label">Shape</div>
-              <div class="clickable-design-val" onclick="openDesignModal('${part}', 'shape')"><span>${shape}</span> <i class="fas fa-edit"></i></div>
-            </div>
-            <div class="part-control-row">
-              <div class="part-control-label">Dimensions (cm)</div>
-              <div class="dim-row">
-                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].w}" oninput="updateDim('${part}','w',this.value)"><div class="dim-label">W</div></div>
-                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].h}" oninput="updateDim('${part}','h',this.value)"><div class="dim-label">H</div></div>
-                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].d}" oninput="updateDim('${part}','d',this.value)"><div class="dim-label">D</div></div>
-              </div>
-            </div>
-          </div>`;
-        div.innerHTML = html; container.appendChild(div);
-      });
-
-      ['hasArms', 'hasBack'].forEach(f => {
-         const btn = document.getElementById('toggle-' + f.replace('has','').toLowerCase());
-         if(btn) btn.classList.toggle('active', !!active[f]);
-      });
-    }
-
-    function updateDim(p, a, v) { getActiveItem().dims[p][a] = parseInt(v) || 1; build3DScene(); updatePrice(); }
-    function updateGlobalScale(a, v) { getActiveItem().globalScale[a] = v / 100; document.getElementById('gs-' + a).innerText = v; build3DScene(); updatePrice(); }
-    function updateProjectName(v) { getActiveItem().name = v; renderSceneList(); }
-    function setTmplBadge(b, el) { appState.tmplBadge = b; document.querySelectorAll('.badge-opt').forEach(x => x.classList.remove('active')); el.classList.add('active'); }
-    function updateTemplateMeta() { appState.tmplGender = document.getElementById('template-gender').value; }
-    function toggleFeature(f, b) { const active = getActiveItem(); active[f] = !active[f]; renderProperties(); build3DScene(); updatePrice(); }
-    function updateCapacity(v) { const active = getActiveItem(); active.capacity = parseInt(v); active.dims.Base.w = active.capacity * 80; renderProperties(); build3DScene(); updatePrice(); }
-
-    function updatePrice() {
-      const active = getActiveItem(); if (!active) return;
-      let cost = 12000;
-      Object.keys(active.dims).forEach(p => {
-        const d = active.dims[p];
-        let vol = (d.w * d.h * d.d) / 2500;
-        const hex = active.selections[p];
-        const m = Object.values(materialDB).find(m => m.hex === hex) || materialDB.mahogany;
-        cost += vol * m.price;
-      });
-      const gs = active.globalScale || { x: 1, y: 1, z: 1 };
-      cost *= (gs.x * gs.y * gs.z || 1);
-      document.getElementById('total-price').innerText = '₱' + Math.round(cost).toLocaleString();
-    }
-
-    function calculateScore() {
-      const active = getActiveItem(); let d = 0, q = 0; const ps = Object.values(active.selections);
-      ps.forEach(h => { const m = Object.values(materialDB).find(m => m.hex === h) || { dura: 70, qual: 70 }; d += m.dura; q += m.qual; });
-      const ad = Math.round(d / ps.length), aq = Math.round(q / ps.length);
-      document.getElementById('score-dura-val').innerText = ad + '%'; document.getElementById('bar-dura').style.width = ad + '%';
-      document.getElementById('score-qual-val').innerText = aq + '%'; document.getElementById('bar-qual').style.width = aq + '%';
-      document.getElementById('rec-status').innerHTML = ad > 88 ? 'Elite Construction' : 'Standard Build';
-    }
-
-    function deleteProject(id) { if (appState.items.length > 1) { appState.items = appState.items.filter(i => i.id !== id); appState.activeItemId = appState.items[0].id; renderUI(); build3DScene(); } }
-
-    /* ==========================================================================
-       THREE.JS ENGINE
-       ========================================================================== */
-    let scene, camera, renderer, controls, currentGroup;
-
-    function init3D() {
-      const container = document.getElementById('canvas-container');
-      scene = new THREE.Scene(); scene.background = new THREE.Color(0x1e1e1e);
-      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-      camera.position.set(12, 10, 15);
-      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      renderer.shadowMap.enabled = true;
-      container.appendChild(renderer.domElement);
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true; controls.autoRotate = isRotating;
-      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-      const dl = new THREE.DirectionalLight(0xffffff, 1.0); dl.position.set(5, 10, 7); dl.castShadow = true; scene.add(dl);
-      animate();
-    }
-    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
-
-    function build3DScene() {
-      if (!scene) return; if (currentGroup) scene.remove(currentGroup);
-      currentGroup = new THREE.Group();
-      const active = getActiveItem(); const SCALE = 50;
-
-      const getMat = (hex) => new THREE.MeshStandardMaterial({ color: hex, roughness: 0.8, metalness: 0.05 });
-      const addMesh = (geo, hex, x, y, z, rx=0, ry=0, rz=0) => {
-        const mesh = new THREE.Mesh(geo, getMat(hex)); mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz);
-        mesh.castShadow = true; mesh.receiveShadow = true; currentGroup.add(mesh); return mesh;
-      };
-
-      const dB = { w: active.dims.Base.w / SCALE, h: active.dims.Base.h / SCALE, d: active.dims.Base.d / SCALE };
-      const dC = { w: active.dims.Cushions.w / SCALE, h: active.dims.Cushions.h / SCALE, d: active.dims.Cushions.d / SCALE };
-      const dL = { w: active.dims.Legs.w / SCALE, h: active.dims.Legs.h / SCALE, d: active.dims.Legs.d / SCALE };
-
-      const yL = dL.h / 2, yB = dL.h + dB.h / 2, yC = dL.h + dB.h + dC.h / 2;
-
-      // Base
-      addMesh(new THREE.BoxGeometry(dB.w, dB.h, dB.d), active.selections.Base, 0, yB, 0);
-
-      // Cushions (Divided by capacity)
-      const cW = (dB.w * 0.95) / active.capacity;
-      for(let i=0; i<active.capacity; i++) {
-        const offset = -dB.w/2 + cW/2 + (i * cW) + (dB.w*0.025);
-        addMesh(new THREE.BoxGeometry(cW * 0.95, dC.h, dC.d), active.selections.Cushions, offset, yC, 0);
-      }
-
-      // Backrest
-      if(active.hasBack) {
-        addMesh(new THREE.BoxGeometry(dB.w, dC.h * 1.2, 0.4), active.selections.Cushions, 0, yC + 0.2, -dB.d/2);
-      }
-
-      // Armrests
-      if(active.hasArms) {
-        addMesh(new THREE.BoxGeometry(0.4, dC.h, dB.d), active.selections.Cushions, dB.w/2, yC, 0);
-        addMesh(new THREE.BoxGeometry(0.4, dC.h, dB.d), active.selections.Cushions, -dB.w/2, yC, 0);
-      }
-
-      // Legs
-      [[-dB.w*0.4, -dB.d*0.4], [dB.w*0.4, -dB.d*0.4], [-dB.w*0.4, dB.d*0.4], [dB.w*0.4, dB.d*0.4]].forEach(([lx, lz]) => {
-        addMesh(new THREE.BoxGeometry(dL.w, dL.h, dL.d), active.selections.Legs, lx, yL, lz);
-      });
-
-      currentGroup.scale.set(active.globalScale.x, active.globalScale.y, active.globalScale.z);
-      scene.add(currentGroup);
-    }
-
-    /* ==========================================================================
-       UTILITIES & PUBLISHING
-       ========================================================================== */
-    function toggleRotation() { isRotating = !isRotating; controls.autoRotate = isRotating; document.getElementById('btn-rotate').innerHTML = isRotating ? '<i class="fas fa-pause"></i> Stop Rotate' : '<i class="fas fa-play"></i> Start Rotate'; }
-    function toggleDimensions() { showDimensions = !showDimensions; build3DScene(); }
-    function resetView() { camera.position.set(12, 10, 15); controls.target.set(0, 1, 0); }
-    function toggleDesignAnalysis() { document.getElementById('design-analysis-card').classList.toggle('minimized'); }
-
-    function openDesignModal(p, t) {
-      modalState = { p, t }; document.getElementById('design-modal-overlay').classList.add('open');
-      const s = document.getElementById('design-modal-scroll'); s.innerHTML = '';
-      const list = shapeDB[p.toLowerCase()];
-      list.forEach(i => {
-        const c = document.createElement('div'); c.className = 'design-card' + (getActiveItem().shapes[p] === i.id ? ' active' : '');
-        c.onclick = () => { getActiveItem().shapes[p] = i.id; renderProperties(); build3DScene(); closeDesignModal(); };
-        c.innerHTML = `<i class="design-icon fas fa-${i.icon}"></i><div class="design-name">${i.name}</div>`;
-        s.appendChild(c);
-      });
-    }
-    function closeDesignModal() { document.getElementById('design-modal-overlay').classList.remove('open'); }
-
-    function addNewProject() {
-      const p = createNewDesignData('New Custom Sofa'); appState.items.push(p);
-      appState.activeItemId = p.id; renderUI(); build3DScene();
-    }
-
-    function publishTemplate() {
-      const active = getActiveItem();
-      renderer.render(scene, camera);
-      const preview = renderer.domElement.toDataURL('image/png');
-      
+    function uploadToTemplates() {
+      const nameInput = document.getElementById('project-name');
+      const projectName = (nameInput && nameInput.value.trim()) || 'Custom Sofa Design';
+      const priceEl = document.getElementById('total-price');
+      const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+      const costVal = parseFloat(priceText) || 8000;
+      let previewDataUrl = '';
+      const canvas = document.querySelector('#canvas-container canvas');
+      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
+      const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
       const tmpl = {
-        id: 'SHOP-TMPL-' + Date.now(),
+        id: Date.now() + 20007,
         type: 'sofa',
-        name: document.getElementById('project-name-input').value.trim() || active.name,
-        description: document.getElementById('template-desc').value.trim(),
-        gender: appState.tmplGender,
-        badge: appState.tmplBadge,
-        previewDataUrl: preview,
+        name: projectName,
+        description: 'Custom sofa crafted in 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+        previewDataUrl: previewDataUrl,
         publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
         publishedAt: new Date().toISOString(),
-        basePrice: parseInt(document.getElementById('total-price').innerText.replace(/\D/g,'')),
-        config: JSON.parse(JSON.stringify(active))
+        basePrice: costVal,
+        designData: ai
       };
-
       let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
       globals.unshift(tmpl);
       localStorage.setItem('shop_templates_global', JSON.stringify(globals));
       
-      alert('✅ Template "' + tmpl.name + '" published successfully!');
+      let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
+      custom.unshift(tmpl);
+      localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
+
+      sessionStorage.removeItem('craftMode');
+      alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
       window.location.href = 'templates.html';
     }
 
-    localStorage.setItem('builder_sofa_drafts', JSON.stringify(appState.items));
-    window.onbeforeunload = () => { localStorage.setItem('builder_sofa_drafts', JSON.stringify(appState.items)); };
-
+    function goToCraft() {
+      if (typeof saveState === 'function') saveState();
+      window.location.href = 'shop_studio.html';
+    }
   </script>
+
+
+
+  <style>
+
+    :root {
+
+      --bg-dark:#1e1e1e; --bg-panel:#252526; --bg-header:#333333;
+
+      --accent:#8e44ad; --accent2:#6c3483; --select-blue:#007acc;
+
+      --text-main:#e0e0e0; --text-dim:#999; --border:#3e3e42;
+
+      --gold:#f1c40f; --rec-bg:#2a1a35;
+
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    header { height: 45px; background-color: var(--bg-header); display: flex; align-items: center; padding: 0 1rem; border-bottom: 1px solid var(--border); justify-content: space-between; }
+
+    .brand { font-weight: 600; color: white; display: flex; align-items: center; gap: 8px; }
+
+    .btn-export { background: var(--accent) !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
+
+    .btn-export:hover { background: var(--accent2) !important; }
+
+    .workspace { display: flex; flex: 1; height: calc(100vh - 45px); overflow: hidden; }
+
+
+
+    /* ── LEFT PANEL ── */
+
+    .panel-left { width: 280px; background-color: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 5; flex-shrink: 0; }
+
+    .panel-header { padding: 14px 16px; font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #e0e0e0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #2a2a2e 0%, #252526 100%); }
+
+    .scene-list { flex: 1; overflow-y: auto; padding: 8px; }
+
+    .scene-item { padding: 13px 12px; margin-bottom: 4px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.95rem; }
+
+    .scene-item:hover { background-color: #333; }
+
+    .scene-item.active { background-color: #37373d; border-left: 3px solid var(--accent); padding-left: 10px; }
+
+    .btn-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
+
+    .btn-delete:hover { color: #c0392b; background: rgba(192,57,43,0.1); }
+
+    .btn-add { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.02em; transition: 0.2s; flex-shrink: 0; }
+
+    .btn-add:hover { background: var(--accent2); }
+
+
+
+    /* ── VIEWPORT ── */
+
+    .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); overflow: hidden; }
+
+    #canvas-container { width: 100%; height: 100%; }
+
+    #canvas-container canvas { display: block; width: 100% !important; height: 100% !important; }
+
+    .viewport-controls { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 5px; border-radius: 20px; border: 1px solid #555; display: flex; gap: 5px; z-index: 10; }
+
+    .vp-btn { background: transparent; border: none; color: #ddd; padding: 8px 15px; border-radius: 15px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+
+    .vp-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+
+
+
+    /* ── SCORE CARD ── */
+
+    .score-card { position: absolute; top: 90px; right: 10px; background: rgba(18,18,20,0.92); backdrop-filter: blur(6px); padding: 18px 20px; border-radius: 10px; width: 260px; border: 1px solid #444; pointer-events: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.5); transition: all 0.3s ease; }
+    .score-card.minimized { padding: 10px 15px; }
+    .score-card.minimized #design-analysis-content { display: none; }
+    .score-card.minimized .score-title { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .score-toggle-btn { background: rgba(142,68,173,0.15); border: 1px solid rgba(142,68,173,0.3); color: var(--accent); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; margin-left: auto; }
+    .score-toggle-btn:hover { background: var(--accent); color: white; }
+
+    .score-title { font-size: 0.82rem; font-weight: 800; color: #e8e8e8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; border-bottom: 1px solid #333; padding-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
+    .score-info-btn { width: 17px; height: 17px; border-radius: 50%; background: #2e2e2e; border: 1px solid #4a4a4a; color: #777; font-size: 0.6rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.18s; pointer-events: auto; flex-shrink: 0; margin-left: 4px; }
+
+    .score-info-btn:hover { background: var(--select-blue); border-color: var(--select-blue); color: white; }
+
+    .score-metric-label { font-size: 0.85rem; color: #ccc; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+
+    .score-metric-label span:last-child { font-size: 0.95rem; font-weight: 700; color: white; }
+
+    .score-bar-bg { width: 100%; height: 7px; background: #333; margin-bottom: 14px; border-radius: 4px; overflow: hidden; }
+
+    .score-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease; }
+
+    #rec-status { margin-top: 6px; font-size: 0.82rem; color: #aaa; display: flex; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px solid #333; }
+
+
+
+    /* ── DESIGN MODAL ── */
+
+    .modal-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
+
+    .design-modal-overlay.open { display: flex; }
+
+    .design-modal { background: #252526; border: 1px solid var(--border); padding: 20px; border-radius: 8px; width: 600px; max-height: 85%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; display:flex; flex-direction:column; }
+
+    .btn-close-modal { position: absolute; top:10px; right:15px; background:none; border:none; color:#aaa; font-size:1.5rem; cursor:pointer; z-index:2; }
+
+    .btn-close-modal:hover { color:white; }
+
+    .modal-title { font-size: 1.1rem; color: white; margin-bottom: 15px; font-weight: 600; flex-shrink:0; }
+
+    .modal-scroll-area { flex: 1; overflow-y: auto; padding-right: 10px; }
+
+    .modal-section-title { width: 100%; color: var(--select-blue); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin: 15px 0 10px 0; border-bottom: 1px solid #444; padding-bottom: 5px; }
+
+    .modal-section-title:first-child { margin-top: 0; }
+
+    .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+
+    .design-card { background: #333; border: 1px solid #444; border-radius: 4px; padding: 10px; text-align: center; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; height: 80px; position: relative; overflow: hidden; }
+
+    .design-card:hover { transform: translateY(-2px); background: #3e3e42; border-color:white; }
+
+    .design-card.active { border-color: var(--accent); background: rgba(142, 68, 173, 0.1); }
+
+    .design-icon { font-size: 1.4rem; color: #aaa; }
+
+    .design-name { font-size: 0.7rem; color: #ccc; line-height: 1.1; }
+
+
+
+    /* ── RIGHT PANEL ── */
+
+    .panel-right { width: 560px; background-color: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 5; flex-shrink: 0; }
+
+    .prop-scroll { flex: 1; overflow-y: auto; }
+
+    .prop-group { padding: 20px 18px; border-bottom: 1px solid var(--border); }
+
+    .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; min-width: 0; }
+
+    .section-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; background: rgba(142,68,173,0.15); color: var(--accent); border: 1px solid rgba(142,68,173,0.25); }
+
+    .prop-label { font-size: 0.78rem; font-weight: 800; color: #d0d0d0; display: inline; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; line-height: 1.2; flex-shrink: 0; }
+
+    .info-btn { width: 18px; height: 18px; border-radius: 50%; background: #2e2e2e; border: 1px solid #4a4a4a; color: #777; font-size: 0.65rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s; }
+
+    .info-btn:hover { background: var(--select-blue); border-color: var(--select-blue); color: white; transform: scale(1.2); }
+
+
+
+    /* ── TOOLTIP ── */
+
+    .info-tooltip { position: fixed; z-index: 9999; background: #1a1a1e; border: 1px solid var(--select-blue); border-radius: 10px; padding: 16px 18px; width: 300px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); pointer-events: none; opacity: 0; transform: translateY(6px) scale(0.97); transition: opacity 0.18s ease, transform 0.18s ease; }
+
+    .info-tooltip.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+    .info-tooltip-title { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--select-blue); margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+
+    .info-tooltip-body { font-size: 0.88rem; color: #c0c0c0; line-height: 1.6; }
+
+    .info-tooltip-tip { margin-top: 10px; padding-top: 10px; border-top: 1px solid #2d2d33; font-size: 0.8rem; color: #f1c40f; display: flex; align-items: flex-start; gap: 6px; }
+
+
+
+    input[type="text"], select { width: 100%; background: #3c3c3c; border: 1px solid var(--border); color: white; padding: 11px 12px; border-radius: 4px; font-family: inherit; margin-bottom: 5px; font-size: 1.05rem; }
+
+    .range-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 1rem; }
+
+    .range-row label { width: 55px; color: #aaa; font-size: 0.95rem; }
+
+    input[type="range"] { flex: 1; accent-color: var(--accent); height: 6px; }
+
+    .val-display { width: 48px; text-align: right; color: var(--accent); font-size: 1rem; font-weight: 600; }
+
+
+
+    .mat-section-title { color: var(--gold); font-size: 1rem; font-weight: bold; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px; }
+
+    .mat-grid-large { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+
+    .mat-card-lg { background: #333; border: 1px solid var(--border); border-radius: 6px; padding: 12px 8px; text-align: center; cursor: pointer; transition: 0.15s; position: relative; }
+
+    .mat-card-lg:hover { transform: translateY(-2px); background: #3e3e42; border-color: white; }
+
+    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #5a2a7a; }
+
+    .mat-card-lg.selected-mat { border-color: var(--accent) !important; background: rgba(142,68,173,0.15) !important; }
+
+    .mat-card-icon { font-size: 1.8rem; margin-bottom: 6px; }
+
+    .mat-card-name { font-size: 0.88rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+
+
+    .toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+
+    .toggle-label { color: #888; font-size: 0.95rem; flex: 1; }
+
+    .toggle-btn { padding: 8px 16px; font-size: 0.95rem; background: #333; border: 1px solid #444; border-radius: 15px; cursor: pointer; color: #ccc; transition: 0.15s; }
+
+    .toggle-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+
+
+    /* ── STYLE TOGGLE ── */
+
+    .style-toggle-row { display: flex; gap: 8px; margin-bottom: 4px; }
+
+    .style-toggle-btn { flex: 1; padding: 10px; background: #333; border: 1px solid #444; border-radius: 6px; color: #ccc; cursor: pointer; font-size: 0.9rem; font-weight: 600; text-align: center; transition: 0.15s; }
+
+    .style-toggle-btn.active { background: rgba(142,68,173,0.2); border-color: var(--accent); color: var(--accent); }
+
+
+
+    /* ── SEAT COUNT ── */
+
+    .seat-count-row { display: flex; align-items: center; gap: 12px; }
+
+    .seat-count-btn { width: 34px; height: 34px; background: #3c3c3c; border: 1px solid #555; border-radius: 6px; color: white; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.15s; flex-shrink: 0; }
+
+    .seat-count-btn:hover { background: var(--accent); border-color: var(--accent); }
+
+    .seat-count-display { flex: 1; text-align: center; font-size: 1.1rem; font-weight: 700; color: white; padding: 8px; background: #2a2a2a; border-radius: 4px; border: 1px solid #444; }
+
+
+
+    /* ── LAYERS ── */
+
+    .layer-item { background: #2b2b2b; border-radius: 6px; margin-bottom: 10px; border: 1px solid #333; transition: all 0.2s; }
+
+    .layer-item.active-layer { border: 1px solid var(--select-blue); box-shadow: 0 0 10px rgba(142,68,173,0.25); }
+
+    .layer-header { padding: 13px 12px; font-size: 1rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #333; border-radius: 6px 6px 0 0; }
+
+    .layer-header:hover { background: #3c3c3c; }
+
+    .color-preview { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #777; flex-shrink: 0; }
+
+    .layer-content { display: none; padding: 16px; background: #222; border-top: 1px solid #444; border-radius: 0 0 6px 6px; }
+
+    .layer-item.open .layer-content { display: block; }
+
+    .part-control-row { margin-bottom: 16px; }
+
+    .part-control-label { font-size: 0.72rem; font-weight: 700; color: #888; margin-bottom: 7px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .part-control-label .lbl-info-btn { width: 15px; height: 15px; border-radius: 50%; background: #2a2a2a; border: 1px solid #484848; color: #666; font-size: 0.6rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s; margin-left: 2px; }
+
+    .part-control-label .lbl-info-btn:hover { background: var(--select-blue); border-color: var(--select-blue); color: white; }
+
+    .clickable-design-val { font-size: 1rem; color: var(--text-dim); padding: 10px 12px; background: #111; border-radius: 4px; border: 1px solid #444; cursor: pointer; transition: 0.1s; display: inline-flex; align-items: center; gap: 5px; width: 100%; justify-content: space-between; }
+
+    .clickable-design-val:hover { background: #000; border-color: var(--select-blue); color: white; }
+
+    .hex-wrapper { display: flex; align-items: center; gap: 10px; }
+
+    input[type="color"] { -webkit-appearance: none; border: none; width: 44px; height: 44px; cursor: pointer; background: none; padding: 0; border-radius: 4px; }
+
+    .hex-text-input { width: 110px !important; margin: 0 !important; font-family: monospace; text-transform: uppercase; font-size: 1rem; }
+
+    .dim-row { display: flex; gap: 8px; margin-top: 6px; }
+
+    .dim-group { flex: 1; }
+
+    .dim-input { width: 100%; background: #111; border: 1px solid #444; color: var(--accent); padding: 10px; text-align: center; font-size: 1.05rem; border-radius: 3px; }
+
+    .dim-label { font-size: 0.82rem; color: #666; text-align: center; margin-top: 5px; }
+
+    .instruction-text { font-size: 0.88rem; color: var(--select-blue); margin-bottom: 12px; font-style: italic; }
+
+    .view-focus-btn { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; margin-left: auto; margin-right: 10px; }
+
+    .view-focus-btn:hover { color: var(--select-blue); }
+
+
+
+    .footer-bar { padding: 18px 20px; background: #202020; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+
+    .footer-bar span { font-size: 0.88rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .total-price { font-size: 1.6rem; font-weight: bold; color: var(--accent); }
+
+
+
+    /* quick-add sofa style bar */
+
+    .quick-add-bar { margin: 8px 8px 0; background:#1a1a1c; border:1px solid #2e2e32; border-radius:8px; overflow:hidden; }
+
+    .quick-add-item { padding:10px 12px; display:flex; align-items:center; gap:8px; cursor:pointer; transition:0.15s; font-size:0.82rem; color:#6abf6a; }
+
+    .quick-add-item:hover { background:#222; }
+
+    /* ── Shop Info Badge ── */
+
+    .shop-info-badge {
+
+      position: absolute;
+
+      bottom: 20px;
+
+      left: 20px;
+
+      background: rgba(18, 18, 20, 0.85);
+
+      backdrop-filter: blur(10px);
+
+      padding: 14px 18px;
+
+      border-radius: 14px;
+
+      border: 1px solid rgba(142, 68, 173, 0.25);
+
+      z-index: 100;
+
+      max-width: 320px;
+
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+
+      pointer-events: auto;
+
+      animation: fadeUpShop 0.6s ease both;
+
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    }
+
+
+
+    .shop-info-header {
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      cursor: pointer;
+
+      gap: 15px;
+
+    }
+
+
+
+    .shop-info-toggle-btn {
+
+      background: rgba(142, 68, 173, 0.15);
+
+      border: 1px solid rgba(142, 68, 173, 0.3);
+
+      color: var(--accent);
+
+      border-radius: 50%;
+
+      width: 22px;
+
+      height: 22px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      cursor: pointer;
+
+      transition: all 0.2s ease;
+
+      flex-shrink: 0;
+
+    }
+
+
+
+    .shop-info-toggle-btn:hover {
+
+      background: var(--accent);
+
+      color: white;
+
+    }
+
+
+
+    .shop-info-badge.minimized {
+
+      padding: 10px 15px;
+
+    }
+
+
+
+    .shop-info-badge.minimized #shop-info-content {
+
+      display: none;
+
+    }
+
+
+
+    @keyframes fadeUpShop {
+
+      from { opacity: 0; transform: translateY(15px); }
+
+      to { opacity: 1; transform: translateY(0); }
+
+    }
+
+
+
+    .shop-info-name {
+
+      color: var(--gold);
+
+      font-weight: 800;
+
+      font-size: 0.85rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.12em;
+
+      margin-top: 5px;
+
+      margin-bottom: 10px;
+
+      display: flex; align-items: center; gap: 7px;
+
+    }
+
+
+
+    .shop-info-mats {
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 5px;
+
+    }
+
+
+
+    .shop-mat-tag {
+
+      font-size: 0.68rem;
+
+      background: rgba(142, 68, 173, 0.12);
+
+      color: #e0e0e0;
+
+      padding: 3px 9px;
+
+      border-radius: 5px;
+
+      border: 1px solid rgba(142, 68, 173, 0.3);
+
+      white-space: nowrap;
+
+    }
+
+
+
+    .shop-info-label {
+
+      font-size: 0.6rem;
+
+      color: #666;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.1em;
+
+      font-weight: 700;
+
+    }
+
+
+
+    .warn-icon {
+
+      position: absolute;
+
+      top: 5px;
+
+      right: 5px;
+
+      color: #f1c40f;
+
+      font-size: 0.8rem;
+
+      text-shadow: 0 0 10px rgba(0,0,0,0.5);
+
+      z-index: 5;
+
+    }
+
+
+
+    .elite-bonus {
+
+      color: #2ecc71;
+
+      font-size: 0.72rem;
+
+      font-weight: 800;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 4px;
+
+      margin-top: 4px;
+
+      animation: pulseGreen 2s infinite;
+
+    }
+
+
+
+    @keyframes pulseGreen {
+
+      0% { opacity: 0.7; }
+
+      50% { opacity: 1; }
+
+      100% { opacity: 0.7; }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+
+
+<header>
+
+  <div class="brand">
+
+    <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft Studio – Living Room Sofa Pro
+
+  </div>
+
+  <div class="header-controls" style="display: flex; gap: 10px;">
+
+    <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
+
+      <i class="fas fa-arrow-left"></i> Back
+
+    </button>
+
+    <button class="btn-export" style="background: linear-gradient(135deg,#10b981,#059669) !important;" onclick="uploadToTemplates()">
+
+      <i class="fas fa-cloud-upload-alt"></i> Upload to Templates
+
+    </button>
+
+  </div>
+
+</header>
+
+
+
+<div class="workspace">
+
+
+
+  <!-- ═══ LEFT PANEL ═══ -->
+
+  <aside class="panel-left">
+
+    <div class="panel-header">
+
+      <span><i class="fas fa-folder-open" style="color:var(--accent);margin-right:8px;"></i>Design Projects</span>
+
+      <button class="info-btn" onclick="showTooltip(event,'left-panel-info')"><i class="fas fa-info"></i></button>
+
+    </div>
+
+    <div class="scene-list" id="scene-list"></div>
+
+    <div class="quick-add-bar">
+
+      <div class="quick-add-item" onclick="createOldFashionSofaProject()">
+
+        <i class="fas fa-chair" style="color:#c8a060"></i>
+
+        <span style="color:#c8a060">+ New Old Fashion Sofa</span>
+
+      </div>
+
+    </div>
+
+    <button class="btn-add" onclick="goToCraft()">
+
+      <i class="fas fa-plus"></i> Add New Furniture Design
+
+    </button>
+
+  </aside>
+
+
+
+  <!-- ═══ VIEWPORT ═══ -->
+
+  <main class="viewport">
+
+    <div class="viewport-controls">
+
+      <button class="vp-btn" id="btn-rotate" onclick="toggleRotation()">
+
+        <i class="fas fa-pause"></i> Stop Rotate
+
+      </button>
+
+      <button class="vp-btn" id="btn-dims" onclick="toggleDimensions()">
+
+        <i class="fas fa-ruler-combined"></i> Hide Ruler
+
+      </button>
+
+      <button class="vp-btn" onclick="resetView()">
+
+        <i class="fas fa-sync"></i> Full View
+
+      </button>
+
+    </div>
+
+
+
+    <!-- Shop Info Badge -->
+
+    <div id="shop-info-badge" class="shop-info-badge" style="display:none">
+
+      <div class="shop-info-header" onclick="toggleShopBadge()">
+
+        <div class="shop-info-label">
+
+          <i class="fas fa-hammer"></i> Active Workshop
+
+        </div>
+
+        <div class="shop-info-toggle-btn" id="shop-badge-toggle-icon">
+
+          <i class="fas fa-chevron-down"></i>
+
+        </div>
+
+      </div>
+
+      <div id="shop-info-content">
+
+        <div class="shop-info-name" id="selected-shop-display-name">
+
+          <i class="fas fa-store"></i> Furniture Shop
+
+        </div>
+
+        <div class="shop-info-label" style="margin-bottom:8px">Available Materials:</div>
+
+        <div class="shop-info-mats" id="shop-materials-list">
+
+          <!-- Dynamic -->
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <div id="canvas-container"></div>
+
+
+
+    <div class="score-card" id="design-analysis-card">
+
+      <div class="score-title" onclick="toggleDesignAnalysis()">
+
+        <span><i class="fas fa-chart-bar" style="color:var(--accent);margin-right:7px;"></i> Design Analysis</span>
+
+        <button class="score-info-btn" onclick="showTooltip(event,'score-info')"><i class="fas fa-info"></i></button>
+          <div class="score-toggle-btn"><i class="fas fa-chevron-down" id="da-toggle-icon"></i></div>
+        </div>
+        <div id="design-analysis-content">
+
+      <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
+
+      <div class="score-bar-bg"><div id="bar-dura" class="score-bar-fill" style="width:0%"></div></div>
+
+      <div class="score-metric-label"><span>Material Quality</span><span id="score-qual-val">0%</span></div>
+
+      <div class="score-bar-bg"><div id="bar-qual" class="score-bar-fill" style="width:0%"></div></div>
+
+      <div class="score-metric-label"><span>Comfort Score</span><span id="score-comfort-val">0%</span></div>
+
+      <div class="score-bar-bg"><div id="bar-comfort" class="score-bar-fill" style="width:0%"></div></div>
+
+      <div id="rec-status"></div>
+
+    </div>
+      </div>
+
+
+
+    <!-- Design Modal -->
+
+    <div id="design-modal-overlay" class="modal-overlay design-modal-overlay" onclick="closeDesignModal(event)">
+
+      <div class="design-modal" onclick="event.stopPropagation()">
+
+        <button class="btn-close-modal" onclick="closeDesignModal()">×</button>
+
+        <div id="design-modal-title" class="modal-title">Select Design</div>
+
+        <div id="design-modal-scroll" class="modal-scroll-area"></div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+
+
+  <!-- ═══ RIGHT PANEL ═══ -->
+
+  <aside class="panel-right">
+
+    <div class="panel-header">
+
+      <span><i class="fas fa-sliders-h" style="color:var(--accent);margin-right:8px;"></i>Properties</span>
+
+      <button class="info-btn" onclick="showTooltip(event,'right-panel-info')"><i class="fas fa-info"></i></button>
+
+    </div>
+
+    <div class="prop-scroll">
+
+
+
+      <!-- Project Name -->
+
+      <div class="prop-group">
+
+        <div class="section-header">
+
+          <div class="section-icon"><i class="fas fa-tag"></i></div>
+
+          <label class="prop-label">Project Name</label>
+
+          <button class="info-btn" onclick="showTooltip(event,'proj-name-info')"><i class="fas fa-info"></i></button>
+
+        </div>
+
+        <input type="text" id="project-name" placeholder="Project Name" oninput="updateProjectName(this.value)">
+
+      </div>
+
+      <div class="prop-group">
+        <div class="section-header">
+          <div class="section-icon"><i class="fas fa-venus-mars"></i></div>
+          <label class="prop-label">Gender Preference</label>
+        </div>
+        <select id="gender-pref" onchange="updateGenderPref(this.value)">
+          <option value="neutral">Neutral / Unisex</option>
+          <option value="male">Masculine / Male</option>
+          <option value="female">Feminine / Female</option>
+        </select>
+      </div>
+
+
+
+      <!-- Sofa Style -->
+
+      <div class="prop-group">
+
+        <div class="section-header">
+
+          <div class="section-icon"><i class="fas fa-paint-brush"></i></div>
+
+          <label class="prop-label">Sofa Style</label>
+
+          <button class="info-btn" onclick="showTooltip(event,'style-info')"><i class="fas fa-info"></i></button>
+
+        </div>
+
+        <div class="style-toggle-row">
+
+          <button class="style-toggle-btn active" id="btn-style-modern" onclick="setSofaStyle('modern')">🏙 Modern</button>
+
+          <button class="style-toggle-btn" id="btn-style-oldfashion" onclick="setSofaStyle('oldfashion')">🏛 Old Fashion</button>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- Seat Count -->
+
+      <div class="prop-group">
+
+        <div class="section-header">
+
+          <div class="section-icon"><i class="fas fa-users"></i></div>
+
+          <label class="prop-label">Seat Count</label>
+
+          <button class="info-btn" onclick="showTooltip(event,'seat-info')"><i class="fas fa-info"></i></button>
+
+        </div>
+
+        <div class="seat-count-row">
+
+          <button class="seat-count-btn" onclick="changeSeatCount(-1)"><i class="fas fa-minus"></i></button>
+
+          <div class="seat-count-display" id="seat-display">3 Seater</div>
+
+          <button class="seat-count-btn" onclick="changeSeatCount(1)"><i class="fas fa-plus"></i></button>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- Global Scale -->
+
+      <div class="prop-group">
+
+        <div class="section-header">
+
+          <div class="section-icon"><i class="fas fa-expand-arrows-alt"></i></div>
+
+          <label class="prop-label">Global Scale</label>
+
+          <button class="info-btn" onclick="showTooltip(event,'scale-info')"><i class="fas fa-info"></i></button>
+
+        </div>
+
+        <div class="range-row"><label>Width</label><input type="range" id="inp-scale-x" min="50" max="200" value="100" oninput="updateGlobalScale('x',this.value)"><span class="val-display" id="gs-x">100</span></div>
+
+        <div class="range-row"><label>Height</label><input type="range" id="inp-scale-y" min="50" max="200" value="100" oninput="updateGlobalScale('y',this.value)"><span class="val-display" id="gs-y">100</span></div>
+
+        <div class="range-row"><label>Depth</label><input type="range" id="inp-scale-z" min="50" max="200" value="100" oninput="updateGlobalScale('z',this.value)"><span class="val-display" id="gs-z">100</span></div>
+
+      </div>
+
+
+
+      <!-- Material Library -->
+
+      <div class="prop-group">
+
+        <div class="section-header">
+
+          <div class="section-icon"><i class="fas fa-palette"></i></div>
+
+          <label class="prop-label">Material Library</label>
+
+          <button class="info-btn" onclick="showTooltip(event,'material-info')"><i class="fas fa-info"></i></button>
+
+        </div>
+
+        <div class="instruction-text">Select a Layer below, then click a Material here to apply.</div>
+
+        <div id="rec-mat-container">
+
+          <div class="mat-section-title"><i class="fas fa-star"></i> Recommended</div>
+
+          <div class="mat-grid-large" id="rec-mat-grid"></div>
+
+        </div>
+
+        <div class="mat-section-title" style="color:#777;margin-top:10px;">All Materials</div>
+
+        <div class="mat-grid-large" id="all-mat-grid"></div>
+
+      </div>
+
+
+
+      <!-- Cushion Fabric -->
+
+      <div class="prop-group">
+
+        <div class="section-header">
+
+          <div class="section-icon"><i class="fas fa-couch"></i></div>
+
+          <label class="prop-label">Cushion Fabric</label>
+
+          <button class="info-btn" onclick="showTooltip(event,'fabric-info')"><i class="fas fa-info"></i></button>
+
+        </div>
+
+        <div class="mat-grid-large" id="fabric-grid"></div>
+
+      </div>
+
+
+
+      <!-- Armrests / Cushions Toggle -->
+
+      <div class="prop-group">
+
+        <div class="section-header">
+
+          <div class="section-icon"><i class="fas fa-grip-lines"></i></div>
+
+          <label class="prop-label">Armrests Toggle</label>
+
+          <button class="info-btn" onclick="showTooltip(event,'armrest-info')"><i class="fas fa-info"></i></button>
+
+        </div>
+
+        <div class="toggle-row">
+
+          <span class="toggle-label">Left Arm</span>
+
+          <button id="toggle-left-arm" class="toggle-btn active" onclick="togglePart('isLeftArmVisible',this)">Visible</button>
+
+          <span class="toggle-label" style="margin-left:16px;">Right Arm</span>
+
+          <button id="toggle-right-arm" class="toggle-btn active" onclick="togglePart('isRightArmVisible',this)">Visible</button>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- Cushion Toggle -->
+
+      <div class="prop-group">
+
+        <div class="section-header">
+
+          <div class="section-icon"><i class="fas fa-layer-group"></i></div>
+
+          <label class="prop-label">Cushion Toggle</label>
+
+        </div>
+
+        <div class="toggle-row">
+
+          <span class="toggle-label">Seat Cushions</span>
+
+          <button id="toggle-seat-cushion" class="toggle-btn active" onclick="togglePart('isSeatCushionVisible',this)">Visible</button>
+
+        </div>
+
+        <div class="toggle-row">
+
+          <span class="toggle-label">Back Cushions</span>
+
+          <button id="toggle-back-cushion" class="toggle-btn active" onclick="togglePart('isBackCushionVisible',this)">Visible</button>
+
+        </div>
+
+        <div class="toggle-row">
+
+          <span class="toggle-label">Throw Pillows</span>
+
+          <button id="toggle-pillows" class="toggle-btn" onclick="togglePart('isThrowPillowVisible',this)">Hidden</button>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- Layers -->
+
+      <div class="prop-group">
+
+        <div class="section-header">
+
+          <div class="section-icon"><i class="fas fa-layer-group"></i></div>
+
+          <label class="prop-label">Layers</label>
+
+          <button class="info-btn" onclick="showTooltip(event,'layers-info')"><i class="fas fa-info"></i></button>
+
+        </div>
+
+        <div id="layers-container"></div>
+
+      </div>
+
+
+
+    </div>
+
+    <div class="footer-bar">
+
+      <span>Estimated Cost</span>
+
+      <div class="total-price" id="total-price" contenteditable="true" oninput="this.dataset.manual='true'">&#8369;0.00</div>
+
+    </div>
+
+  </aside>
+
+</div>
+
+
+
+<div id="info-tooltip" class="info-tooltip">
+
+  <div class="info-tooltip-title" id="tt-title"></div>
+
+  <div class="info-tooltip-body" id="tt-body"></div>
+
+  <div class="info-tooltip-tip" id="tt-tip"></div>
+
+</div>
+
+
+
+<!-- ═══════════════════════════ SCRIPT ═══════════════════════════ -->
+
+<script>
+
+/* ═══════════════════════════════════════════
+
+   NAVIGATION
+
+═══════════════════════════════════════════ */
+
+function uploadToTemplates() {
+      try {
+        // Capture 3D preview screenshot (Downscaled to prevent localStorage QuotaExceededError)
+        let previewDataUrl = '';
+        try {
+          if (typeof controls !== 'undefined') controls.autoRotate = false;
+          if (typeof showDimensions !== 'undefined' && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
+          if (typeof renderer !== 'undefined' && typeof scene !== 'undefined' && typeof camera !== 'undefined') renderer.render(scene, camera);
+          
+          const canvas = document.querySelector('#canvas-container canvas');
+          if (canvas) {
+            const tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width = 400; // max width
+            tmpCanvas.height = Math.floor(400 * (canvas.height / canvas.width));
+            const ctx = tmpCanvas.getContext('2d');
+            ctx.drawImage(canvas, 0, 0, tmpCanvas.width, tmpCanvas.height);
+            previewDataUrl = tmpCanvas.toDataURL('image/jpeg', 0.6); // heavily compress
+          }
+          
+          if (typeof controls !== 'undefined') controls.autoRotate = true;
+          if (typeof showDimensions !== 'undefined' && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
+        } catch(e) { console.warn("Screenshot failed:", e); }
+
+        const nameInput = document.getElementById('project-name');
+        const projectName = (nameInput && nameInput.value ? nameInput.value.trim() : '') || 'Custom Sofa';
+        const priceEl = document.getElementById('total-price');
+        const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+        const costVal = parseFloat(priceText) || 8000;
+
+        const ai = (typeof getActiveItem === 'function') ? getActiveItem() : null;
+        let selections = {}, carvings = {}, shapes = {}, dims = {}, scale = {x:1,y:1,z:1};
+        try {
+          selections = (ai && ai.selections) ? JSON.parse(JSON.stringify(ai.selections)) : {};
+          carvings = (ai && ai.carvings) ? JSON.parse(JSON.stringify(ai.carvings)) : {};
+          shapes = (ai && ai.shapes) ? JSON.parse(JSON.stringify(ai.shapes)) : {};
+          dims = (ai && ai.dims) ? JSON.parse(JSON.stringify(ai.dims)) : {};
+          scale = (ai && ai.globalScale) ? JSON.parse(JSON.stringify(ai.globalScale)) : {x:1,y:1,z:1};
+        } catch(e) { console.warn("Deep copy failed:", e); }
+        
+        const partsList = (ai && ai.parts) ? ai.parts : Object.keys(selections);
+
+        const tmpl = {
+          id: Date.now() + Math.floor(Math.random()*9000+10000),
+          type: 'sofa', name: projectName, icon: 'fa-couch', badge: 'new',
+          gender: (ai && ai.gender) ? ai.gender : 'neutral',
+          description: 'Custom sofa crafted in the 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+          tags: ['Sofa','Custom','Shop Design'], parts: partsList, selections: selections,
+          carvings: carvings, shapes: shapes, dims: dims, scale: scale, basePrice: costVal,
+          previewDataUrl: previewDataUrl, publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+          publishedAt: new Date().toISOString(), designData: ai
+        };
+
+        let globals = [];
+        try { globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]'); } catch(e) { globals = []; }
+        if (!Array.isArray(globals)) globals = [];
+        
+        // Remove older templates if we exceed 20 to prevent quota issues even with compression
+        if (globals.length > 20) globals = globals.slice(0, 20);
+        
+        globals.unshift(tmpl);
+        localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+        
+        let custom = [];
+        try { custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]'); } catch(e) { custom = []; }
+        if (!Array.isArray(custom)) custom = [];
+        
+        if (custom.length > 20) custom = custom.slice(0, 20);
+        
+        custom.unshift(tmpl);
+        localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
+
+        if (typeof saveState === 'function') saveState();
+        alert('\u2705 "' + tmpl.name + '" has been uploaded to Templates!');
+        window.location.href = 'templates.html';
+      } catch (err) {
+        alert("Error saving template: " + err.message + "\n\nTry clearing your browser cache/storage if quota exceeded.");
+        console.error(err);
+      }
+    }
+
+function goToCraft() { 
+
+  saveState();
+
+  const ai = getActiveItem();
+
+  if (ai) { sessionStorage.setItem('prevProjectName', ai.name); sessionStorage.setItem('prevProjectPage', 'sofa.html'); }
+
+  const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'shop_studio.html' : 'craft.html'; 
+
+}
+
+
+
+/* ═══════════════════════════════════════════
+
+   TOOLTIP
+
+═══════════════════════════════════════════ */
+
+const tooltipData = {
+
+  'left-panel-info':  { icon:'fas fa-folder-open', title:'Design Projects', body:'Manage all your sofa design sessions here. Each project saves independently.', tip:'Click "Add New Furniture Design" to go to the FurniCraft catalog.' },
+
+  'right-panel-info': { icon:'fas fa-sliders-h',   title:'Properties Panel', body:'Control hub for your active sofa design. All properties update the 3D model in real time.', tip:'Scroll down to the Layers section to edit each individual sofa part.' },
+
+  'score-info':       { icon:'fas fa-chart-bar',   title:'Design Analysis', body:'Real-time quality scores calculated from the materials applied to each part.', tip:'Use all Recommended (⭐) materials to maximize scores.' },
+
+  'proj-name-info':   { icon:'fas fa-tag',         title:'Project Name', body:'Give your sofa design a descriptive name.', tip:'Use names like "Narra Chesterfield v2" to stay organized.' },
+
+  'style-info':       { icon:'fas fa-paint-brush', title:'Sofa Style', body:'Switch between Modern (clean lines, minimal) and Old Fashion (carved details, tufting, scroll arms).', tip:'Old Fashion builds ornate details like nailhead trim and scroll legs automatically.' },
+
+  'seat-info':        { icon:'fas fa-users',       title:'Seat Count', body:'Choose 1 to 5 seats. The sofa frame and cushions scale accordingly.', tip:'3-seaters are the most common living room sofa size.' },
+
+  'scale-info':       { icon:'fas fa-expand-arrows-alt', title:'Global Scale', body:'Uniformly resize the entire sofa in three axes.', tip:'Use Global Scale for quick size prototyping.' },
+
+  'material-info':    { icon:'fas fa-palette',     title:'Material Library', body:'Philippine hardwoods and premium materials, each with unique Durability and Quality values.', tip:'Select a Layer first, then click any material tile to apply it.' },
+
+  'fabric-info':      { icon:'fas fa-couch',       title:'Cushion Fabric', body:'Choose the upholstery fabric for all cushion surfaces.', tip:'Velvet and Leather pair best with ornate Old Fashion designs.' },
+
+  'armrest-info':     { icon:'fas fa-grip-lines',  title:'Armrests Toggle', body:'Show or hide the left and right armrests independently.', tip:'Hiding both armrests creates a clean modern bench sofa look.' },
+
+  'layers-info':      { icon:'fas fa-layer-group', title:'Layers — Sofa Parts', body:'The sofa is composed of independent layers. Click a layer row to select and expand it.', tip:'Click the 👁 eye icon on any layer header to focus the 3D camera on that part.' },
+
+  'lyr-shape-info':   { icon:'fas fa-shapes',      title:'Shape / Style', body:'Defines the 3D geometry of this sofa part.', tip:'Shapes update instantly in the 3D viewport.' },
+
+  'lyr-color-info':   { icon:'fas fa-eye-dropper', title:'Hex Color', body:'Set the exact color of this sofa part.', tip:'Use hex values matching a material in the library for accurate pricing.' },
+
+  'lyr-dims-info':    { icon:'fas fa-ruler-combined', title:'Dimensions (cm)', body:'Set the exact physical dimensions of this part in centimetres.', tip:'Standard 3-seat sofa seat is ~220cm wide × 60cm deep.' }
+
+};
+
+
+
+let activeTooltip = null;
+
+function showTooltip(event, key) {
+
+  event.stopPropagation();
+
+  const data = tooltipData[key]; if (!data) return;
+
+  const tooltip = document.getElementById('info-tooltip');
+
+  if (activeTooltip === key && tooltip.classList.contains('visible')) { hideTooltip(); return; }
+
+  activeTooltip = key;
+
+  document.getElementById('tt-title').innerHTML = '<i class="' + data.icon + '"></i>&nbsp;' + data.title;
+
+  document.getElementById('tt-body').textContent = data.body;
+
+  document.getElementById('tt-tip').innerHTML = '<i class="fas fa-lightbulb"></i> ' + data.tip;
+
+  const btn = event.currentTarget, rect = btn.getBoundingClientRect();
+
+  const tipW = 300, tipH = 200;
+
+  let left = rect.left - tipW - 12, top = rect.top - 10;
+
+  if (left < 8) left = rect.right + 12;
+
+  if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+
+  if (top + tipH > window.innerHeight - 10) top = window.innerHeight - tipH - 10;
+
+  if (top < 8) top = 8;
+
+  tooltip.style.left = left + 'px'; tooltip.style.top = top + 'px';
+
+  tooltip.classList.add('visible');
+
+}
+
+function hideTooltip() { document.getElementById('info-tooltip').classList.remove('visible'); activeTooltip = null; }
+
+document.addEventListener('click', (e) => {
+
+  if (!e.target.closest('.info-btn') && !e.target.closest('.score-info-btn') && !e.target.closest('.lbl-info-btn') && !e.target.closest('#info-tooltip')) hideTooltip();
+
+});
+
+
+
+/* ═══════════════════════════════════════════
+
+   DATABASES
+
+═══════════════════════════════════════════ */
+
+const materialDB = {
+
+  narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2, rec: true, note: 'National tree of PH. Dense, golden-brown hardwood.' },
+
+  ipil: { name: 'Ipil', icon: '🌳', hex: '#6B4226', dura: 98, qual: 96, price: 4.8, rec: true, note: 'Highly durable, termite-resistant local hardwood.' },
+
+  dao: { name: 'Dao', icon: '🪵', hex: '#4B3621', dura: 92, qual: 97, price: 4.5, rec: true, note: 'Premium local wood with distinctive dark streaks.' },
+
+  guijo: { name: 'Guijo', icon: '🌳', hex: '#8B4513', dura: 96, qual: 94, price: 4.1, rec: true, note: 'Extremely dense and strong for heavy slabs.' },
+
+  apitong: { name: 'Apitong', icon: '🌲', hex: '#A0522D', dura: 94, qual: 88, price: 3.6, rec: true, note: 'Tough, resilient wood ideal for structural bases.' },
+
+  kamagong: { name: 'Kamagong', icon: '🪵', hex: '#2c1a0e', dura: 97, qual: 99, price: 5.5, rec: true, note: 'Philippine Ebony. Extremely hard and durable.' },
+
+  molave: { name: 'Molave', icon: '🌳', hex: '#6b4226', dura: 93, qual: 95, price: 4.0, rec: true, note: 'Very hard PH hardwood. Termite-resistant.' },
+
+  mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true, note: 'Classic furniture wood. Rich reddish-brown.' },
+
+  tanguile: { name: 'Tanguile', icon: '🌲', hex: '#a0522d', dura: 80, qual: 82, price: 2.2, rec: true, note: 'Philippine red lauan. Common furniture grade.' },
+
+  yakal: { name: 'Yakal', icon: '🌳', hex: '#7a4f2e', dura: 88, qual: 86, price: 3.1, rec: true, note: 'Heavy PH hardwood. Strong and resistant.' },
+
+  rattan: { name: 'Rattan', icon: '🧺', hex: '#D2B48C', dura: 75, qual: 85, price: 1.8, rec: true, note: 'Classic woven cane for heritage textures.' },
+
+  capiz: { name: 'Capiz Shell', icon: '🐚', hex: '#F5F5DC', dura: 60, qual: 95, price: 5.2, rec: true, note: 'Translucent, pearlescent shell for elegant inlays.' },
+
+  oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true, note: 'Imported. Tight grain, very workable.' },
+
+  pine: { name: 'Pine', icon: '🌲', hex: '#c8a96e', dura: 55, qual: 58, price: 1.4, rec: true, note: 'Soft imported wood. Budget-friendly but less durable.' },
+
+  rubber_wood: { name: 'Rubber Wood', icon: '🌿', hex: '#d4b896', dura: 62, qual: 65, price: 1.6, rec: true, note: 'Hevea wood. Eco-friendly, medium hardness.' },
+
+  bamboo: { name: 'Bamboo', icon: '🎋', hex: '#bdb76b', dura: 70, qual: 72, price: 1.2, rec: true, note: 'Sustainable. Harder than most softwoods.' },
+
+  walnut: { name: 'Walnut', icon: '🪵', hex: '#3D2B1F', dura: 88, qual: 96, price: 6.2, rec: false, note: 'Luxurious, fine-grained dark brown wood.' },
+
+  teak: { name: 'Teak', icon: '🌲', hex: '#C19A6B', dura: 95, qual: 94, price: 7.5, rec: false, note: 'Premium, naturally weather-resistant golden-brown wood.' },
+
+  maple: { name: 'Maple', icon: '🌲', hex: '#F4A460', dura: 82, qual: 88, price: 3.8, rec: false, note: 'Hard, light-colored wood for clean, modern finishes.' },
+
+  epoxy: { name: 'Epoxy Resin', icon: '🌊', hex: '#00CED1', dura: 85, qual: 90, price: 4.5, rec: false, note: 'Translucent colorful filler for trendy river tables.' },
+
+  terrazzo: { name: 'Terrazzo', icon: '🪨', hex: '#E0E0E0', dura: 92, qual: 88, price: 5.8, rec: false, note: 'Scratch-resistant composite with stone or glass chips.' },
+
+  iron: { name: 'Black Iron', icon: '⛓️', hex: '#1A1A1A', dura: 98, qual: 82, price: 3.2, rec: false, note: 'Heavy-duty standard for industrial table legs.' },
+
+  brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, qual: 97, price: 6.8, rec: false, note: 'Warm, vintage metallic accent for frames or inlays.' },
+
+  marble_white: { name: 'Marble White', icon: '🪨', hex: '#e8e8e8', dura: 90, qual: 99, price: 8.0, rec: false, note: 'Premium stone top. Heavy and luxurious.' },
+
+  marble_black: { name: 'Marble Black', icon: '⬛', hex: '#2a2a2a', dura: 90, qual: 99, price: 9.0, rec: false, note: 'Premium black stone. Bold and elegant.' },
+
+  glass_clear: { name: 'Glass Clear', icon: '🔲', hex: '#a8d8ea', dura: 70, qual: 95, price: 5.0, rec: false, note: 'Tempered glass top. Modern look.' },
+
+  brushed_steel: { name: 'Brushed Steel', icon: '🔩', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
+
+};
+
+
+
+const fabricDB = {
+
+  velvet:     { name:'Velvet',     icon:'🟣', hex:'#7B3F6E', comfort:98 },
+
+  linen:      { name:'Linen',      icon:'🟡', hex:'#D2B48C', comfort:90 },
+
+  leather:    { name:'Leather',    icon:'🟤', hex:'#5C4033', comfort:88 },
+
+  cotton:     { name:'Cotton',     icon:'⬜', hex:'#E8E4DC', comfort:92 },
+
+  suede:      { name:'Suede',      icon:'🟫', hex:'#BBA085', comfort:94 },
+
+  microfiber: { name:'Microfiber', icon:'🟢', hex:'#4A7260', comfort:91 },
+
+  tweed:      { name:'Tweed',      icon:'🔘', hex:'#6B7A80', comfort:85 },
+
+  silk:       { name:'Silk',       icon:'🌟', hex:'#C0A060', comfort:96 },
+
+};
+
+
+
+const shapeDB = {
+
+  Frame:     [ {id:'flat_base',name:'Flat Base',icon:'square-full'}, {id:'recessed_base',name:'Recessed Plinth',icon:'window-maximize'}, {id:'skirted_base',name:'Skirted Base',icon:'align-justify',faIcon:true}, {id:'tapered_base',name:'Tapered Frame',icon:'caret-down',faIcon:true} ],
+
+  Seat:      [ {id:'flat_seat',name:'Flat Cushion',icon:'square'}, {id:'tufted_seat',name:'Tufted Cushion',icon:'th',faIcon:true}, {id:'boxed_seat',name:'Box Cushion',icon:'box',faIcon:true}, {id:'pillow_seat',name:'Pillow-Top Seat',icon:'circle'} ],
+
+  Backrest:  [ {id:'flat_back',name:'Flat Panel',icon:'window-maximize'}, {id:'tufted_back',name:'Diamond Tufted',icon:'th',faIcon:true}, {id:'scroll_back',name:'Camelback / Scroll',icon:'wave-square',faIcon:true}, {id:'channel_back',name:'Channel Quilted',icon:'bars',faIcon:true}, {id:'pillow_back',name:'Pillow Back',icon:'circle'} ],
+
+  Armrests:  [ {id:'square_arm',name:'Square Track Arm',icon:'square'}, {id:'scroll_arm',name:'Scroll/Rolled Arm',icon:'scroll',faIcon:true}, {id:'tapered_arm',name:'Tapered Arm',icon:'caret-down',faIcon:true}, {id:'english_arm',name:'English Roll Arm',icon:'circle'}, {id:'flared_arm',name:'Flared Arm',icon:'angle-up',faIcon:true} ],
+
+  Legs:      [ {id:'tapered_leg',name:'Tapered Wood',icon:'caret-down',faIcon:true}, {id:'bun_leg',name:'Bun Foot',icon:'circle'}, {id:'turned_leg',name:'Turned/Bobbin',icon:'ellipsis-v',faIcon:true}, {id:'metal_pin_leg',name:'Metal Pin',icon:'minus',faIcon:true}, {id:'sled_leg',name:'Sled Base',icon:'grip-lines',faIcon:true}, {id:'cabriole_leg',name:'Cabriole',icon:'signature',faIcon:true}, {id:'claw_leg',name:'Ball & Claw',icon:'paw',faIcon:true}, {id:'no_leg',name:'No Legs',icon:'square-full'} ],
+
+  Cushions:  [ {id:'standard_cushion',name:'Standard Fill',icon:'square'}, {id:'button_tufted',name:'Button Tufted',icon:'dot-circle',faIcon:true}, {id:'knife_edge',name:'Knife Edge',icon:'minus',faIcon:true}, {id:'box_cushion',name:'Box Cushion',icon:'box',faIcon:true} ],
+
+};
+
+
+
+const parts = ['Frame','Seat','Backrest','Armrests','Legs','Cushions'];
+
+
+
+/* ═══════════════════════════════════════════
+
+   STATE
+
+═══════════════════════════════════════════ */
+
+var appState = { items:[], activeItemId:0, activeLayer:'Frame' };
+var isRotating = true, showDimensions = true, modalState = { partName:null, type:null };
+var textureCache = {};
+
+
+
+function defaultSofaItem(n, style) {
+
+  style = style || 'modern';
+
+  return {
+
+    id: Date.now() + Math.random(),
+
+    type:'sofa', name:'Custom Sofa Design ' + n,
+
+    style: style,
+
+    gender: 'neutral',
+
+    seatCount: 3,
+
+    selections: { Frame:'#8B4513', Seat:'#8B4513', Backrest:'#8B4513', Armrests:'#8B4513', Legs:'#8B4513', Cushions:'#8B4513' },
+
+    fabricKey: 'velvet',
+
+    dims: { Frame:{w:220,h:10,d:90}, Seat:{w:200,h:15,d:70}, Backrest:{w:210,h:55,d:12}, Armrests:{w:18,h:55,d:70}, Legs:{w:6,h:18,d:6}, Cushions:{w:60,h:18,d:65} },
+
+    shapes: { Frame:'flat_base', Seat:'flat_seat', Backrest:style==='oldfashion'?'tufted_back':'flat_back', Armrests:style==='oldfashion'?'scroll_arm':'square_arm', Legs:style==='oldfashion'?'cabriole_leg':'tapered_leg', Cushions:'standard_cushion' },
+
+    globalScale: {x:1,y:1,z:1},
+
+    isLeftArmVisible:true, isRightArmVisible:true,
+
+    isSeatCushionVisible:true, isBackCushionVisible:true, isThrowPillowVisible:false
+
+  };
+
+}
+
+
+
+window.onload = function() {
+
+  try {
+
+    const saved = sessionStorage.getItem('cadState_sofa_v1');
+
+    if (saved) { appState = JSON.parse(saved); if (!appState.items) appState.items = []; }
+
+  } catch(e) { appState.items = []; }
+
+  
+
+  const shouldAdd = sessionStorage.getItem('addNew');
+
+  if (appState.items.length === 0 || shouldAdd === 'true') {
+
+    createNewSofa(false);
+
+    sessionStorage.removeItem('addNew');
+
+  }
+
+  if (!appState.activeLayer) appState.activeLayer = 'Frame';
+
+  
+
+  // Initialize Shop Badge
+
+  updateShopBadgeUI();
+
+
+
+  renderUI(); updatePrice();
+
+  loadPrevProjectBar();
+
+  setTimeout(init3D, 100);
+
+};
+
+
+
+/* ── Shop Badge Logic ── */
+
+function toggleShopBadge() {
+
+  const badge = document.getElementById('shop-info-badge');
+
+  const icon = document.getElementById('shop-badge-toggle-icon');
+
+  badge.classList.toggle('minimized');
+
+  icon.innerHTML = badge.classList.contains('minimized') ? '<i class="fas fa-chevron-up"></i>' : '<i class="fas fa-chevron-down"></i>';
+
+}
+
+
+
+function updateShopBadgeUI() {
+
+  const shopName = sessionStorage.getItem('selectedShopName');
+
+  const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+
+  const badge = document.getElementById('shop-info-badge');
+
+
+
+  if (shopName) {
+
+    badge.style.display = 'block';
+
+    document.getElementById('selected-shop-display-name').innerHTML = `<i class="fas fa-store"></i> ${shopName}`;
+
+    const matList = document.getElementById('shop-materials-list');
+
+    matList.innerHTML = '';
+
+    if (shopMatsRaw) {
+
+      const mats = JSON.parse(shopMatsRaw);
+
+      mats.forEach(m => {
+
+        const span = document.createElement('span');
+
+        span.className = 'shop-mat-tag';
+
+        span.innerText = m;
+
+        matList.appendChild(span);
+
+      });
+
+    }
+
+  } else {
+
+    badge.style.display = 'none';
+
+  }
+
+}
+
+
+
+function goToPrevProject(){ const p=sessionStorage.getItem('prevProjectPage'); if(p) window.location.href=p; }
+
+function loadPrevProjectBar(){
+
+  const n=sessionStorage.getItem('prevProjectName'), p=sessionStorage.getItem('prevProjectPage');
+
+  const bar=document.getElementById('prev-project-bar'), el=document.getElementById('prev-project-name-text');
+
+  if(n&&p&&bar&&el){ el.textContent=n; bar.style.display='block'; }
+
+}
+
+
+
+function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
+
+function saveState() { sessionStorage.setItem('cadState_sofa_v1', JSON.stringify(appState)); }
+
+
+
+function createNewSofa(shouldRender, style) {
+
+  const item = defaultSofaItem(appState.items.length + 1, style || 'modern');
+
+  appState.items.push(item);
+
+  appState.activeItemId = item.id;
+
+  appState.activeLayer = 'Frame';
+
+  saveState();
+
+  if (shouldRender && scene) { renderUI(); build3DScene(); updatePrice(); }
+
+}
+
+
+
+function createOldFashionSofaProject() {
+
+  createNewSofa(true, 'oldfashion');
+
+}
+
+
+
+/* ═══════════════════════════════════════════
+
+   UI ACTIONS
+
+═══════════════════════════════════════════ */
+
+function setSofaStyle(style) {
+
+  const item = getActiveItem(); if (!item) return;
+
+  item.style = style;
+
+  document.getElementById('btn-style-modern').classList.toggle('active', style === 'modern');
+
+  document.getElementById('btn-style-oldfashion').classList.toggle('active', style === 'oldfashion');
+
+  // Auto-set matching shapes
+
+  if (style === 'oldfashion') {
+
+    item.shapes.Backrest = 'tufted_back'; item.shapes.Armrests = 'scroll_arm'; item.shapes.Legs = 'cabriole_leg';
+
+  } else {
+
+    item.shapes.Backrest = 'flat_back'; item.shapes.Armrests = 'square_arm'; item.shapes.Legs = 'tapered_leg';
+
+  }
+
+  saveState(); build3DScene(); renderProperties(); calculateScore(); updatePrice();
+
+}
+
+
+
+function changeSeatCount(delta) {
+
+  const item = getActiveItem(); if (!item) return;
+
+  item.seatCount = Math.max(1, Math.min(5, (item.seatCount || 3) + delta));
+
+  const labels = ['','1 Seater','2 Seater','3 Seater','4 Seater','5 Seater'];
+
+  document.getElementById('seat-display').textContent = labels[item.seatCount];
+
+  saveState(); build3DScene(); updatePrice();
+
+}
+
+
+
+function toggleRotation() {
+
+  isRotating = !isRotating;
+
+  if (controls) controls.autoRotate = isRotating;
+
+  document.getElementById('btn-rotate').innerHTML = isRotating ? '<i class="fas fa-pause"></i> Stop Rotate' : '<i class="fas fa-play"></i> Auto Rotate';
+
+}
+
+function toggleDimensions() {
+
+  showDimensions = !showDimensions; build3DScene();
+
+  document.getElementById('btn-dims').innerHTML = showDimensions ? '<i class="fas fa-ruler-combined"></i> Hide Ruler' : '<i class="fas fa-ruler-combined"></i> Show Ruler';
+
+}
+
+function togglePart(prop, btn) {
+
+  const item = getActiveItem(); if (!item) return;
+
+  item[prop] = !item[prop];
+
+  btn.classList.toggle('active', item[prop]);
+
+  btn.textContent = item[prop] ? 'Visible' : 'Hidden';
+
+  saveState(); build3DScene(); updatePrice();
+
+}
+
+function resetView() { resetCamera(); }
+
+function updateGlobalScale(axis, val) {
+
+  const item = getActiveItem(); if (!item) return;
+
+  if (!item.globalScale) item.globalScale = {x:1,y:1,z:1};
+
+  item.globalScale[axis] = val / 100;
+
+  document.getElementById('gs-' + axis).innerText = val;
+
+  saveState(); build3DScene(); updatePrice();
+
+}
+
+function updateGenderPref(val){ const ai=getActiveItem(); if(ai){ ai.gender=val; saveState(); } }
+function updateProjectName(val) {
+
+  const item = getActiveItem(); if (!item) return;
+
+  item.name = val; renderSceneList(); saveState();
+
+}
+
+function updateColor(part, hex) {
+
+  const item = getActiveItem(); if (!item) return;
+
+  if (!item.selections) item.selections = {};
+
+  item.selections[part] = hex;
+
+  build3DScene(); saveState(); calculateScore(); updatePrice();
+
+}
+
+function updateDim(part, axis, val) {
+
+  const item = getActiveItem(); if (!item) return;
+
+  if (!item.dims[part]) item.dims[part] = {w:100,h:20,d:80};
+
+  item.dims[part][axis] = parseInt(val) || 0;
+
+  saveState(); build3DScene(); updatePrice();
+
+}
+
+
+
+/* ═══════════════════════════════════════════
+
+   RENDER UI
+
+═══════════════════════════════════════════ */
+
+function renderUI() { renderSceneList(); renderProperties(); calculateScore(); updatePrice(); }
+
+
+
+function renderSceneList() {
+
+  const list = document.getElementById('scene-list'); list.innerHTML = '';
+
+  appState.items.forEach(item => {
+
+    const div = document.createElement('div');
+
+    div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
+
+    div.onclick = (e) => {
+
+      if (e.target.closest('.btn-delete')) return;
+
+      appState.activeItemId = item.id; appState.activeLayer = 'Frame';
+
+      renderUI(); build3DScene();
+
+    };
+
+    const styleTag = item.style === 'oldfashion' ? ' <span style="font-size:0.72rem;color:#c8a060;background:#2a2010;padding:2px 6px;border-radius:10px;margin-left:4px;">Old Fashion</span>' : '';
+
+    div.innerHTML = '<span><i class="fas fa-couch"></i> ' + item.name + styleTag + '</span><button class="btn-delete" onclick="deleteItem(' + JSON.stringify(item.id) + ')"><i class="fas fa-trash-alt"></i></button>';
+
+    list.appendChild(div);
+
+  });
+
+}
+
+
+
+function renderProperties() {
+
+  const activeItem = getActiveItem(); if (!activeItem) return;
+
+  document.getElementById('project-name').value = activeItem.name;
+
+  if (activeItem.gender && document.getElementById('gender-pref')) {
+    document.getElementById('gender-pref').value = activeItem.gender;
+  }
+
+
+
+  // Style toggle
+
+  document.getElementById('btn-style-modern').classList.toggle('active', item.style !== 'oldfashion');
+
+  document.getElementById('btn-style-oldfashion').classList.toggle('active', item.style === 'oldfashion');
+
+
+
+  // Seat count
+
+  const labels = ['','1 Seater','2 Seater','3 Seater','4 Seater','5 Seater'];
+
+  document.getElementById('seat-display').textContent = labels[item.seatCount || 3];
+
+
+
+  // Scale
+
+  const gs = item.globalScale || {x:1,y:1,z:1};
+
+  ['x','y','z'].forEach(ax => {
+
+    const v = Math.round(gs[ax] * 100);
+
+    document.getElementById('gs-' + ax).innerText = v;
+
+    document.getElementById('inp-scale-' + ax).value = v;
+
+  });
+
+
+
+  // Material grids
+
+  const recGrid = document.getElementById('rec-mat-grid'); recGrid.innerHTML = '';
+
+  const allGrid = document.getElementById('all-mat-grid'); allGrid.innerHTML = '';
+
+  
+
+  const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+
+  const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
+
+  const shopName = sessionStorage.getItem('selectedShopName') || 'the selected shop';
+
+
+
+  Object.keys(materialDB).forEach(k => {
+
+    const m = materialDB[k];
+
+    const card = document.createElement('div');
+
+    card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
+
+    
+
+    const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+
+    if (!isInShop) {
+
+      card.innerHTML += `<div class="warn-icon" title="[NOT IN SHOP LIST]"><i class="fas fa-exclamation-triangle"></i></div>`;
+
+    }
+
+
+
+    card.onclick = () => {
+
+      if (!isInShop) {
+
+        alert(`This material is not available at the selected workshop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
+
+        return;
+
+      }
+
+      applyMaterialToActiveLayer(m.hex);
+
+    };
+
+    card.innerHTML += '<div class="mat-card-icon">' + m.icon + '</div><div class="mat-card-name">' + m.name + '</div>';
+
+    (m.rec ? recGrid : allGrid).appendChild(card);
+
+  });
+
+
+
+  // Fabric grid
+
+  const fabGrid = document.getElementById('fabric-grid'); fabGrid.innerHTML = '';
+
+  Object.keys(fabricDB).forEach(k => {
+
+    const f = fabricDB[k];
+
+    const card = document.createElement('div');
+
+    card.className = 'mat-card-lg' + (item.fabricKey === k ? ' selected-mat' : '');
+
+    card.onclick = () => { item.fabricKey = k; saveState(); build3DScene(); calculateScore(); updatePrice(); renderProperties(); };
+
+    card.innerHTML = '<div class="mat-card-icon">' + f.icon + '</div><div class="mat-card-name">' + f.name + '</div>';
+
+    fabGrid.appendChild(card);
+
+  });
+
+
+
+  // Toggle buttons
+
+  ['left-arm','right-arm'].forEach(id => {
+
+    const prop = id === 'left-arm' ? 'isLeftArmVisible' : 'isRightArmVisible';
+
+    const btn = document.getElementById('toggle-' + id);
+
+    btn.classList.toggle('active', item[prop]);
+
+    btn.textContent = item[prop] ? 'Visible' : 'Hidden';
+
+  });
+
+  ['seat-cushion','back-cushion','pillows'].forEach(id => {
+
+    const propMap = {'seat-cushion':'isSeatCushionVisible','back-cushion':'isBackCushionVisible','pillows':'isThrowPillowVisible'};
+
+    const btn = document.getElementById('toggle-' + id);
+
+    btn.classList.toggle('active', item[propMap[id]]);
+
+    btn.textContent = item[propMap[id]] ? 'Visible' : 'Hidden';
+
+  });
+
+
+
+  // Layers
+
+  const container = document.getElementById('layers-container'); container.innerHTML = '';
+
+  parts.forEach(part => {
+
+    const hex = item.selections[part] || '#8B4513';
+
+    const dims = item.dims[part] || {w:100,h:20,d:80};
+
+    const currentShapeId = (item.shapes || {})[part] || '';
+
+    let shapeName = 'Standard';
+
+    if (shapeDB[part]) { const found = shapeDB[part].find(s => s.id === currentShapeId); if (found) shapeName = found.name; }
+
+    const isActive = appState.activeLayer === part;
+
+    const layer = document.createElement('div');
+
+    layer.className = 'layer-item' + (isActive ? ' active-layer open' : '');
+
+    layer.onclick = (e) => { if (e.target.closest('.view-focus-btn') || e.target.tagName === 'INPUT') return; setActiveLayer(part); };
+
+    layer.innerHTML = `
+
+      <div class="layer-header">
+
+        <span><i class="fas fa-layer-group"></i> ${part} ${isActive ? '(Selected)' : ''}</span>
+
+        <button class="view-focus-btn" onclick="focusOnPart('${part}')">${isActive ? '<i class="fas fa-eye"></i>' : '<i class="far fa-eye"></i>'}</button>
+
+        <div class="color-preview" style="background:${hex}"></div>
+
+      </div>
+
+      <div class="layer-content">
+
+        <div class="part-control-row">
+
+          <div class="part-control-label">Shape / Style <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-shape-info')"><i class="fas fa-info"></i></button></div>
+
+          <div class="clickable-design-val" onclick="openDesignModal('${part}','shape')"><span>${shapeName}</span><i class="fas fa-edit"></i></div>
+
+        </div>
+
+        <div class="part-control-row">
+
+          <div class="part-control-label">Hex Color <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-color-info')"><i class="fas fa-info"></i></button></div>
+
+          <div class="hex-wrapper">
+
+            <input type="color" value="${hex}" oninput="updateColor('${part}',this.value)">
+
+            <input type="text" class="hex-text-input" value="${hex}" onchange="updateColor('${part}',this.value)">
+
+          </div>
+
+        </div>
+
+        <div class="part-control-row">
+
+          <div class="part-control-label">Dimensions (cm) <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-dims-info')"><i class="fas fa-info"></i></button></div>
+
+          <div class="dim-row">
+
+            <div class="dim-group"><input class="dim-input" type="number" value="${dims.w}" oninput="updateDim('${part}','w',this.value)"><div class="dim-label">Width</div></div>
+
+            <div class="dim-group"><input class="dim-input" type="number" value="${dims.h}" oninput="updateDim('${part}','h',this.value)"><div class="dim-label">Height</div></div>
+
+            <div class="dim-group"><input class="dim-input" type="number" value="${dims.d}" oninput="updateDim('${part}','d',this.value)"><div class="dim-label">Depth</div></div>
+
+          </div>
+
+        </div>
+
+      </div>`;
+
+    container.appendChild(layer);
+
+  });
+
+}
+
+
+
+function setActiveLayer(partName) { appState.activeLayer = partName; renderProperties(); focusOnPart(partName); }
+
+function applyMaterialToActiveLayer(hex) { if (!appState.activeLayer) return; updateColor(appState.activeLayer, hex); renderProperties(); }
+
+
+
+function updatePrice() {
+
+  const item = getActiveItem(); if (!item) return;
+
+  const basePrice = 1500 + (item.seatCount || 3) * 400;
+
+  let matCost = 0;
+
+  parts.forEach(part => {
+
+    const hex = item.selections[part] || '#8B4513';
+
+    const k = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase()) || 'mahogany';
+
+    const d = item.dims[part] || {w:100,h:20,d:80};
+
+    matCost += (d.w * d.h * d.d / 8000) * materialDB[k].price;
+
+  });
+
+  const gs = item.globalScale || {x:1,y:1,z:1};
+
+  const total = Math.round((basePrice + matCost) * gs.x * gs.y * gs.z);
+
+  const priceEl = document.getElementById('total-price');
+  if (priceEl && priceEl.dataset.manual === 'true') return;
+  priceEl.innerHTML = '&#8369;' + total.toLocaleString();
+
+}
+
+
+
+function calculateScore() {
+
+  const item = getActiveItem(); if (!item) return;
+
+  const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+
+  const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
+
+
+
+  let totalD=0, tq=0, rc=0, cnt=0, unavailPenalty=0;
+
+  const selections = item.selections || {};
+
+  
+
+  Object.values(selections).forEach(hex=>{
+
+    const mat=Object.values(materialDB).find(m=>m.hex.toLowerCase()===hex.toLowerCase());
+
+    if(mat){
+
+      totalD+=mat.dura; tq+=mat.qual; if(mat.rec)rc++; cnt++;
+
+      const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === mat.name.toLowerCase());
+
+      if (!isInShop) unavailPenalty += 15;
+
+    } else { totalD+=50; tq+=50; cnt++; }
+
+  });
+
+
+
+  const fab = fabricDB[item.fabricKey] || fabricDB.velvet;
+
+  const avgD = cnt>0 ? Math.round(totalD/cnt) : 0, aq = cnt>0 ? Math.round(tq/cnt) : 0, ac = fab.comfort;
+
+  
+
+  if (document.getElementById('bar-dura')) {
+
+    document.getElementById('bar-dura').style.width = avgD + '%';
+
+    document.getElementById('bar-dura').style.background = avgD > 80 ? '#2ecc71' : avgD > 50 ? 'orange' : '#e74c3c';
+
+    if (document.getElementById('score-dura-val')) document.getElementById('score-dura-val').innerText = avgD + '%';
+
+  }
+
+  if (document.getElementById('bar-qual')) {
+
+    document.getElementById('bar-qual').style.width = aq + '%';
+
+    if (document.getElementById('score-qual-val')) document.getElementById('score-qual-val').innerText = aq + '%';
+
+  }
+
+  if (document.getElementById('bar-comfort')) {
+
+    document.getElementById('bar-comfort').style.width = ac + '%';
+
+    if (document.getElementById('score-comfort-val')) document.getElementById('score-comfort-val').innerText = ac + '%';
+
+  }
+
+
+
+  let finalScore = ((avgD + aq + ac) / 3) + ((rc / cnt) * 15) - unavailPenalty;
+
+  finalScore = Math.max(0, Math.min(100, Math.round(finalScore)));
+
+
+
+  const status = document.getElementById('rec-status');
+
+  if (status) {
+
+    if (finalScore >= 95) {
+
+      status.innerHTML = '<i class="fas fa-crown" style="color:#f1c40f"></i> <span style="color:#f1c40f;font-weight:bold">Elite Design Configuration</span>';
+
+    } else if (finalScore >= 80) {
+
+      status.innerHTML = '<i class="fas fa-check-circle" style="color:#2ecc71"></i> Optimal Material Synergy';
+
+    } else if (finalScore >= 60) {
+
+      status.innerHTML = '<i class="fas fa-info-circle" style="color:#3498db"></i> Standard Professional Build';
+
+    } else {
+
+      status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#e74c3c"></i> Sub-optimal Material Choice';
+
+    }
+
+    if (rc > 0 && finalScore < 95) {
+
+      status.innerHTML += `<div class="elite-bonus"><i class="fas fa-arrow-up"></i> Recommended Material Bonus Applied</div>`;
+
+    }
+
+  }
+
+}
+
+
+
+function deleteItem(id) {
+
+  if (confirm('Delete this sofa design?')) {
+
+    appState.items = appState.items.filter(i => i.id !== id);
+
+    if (appState.items.length === 0) createNewSofa(true);
+
+    else appState.activeItemId = appState.items[0].id;
+
+    appState.activeLayer = 'Frame'; saveState(); renderUI(); build3DScene();
+
+  }
+
+}
+
+
+
+/* ═══════════════════════════════════════════
+
+   DESIGN MODAL
+
+═══════════════════════════════════════════ */
+
+function openDesignModal(partName, type) {
+
+  modalState = { partName, type };
+
+  document.getElementById('design-modal-title').innerText = 'Select ' + type.charAt(0).toUpperCase() + type.slice(1) + ' for ' + partName;
+
+  const scroll = document.getElementById('design-modal-scroll'); scroll.innerHTML = '';
+
+  const item = getActiveItem();
+
+  const db = shapeDB[partName] || [];
+
+  const activeId = (item.shapes || {})[partName] || '';
+
+  let groups = {};
+
+  db.forEach(s => { const c = 'Design Options'; if (!groups[c]) groups[c] = []; groups[c].push(s); });
+
+  Object.keys(groups).forEach(cat => {
+
+    const title = document.createElement('div'); title.className = 'modal-section-title'; title.innerText = cat;
+
+    scroll.appendChild(title);
+
+    const grid = document.createElement('div'); grid.className = 'design-grid';
+
+    groups[cat].forEach(s => {
+
+      const card = document.createElement('div');
+
+      card.className = 'design-card' + (s.id === activeId ? ' active' : '');
+
+      card.onclick = () => selectDesign(s.id);
+
+      const icon = s.faIcon ? `<i class="design-icon fas fa-${s.icon}"></i>` : `<i class="design-icon fas fa-${s.icon}"></i>`;
+
+      card.innerHTML = icon + '<div class="design-name">' + s.name + '</div>';
+
+      grid.appendChild(card);
+
+    });
+
+    scroll.appendChild(grid);
+
+  });
+
+  document.getElementById('design-modal-overlay').classList.add('open');
+
+}
+
+function closeDesignModal(e) {
+
+  if (e && e.target !== document.getElementById('design-modal-overlay')) return;
+
+  document.getElementById('design-modal-overlay').classList.remove('open');
+
+  modalState = { partName:null, type:null };
+
+}
+
+function selectDesign(newId) {
+
+  const item = getActiveItem();
+
+  if (modalState.type === 'shape') { if (!item.shapes) item.shapes = {}; item.shapes[modalState.partName] = newId; }
+
+  build3DScene(); saveState(); renderProperties(); closeDesignModal();
+
+}
+
+
+
+/* ═══════════════════════════════════════════
+
+   3D ENGINE
+
+═══════════════════════════════════════════ */
+
+var scene, camera, renderer, controls, currentGroup, dimGroup;
+
+
+
+function init3D() {
+  if(typeof scene !== "undefined" && scene) return;
+
+  const container = document.getElementById('canvas-container');
+
+  const w = container.clientWidth || 800, h = container.clientHeight || 600;
+
+
+
+  scene = new THREE.Scene();
+
+  scene.background = new THREE.Color(0x1e1e1e);
+
+
+
+  camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 200);
+
+
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+
+  renderer.setSize(w, h);
+
+  renderer.setPixelRatio(window.devicePixelRatio);
+
+  renderer.shadowMap.enabled = true;
+
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  container.innerHTML = '';
+
+  container.appendChild(renderer.domElement);
+
+
+
+  // ── OrbitControls: handles rotate, zoom, pan — blocks page scroll only over canvas ──
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  controls.enableDamping = true;
+
+  controls.dampingFactor = 0.08;
+
+  controls.autoRotate = isRotating;
+
+  controls.autoRotateSpeed = 0.6;
+
+  controls.enableZoom = true;       // scroll-wheel zoom
+
+  controls.zoomSpeed = 1.2;
+
+  controls.minDistance = 1;
+
+  controls.maxDistance = 40;
+
+  controls.enablePan = true;
+
+  controls.panSpeed = 0.8;
+
+  // Prevent the canvas scroll-wheel from bubbling to the page
+
+  renderer.domElement.addEventListener('wheel', e => e.stopPropagation(), { passive: false });
+
+
+
+  // Lights
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
+  const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+
+  dir.position.set(6, 12, 8); dir.castShadow = true; scene.add(dir);
+
+  const fill = new THREE.DirectionalLight(0xffeedd, 0.3); fill.position.set(-6, 4, -6); scene.add(fill);
+
+  const back = new THREE.DirectionalLight(0xffffff, 0.2); back.position.set(0, 8, -10); scene.add(back);
+
+
+
+  scene.add(new THREE.GridHelper(30, 30, 0x444444, 0x2a2a2a));
+
+  dimGroup = new THREE.Group(); scene.add(dimGroup);
+
+
+
+  resetCamera();
+
+  build3DScene();
+
+  animate();
+
+
+
+  // Resize handler
+
+  const ro = new ResizeObserver(() => {
+
+    const cw = container.clientWidth, ch = container.clientHeight;
+
+    renderer.setSize(cw, ch);
+
+    camera.aspect = cw / ch;
+
+    camera.updateProjectionMatrix();
+
+  });
+
+  ro.observe(container);
+
+}
+
+
+
+function animate() {
+
+  requestAnimationFrame(animate);
+
+  if (controls) controls.update();
+
+  if (renderer && scene && camera) renderer.render(scene, camera);
+
+}
+
+
+
+function resetCamera() {
+
+  if (camera) camera.position.set(6, 4, 8);
+
+  if (controls) { controls.target.set(0, 1, 0); controls.update(); }
+
+}
+
+
+
+function focusOnPart(partName) {
+
+  if (!currentGroup || !controls) return;
+
+  const meshes = currentGroup.children.filter(m => m.name === partName);
+
+  if (!meshes.length) return;
+
+  const box = new THREE.Box3();
+
+  meshes.forEach(m => box.expandByObject(m));
+
+  const center = new THREE.Vector3(); box.getCenter(center);
+
+  controls.target.set(center.x, center.y, center.z);
+
+  const size = new THREE.Vector3(); box.getSize(size);
+
+  const dist = Math.max(size.x, size.y, size.z) * 2.2 + 2;
+
+  camera.position.set(center.x + dist * 0.6, center.y + dist * 0.5, center.z + dist);
+
+  controls.update();
+
+}
+
+
+
+function createDimensionLine(start, end, label, offset) {
+
+  if (!showDimensions) return;
+
+  const safeOffset = offset || new THREE.Vector3(0, 0, 0);
+
+  const p1 = start.clone().add(safeOffset), p2 = end.clone().add(safeOffset);
+
+  const mat = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
+
+  dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1, p2]), mat));
+
+  const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
+
+  canvas.width = 512; canvas.height = 128;
+
+  ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0, 0, 512, 128);
+
+  ctx.font = "Bold 80px Segoe UI"; ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+
+  ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 4; ctx.fillText(label, 256, 64);
+
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
+
+  sprite.position.copy(p1).lerp(p2, 0.5); sprite.position.y += 0.05;
+
+  sprite.scale.set(1.2, 0.3, 1);
+
+  dimGroup.add(sprite);
+
+}
+
+
+
+/* ═══════════════════════════════════════════
+
+   3D SCENE BUILD
+
+═══════════════════════════════════════════ */
+
+function build3DScene() {
+
+  if (!scene) return;
+
+  if (currentGroup) scene.remove(currentGroup);
+
+  currentGroup = new THREE.Group();
+
+  dimGroup && dimGroup.clear();
+
+
+
+  const item = getActiveItem(); if (!item) return;
+
+  const SCALE = 100;
+
+  const seats = item.seatCount || 3;
+
+  const style = item.style || 'modern';
+
+  const fab = fabricDB[item.fabricKey] || fabricDB.velvet;
+
+
+
+  const gd = part => {
+
+    const d = item.dims[part] || { w: 100, h: 20, d: 80 };
+
+    return { w: d.w / SCALE, h: d.h / SCALE, d: d.d / SCALE };
+
+  };
+
+
+
+  const getMat = (hex, rough, metal, opacity) => {
+
+    const mat = new THREE.MeshStandardMaterial({
+
+      color: hex, roughness: rough !== undefined ? rough : 0.5,
+
+      metalness: metal !== undefined ? metal : 0.04,
+
+      side: THREE.DoubleSide
+
+    });
+
+    if (opacity !== undefined) { mat.transparent = true; mat.opacity = opacity; }
+
+    return mat;
+
+  };
+
+
+
+  const addMesh = (name, geo, mat, x, y, z, rx, ry, rz) => {
+
+    if (!geo) return null;
+
+    const m = new THREE.Mesh(geo, mat);
+
+    m.position.set(x || 0, y || 0, z || 0);
+
+    if (rx) m.rotation.x = rx;
+
+    if (ry) m.rotation.y = ry;
+
+    if (rz) m.rotation.z = rz;
+
+    m.name = name; m.castShadow = true; m.receiveShadow = true;
+
+    currentGroup.add(m); return m;
+
+  };
+
+
+
+  const hexFrame  = item.selections.Frame    || '#8B4513';
+
+  const hexSeat   = item.selections.Seat     || '#8B4513';
+
+  const hexBack   = item.selections.Backrest || '#8B4513';
+
+  const hexArm    = item.selections.Armrests || '#8B4513';
+
+  const hexLeg    = item.selections.Legs     || '#8B4513';
+
+  const hexCush   = fab.hex;
+
+  const legShape  = (item.shapes && item.shapes.Legs)     || 'tapered_leg';
+
+  const backShape = (item.shapes && item.shapes.Backrest) || 'flat_back';
+
+  const armShape  = (item.shapes && item.shapes.Armrests) || 'square_arm';
+
+  const cushShape = (item.shapes && item.shapes.Cushions) || 'standard_cushion';
+
+
+
+  const dFrame = gd('Frame'), dSeat = gd('Seat'), dBack = gd('Backrest');
+
+  const dArm = gd('Armrests'), dLeg = gd('Legs'), dCush = gd('Cushions');
+
+
+
+  // ── Sofa dimensions derived from seat count ──
+
+  const seatW     = dSeat.w;
+
+  const armW      = item.isLeftArmVisible || item.isRightArmVisible ? dArm.w : 0;
+
+  const totalW    = seatW + (item.isLeftArmVisible ? armW : 0) + (item.isRightArmVisible ? armW : 0);
+
+  const legH      = dLeg.h;
+
+  const frameH    = dFrame.h;
+
+  const seatH     = dSeat.h;
+
+  const seatD     = dSeat.d;
+
+  const cushH     = dCush.h;
+
+
+
+  // Y positions
+
+  const yFloor    = 0;
+
+  const yLegTop   = legH;
+
+  const yFrame    = yLegTop + frameH / 2;
+
+  const yFrameTop = yLegTop + frameH;
+
+  const ySeat     = yFrameTop + seatH / 2;
+
+  const ySeatTop  = yFrameTop + seatH;
+
+  const yCushTop  = ySeatTop + cushH;
+
+  const backH     = dBack.h;
+
+  const yBackBot  = yFrameTop;
+
+  const yBackCtr  = yBackBot + backH / 2;
+
+  const backD     = dBack.d;
+
+  const backZ     = -(seatD / 2) + backD / 2;
+
+  const matFrame  = getMat(hexFrame, 0.5, 0.04);
+
+  const matSeat   = getMat(hexSeat, 0.55, 0.02);
+
+  const matBack   = getMat(hexBack, 0.5, 0.04);
+
+  const matArm    = getMat(hexArm, 0.5, 0.04);
+
+  const matCush   = getMat(hexCush, 0.75, 0.0);
+
+  const matLeg    = getMat(hexLeg, 0.35, 0.05);
+
+
+
+  // ─── FRAME BASE ───
+
+  addMesh('Frame', new THREE.BoxGeometry(totalW, frameH, seatD + backD), matFrame, 0, yFrame, backD / 2);
+
+
+
+  // ─── LEGS ───
+
+  const legPositions = [];
+
+  const lxL = -(totalW / 2) + dLeg.w / 2 + 0.04;
+
+  const lxR =  (totalW / 2) - dLeg.w / 2 - 0.04;
+
+  const lzF =  seatD / 2 + backD / 2 - dLeg.d / 2 - 0.03;
+
+  const lzB = -(seatD / 2 + backD / 2) + dLeg.d / 2 + 0.03;
+
+  legPositions.push([lxL, lzF], [lxR, lzF], [lxL, lzB], [lxR, lzB]);
+
+  if (seats >= 3) { legPositions.push([0, lzF], [0, lzB]); }
+
+  if (seats >= 5) { legPositions.push([-totalW * 0.28, lzF], [totalW * 0.28, lzF]); }
+
+
+
+  legPositions.forEach(([lx, lz]) => {
+
+    let legGeo;
+
+    if (legShape === 'bun_leg') {
+
+      legGeo = new THREE.SphereGeometry(dLeg.w * 0.55, 12, 10);
+
+    } else if (legShape === 'turned_leg') {
+
+      legGeo = new THREE.CylinderGeometry(dLeg.w * 0.35, dLeg.w * 0.45, legH, 14);
+
+    } else if (legShape === 'metal_pin_leg') {
+
+      legGeo = new THREE.CylinderGeometry(dLeg.w * 0.15, dLeg.w * 0.15, legH, 8);
+
+      const capGeo = new THREE.SphereGeometry(dLeg.w * 0.2, 8, 8);
+
+      addMesh('Legs', capGeo, getMat(hexLeg, 0.2, 0.85), lx, yFloor + dLeg.w * 0.2, lz);
+
+    } else if (legShape === 'sled_leg') {
+
+      if (lz === lzF) {
+
+        const rLen = Math.abs(lzF - lzB) + dLeg.d;
+
+        const rGeo = new THREE.CylinderGeometry(dLeg.w * 0.22, dLeg.w * 0.22, rLen, 10);
+
+        addMesh('Legs', rGeo, matLeg, lx, legH / 2, 0, Math.PI / 2, 0, 0);
+
+      }
+
+      return;
+
+    } else if (legShape === 'cabriole_leg' || legShape === 'claw_leg') {
+
+      legGeo = new THREE.CylinderGeometry(dLeg.w * 0.25, dLeg.w * 0.45, legH, 14);
+
+      if (legShape === 'claw_leg') {
+
+        const clawGeo = new THREE.SphereGeometry(dLeg.w * 0.5, 8, 8);
+
+        addMesh('Legs', clawGeo, matLeg, lx, yFloor + dLeg.w * 0.4, lz);
+
+      }
+
+    } else if (legShape === 'no_leg') {
+
+      return;
+
+    } else {
+
+      // tapered_leg default
+
+      legGeo = new THREE.CylinderGeometry(dLeg.w * 0.22, dLeg.w * 0.42, legH, 10);
+
+    }
+
+    addMesh('Legs', legGeo, matLeg, lx, legH / 2, lz);
+
+  });
+
+
+
+  // ─── SEAT BASE PLATFORM ───
+
+  addMesh('Seat', new THREE.BoxGeometry(seatW, seatH, seatD), matSeat, 0, ySeat, backD / 2);
+
+
+
+  // ─── SEAT CUSHIONS ───
+
+  if (item.isSeatCushionVisible) {
+
+    const segW = seatW / seats;
+
+    for (let i = 0; i < seats; i++) {
+
+      const cx = -seatW / 2 + segW * (i + 0.5);
+
+      const cW = segW - 0.025;
+
+      let cGeo;
+
+      if (cushShape === 'button_tufted') {
+
+        cGeo = new THREE.BoxGeometry(cW, cushH * 1.1, seatD * 0.88);
+
+        addMesh('Cushions', cGeo, matCush, cx, yCushTop - cushH * 0.1, backD / 2);
+
+        // Tufting buttons
+
+        for (let tx = -1; tx <= 1; tx += 2) {
+
+          for (let tz = -1; tz <= 1; tz += 2) {
+
+            const btnGeo = new THREE.SphereGeometry(0.018, 8, 8);
+
+            const btnMat = getMat(hexCush, 0.85, 0.0);
+
+            btnMat.color.multiplyScalar(0.55);
+
+            addMesh('Cushions', btnGeo, btnMat, cx + tx * cW * 0.28, ySeatTop + cushH * 0.95, backD / 2 + tz * seatD * 0.22);
+
+          }
+
+        }
+
+        continue;
+
+      } else if (cushShape === 'box_cushion') {
+
+        // Box cushion with defined welting edge
+
+        cGeo = new THREE.BoxGeometry(cW, cushH, seatD * 0.88);
+
+        addMesh('Cushions', cGeo, matCush, cx, ySeatTop + cushH / 2, backD / 2);
+
+        // Welting strip
+
+        const weltGeo = new THREE.BoxGeometry(cW, cushH * 0.08, seatD * 0.88);
+
+        const weltMat = getMat(hexCush, 0.8, 0.0); weltMat.color.multiplyScalar(0.7);
+
+        addMesh('Cushions', weltGeo, weltMat, cx, ySeatTop + cushH * 0.5, backD / 2);
+
+        continue;
+
+      } else if (cushShape === 'knife_edge') {
+
+        // Knife edge: tapered sides
+
+        const pts = [
+
+          new THREE.Vector2(0, 0), new THREE.Vector2(cW, 0),
+
+          new THREE.Vector2(cW - 0.02, cushH), new THREE.Vector2(0.02, cushH)
+
+        ];
+
+        try {
+
+          const shape = new THREE.Shape(pts);
+
+          cGeo = new THREE.ExtrudeGeometry(shape, { depth: seatD * 0.88, bevelEnabled: false });
+
+          cGeo.rotateX(Math.PI / 2); cGeo.translate(-cW / 2, ySeatTop, backD / 2 - seatD * 0.44);
+
+          addMesh('Cushions', cGeo, matCush, 0, 0, 0);
+
+          continue;
+
+        } catch (e) { cGeo = new THREE.BoxGeometry(cW, cushH, seatD * 0.88); }
+
+      } else {
+
+        // standard flat cushion with subtle rounded top (simulate via scale)
+
+        cGeo = new THREE.BoxGeometry(cW, cushH, seatD * 0.88);
+
+      }
+
+      addMesh('Cushions', cGeo, matCush, cx, ySeatTop + cushH / 2, backD / 2);
+
+    }
+
+  }
+
+
+
+  // ─── BACKREST STRUCTURE ───
+
+  const matBackFrame = getMat(hexBack, 0.5, 0.04);
+
+
+
+  if (backShape === 'scroll_back') {
+
+    // Camelback: curved top rail
+
+    const pts = [];
+
+    const segments = 40;
+
+    for (let i = 0; i <= segments; i++) {
+
+      const t = i / segments;
+
+      const x = -totalW / 2 + t * totalW;
+
+      const wave = Math.sin(t * Math.PI) * (backH * 0.22) + backH / 2;
+
+      pts.push(new THREE.Vector3(x, yBackBot + wave, backZ));
+
+    }
+
+    // Build as a tube along the curve for the visible top rail
+
+    class CamelCurve extends THREE.Curve {
+
+      constructor(pts) { super(); this.pts = pts; }
+
+      getPoint(t) {
+
+        const i = Math.min(Math.floor(t * (this.pts.length - 1)), this.pts.length - 2);
+
+        const f = t * (this.pts.length - 1) - i;
+
+        return this.pts[i].clone().lerp(this.pts[i + 1], f);
+
+      }
+
+    }
+
+    const curve = new CamelCurve(pts);
+
+    try {
+
+      const tubeGeo = new THREE.TubeGeometry(curve, 50, backD * 0.45, 10, false);
+
+      addMesh('Backrest', tubeGeo, matBackFrame, 0, 0, 0);
+
+    } catch(e) {}
+
+    // Back panel behind the curve
+
+    addMesh('Backrest', new THREE.BoxGeometry(totalW - armW * 2, backH * 0.78, backD), matBackFrame, 0, yBackBot + backH * 0.39, backZ);
+
+  } else {
+
+    // Flat, tufted, pillow, channel – all use a panel back
+
+    addMesh('Backrest', new THREE.BoxGeometry(totalW - armW * 2, backH, backD), matBackFrame, 0, yBackCtr, backZ);
+
+  }
+
+
+
+  // ─── BACK CUSHIONS ───
+
+  if (item.isBackCushionVisible) {
+
+    const segW = (totalW - armW * 2) / seats;
+
+    for (let i = 0; i < seats; i++) {
+
+      const cx = -(totalW - armW * 2) / 2 + segW * (i + 0.5);
+
+      const bcH = backH * 0.85, bcW = segW - 0.025, bcD = backD * 0.65;
+
+      addMesh('Cushions', new THREE.BoxGeometry(bcW, bcH, bcD), matCush, cx, yBackCtr, backZ + backD * 0.35);
+
+
+
+      if (backShape === 'tufted_back') {
+
+        // Diamond tufting pattern
+
+        for (let tx = -1; tx <= 1; tx++) {
+
+          for (let ty = -1; ty <= 1; ty++) {
+
+            const btnGeo = new THREE.SphereGeometry(0.02, 8, 8);
+
+            const btnMat = getMat(hexCush, 0.85, 0.0); btnMat.color.multiplyScalar(0.5);
+
+            addMesh('Cushions', btnGeo, btnMat, cx + tx * bcW * 0.28, yBackCtr + ty * bcH * 0.26, backZ + backD * 0.68);
+
+            // Indent lines between buttons (channel effect)
+
+            if (backShape === 'channel_back') continue;
+
+          }
+
+        }
+
+      } else if (backShape === 'channel_back') {
+
+        // Vertical channels
+
+        for (let tc = -1; tc <= 1; tc++) {
+
+          const chGeo = new THREE.BoxGeometry(0.018, bcH * 0.85, bcD * 0.15);
+
+          const chMat = getMat(hexCush, 0.9, 0.0); chMat.color.multiplyScalar(0.55);
+
+          addMesh('Cushions', chGeo, chMat, cx + tc * bcW * 0.3, yBackCtr, backZ + backD * 0.68);
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+
+  // ─── ARMRESTS ───
+
+  const buildArm = (side) => {
+
+    const xSign = side === 'left' ? -1 : 1;
+
+    const xPos  = xSign * (seatW / 2 + armW / 2);
+
+    const armH  = dArm.h;
+
+    const postH = ySeatTop - yFrameTop;
+
+
+
+    if (armShape === 'scroll_arm') {
+
+      // Scroll/rolled arm: cylindrical roll at front
+
+      addMesh('Armrests', new THREE.BoxGeometry(armW, armH, seatD + backD), matArm, xPos, yFrameTop + armH / 2, backD / 2);
+
+      const rollGeo = new THREE.CylinderGeometry(armH * 0.28, armH * 0.18, armW * 1.05, 16);
+
+      rollGeo.rotateZ(Math.PI / 2);
+
+      addMesh('Armrests', rollGeo, matArm, xPos, yFrameTop + armH - armH * 0.28, seatD / 2 + backD / 2 - armH * 0.28);
+
+      // Nailhead trim (old fashion)
+
+      if (style === 'oldfashion') {
+
+        const nailCount = Math.floor((seatD + backD) / 0.08);
+
+        for (let ni = 0; ni < nailCount; ni++) {
+
+          const nz = -(seatD / 2 + backD / 2) + ni * (seatD + backD) / nailCount + backD / 2;
+
+          const nGeo = new THREE.SphereGeometry(0.012, 6, 6);
+
+          const nMat = getMat('#B8860B', 0.2, 0.85);
+
+          addMesh('Armrests', nGeo, nMat, xPos + xSign * (armW * 0.5 + 0.005), yFrameTop + armH * 0.72, nz);
+
+        }
+
+      }
+
+    } else if (armShape === 'tapered_arm') {
+
+      // Post + tapered top surface
+
+      addMesh('Armrests', new THREE.BoxGeometry(armW, postH, armW), matArm, xPos, yFrameTop + postH / 2, seatD / 2 + backD / 2 - armW / 2);
+
+      addMesh('Armrests', new THREE.BoxGeometry(armW * 1.1, armW * 0.7, seatD * 0.72), matArm, xPos, ySeatTop + armW * 0.35, backD / 2);
+
+    } else if (armShape === 'english_arm') {
+
+      // Rounded top with full height panel
+
+      addMesh('Armrests', new THREE.BoxGeometry(armW, armH, seatD + backD), matArm, xPos, yFrameTop + armH / 2, backD / 2);
+
+      const roundGeo = new THREE.CylinderGeometry(armH * 0.22, armH * 0.22, armW * 1.05, 16);
+
+      roundGeo.rotateZ(Math.PI / 2);
+
+      addMesh('Armrests', roundGeo, matArm, xPos, yFrameTop + armH * 0.80, -seatD / 2 + backD / 2 + armH * 0.28);
+
+    } else if (armShape === 'flared_arm') {
+
+      // Box arm that flares outward at top
+
+      addMesh('Armrests', new THREE.BoxGeometry(armW, armH, seatD + backD), matArm, xPos, yFrameTop + armH / 2, backD / 2);
+
+      const flareMat = matArm.clone(); flareMat.color.multiplyScalar(0.85);
+
+      addMesh('Armrests', new THREE.BoxGeometry(armW * 1.45, armW * 0.5, (seatD + backD) * 0.85), flareMat, xPos, yFrameTop + armH + armW * 0.25, backD / 2);
+
+    } else {
+
+      // square_arm default: simple box arm full height
+
+      addMesh('Armrests', new THREE.BoxGeometry(armW, armH, seatD + backD), matArm, xPos, yFrameTop + armH / 2, backD / 2);
+
+      // Top pad
+
+      addMesh('Armrests', new THREE.BoxGeometry(armW * 1.05, armW * 0.45, (seatD + backD) * 0.85), matCush, xPos, yFrameTop + armH + armW * 0.22, backD / 2);
+
+    }
+
+  };
+
+
+
+  if (item.isLeftArmVisible)  buildArm('left');
+
+  if (item.isRightArmVisible) buildArm('right');
+
+
+
+  // ─── THROW PILLOWS ───
+
+  if (item.isThrowPillowVisible) {
+
+    const pPos = [-seatW * 0.28, seatW * 0.28];
+
+    pPos.forEach(px => {
+
+      const pGeo = new THREE.BoxGeometry(0.22, 0.25, 0.1);
+
+      const pMat = getMat(hexCush, 0.8, 0.0); pMat.color.multiplyScalar(0.85);
+
+      addMesh('Cushions', pGeo, pMat, px, ySeatTop + 0.12 + backH * 0.3, backZ + backD * 0.65);
+
+    });
+
+  }
+
+
+
+  // ─── OLD FASHION DETAILS ───
+
+  if (style === 'oldfashion') {
+
+    // Decorative crown rail on top of backrest
+
+    const crownGeo = new THREE.BoxGeometry(totalW - armW * 2 + 0.02, 0.06, backD * 1.2);
+
+    addMesh('Backrest', crownGeo, getMat(hexBack, 0.3, 0.06), 0, yBackBot + backH + 0.03, backZ);
+
+
+
+    // Center carved medallion on backrest
+
+    const medallion = new THREE.CylinderGeometry(0.08, 0.08, backD * 1.3, 8);
+
+    addMesh('Backrest', medallion, getMat(hexBack, 0.3, 0.05), 0, yBackCtr, backZ);
+
+
+
+    // Decorative apron rail on front of frame
+
+    const apronGeo = new THREE.BoxGeometry(totalW - 0.04, 0.04, 0.04);
+
+    addMesh('Frame', apronGeo, getMat(hexFrame, 0.25, 0.05), 0, yLegTop + frameH * 0.4, seatD / 2 + backD / 2 - 0.02);
+
+  }
+
+
+
+  // ─── GLOBAL SCALE ───
+
+  const gs = item.globalScale || { x: 1, y: 1, z: 1 };
+
+  currentGroup.scale.set(gs.x, gs.y, gs.z);
+
+  scene.add(currentGroup);
+
+
+
+  // ─── DIMENSION RULERS ───
+
+  if (showDimensions) {
+
+    const gx = gs.x, gy = gs.y, gz = gs.z;
+
+    createDimensionLine(
+
+      new THREE.Vector3(-totalW / 2 * gx, 0, lzF * gz + 0.2),
+
+      new THREE.Vector3( totalW / 2 * gx, 0, lzF * gz + 0.2),
+
+      Math.round(totalW * 100 * gx) + 'cm W'
+
+    );
+
+    createDimensionLine(
+
+      new THREE.Vector3(totalW / 2 * gx + 0.25, 0, lzB * gz),
+
+      new THREE.Vector3(totalW / 2 * gx + 0.25, (yBackBot + backH) * gy, lzB * gz),
+
+      Math.round((yBackBot + backH) * 100 * gy) + 'cm H'
+
+    );
+
+    createDimensionLine(
+
+      new THREE.Vector3(-totalW / 2 * gx - 0.2, yLegTop * gy, lzF * gz),
+
+      new THREE.Vector3(-totalW / 2 * gx - 0.2, yLegTop * gy, lzB * gz),
+
+      Math.round((seatD + backD) * 100 * gz) + 'cm D'
+
+    );
+
+  }
+
+}
+
+function toggleDesignAnalysis() {
+  const card = document.getElementById('design-analysis-card');
+  const icon = document.getElementById('da-toggle-icon');
+  if (!card || !icon) return;
+  card.classList.toggle('minimized');
+  if (card.classList.contains('minimized')) {
+    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+  } else {
+    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+  }
+}
+    /* ― Shop Mode: Upload to Templates (handled in main script) ― */
+</script>
+
 </body>
+
 </html>
+
+
+
+
+
+

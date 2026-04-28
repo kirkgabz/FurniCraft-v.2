@@ -1,704 +1,2163 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FurniCraft CAD - 3D Template Builder (Stool)</title>
+  <title>FurniCraft Studio - Bar Stool Pro</title>
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+  <script>
+    /* ― Shop Mode Logic ― */
+    (function initShopMode() {
+      if (sessionStorage.getItem('craftMode') !== 'shop') return;
+      window.addEventListener('load', () => {
+        const uploadBtn = document.getElementById('btn-upload-template');
+        const exportBtn = document.getElementById('btn-main-export');
+        if (uploadBtn) uploadBtn.style.display = 'flex';
+        if (exportBtn) exportBtn.style.display = 'none';
+        const addBtn = document.querySelector('.btn-add');
+        if (addBtn) addBtn.onclick = () => window.location.href = 'shop_studio.html';
+      });
+    })();
+
+    function uploadToTemplates() {
+      const nameInput = document.getElementById('project-name');
+      const projectName = (nameInput && nameInput.value.trim()) || 'Custom Stool Design';
+      const priceEl = document.getElementById('total-price');
+      const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+      const costVal = parseFloat(priceText) || 8000;
+      let previewDataUrl = '';
+      const canvas = document.querySelector('#canvas-container canvas');
+      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
+      const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
+      const tmpl = {
+        id: Date.now() + 20003,
+        type: 'stool',
+        name: projectName,
+        description: 'Custom stool crafted in 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+        previewDataUrl: previewDataUrl,
+        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+        publishedAt: new Date().toISOString(),
+        basePrice: costVal,
+        designData: ai
+      };
+      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      globals.unshift(tmpl);
+      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+      
+      let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
+      custom.unshift(tmpl);
+      localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
+
+      sessionStorage.removeItem('craftMode');
+      alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
+      window.location.href = 'templates.html';
+    }
+  </script>
 
   <style>
     :root {
-      --bg-dark: #1e1e1e;
-      --bg-panel: #252526;
-      --bg-header: #333333;
-      --accent: #8e44ad;
-      --accent2: #6c3483;
-      --select-blue: #007acc;
-      --text-main: #e0e0e0;
-      --text-dim: #999;
-      --border: #3e3e42;
-      --gold: #f1c40f;
-      --rec-bg: #2a1a35;
+      --bg-dark:#1e1e1e; --bg-panel:#252526; --bg-header:#333333;
+      --accent:#8e44ad; --accent2:#6c3483; --select-blue:#007acc;
+      --text-main:#e0e0e0; --text-dim:#999; --border:#3e3e42;
+      --gold:#f1c40f; --rec-bg:#2a1a35;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    
+    header { height: 45px; background-color: var(--bg-header); display: flex; align-items: center; padding: 0 1rem; border-bottom: 1px solid var(--border); justify-content: space-between; }
+    .brand { font-weight: 700; font-family: 'Nunito', sans-serif; color: white; display: flex; align-items: center; gap: 8px; }
+    
+    .header-center { display: flex; align-items: center; gap: 16px; }
+    .height-badge { display: flex; align-items: center; gap: 6px; background: rgba(142,68,173,0.15); border: 1px solid rgba(142,68,173,0.3); border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; color: #f39c12; font-weight: 600; }
+    
+    .btn-export { background: var(--accent) !important; color: white !important; padding: 5px 12px; border-radius: 4px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; font-size: 0.9rem; }
+    .btn-export:hover { background: var(--accent2) !important; }
+    
+    .workspace { display: flex; flex: 1; height: calc(100vh - 45px); }
 
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+    /* PANEL LEFT */
+    .panel-left { width: 280px; background-color: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 5; }
+    .panel-header { padding: 14px 16px; font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #e0e0e0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #2a2a2e 0%, #252526 100%); }
+    
+    .scene-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .scene-item { padding: 13px 12px; margin-bottom: 4px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.95rem; }
+    .scene-item:hover { background-color: #333; }
+    .scene-item.active { background-color: #37373d; border-left: 3px solid var(--accent); padding-left: 10px; }
+    
+    .btn-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
+    .btn-delete:hover { color: #c0392b; background: rgba(192,57,43,0.1); }
+    
+    .btn-add { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.02em; transition: 0.2s; }
+    .btn-add:hover { background: var(--accent2); }
+
+    /* VIEWPORT */
+    .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); }
+    #canvas-container { width: 100%; height: 100%; outline: none; }
+    
+    .viewport-controls { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 5px; border-radius: 20px; border: 1px solid #555; display: flex; gap: 5px; z-index: 10; }
+    .vp-btn { background: transparent; border: none; color: #ddd; padding: 8px 15px; border-radius: 15px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+    .vp-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+    .vp-btn.active { color: var(--accent); }
+
+    /* SCORE CARD */
+        .score-card {
+      position: absolute;
+      top: 90px;
+      right: 10px;
+      background: rgba(18, 18, 20, 0.92);
+      backdrop-filter: blur(6px);
+      padding: 18px 20px;
+      border-radius: 10px;
+      width: 260px;
+      border: 1px solid #444;
+      pointer-events: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
     }
 
-    header {
-      height: 45px;
-      background-color: var(--bg-header);
+    .score-card.minimized {
+      padding: 10px 15px;
+    }
+
+    .score-card.minimized #design-analysis-content {
+      display: none;
+    }
+
+    .score-card.minimized .score-title {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .score-toggle-btn {
+      background: rgba(142, 68, 173, 0.15);
+      border: 1px solid rgba(142, 68, 173, 0.3);
+      color: var(--accent);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
       display: flex;
       align-items: center;
-      padding: 0 1rem;
-      border-bottom: 1px solid var(--border);
-      justify-content: space-between;
-    }
-
-    .brand {
-      font-weight: 600;
-      color: white;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .header-actions { display: flex; gap: 10px; }
-
-    .btn-header {
-      padding: 5px 14px;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 0.85rem;
+      justify-content: center;
       cursor: pointer;
-      border: none;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      margin-left: auto;
+      pointer-events: auto;
+    }
+
+    .score-toggle-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .score-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #e8e8e8;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: 0.2s;
+      justify-content: flex-start;
+      cursor: pointer;
+    }
+    
+    .score-info-btn { width: 17px; height: 17px; border-radius: 50%; background: #2e2e2e; border: 1px solid #4a4a4a; color: #777; font-size: 0.6rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.18s; pointer-events: auto; flex-shrink: 0; margin-left: 4px; }
+    .score-info-btn:hover { background: var(--select-blue); border-color: var(--select-blue); color: white; transform: scale(1.2); }
+    
+    .score-metric-label { font-size: 0.85rem; color: #ccc; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+    .score-metric-label span:last-child { font-size: 0.95rem; font-weight: 700; color: white; }
+    
+    .score-bar-bg { width: 100%; height: 7px; background: #333; margin-bottom: 14px; border-radius: 4px; overflow: hidden; }
+    .score-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease; }
+    #rec-status { margin-top: 6px; font-size: 0.82rem; color: #aaa; display: flex; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px solid #333; }
+
+    /* MODAL */
+    .modal-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
+    .design-modal-overlay.open { display: flex; }
+    .design-modal { background: #252526; border: 1px solid var(--border); padding: 20px; border-radius: 8px; width: 600px; max-height: 85%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; display:flex; flex-direction:column; }
+    
+    .btn-close-modal { position: absolute; top:10px; right:15px; background:none; border:none; color:#aaa; font-size:1.5rem; cursor:pointer; z-index:2; }
+    .btn-close-modal:hover { color:white; }
+    
+    .modal-title { font-size: 1.1rem; color: white; margin-bottom: 15px; font-weight: 600; flex-shrink:0; }
+    .modal-scroll-area { flex: 1; overflow-y: auto; padding-right: 10px; }
+    .modal-section-title { width: 100%; color: var(--select-blue); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin: 15px 0 10px 0; border-bottom: 1px solid #444; padding-bottom: 5px; }
+    .modal-section-title:first-child { margin-top: 0; }
+    
+    .design-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+    .design-card { background: #333; border: 1px solid #444; border-radius: 4px; padding: 10px; text-align: center; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; height: 80px; position: relative; overflow: hidden; }
+    .design-card:hover { transform: translateY(-2px); background: #3e3e42; border-color:white; }
+    .design-card.active { border-color: var(--accent); background: rgba(142, 68, 173, 0.1); }
+    .design-icon { font-size: 1.4rem; color: #aaa; }
+    .design-name { font-size: 0.7rem; color: #ccc; line-height: 1.1; }
+
+    .render-legend { display: flex; gap: 14px; align-items: center; padding: 8px 12px; background: #1c1c1e; border: 1px solid #333; border-radius: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+    .render-legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: #999; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .legend-dot.ok   { background: #2ecc71; border: 1px solid #27ae60; }
+
+    /* CONFIRM OVERLAY */
+    #confirm-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9000; display:none; align-items:center; justify-content:center; }
+    #confirm-overlay.open { display:flex; }
+    .confirm-box { background:#252526; border:1px solid var(--border); border-radius:8px; padding:30px 34px; max-width:460px; width:90%; text-align:center; box-shadow:0 16px 48px rgba(0,0,0,0.8); }
+    .confirm-icon { font-size:2.6rem; margin-bottom:12px; color:var(--accent); }
+    .confirm-title { font-size:1.1rem; font-weight:800; color:white; margin-bottom:8px; }
+    .confirm-body { font-size:0.88rem; color:#aaa; line-height:1.6; margin-bottom:20px; }
+    .confirm-btns { display:flex; gap:10px; justify-content:center; }
+    .confirm-btn { padding:9px 22px; border-radius:4px; font-weight:600; font-size:0.9rem; cursor:pointer; border:none; transition:0.15s; }
+    .confirm-btn.cancel { background:#333; color:#ccc; border:1px solid #555; }
+    .confirm-btn.cancel:hover { background:#444; }
+    .confirm-btn.ok { background:var(--accent); color:white; }
+    .confirm-btn.ok:hover { background:#a93226; }
+
+    /* TOOLTIP */
+    .info-tooltip { position: fixed; z-index: 9999; background: #1a1a1e; border: 1px solid var(--select-blue); border-radius: 10px; padding: 16px 18px; width: 300px; box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,122,204,0.15); pointer-events: none; opacity: 0; transform: translateY(6px) scale(0.97); transition: opacity 0.18s ease, transform 0.18s ease; }
+    .info-tooltip.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    .info-tooltip-title { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--select-blue); margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+    .info-tooltip-body { font-size: 0.88rem; color: #c0c0c0; line-height: 1.6; }
+    .info-tooltip-tip { margin-top: 10px; padding-top: 10px; border-top: 1px solid #2d2d33; font-size: 0.8rem; color: #f1c40f; display: flex; align-items: flex-start; gap: 6px; }
+
+    /* RIGHT PANEL */
+    .panel-right { width: 560px; background-color: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 5; }
+    .prop-scroll { flex: 1; overflow-y: auto; }
+    .prop-group { padding: 20px 18px; border-bottom: 1px solid var(--border); }
+
+    .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; min-width: 0; }
+    .section-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; background: rgba(142,68,173,0.15); color: var(--accent); border: 1px solid rgba(142,68,173,0.25); }
+    .prop-label { font-size: 0.78rem; font-weight: 800; color: #d0d0d0; display: inline; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; line-height: 1.2; flex-shrink: 0; }
+
+    .info-btn { width: 18px; height: 18px; border-radius: 50%; background: #2e2e2e; border: 1px solid #4a4a4a; color: #777; font-size: 0.65rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s; }
+    .info-btn:hover { background: var(--select-blue); border-color: var(--select-blue); color: white; transform: scale(1.2); box-shadow: 0 0 8px rgba(0,122,204,0.45); }
+
+    input[type="text"], select { width: 100%; background: #3c3c3c; border: 1px solid var(--border); color: white; padding: 11px 12px; border-radius: 4px; font-family: inherit; margin-bottom: 5px; font-size: 1.05rem; }
+    .range-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 1rem; }
+    .range-row label { width: 55px; color: #aaa; font-size: 0.95rem; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); height: 6px; }
+    .val-display { width: 48px; text-align: right; color: var(--accent); font-size: 1rem; font-weight: 600; }
+
+    /* MAT GRID */
+    .mat-section-title { color: var(--gold); font-size: 1rem; font-weight: bold; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px; }
+    .mat-grid-large { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+    .mat-card-lg { background: #333; border: 1px solid var(--border); border-radius: 6px; padding: 12px 8px; text-align: center; cursor: pointer; transition: 0.15s; position: relative; }
+    .mat-card-lg:hover { transform: translateY(-2px); background: #3e3e42; border-color: white; }
+    .mat-card-lg.recommended { background: var(--rec-bg); border-color: #5a2a7a; }
+    .mat-card-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .mat-card-name { font-size: 0.88rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* TOGGLES */
+    .toggle-row { display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 1rem; flex-wrap: wrap; }
+    .toggle-label { color: #888; font-size: 0.95rem; min-width: 70px;}
+    .toggle-btn { padding: 8px 16px; font-size: 0.95rem; background: #333; border: 1px solid #444; border-radius: 15px; cursor: pointer; color: #ccc; transition: 0.15s; }
+    .toggle-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    /* HEIGHT PRESETS */
+    .height-presets { display: flex; gap: 8px; margin-bottom: 10px; }
+    .height-preset-btn { flex: 1; padding: 10px 6px; background: #333; border: 1px solid #444; border-radius: 4px; color: #ccc; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-align: center; transition: 0.15s; }
+    .height-preset-btn:hover { background: #3e3e42; border-color: var(--accent); }
+    .height-preset-btn.active { background: rgba(142, 68, 173, 0.1); border-color: var(--accent); color: var(--accent); }
+    .height-preset-title { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; font-weight: 800; }
+
+    /* LAYERS */
+    .layer-item { background: #2b2b2b; border-radius: 6px; margin-bottom: 10px; border: 1px solid #333; transition: all 0.2s; }
+    .layer-item.active-layer { border: 1px solid var(--select-blue); box-shadow: 0 0 10px rgba(142, 68, 173, 0.25); }
+    .layer-header { padding: 13px 12px; font-size: 1rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #333; border-radius: 6px 6px 0 0; }
+    .layer-header:hover { background: #3c3c3c; }
+    .color-preview { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #777; flex-shrink: 0; }
+    .layer-content { display: none; padding: 16px; background: #222; border-top: 1px solid #444; border-radius: 0 0 6px 6px; }
+    .layer-item.open .layer-content { display: block; }
+    
+    .part-control-row { margin-bottom: 16px; }
+    .part-control-label { font-size: 0.72rem; font-weight: 700; color: #888; margin-bottom: 7px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .part-control-label .lbl-info-btn { width: 15px; height: 15px; border-radius: 50%; background: #2a2a2a; border: 1px solid #484848; color: #666; font-size: 0.6rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s; margin-left: 2px; }
+    .part-control-label .lbl-info-btn:hover { background: var(--select-blue); border-color: var(--select-blue); color: white; transform: scale(1.2); }
+    
+    .clickable-design-val { font-size: 1rem; color: var(--text-dim); padding: 10px 12px; background: #111; border-radius: 4px; border: 1px solid #444; cursor: pointer; transition: 0.1s; display: inline-flex; align-items: center; gap: 5px; width: 100%; justify-content: space-between; }
+    .clickable-design-val:hover { background: #000; border-color: var(--select-blue); color: white; }
+    .clickable-design-val i { color: #666; font-size: 0.9rem; }
+    
+    .hex-wrapper { display: flex; align-items: center; gap: 10px; }
+    input[type="color"] { -webkit-appearance: none; border: none; width: 44px; height: 44px; cursor: pointer; background: none; padding: 0; border-radius: 4px; }
+    .hex-text-input { width: 110px !important; margin: 0 !important; font-family: monospace; text-transform: uppercase; font-size: 1rem; }
+    
+    .dim-row { display: flex; gap: 8px; margin-top: 6px; }
+    .dim-group { flex: 1; }
+    .dim-input { width: 100%; background: #111; border: 1px solid #444; color: var(--accent); padding: 10px; text-align: center; font-size: 1.05rem; border-radius: 3px; }
+    .dim-label { font-size: 0.82rem; color: #666; text-align: center; margin-top: 5px; }
+    .view-focus-btn { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; margin-left: auto; margin-right: 10px; }
+    .view-focus-btn:hover { color: var(--select-blue); }
+
+    /* ACCESSORIES */
+    .accessory-item { background: #2b2b2b; border: 1px solid #333; border-radius: 6px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
+    .accessory-item.enabled { border-color: var(--select-blue); }
+    .accessory-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; background: #333; }
+    .accessory-header:hover { background: #3c3c3c; }
+    .accessory-icon { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; background: rgba(142,68,173,0.15); color: var(--accent); border: 1px solid rgba(142,68,173,0.25); }
+    .accessory-icon.enabled { background: rgba(0, 122, 204, 0.15); border-color: var(--select-blue); color: var(--select-blue);}
+    .accessory-title { flex: 1; font-size: 0.95rem; font-weight: 600; color: #e0d0c8; }
+    
+    .accessory-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; background: #222; color: #888; border: 1px solid #444; font-weight: 700;}
+    .accessory-badge.on { background: rgba(0,122,204,0.15); color: var(--select-blue); border-color: var(--select-blue); }
+    
+    .accessory-toggle { width: 38px; height: 20px; background: #222; border-radius: 10px; position: relative; cursor: pointer; border: 1px solid #444; flex-shrink: 0; transition: background 0.2s; }
+    .accessory-toggle.on { background: var(--select-blue); border-color: var(--select-blue);}
+    .accessory-toggle::after { content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: white; top: 2px; left: 2px; transition: left 0.2s; }
+    .accessory-toggle.on::after { left: 20px; }
+    
+    .accessory-body { display: none; padding: 16px; border-top: 1px solid #444; background: #222; }
+    .accessory-item.open .accessory-body { display: block; }
+    
+    .acc-control-row { margin-bottom: 12px; }
+    .acc-control-label { font-size: 0.72rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .acc-mat-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+    .acc-mat-chip { padding: 6px 10px; border-radius: 4px; border: 1px solid #444; background: #111; color: #aaa; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.15s; }
+    .acc-mat-chip:hover { border-color: #888; color: white; }
+    .acc-mat-chip.active { border-color: var(--select-blue); background: rgba(0, 122, 204, 0.15); color: white; }
+    .acc-mat-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; }
+    
+    .acc-range-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .acc-range-row label { font-size: 0.85rem; color: #aaa; width: 55px; flex-shrink: 0; }
+    .acc-range-row input[type=range] { flex: 1; accent-color: var(--accent); height: 6px; }
+    .acc-range-row .val-display { width: 35px; text-align: right; color: var(--accent); font-size: 0.95rem; font-weight: 600; }
+    .acc-desc { font-size: 0.85rem; color: #999; line-height: 1.5; margin-bottom: 12px; font-style: italic; }
+
+    .corner-radius-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 10px 12px; background: #111; border-radius: 4px; border: 1px solid #444; }
+    .corner-radius-row label { font-size: 0.85rem; color: #888; white-space: nowrap; }
+    .corner-radius-row input[type=range] { flex: 1; accent-color: var(--accent); height: 6px;}
+    .corner-radius-row .val-display { width: 35px; text-align: right; color: var(--accent); font-size: 1rem; font-weight: 600; }
+
+    /* FOOTER */
+    .footer-bar { padding: 18px 20px; background: #202020; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .footer-bar span { font-size: 0.88rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+    .total-price { font-size: 1.6rem; font-weight: bold; color: var(--accent); }
+    .instruction-text { font-size: 0.88rem; color: var(--select-blue); margin-bottom: 12px; font-style: italic; }
+
+    /* CATALOG */
+    #catalog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 8000; display: none; align-items: center; justify-content: center; }
+    #catalog-overlay.open { display: flex; }
+    .catalog-modal { background: #252526; border: 1px solid var(--border); border-radius: 8px; width: 750px; max-width: 95vw; max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.8); overflow: hidden; }
+    
+    .catalog-header { padding: 20px 26px 15px; border-bottom: 1px solid #444; display: flex; align-items: center; justify-content: space-between; background: #1e1e1e; flex-shrink: 0; }
+    .catalog-header-left { display: flex; align-items: center; gap: 14px; }
+    .catalog-header-icon { width: 40px; height: 40px; background: rgba(142,68,173,0.15); border: 1px solid rgba(142,68,173,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.1rem; flex-shrink: 0; }
+    .catalog-header h2 { font-size: 1.15rem; font-weight: 700; color: white; margin: 0; }
+    .catalog-header p { font-size: 0.85rem; color: #999; margin: 2px 0 0; }
+    
+    .catalog-close { background: none; border: none; color: #888; font-size: 1.5rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: 0.15s; }
+    .catalog-close:hover { background: #333; color: white; }
+    
+    .catalog-back-row { padding: 12px 26px; border-bottom: 1px solid #333; background: #222; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .catalog-back-btn { display: flex; align-items: center; gap: 8px; background: #333; border: 1px solid #555; border-radius: 4px; color: #ccc; font-size: 0.9rem; font-weight: 600; padding: 8px 16px; cursor: pointer; transition: 0.15s; }
+    .catalog-back-btn:hover { background: #444; color: white; }
+    .catalog-back-btn i { color: var(--accent); }
+    .catalog-back-label { font-size: 0.85rem; color: #777; }
+    
+    .catalog-body { flex: 1; overflow-y: auto; padding: 24px 26px; }
+    .catalog-section-title { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #777; margin: 0 0 14px; }
+    
+    .catalog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+    .cat-card { background: #333; border: 1px solid #444; border-radius: 6px; padding: 20px 14px; text-align: center; cursor: pointer; transition: 0.18s; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; }
+    .cat-card:hover { transform: translateY(-3px); border-color: var(--accent); background: #3a3a3a; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+    .cat-card.current { border-color: var(--accent); background: rgba(142,68,173,0.08); }
+    
+    .cat-card-icon { width: 55px; height: 55px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; background: #222; border: 1px solid #555; color: #aaa;}
+    .cat-card.current .cat-card-icon { background: rgba(142,68,173,0.15); border-color: rgba(142,68,173,0.4); color: var(--accent);}
+    
+    .cat-card-name { font-size: 0.95rem; font-weight: 700; color: #e0e0e0; }
+    .cat-card-desc { font-size: 0.78rem; color: #999; line-height: 1.4; }
+    .cat-card-badge { position: absolute; top: 8px; right: 8px; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(142,68,173,0.2); color: var(--accent); border: 1px solid rgba(142,68,173,0.4); text-transform: uppercase; }
+
+    /* PREV PROJECT */
+    .prev-project-bar { margin: 8px 8px 0; background: #1e1e1e; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+    .prev-project-label { padding: 8px 12px 4px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #777; }
+    .prev-project-item { padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.15s; }
+    .prev-project-item:hover { background: #2a2a2a; }
+    .prev-project-name { font-size: 0.85rem; color: #ccc; display: flex; align-items: center; gap: 8px; }
+    .prev-project-link { font-size: 0.75rem; color: #888; }
+    .prev-project-link:hover { color: var(--select-blue); }
+    /* ── Shop Info Badge ── */
+    .shop-info-badge {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(18, 18, 20, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(142, 68, 173, 0.25);
+      z-index: 100;
+      max-width: 320px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      pointer-events: auto;
+      animation: fadeUpShop 0.6s ease both;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .btn-back { background: #444; color: white; }
-    .btn-back:hover { background: #555; }
-    .btn-publish { background: #10b981; color: white; }
-    .btn-publish:hover { background: #059669; }
-
-    .workspace { display: flex; flex: 1; height: calc(100vh - 45px); }
-
-    .panel-left {
-      width: 280px;
-      background-color: var(--bg-panel);
-      border-right: 1px solid var(--border);
+    .shop-info-header {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      gap: 15px;
+    }
+
+    .shop-info-toggle-btn {
+      background: rgba(142, 68, 173, 0.15);
+      border: 1px solid rgba(142, 68, 173, 0.3);
+      color: var(--accent);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .shop-info-toggle-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .shop-info-badge.minimized {
+      padding: 10px 15px;
+    }
+
+    .shop-info-badge.minimized #shop-info-content {
+      display: none;
+    }
+
+    @keyframes fadeUpShop {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .shop-info-name {
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 7px;
+    }
+
+    .shop-info-mats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .shop-mat-tag {
+      font-size: 0.68rem;
+      background: rgba(142, 68, 173, 0.12);
+      color: #e0e0e0;
+      padding: 3px 9px;
+      border-radius: 5px;
+      border: 1px solid rgba(142, 68, 173, 0.3);
+      white-space: nowrap;
+    }
+
+    .shop-info-label {
+      font-size: 0.6rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .warn-icon {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      color: #f1c40f;
+      font-size: 0.8rem;
+      text-shadow: 0 0 10px rgba(0,0,0,0.5);
       z-index: 5;
     }
 
-    .panel-header {
-      padding: 14px 16px;
-      font-size: 0.82rem;
+    .elite-bonus {
+      color: #2ecc71;
+      font-size: 0.72rem;
       font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #e0e0e0;
-      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #2a2a2e 0%, #252526 100%);
+      gap: 4px;
+      margin-top: 4px;
+      animation: pulseGreen 2s infinite;
     }
 
-    .scene-list { flex: 1; overflow-y: auto; padding: 8px; }
-
-    .scene-item {
-      padding: 13px 12px;
-      margin-bottom: 4px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.95rem;
-      transition: 0.15s;
+    @keyframes pulseGreen {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
     }
-
-    .scene-item:hover { background-color: #333; }
-    .scene-item.active { background-color: #37373d; border-left: 3px solid var(--accent); padding-left: 10px; }
-
-    .btn-delete { background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
-    .btn-delete:hover { color: #c0392b; background: rgba(192, 57, 43, 0.1); }
-
-    .btn-add {
-      width: 100%;
-      padding: 14px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: 0.2s;
-    }
-
-    .viewport { flex: 1; position: relative; background: radial-gradient(circle at center, #2d2d30 0%, #1e1e1e 100%); }
-    #canvas-container { width: 100%; height: 100%; outline: none; }
-
-    .viewport-controls {
-      position: absolute;
-      top: 25px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      padding: 5px;
-      border-radius: 20px;
-      border: 1px solid #555;
-      display: flex;
-      gap: 5px;
-      z-index: 10;
-    }
-
-    .vp-btn {
-      background: transparent;
-      border: none;
-      color: #ddd;
-      padding: 8px 15px;
-      border-radius: 15px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: 0.2s;
-    }
-    .vp-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; }
-
-    .panel-right {
-      width: 320px;
-      background-color: var(--bg-panel);
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .prop-scroll { flex: 1; overflow-y: auto; padding: 1rem; }
-
-    .prop-group { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-    .prop-label { font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block; }
-
-    input[type="text"], input[type="number"], select, textarea {
-      width: 100%;
-      background: #1e1e1e;
-      border: 1px solid var(--border);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 4px;
-      outline: none;
-      font-family: inherit;
-    }
-
-    textarea { resize: vertical; min-height: 60px; }
-
-    .dim-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .dim-group { display: flex; flex-direction: column; gap: 4px; }
-    .dim-label { font-size: 0.65rem; color: #666; text-align: center; }
-    .dim-input { text-align: center; padding: 4px !important; font-size: 0.85rem; }
-
-    .layer-item {
-      background: #2d2d30;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      margin-bottom: 8px;
-      overflow: hidden;
-      cursor: pointer;
-    }
-    .layer-item.active-layer { border-color: var(--accent); }
-    .layer-header { padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
-    .color-preview { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); }
-    .layer-content { padding: 10px; background: #252526; display: none; border-top: 1px solid var(--border); }
-    .layer-item.open .layer-content { display: block; }
-
-    .part-control-row { margin-bottom: 10px; }
-    .part-control-label { font-size: 0.7rem; color: #777; text-transform: uppercase; margin-bottom: 5px; }
-
-    .clickable-design-val {
-      background: #1e1e1e;
-      padding: 6px 10px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      font-size: 0.85rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .mat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
-    .mat-card-lg {
-      aspect-ratio: 1;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: 0.2s;
-      background: #1e1e1e;
-    }
-    .mat-card-lg:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .mat-card-icon { font-size: 1.2rem; }
-    .mat-card-name { font-size: 0.6rem; margin-top: 4px; color: #999; text-align: center; }
-
-    .footer-bar {
-      height: 60px;
-      background: #2d2d30;
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.2rem;
-    }
-    .total-price { font-size: 1.2rem; font-weight: 800; color: var(--gold); }
-
-    /* Modal */
-    .design-modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85); z-index: 1000;
-      display: none; align-items: center; justify-content: center;
-    }
-    .design-modal-overlay.open { display: flex; }
-    .design-modal {
-      background: #252526; width: 500px; max-height: 80vh; border-radius: 12px;
-      border: 1px solid var(--border); display: flex; flex-direction: column;
-    }
-    .modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
-    .modal-scroll { padding: 20px; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-    .design-card {
-      background: #2d2d30; border: 1px solid var(--border); border-radius: 8px;
-      padding: 15px; text-align: center; cursor: pointer; transition: 0.2s;
-    }
-    .design-card:hover { border-color: var(--accent); background: #37373d; }
-    .design-icon { font-size: 2rem; color: #888; margin-bottom: 10px; }
-    .design-name { font-size: 0.8rem; font-weight: 600; }
-
-    .score-card {
-      position: absolute; top: 90px; right: 10px;
-      background: rgba(18, 18, 20, 0.92); backdrop-filter: blur(6px);
-      padding: 18px 20px; border-radius: 10px; width: 260px;
-      border: 1px solid #444; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-      z-index: 20;
-    }
-    .score-card.minimized #design-analysis-content { display: none; }
-    .score-title { font-size: 0.82rem; font-weight: 800; color: #e8e8e8; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-
   </style>
 </head>
-
 <body>
+
   <header>
-    <div class="brand">
-      <img src="images/FurniCraft Logo without name.png" alt="Logo" style="height: 1.3em;">
-      <span>3D Template Builder: Stool</span>
+    <div class="brand"><img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft Studio — Bar Stool Pro</div>
+    <div class="header-center">
+      <div class="height-badge"><i class="fas fa-ruler-vertical"></i><span id="height-badge-text">Standard Height</span></div>
     </div>
-    <div class="header-actions">
-      <button class="btn-header btn-back" onclick="window.location.href='shop_studio.html'"><i class="fas fa-arrow-left"></i> Exit Builder</button>
-      <button class="btn-header btn-publish" onclick="publishTemplate()"><i class="fas fa-cloud-upload-alt"></i> Upload to Templates</button>
+    <div class="header-controls" style="display: flex; gap: 10px;">
+      <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
+      <button class="btn-export" style="background: linear-gradient(135deg,#10b981,#059669) !important;" onclick="uploadToTemplates()">
+        <i class="fas fa-cloud-upload-alt"></i> Upload to Templates
+      </button>
     </div>
   </header>
 
   <div class="workspace">
     <aside class="panel-left">
-      <div class="panel-header"><span><i class="fas fa-layer-group"></i> My Drafts</span></div>
+      <div class="panel-header">
+        <span><i class="fas fa-folder-open" style="color:var(--accent);margin-right:8px;"></i>Stool Projects</span>
+        <button class="info-btn" onclick="showTooltip(event,'left-panel-info')"><i class="fas fa-info"></i></button>
+      </div>
       <div class="scene-list" id="scene-list"></div>
-      <button class="btn-add" onclick="addNewProject()"><i class="fas fa-plus"></i> New Template Design</button>
+      
+      <div id="prev-project-bar" class="prev-project-bar" style="display:none">
+        <div class="prev-project-label">Previous Project</div>
+        <div style="height:1px;background:#333;margin:0 10px;"></div>
+        <div class="prev-project-item" onclick="goToPrevProject()">
+          <span class="prev-project-name"><i class="fas fa-history" style="color:#777;"></i><span id="prev-project-name-text">—</span></span>
+          <span class="prev-project-link"><i class="fas fa-external-link-alt"></i> Open</span>
+        </div>
+      </div>
+      
+      <button class="btn-add" onclick="goToCraft()"><i class="fas fa-plus"></i> Add New Furniture Project</button>
     </aside>
 
     <main class="viewport">
       <div class="viewport-controls">
-        <button class="vp-btn" onclick="toggleRotation()"><i class="fas fa-sync-alt"></i> Rotation</button>
-        <button class="vp-btn" onclick="toggleDimensions()"><i class="fas fa-ruler"></i> Dimensions</button>
-        <button class="vp-btn" onclick="resetView()"><i class="fas fa-eye"></i> Reset View</button>
+        <button class="vp-btn" id="btn-rotate" onclick="toggleRotation()"><i class="fas fa-pause"></i> Stop Rotate</button>
+        <button class="vp-btn" id="btn-dims" onclick="toggleDimensions()"><i class="fas fa-ruler-combined"></i> Hide Ruler</button>
+        <button class="vp-btn" onclick="resetView()"><i class="fas fa-sync"></i> Full View</button>
+      </div>
+      <!-- Shop Info Badge -->
+      <div id="shop-info-badge" class="shop-info-badge" style="display:none">
+        <div class="shop-info-header" onclick="toggleShopBadge()">
+          <div class="shop-info-label">
+            <i class="fas fa-hammer"></i> Active Workshop
+          </div>
+          <div class="shop-info-toggle-btn" id="shop-badge-toggle-icon">
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+        <div id="shop-info-content">
+          <div class="shop-info-name" id="selected-shop-display-name">
+            <i class="fas fa-store"></i> Furniture Shop
+          </div>
+          <div class="shop-info-label" style="margin-bottom:8px">Available Materials:</div>
+          <div class="shop-info-mats" id="shop-materials-list">
+            <!-- Dynamic -->
+          </div>
+        </div>
       </div>
       <div id="canvas-container"></div>
 
       <div class="score-card" id="design-analysis-card">
         <div class="score-title" onclick="toggleDesignAnalysis()">
-          <span><i class="fas fa-chart-bar"></i> Design Score</span>
-          <i class="fas fa-chevron-down"></i>
+          <span><i class="fas fa-chart-bar" style="color:var(--accent);margin-right:7px;"></i>Design Analysis</span>
+          <button class="score-info-btn" onclick="showTooltip(event,'score-info')"><i class="fas fa-info"></i></button>
+          <div class="score-toggle-btn"><i class="fas fa-chevron-down" id="da-toggle-icon"></i></div>
         </div>
-        <div id="design-analysis-content" style="margin-top:15px;">
-           <div style="font-size:0.75rem; color:#aaa; margin-bottom:5px;">Stability</div>
-           <div style="height:6px; background:#333; border-radius:3px; overflow:hidden; margin-bottom:12px;">
-             <div id="bar-dura" style="height:100%; background:var(--accent); width:88%;"></div>
-           </div>
-           <div style="font-size:0.75rem; color:#aaa; margin-bottom:5px;">Durability</div>
-           <div style="height:6px; background:#333; border-radius:3px; overflow:hidden;">
-             <div id="bar-qual" style="height:100%; background:var(--gold); width:90%;"></div>
-           </div>
+        <div id="design-analysis-content">
+        <div class="score-metric-label"><span>Durability</span><span id="score-dura-val">0%</span></div>
+        <div class="score-bar-bg"><div id="bar-dura" class="score-bar-fill" style="width:0%"></div></div>
+        <div class="score-metric-label"><span>Material Quality</span><span id="score-qual-val">0%</span></div>
+        <div class="score-bar-bg"><div id="bar-qual" class="score-bar-fill" style="width:0%"></div></div>
+        <div id="rec-status"></div>
+      </div>
+      </div>
+
+      <div id="design-modal-overlay" class="modal-overlay design-modal-overlay" onclick="closeDesignModalBg(event)">
+        <div class="design-modal" onclick="event.stopPropagation()">
+          <button class="btn-close-modal" onclick="closeDesignModal()">×</button>
+          <div id="design-modal-title" class="modal-title">Select Design</div>
+          <div id="design-modal-scroll" class="modal-scroll-area"></div>
         </div>
       </div>
     </main>
 
     <aside class="panel-right">
-      <div class="panel-header"><span><i class="fas fa-sliders-h"></i> Configuration</span></div>
+      <div class="panel-header">
+        <span><i class="fas fa-sliders-h" style="color:var(--accent);margin-right:8px;"></i>Stool Properties</span>
+        <button class="info-btn" onclick="showTooltip(event,'right-panel-info')"><i class="fas fa-info"></i></button>
+      </div>
       <div class="prop-scroll">
-        
+
         <div class="prop-group">
-          <label class="prop-label">Project Identity</label>
-          <input type="text" id="project-name-input" placeholder="Template Name" oninput="updateProjectName(this.value)">
-          <textarea id="template-desc" placeholder="Brief description..." style="margin-top:8px;" oninput="updateProjectDesc(this.value)"></textarea>
-          
-          <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <select id="tmpl-gender" onchange="updateProjectGender(this.value)">
-              <option value="neutral">Neutral Style</option>
-              <option value="boy">Masculine</option>
-              <option value="girl">Feminine</option>
-            </select>
-            <select id="tmpl-badge" onchange="updateProjectBadge(this.value)">
-              <option value="new">New</option>
-              <option value="featured">Featured</option>
-              <option value="premium">Premium</option>
-            </select>
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-tag"></i></div>
+            <label class="prop-label">Project Name</label>
+            <button class="info-btn" onclick="showTooltip(event,'proj-name-info')"><i class="fas fa-info"></i></button>
           </div>
+          <input type="text" id="project-name" placeholder="Stool Project Name" oninput="updateProjectName(this.value)">
         </div>
 
         <div class="prop-group">
-          <label class="prop-label">Stool Type</label>
-          <select id="stool-type-select" onchange="changeStoolType(this.value)">
-            <option value="low">Dining Stool (45cm)</option>
-            <option value="counter" selected>Counter Stool (65cm)</option>
-            <option value="bar">Bar Stool (75cm)</option>
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-venus-mars"></i></div>
+            <label class="prop-label">Gender Preference</label>
+          </div>
+          <select id="gender-pref" onchange="updateGenderPref(this.value)">
+            <option value="neutral">Neutral / Unisex</option>
+            <option value="male">Masculine / Male</option>
+            <option value="female">Feminine / Female</option>
           </select>
         </div>
 
         <div class="prop-group">
-           <label class="prop-label">Global Scale</label>
-           <div class="range-row" style="display:flex; align-items:center; gap:10px; color:#aaa; font-size:0.8rem;">
-             <span>Scale</span>
-             <input type="range" id="gs-slider" min="50" max="150" value="100" style="flex:1;" oninput="updateGlobalScale('x', this.value)">
-             <span id="gs-x">100</span>%
-           </div>
-        </div>
-
-        <div class="prop-group">
-          <label class="prop-label">Parts & Materials</label>
-          <div id="layers-container"></div>
-        </div>
-
-        <div class="prop-group">
-          <label class="prop-label">Structural Details</label>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <button class="vp-btn" id="toggle-footrest" onclick="toggleFeature('hasFootrest', this)" style="border:1px solid #444;">Footrest Ring</button>
-            <button class="vp-btn" id="toggle-back" onclick="toggleFeature('hasBack', this)" style="border:1px solid #444;">Short Backrest</button>
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-ruler-vertical"></i></div>
+            <label class="prop-label">Height Type</label>
+            <button class="info-btn" onclick="showTooltip(event,'height-info')"><i class="fas fa-info"></i></button>
+          </div>
+          <div class="height-preset-title">Standard Seat Heights</div>
+          <div class="height-presets">
+            <div class="height-preset-btn" id="hpre-counter" onclick="applyHeightPreset('counter')">Counter<br><small style="font-weight:400;color:#999;">60–66 cm</small></div>
+            <div class="height-preset-btn" id="hpre-bar" onclick="applyHeightPreset('bar')">Bar<br><small style="font-weight:400;color:#999;">73–79 cm</small></div>
+            <div class="height-preset-btn" id="hpre-xtall" onclick="applyHeightPreset('xtall')">Extra Tall<br><small style="font-weight:400;color:#999;">81–86 cm</small></div>
+            <div class="height-preset-btn" id="hpre-custom" onclick="applyHeightPreset('custom')">Custom<br><small style="font-weight:400;color:#999;">Manual</small></div>
           </div>
         </div>
 
         <div class="prop-group">
-          <label class="prop-label">Material Library</label>
-          <div class="mat-grid" id="mat-grid"></div>
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-expand-arrows-alt"></i></div>
+            <label class="prop-label">Global Scale</label>
+            <button class="info-btn" onclick="showTooltip(event,'scale-info')"><i class="fas fa-info"></i></button>
+          </div>
+          <div class="range-row"><label>Width</label><input type="range" id="inp-scale-x" min="50" max="200" value="100" oninput="updateGlobalScale('x',this.value)"><span class="val-display" id="gs-x">100</span></div>
+          <div class="range-row"><label>Height</label><input type="range" id="inp-scale-y" min="50" max="200" value="100" oninput="updateGlobalScale('y',this.value)"><span class="val-display" id="gs-y">100</span></div>
+          <div class="range-row"><label>Depth</label><input type="range" id="inp-scale-z" min="50" max="200" value="100" oninput="updateGlobalScale('z',this.value)"><span class="val-display" id="gs-z">100</span></div>
         </div>
 
+        <div class="prop-group">
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-palette"></i></div>
+            <label class="prop-label">Material Library</label>
+            <button class="info-btn" onclick="showTooltip(event,'material-info')"><i class="fas fa-info"></i></button>
+          </div>
+          <div class="instruction-text">Select a Layer below, then click a Material to apply.</div>
+          <div id="rec-mat-container" style="display:none">
+            <div class="mat-section-title"><i class="fas fa-star"></i> Recommended</div>
+            <div class="mat-grid-large" id="rec-mat-grid"></div>
+          </div>
+          <div class="mat-section-title" style="color:#777;margin-top:12px;">All Materials</div>
+          <div class="mat-grid-large" id="all-mat-grid"></div>
+        </div>
+
+        <div class="prop-group">
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-toggle-on"></i></div>
+            <label class="prop-label">Structural Features</label>
+            <button class="info-btn" onclick="showTooltip(event,'features-info')"><i class="fas fa-info"></i></button>
+          </div>
+          
+          <div style="font-size:0.75rem;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;">Footrest</div>
+          <div class="toggle-row">
+            <span class="toggle-label">Ring Rest</span>
+            <button id="toggle-footrest" class="toggle-btn" onclick="toggleFeature('hasFootrest',this)">Off</button>
+            <span class="toggle-label" style="margin-left: 20px;">H-Bar Rest</span>
+            <button id="toggle-hbar" class="toggle-btn" onclick="toggleFeature('hasHBar',this)">Off</button>
+          </div>
+          
+          <div style="font-size:0.75rem;color:#888;margin-top:16px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;">Back &amp; Structure</div>
+          <div class="toggle-row">
+            <span class="toggle-label">Back Rest</span>
+            <button id="toggle-back" class="toggle-btn" onclick="toggleFeature('hasBack',this)">Off</button>
+            <span class="toggle-label" style="margin-left: 20px;">Swivel Base</span>
+            <button id="toggle-swivel" class="toggle-btn" onclick="toggleFeature('hasSwivel',this)">Off</button>
+          </div>
+          
+          <div class="toggle-row" style="margin-top:10px;">
+            <span class="toggle-label">X-Brace</span>
+            <button id="toggle-xbrace" class="toggle-btn" onclick="toggleFeature('hasXBrace',this)">Off</button>
+            <span class="toggle-label" style="margin-left: 20px;">Stretcher</span>
+            <button id="toggle-stretcher" class="toggle-btn" onclick="toggleFeature('hasStretcher',this)">Off</button>
+          </div>
+        </div>
+
+        <div class="prop-group">
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-layer-group"></i></div>
+            <label class="prop-label">Layers</label>
+            <button class="info-btn" onclick="showTooltip(event,'layers-info')"><i class="fas fa-info"></i></button>
+          </div>
+          <div id="layers-container"></div>
+        </div>
+
+        <div class="prop-group">
+          <div class="section-header">
+            <div class="section-icon"><i class="fas fa-magic"></i></div>
+            <label class="prop-label">Stool Accessories</label>
+            <button class="info-btn" onclick="showTooltip(event,'accessories-info')"><i class="fas fa-info"></i></button>
+          </div>
+          <div id="accessories-container"></div>
+        </div>
+        
       </div>
       <div class="footer-bar">
-        <span style="font-size:0.8rem; color:#888;">Suggested Price</span>
-        <div class="total-price" id="total-price">₱0</div>
+        <span>Estimated Cost</span>
+        <div class="total-price" id="total-price" contenteditable="true" oninput="this.dataset.manual='true'">&#8369;0</div>
       </div>
     </aside>
   </div>
 
-  <div id="design-modal-overlay" class="design-modal-overlay" onclick="closeDesignModal()">
-    <div class="design-modal" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <div class="design-name" id="modal-title">Select Design</div>
-        <i class="fas fa-times" style="cursor:pointer;" onclick="closeDesignModal()"></i>
+  <div id="confirm-overlay">
+    <div class="confirm-box">
+      <div class="confirm-icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="confirm-title" id="conf-title">Confirm Action</div>
+      <div class="confirm-body" id="conf-body">Are you sure?</div>
+      <div class="confirm-btns">
+        <button class="confirm-btn cancel" onclick="confirmCancel()">Cancel</button>
+        <button class="confirm-btn ok" onclick="confirmOk()">Confirm</button>
       </div>
-      <div class="modal-scroll" id="design-modal-scroll"></div>
     </div>
   </div>
 
-  <script>
-    /* ==========================================================================
-       DATABASES & ASSETS
-       ========================================================================== */
-    const materialDB = {
-      narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2 },
-      mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8 },
-      oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5 },
-      steel: { name: 'Dark Steel', icon: '🔩', hex: '#2c2c2c', dura: 98, qual: 70, price: 3.5 },
-      leather: { name: 'Cognac Leather', icon: '🐄', hex: '#b35a1f', dura: 75, qual: 95, price: 4.8 }
-    };
+  <div id="info-tooltip" class="info-tooltip">
+    <div class="info-tooltip-title" id="tt-title"></div>
+    <div class="info-tooltip-body" id="tt-body"></div>
+    <div class="info-tooltip-tip" id="tt-tip"></div>
+  </div>
 
-    const shapeDB = {
-      seat: [
-        { id: 'round', name: 'Round Seat', icon: 'circle' },
-        { id: 'square', name: 'Square Seat', icon: 'square' },
-        { id: 'ergo', name: 'Ergo Curve', icon: 'moon' }
-      ],
-      legs: [
-        { id: 'tapered', name: 'Tapered Legs', icon: 'caret-up' },
-        { id: 'square', name: 'Straight Square', icon: 'columns' },
-        { id: 'hairpin', name: 'Hairpin Metal', icon: 'paperclip' }
-      ],
-      footrest: [
-        { id: 'ring', name: 'Ring Support', icon: 'sync' },
-        { id: 'bars', name: 'Standard Bars', icon: 'grip-lines' }
-      ]
-    };
 
-    const assetsDB = { stool: { parts: ['Seat', 'Legs', 'Footrest'] } };
 
-    /* ==========================================================================
-       THREE.JS SETUP
-       ========================================================================== */
-    let scene, camera, renderer, controls, currentGroup;
-
-    function init3D() {
-      const container = document.getElementById('canvas-container');
-      scene = new THREE.Scene(); scene.background = new THREE.Color(0x1e1e1e);
-      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-      camera.position.set(8, 6, 8);
-      renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      renderer.shadowMap.enabled = true;
-      container.appendChild(renderer.domElement);
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true; controls.autoRotate = true;
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); scene.add(ambientLight);
-      const spotLight = new THREE.SpotLight(0xffffff, 0.8); spotLight.position.set(10, 20, 10); spotLight.castShadow = true; scene.add(spotLight);
-      animate(); window.addEventListener('resize', onWindowResize);
+<script>
+/* ============================================================  NAVIGATION & EXPORT */
+function goToCraft() {
+    saveState();
+    const ai = getActiveItem();
+    if (ai) {
+        sessionStorage.setItem('prevProjectName', ai.name);
+        sessionStorage.setItem('prevProjectPage', 'stool.html');
     }
-    function onWindowResize() {
-      const container = document.getElementById('canvas-container');
-      camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
-    }
-    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+    const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
+}
 
-    /* ==========================================================================
-       STATE MANAGEMENT
-       ========================================================================== */
-    let appState = { items: [], activeItemId: 0, activeLayer: 'Seat' };
-    let isRotating = true;
+function uploadToTemplates() {
+      try {
+        // Capture 3D preview screenshot (Downscaled to prevent localStorage QuotaExceededError)
+        let previewDataUrl = '';
+        try {
+          if (typeof controls !== 'undefined') controls.autoRotate = false;
+          if (typeof showDimensions !== 'undefined' && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
+          if (typeof renderer !== 'undefined' && typeof scene !== 'undefined' && typeof camera !== 'undefined') renderer.render(scene, camera);
+          
+          const canvas = document.querySelector('#canvas-container canvas');
+          if (canvas) {
+            const tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width = 400; // max width
+            tmpCanvas.height = Math.floor(400 * (canvas.height / canvas.width));
+            const ctx = tmpCanvas.getContext('2d');
+            ctx.drawImage(canvas, 0, 0, tmpCanvas.width, tmpCanvas.height);
+            previewDataUrl = tmpCanvas.toDataURL('image/jpeg', 0.6); // heavily compress
+          }
+          
+          if (typeof controls !== 'undefined') controls.autoRotate = true;
+          if (typeof showDimensions !== 'undefined' && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
+        } catch(e) { console.warn("Screenshot failed:", e); }
 
-    function initApp() {
-      const saved = localStorage.getItem('builder_stool_drafts');
-      if (saved) appState.items = JSON.parse(saved);
-      if (appState.items.length === 0) {
-        appState.items.push(createNewDesignData('Modern Counter Stool'));
-      }
-      renderUI(); init3D(); build3DScene();
-    }
+        const nameInput = document.getElementById('project-name');
+        const projectName = (nameInput && nameInput.value ? nameInput.value.trim() : '') || 'Custom Stool';
+        const priceEl = document.getElementById('total-price');
+        const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
+        const costVal = parseFloat(priceText) || 8000;
 
-    function createNewDesignData(name) {
-      return {
-        id: Date.now(), name: name, type: 'stool',
-        description: 'Chic minimalist stool template for bars or counters.', tmplBadge: 'featured', tmplGender: 'neutral',
-        selections: { Seat: '#8B4513', Legs: '#8B4513', Footrest: '#2c2c2c' },
-        shapes: { Seat: 'round', Legs: 'tapered', Footrest: 'ring' },
-        dims: {
-          Seat: { w: 35, h: 5, d: 35 },
-          Legs: { w: 4, h: 65, d: 4 },
-          Footrest: { w: 30, h: 2, d: 30 }
-        },
-        globalScale: { x: 1, y: 1, z: 1 },
-        hasFootrest: true, hasBack: false
-      };
-    }
-
-    function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId) || appState.items[0]; }
-
-    function renderUI() {
-      renderSceneList(); renderProperties(); updatePrice();
-    }
-
-    function renderSceneList() {
-      const list = document.getElementById('scene-list'); list.innerHTML = '';
-      appState.items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
-        div.onclick = () => { appState.activeItemId = item.id; renderUI(); build3DScene(); };
-        div.innerHTML = `<span><i class="fas fa-chair"></i> ${item.name}</span>
-          <button class="btn-delete" onclick="event.stopPropagation(); deleteProject(${item.id})"><i class="fas fa-trash"></i></button>`;
-        list.appendChild(div);
-      });
-    }
-
-    function renderProperties() {
-      const active = getActiveItem(); if (!active) return;
-      document.getElementById('project-name-input').value = active.name;
-      document.getElementById('template-desc').value = active.description || '';
-      document.getElementById('tmpl-gender').value = active.tmplGender || 'neutral';
-      document.getElementById('tmpl-badge').value = active.tmplBadge || 'new';
-
-      const matGrid = document.getElementById('mat-grid'); matGrid.innerHTML = '';
-      Object.keys(materialDB).forEach(k => {
-        const m = materialDB[k];
-        const card = document.createElement('div'); card.className = 'mat-card-lg';
-        card.onclick = () => { active.selections[appState.activeLayer] = m.hex; renderUI(); build3DScene(); };
-        card.innerHTML = `<div class="mat-card-icon">${m.icon}</div><div class="mat-card-name">${m.name}</div>`;
-        matGrid.appendChild(card);
-      });
-
-      const container = document.getElementById('layers-container'); container.innerHTML = '';
-      assetsDB.stool.parts.forEach(part => {
-        const isActive = appState.activeLayer === part;
-        const hex = active.selections[part];
-        const shape = (shapeDB[part.toLowerCase()] || []).find(s => s.id === active.shapes[part])?.name || 'Standard';
+        const ai = (typeof getActiveItem === 'function') ? getActiveItem() : null;
+        let selections = {}, carvings = {}, shapes = {}, dims = {}, scale = {x:1,y:1,z:1};
+        try {
+          selections = (ai && ai.selections) ? JSON.parse(JSON.stringify(ai.selections)) : {};
+          carvings = (ai && ai.carvings) ? JSON.parse(JSON.stringify(ai.carvings)) : {};
+          shapes = (ai && ai.shapes) ? JSON.parse(JSON.stringify(ai.shapes)) : {};
+          dims = (ai && ai.dims) ? JSON.parse(JSON.stringify(ai.dims)) : {};
+          scale = (ai && ai.globalScale) ? JSON.parse(JSON.stringify(ai.globalScale)) : {x:1,y:1,z:1};
+        } catch(e) { console.warn("Deep copy failed:", e); }
         
-        const div = document.createElement('div');
-        div.className = 'layer-item' + (isActive ? ' active-layer open' : '');
-        div.onclick = (e) => { if (!e.target.closest('.clickable-design-val') && !e.target.closest('input')) { appState.activeLayer = part; renderProperties(); } };
+        const partsList = (ai && ai.parts) ? ai.parts : Object.keys(selections);
+
+        const tmpl = {
+          id: Date.now() + Math.floor(Math.random()*9000+10000),
+          type: 'stool', name: projectName, icon: 'fa-chair', badge: 'new',
+          gender: (ai && ai.gender) ? ai.gender : 'neutral',
+          description: 'Custom stool crafted in the 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
+          tags: ['Stool','Custom','Shop Design'], parts: partsList, selections: selections,
+          carvings: carvings, shapes: shapes, dims: dims, scale: scale, basePrice: costVal,
+          previewDataUrl: previewDataUrl, publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
+          publishedAt: new Date().toISOString(), designData: ai
+        };
+
+        let globals = [];
+        try { globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]'); } catch(e) { globals = []; }
+        if (!Array.isArray(globals)) globals = [];
         
-        let html = `
-          <div class="layer-header"><span><i class="fas fa-layer-group"></i> ${part}</span><div class="color-preview" style="background:${hex}"></div></div>
-          <div class="layer-content">
-            <div class="part-control-row">
-              <div class="part-control-label">Shape / Style</div>
-              <div class="clickable-design-val" onclick="openDesignModal('${part}', 'shape')"><span>${shape}</span> <i class="fas fa-edit"></i></div>
-            </div>
-            <div class="part-control-row">
-              <div class="part-control-label">Dimensions (cm)</div>
-              <div class="dim-row">
-                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].w}" oninput="updateDim('${part}','w',this.value)"><div class="dim-label">W</div></div>
-                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].h}" oninput="updateDim('${part}','h',this.value)"><div class="dim-label">H</div></div>
-                <div class="dim-group"><input class="dim-input" type="number" value="${active.dims[part].d}" oninput="updateDim('${part}','d',this.value)"><div class="dim-label">D</div></div>
-              </div>
-            </div>
-          </div>`;
-        div.innerHTML = html; container.appendChild(div);
-      });
+        // Remove older templates if we exceed 20 to prevent quota issues even with compression
+        if (globals.length > 20) globals = globals.slice(0, 20);
+        
+        globals.unshift(tmpl);
+        localStorage.setItem('shop_templates_global', JSON.stringify(globals));
+        
+        let custom = [];
+        try { custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]'); } catch(e) { custom = []; }
+        if (!Array.isArray(custom)) custom = [];
+        
+        if (custom.length > 20) custom = custom.slice(0, 20);
+        
+        custom.unshift(tmpl);
+        localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
 
-      ['hasFootrest', 'hasBack'].forEach(f => {
-         const btn = document.getElementById('toggle-' + f.replace('has','').toLowerCase());
-         if(btn) btn.classList.toggle('active', !!active[f]);
-      });
-    }
-
-    function updateDim(p, a, v) { getActiveItem().dims[p][a] = parseInt(v) || 1; build3DScene(); updatePrice(); }
-    function updateGlobalScale(a, v) { getActiveItem().globalScale[a] = v / 100; document.getElementById('gs-' + a).innerText = v; build3DScene(); updatePrice(); }
-    function updateProjectName(v) { getActiveItem().name = v; renderSceneList(); }
-    function updateProjectDesc(v) { getActiveItem().description = v; }
-    function updateProjectGender(v) { getActiveItem().tmplGender = v; }
-    function updateProjectBadge(v) { getActiveItem().tmplBadge = v; }
-    function toggleFeature(f, b) { const active = getActiveItem(); active[f] = !active[f]; renderProperties(); build3DScene(); updatePrice(); }
-
-    function changeStoolType(v) {
-      const active = getActiveItem();
-      if(v === 'low') active.dims.Legs.h = 45;
-      if(v === 'counter') active.dims.Legs.h = 65;
-      if(v === 'bar') active.dims.Legs.h = 75;
-      renderProperties(); build3DScene(); updatePrice();
-    }
-
-    function updatePrice() {
-      const active = getActiveItem(); if (!active) return;
-      let cost = 3500;
-      Object.keys(active.dims).forEach(p => {
-        const d = active.dims[p]; const vol = (d.w * d.h * d.d) / 2000;
-        const hex = active.selections[p]; const m = Object.values(materialDB).find(m => m.hex === hex) || materialDB.mahogany;
-        cost += vol * m.price;
-      });
-      cost *= (active.globalScale.x);
-      document.getElementById('total-price').innerText = '₱' + Math.round(cost).toLocaleString();
-    }
-
-    /* ==========================================================================
-       3D SCENE CONSTRUCTION
-       ========================================================================== */
-    function build3DScene() {
-      if (!scene) return; if (currentGroup) scene.remove(currentGroup);
-      currentGroup = new THREE.Group();
-      const active = getActiveItem(); const SCALE = 50;
-
-      const getMat = (hex) => new THREE.MeshStandardMaterial({ color: hex, roughness: 0.7, metalness: 0.1 });
-      const addMesh = (geo, hex, x, y, z, rx=0, ry=0, rz=0) => {
-        const mesh = new THREE.Mesh(geo, getMat(hex)); mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz);
-        mesh.castShadow = true; mesh.receiveShadow = true; currentGroup.add(mesh); return mesh;
-      };
-
-      const dS = { w: active.dims.Seat.w / SCALE, h: active.dims.Seat.h / SCALE, d: active.dims.Seat.d / SCALE };
-      const dL = { w: active.dims.Legs.w / SCALE, h: active.dims.Legs.h / SCALE, d: active.dims.Legs.d / SCALE };
-      const dF = { w: active.dims.Footrest.w / SCALE, h: active.dims.Footrest.h / SCALE, d: active.dims.Footrest.d / SCALE };
-
-      // Seat
-      if(active.shapes.Seat === 'round') {
-        addMesh(new THREE.CylinderGeometry(dS.w/2, dS.w/2, dS.h, 32), active.selections.Seat, 0, dL.h + dS.h/2, 0);
-      } else {
-        addMesh(new THREE.BoxGeometry(dS.w, dS.h, dS.d), active.selections.Seat, 0, dL.h + dS.h/2, 0);
+        if (typeof saveState === 'function') saveState();
+        alert('\u2705 "' + tmpl.name + '" has been uploaded to Templates!');
+        window.location.href = 'templates.html';
+      } catch (err) {
+        alert("Error saving template: " + err.message + "\n\nTry clearing your browser cache/storage if quota exceeded.");
+        console.error(err);
       }
+    }
 
-      // Backrest
-      if(active.hasBack) {
-        addMesh(new THREE.BoxGeometry(dS.w, 0.4, 0.05), active.selections.Seat, 0, dL.h + dS.h + 0.2, -dS.d/2);
-      }
+function goToCraft(){ 
+  saveState();
+  const ai=getActiveItem();
+  if(ai){ sessionStorage.setItem('prevProjectName',ai.name); sessionStorage.setItem('prevProjectPage','stool.html'); }
+  window.location.href='craft.html'; 
+}
+function goToPrevProject(){ const p=sessionStorage.getItem('prevProjectPage'); if(p) window.location.href=p; }
+function loadPrevProjectBar(){
+  const n=sessionStorage.getItem('prevProjectName'), p=sessionStorage.getItem('prevProjectPage');
+  const bar=document.getElementById('prev-project-bar'), el=document.getElementById('prev-project-name-text');
+  if(n&&p&&bar&&el){ el.textContent=n; bar.style.display='block'; }
+}
 
-      // Legs (Angular/Tapered)
-      const ang = 0.15;
-      [[ang, ang], [-ang, ang], [ang, -ang], [-ang, -ang]].forEach(([rx, rz]) => {
-        const leg = addMesh(new THREE.BoxGeometry(dL.w, dL.h, dL.d), active.selections.Legs, rx*dL.h, dL.h/2, rz*dL.h);
-        leg.rotation.set(rz*2, 0, -rx*2);
+/* ============================================================  TOOLTIPS  */
+const tooltipData={
+  'left-panel-info':   {icon:'fas fa-folder-open', title:'Stool Projects',      body:'Manage all your stool designs. Each project saves independently.',         tip:'Click "Add New Furniture Project" to start fresh.'},
+  'right-panel-info':  {icon:'fas fa-sliders-h',   title:'Properties Panel',    body:'All editable properties live here and update the 3D model in real time.',  tip:'Scroll down to find the Layers section for per-part editing.'},
+  'score-info':        {icon:'fas fa-chart-bar',   title:'Design Analysis',     body:'Durability = structural longevity. Material Quality = finish and premium-ness.', tip:'Use Recommended materials for highest scores.'},
+  'proj-name-info':    {icon:'fas fa-tag',         title:'Project Name',        body:'This label appears in the project list and becomes the export filename.',   tip:'e.g. "Industrial Chrome Bar Stool" or "Narra Heritage Counter Stool".'},
+  'height-info':       {icon:'fas fa-ruler-vertical',title:'Height Type',       body:'Counter (60–66cm) for kitchen islands. Bar (73–79cm) for bar counters. Extra tall for commercial bars.', tip:'Applies preset seat height; you can still fine-tune in Layers.'},
+  'scale-info':        {icon:'fas fa-expand-arrows-alt',title:'Global Scale',   body:'Resize the entire stool uniformly on 3 axes.',                              tip:'Use Dimensions inside each Layer for precise per-part sizing.'},
+  'material-info':     {icon:'fas fa-palette',      title:'Material Library',    body:'PH hardwoods, metal, upholstery — each with unique Durability, Quality, and Price values.',tip:'Select a Layer first, then click a material tile to apply.'},
+  'features-info':     {icon:'fas fa-toggle-on',    title:'Structural Features', body:'Ring Footrest = circular metal ring between legs. H-Bar = horizontal bar stretcher. Back Rest adds a rear support. Swivel adds a rotating seat mechanism.', tip:'Swivel base auto-adds a chrome column even on pedestal stools.'},
+  'layers-info':       {icon:'fas fa-layer-group',  title:'Layers',              body:'Four independent parts: Seat, Legs, Back, and Footrest. Each has its own shape, texture, color, and dimensions.', tip:'Click the eye icon to focus the camera on that part.'},
+  'lyr-shape-info':    {icon:'fas fa-shapes',        title:'Shape / Base Style',  body:'The fundamental 3D geometry of this part.',                                 tip:'Saddle, bicycle and tractor seats suit ergonomic/industrial stools.'},
+  'lyr-holes-info':    {icon:'fas fa-circle-notch',  title:'Seat Cutout',         body:'Decorative cutout or ventilation hole in the seat.',                        tip:'Ventilation holes are common in modern contract stools.'},
+  'lyr-carving-info':  {icon:'fas fa-drafting-compass',title:'Carving / Texture', body:'Surface texture or carving applied as a bump map.',                         tip:'Woven rattan and leather textures suit contemporary styles.'},
+  'lyr-color-info':    {icon:'fas fa-eye-dropper',   title:'Hex Color',           body:'Set exact color via picker or hex code.',                                   tip:'Use hex values matching a Material Library entry for accurate scoring.'},
+  'lyr-dims-info':     {icon:'fas fa-ruler-combined',title:'Dimensions (cm)',     body:'Exact physical dimensions in centimetres for this part only.',               tip:'Standard bar stool seat: 35–40 cm diameter or square.'},
+  'lyr-radius-info':   {icon:'fas fa-circle-notch',  title:'Corner Radius',       body:'Rounds seat corners. 0 = sharp, 100 = fully round.',                        tip:'Works on square, rectangular seat shapes.'},
+  'accessories-info':  {icon:'fas fa-magic',         title:'Stool Accessories',   body:'Seat cushions, anti-scratch feet, armrests, cup holders, and more.',        tip:'Toggle each accessory independently. All update the estimated cost.'}
+};
+let activeTooltip=null;
+function showTooltip(event,key){
+  event.stopPropagation();
+  const data=tooltipData[key]; if(!data) return;
+  const tt=document.getElementById('info-tooltip');
+  if(activeTooltip===key&&tt.classList.contains('visible')){ hideTooltip(); return; }
+  activeTooltip=key;
+  document.getElementById('tt-title').innerHTML='<i class="'+data.icon+'"></i>&nbsp;'+data.title;
+  document.getElementById('tt-body').textContent=data.body;
+  document.getElementById('tt-tip').innerHTML='<i class="fas fa-lightbulb"></i> '+data.tip;
+  const rect=event.currentTarget.getBoundingClientRect();
+  let left=rect.left-302-10, top=rect.top-10;
+  if(left<8) left=rect.right+10;
+  if(left+302>window.innerWidth-8) left=window.innerWidth-310;
+  if(top+200>window.innerHeight-10) top=window.innerHeight-210;
+  if(top<8) top=8;
+  tt.style.left=left+'px'; tt.style.top=top+'px'; tt.classList.add('visible');
+}
+function hideTooltip(){ document.getElementById('info-tooltip').classList.remove('visible'); activeTooltip=null; }
+document.addEventListener('click',e=>{ if(!e.target.closest('.info-btn')&&!e.target.closest('.score-info-btn')&&!e.target.closest('.lbl-info-btn')&&!e.target.closest('#info-tooltip')) hideTooltip(); });
+
+/* ============================================================  CONFIRM  */
+let _confirmCallback=null;
+function showConfirm(title,body,cb){ document.getElementById('conf-title').textContent=title; document.getElementById('conf-body').innerHTML=body; _confirmCallback=cb; document.getElementById('confirm-overlay').classList.add('open'); }
+function confirmCancel(){ document.getElementById('confirm-overlay').classList.remove('open'); _confirmCallback=null; }
+function confirmOk(){ document.getElementById('confirm-overlay').classList.remove('open'); if(_confirmCallback) _confirmCallback(); _confirmCallback=null; }
+
+/* ============================================================  DATABASES  */
+const materialDB = {
+  narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2, rec: true, note: 'National tree of PH. Dense, golden-brown hardwood.' },
+  ipil: { name: 'Ipil', icon: '🌳', hex: '#6B4226', dura: 98, qual: 96, price: 4.8, rec: true, note: 'Highly durable, termite-resistant local hardwood.' },
+  dao: { name: 'Dao', icon: '🪵', hex: '#4B3621', dura: 92, qual: 97, price: 4.5, rec: true, note: 'Premium local wood with distinctive dark streaks.' },
+  guijo: { name: 'Guijo', icon: '🌳', hex: '#8B4513', dura: 96, qual: 94, price: 4.1, rec: true, note: 'Extremely dense and strong for heavy slabs.' },
+  apitong: { name: 'Apitong', icon: '🌲', hex: '#A0522D', dura: 94, qual: 88, price: 3.6, rec: true, note: 'Tough, resilient wood ideal for structural bases.' },
+  kamagong: { name: 'Kamagong', icon: '🪵', hex: '#2c1a0e', dura: 97, qual: 99, price: 5.5, rec: true, note: 'Philippine Ebony. Extremely hard and durable.' },
+  molave: { name: 'Molave', icon: '🌳', hex: '#6b4226', dura: 93, qual: 95, price: 4.0, rec: true, note: 'Very hard PH hardwood. Termite-resistant.' },
+  mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true, note: 'Classic furniture wood. Rich reddish-brown.' },
+  tanguile: { name: 'Tanguile', icon: '🌲', hex: '#a0522d', dura: 80, qual: 82, price: 2.2, rec: true, note: 'Philippine red lauan. Common furniture grade.' },
+  yakal: { name: 'Yakal', icon: '🌳', hex: '#7a4f2e', dura: 88, qual: 86, price: 3.1, rec: true, note: 'Heavy PH hardwood. Strong and resistant.' },
+  rattan: { name: 'Rattan', icon: '🧺', hex: '#D2B48C', dura: 75, qual: 85, price: 1.8, rec: true, note: 'Classic woven cane for heritage textures.' },
+  capiz: { name: 'Capiz Shell', icon: '🐚', hex: '#F5F5DC', dura: 60, qual: 95, price: 5.2, rec: true, note: 'Translucent, pearlescent shell for elegant inlays.' },
+  oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true, note: 'Imported. Tight grain, very workable.' },
+  pine: { name: 'Pine', icon: '🌲', hex: '#c8a96e', dura: 55, qual: 58, price: 1.4, rec: true, note: 'Soft imported wood. Budget-friendly but less durable.' },
+  rubber_wood: { name: 'Rubber Wood', icon: '🌿', hex: '#d4b896', dura: 62, qual: 65, price: 1.6, rec: true, note: 'Hevea wood. Eco-friendly, medium hardness.' },
+  bamboo: { name: 'Bamboo', icon: '🎋', hex: '#bdb76b', dura: 70, qual: 72, price: 1.2, rec: true, note: 'Sustainable. Harder than most softwoods.' },
+  walnut: { name: 'Walnut', icon: '🪵', hex: '#3D2B1F', dura: 88, qual: 96, price: 6.2, rec: false, note: 'Luxurious, fine-grained dark brown wood.' },
+  teak: { name: 'Teak', icon: '🌲', hex: '#C19A6B', dura: 95, qual: 94, price: 7.5, rec: false, note: 'Premium, naturally weather-resistant golden-brown wood.' },
+  maple: { name: 'Maple', icon: '🌲', hex: '#F4A460', dura: 82, qual: 88, price: 3.8, rec: false, note: 'Hard, light-colored wood for clean, modern finishes.' },
+  epoxy: { name: 'Epoxy Resin', icon: '🌊', hex: '#00CED1', dura: 85, qual: 90, price: 4.5, rec: false, note: 'Translucent colorful filler for trendy river tables.' },
+  terrazzo: { name: 'Terrazzo', icon: '🪨', hex: '#E0E0E0', dura: 92, qual: 88, price: 5.8, rec: false, note: 'Scratch-resistant composite with stone or glass chips.' },
+  iron: { name: 'Black Iron', icon: '⛓️', hex: '#1A1A1A', dura: 98, qual: 82, price: 3.2, rec: false, note: 'Heavy-duty standard for industrial table legs.' },
+  chrome: { name: 'Chrome', icon: '✨', hex: '#c0c8d0', dura: 90, qual: 94, price: 4.0, rec: false, note: 'High-gloss chrome finish.' },
+  matte_black: { name: 'Matte Black', icon: '⬛', hex: '#1c1c1c', dura: 88, qual: 86, price: 3.2, rec: false, note: 'Powder-coated matte black metal.' },
+  brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, qual: 97, price: 6.8, rec: false, note: 'Warm, vintage metallic accent for frames or inlays.' },
+  marble_white: { name: 'Marble White', icon: '🪨', hex: '#e8e8e8', dura: 90, qual: 99, price: 8.0, rec: false, note: 'Premium stone top. Heavy and luxurious.' },
+  marble_black: { name: 'Marble Black', icon: '⬛', hex: '#2a2a2a', dura: 90, qual: 99, price: 9.0, rec: false, note: 'Premium black stone. Bold and elegant.' },
+  glass_clear: { name: 'Glass Clear', icon: '🔲', hex: '#a8d8ea', dura: 70, qual: 95, price: 5.0, rec: false, note: 'Tempered glass top. Modern look.' },
+  brushed_steel: { name: 'Brushed Steel', icon: '🔩', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
+};
+
+const seatShapeDB=[
+  {id:'round_seat',      name:'Round Circle',         icon:'circle',     faIcon:true, cat:'Classic'},
+  {id:'square_seat',     name:'Square',               icon:'square',     faIcon:true, cat:'Classic'},
+  {id:'rect_seat',       name:'Rectangle',            icon:'square-full',faIcon:true, cat:'Classic'},
+  {id:'oval_seat',       name:'Oval',                 icon:'dot-circle', faIcon:true, cat:'Classic'},
+  {id:'saddle_seat',     name:'Saddle',               icon:'horse',      faIcon:true, cat:'Ergonomic'},
+  {id:'contoured_seat',  name:'Contoured Scoop',      icon:'tint',       faIcon:true, cat:'Ergonomic'},
+  {id:'bicycle_seat',    name:'Bicycle Nose',         icon:'bicycle',    faIcon:true, cat:'Ergonomic'},
+  {id:'tractor_seat',    name:'Tractor / Scallop',    icon:'tractor',    faIcon:true, cat:'Ergonomic'},
+  {id:'hex_seat',        name:'Hexagonal',            icon:'stop',       faIcon:true, cat:'Contemporary'},
+  {id:'shield_seat',     name:'Shield',               icon:'shield-alt', faIcon:true, cat:'Contemporary'},
+  {id:'wave_seat',       name:'Wave Edge',            icon:'water',      faIcon:true, cat:'Contemporary'},
+  {id:'organic_seat',    name:'Organic Freeform',     icon:'leaf',       faIcon:true, cat:'Contemporary'},
+  {id:'octagon_seat',    name:'Octagon',              icon:'stop',       faIcon:true, cat:'Contemporary'},
+  {id:'cross_seat',      name:'Cross / Plus',         icon:'plus',       faIcon:true, cat:'Heritage'},
+  {id:'star_seat',       name:'Star Burst',           icon:'star',       faIcon:true, cat:'Heritage'},
+  {id:'clover_seat',     name:'Clover / Trefoil',     icon:'fan',        faIcon:true, cat:'Heritage'},
+];
+
+const legShapeDB=[
+  {id:'sq_post',         name:'Straight Square',      icon:'square-full',             cat:'Classic'},
+  {id:'round_post',      name:'Straight Round',       icon:'circle',    faIcon:true,  cat:'Classic'},
+  {id:'tapered_sq',      name:'Tapered Square',       icon:'caret-down',faIcon:true,  cat:'Classic'},
+  {id:'tapered_round',   name:'Tapered Round',        icon:'caret-down',faIcon:true,  cat:'Classic'},
+  {id:'turned_leg',      name:'Turned / Bobbin',      icon:'ellipsis-v',faIcon:true,  cat:'Ornate'},
+  {id:'cabriole',        name:'Cabriole S-Curve',     icon:'signature', faIcon:true,  cat:'Ornate'},
+  {id:'carved_leg',      name:'Carved Claw Foot',     icon:'paw',       faIcon:true,  cat:'Ornate'},
+  {id:'fluted',          name:'Fluted Column',        icon:'align-center',faIcon:true,cat:'Ornate'},
+  {id:'hairpin',         name:'Metal Hairpin',        icon:'paperclip', faIcon:true,  cat:'Modern'},
+  {id:'x_frame',         name:'X-Frame',              icon:'times',     faIcon:true,  cat:'Modern'},
+  {id:'slab_leg',        name:'Slab Panel',           icon:'stop',      faIcon:true,  cat:'Modern'},
+  {id:'tripod',          name:'Tripod 3-Leg',         icon:'code-branch',faIcon:true, cat:'Modern'},
+  {id:'single_pedestal', name:'Single Pedestal',      icon:'circle',    faIcon:true,  cat:'Pedestal'},
+  {id:'tulip_pedestal',  name:'Tulip Column',         icon:'seedling',  faIcon:true,  cat:'Pedestal'},
+  {id:'industrial_pipe', name:'Industrial Pipe',      icon:'grip-lines-vertical',faIcon:true,cat:'Industrial'},
+  {id:'cross_base',      name:'4-Star Base',          icon:'plus',      faIcon:true,  cat:'Industrial'},
+];
+
+const backShapeDB=[
+  {id:'no_back',         name:'No Back (Backless)',   icon:'ban',       faIcon:true,  cat:'Open'},
+  {id:'low_slat',        name:'Low Slat Rail',        icon:'grip-lines',faIcon:true,  cat:'Minimal'},
+  {id:'crossbar_back',   name:'Single Crossbar',      icon:'minus',     faIcon:true,  cat:'Minimal'},
+  {id:'ladder_back',     name:'Ladder Back',          icon:'equals',    faIcon:true,  cat:'Classic'},
+  {id:'panel_back',      name:'Solid Panel Back',     icon:'square',    faIcon:true,  cat:'Classic'},
+  {id:'windsor_back',    name:'Windsor Spindle',      icon:'grip-lines-vertical',faIcon:true,cat:'Heritage'},
+  {id:'curved_back',     name:'Curved Wing Back',     icon:'archway',   faIcon:true,  cat:'Heritage'},
+  {id:'caned_back',      name:'Woven Cane Panel',     icon:'th',        faIcon:true,  cat:'Heritage'},
+  {id:'open_oval',       name:'Open Oval Back',       icon:'dot-circle',faIcon:true,  cat:'Contemporary'},
+  {id:'geometric_back',  name:'Geometric Cut-Out',    icon:'dice-d20',  faIcon:true,  cat:'Contemporary'},
+  {id:'arch_back',       name:'Arched Back',          icon:'chevron-up',faIcon:true,  cat:'Contemporary'},
+  {id:'hairpin_back',    name:'Wire Hairpin Back',    icon:'paperclip', faIcon:true,  cat:'Industrial'},
+];
+
+const carvingDB={
+  none:           {name:'Smooth Finish',        icon:'circle-minus', cat:'Basic'},
+  leather_stitch: {name:'Stitched Leather',     icon:'sewing-needle',cat:'Upholstery',faIcon:false},
+  button_tufted:  {name:'Button Tufted',        icon:'circle',       cat:'Upholstery',faIcon:true},
+  channel_quilted:{name:'Channel Quilted',      icon:'grip-lines',   cat:'Upholstery',faIcon:true},
+  rustic:         {name:'Antique Distressed',   icon:'tree',         cat:'Wood'},
+  floral:         {name:'Floral Carving',       icon:'fan',          cat:'Wood'},
+  linear_groove:  {name:'Linear Grooves',       icon:'grip-lines',   cat:'Wood',faIcon:true},
+  lattice:        {name:'Woven Lattice',        icon:'th',           cat:'Wood'},
+  weave:          {name:'Woven Rattan',         icon:'box',          cat:'Natural'},
+  wood_grain:     {name:'Fine Wood Grain',      icon:'align-left',   cat:'Natural',faIcon:true},
+  marble_vein:    {name:'Marble Vein',          icon:'wave-square',  cat:'Stone',faIcon:true},
+  brushed_metal:  {name:'Brushed Metal Lines',  icon:'align-justify',cat:'Metal',faIcon:true},
+};
+
+const seatCutoutDB=[
+  {id:'none',           name:'Solid (No Cutout)',      icon:'square',      cat:'Basic'},
+  {id:'center_oval',    name:'Center Oval Vent',       icon:'dot-circle',  faIcon:true, cat:'Ventilation'},
+  {id:'round_hole',     name:'Round Center Hole',      icon:'circle',      faIcon:true, cat:'Ventilation'},
+  {id:'slot_vent',      name:'Slot Ventilation',       icon:'pause',       faIcon:true, cat:'Ventilation'},
+  {id:'grip_holes',     name:'Grip Holes',             icon:'braille',     faIcon:true, cat:'Functional'},
+  {id:'handle_slot',    name:'Carry Handle Slot',      icon:'hand-grab',   faIcon:true, cat:'Functional'},
+  {id:'parquet_cross',  name:'Parquet Cross',          icon:'plus',        faIcon:true, cat:'Decorative'},
+  {id:'ring_inlay',     name:'Ring Inlay Pattern',     icon:'circle-notch',faIcon:true, cat:'Decorative'},
+  {id:'hex_center',     name:'Hex Center',             icon:'stop',        faIcon:true, cat:'Decorative'},
+  {id:'star_cut',       name:'Star Cutout',            icon:'star',        faIcon:true, cat:'Decorative'},
+];
+
+const STOOL_PARTS=['Seat','Legs','Back'];
+const shapeComplexityMult={
+  round_seat:1.1, square_seat:1.0, rect_seat:1.0, oval_seat:1.12, saddle_seat:1.25, contoured_seat:1.3,
+  bicycle_seat:1.22, tractor_seat:1.28, hex_seat:1.18, shield_seat:1.2, wave_seat:1.25, organic_seat:1.32,
+  octagon_seat:1.15, cross_seat:1.2, star_seat:1.35, clover_seat:1.3,
+  sq_post:1.0, round_post:1.05, tapered_sq:1.08, tapered_round:1.1, turned_leg:1.3, cabriole:1.45,
+  carved_leg:1.5, fluted:1.2, hairpin:1.15, x_frame:1.2, slab_leg:1.1, tripod:1.15,
+  single_pedestal:1.25, tulip_pedestal:1.35, industrial_pipe:1.12, cross_base:1.18,
+  no_back:0, low_slat:1.05, crossbar_back:1.0, ladder_back:1.18, panel_back:1.12,
+  windsor_back:1.28, curved_back:1.22, caned_back:1.25, open_oval:1.15, geometric_back:1.2,
+  arch_back:1.12, hairpin_back:1.08,
+};
+const carvingCostAdd={none:0,leather_stitch:120,button_tufted:180,channel_quilted:150,rustic:60,floral:200,linear_groove:80,lattice:150,weave:140,wood_grain:50,marble_vein:0,brushed_metal:70};
+const cutoutCostAdd={none:0,center_oval:60,round_hole:45,slot_vent:50,grip_holes:70,handle_slot:80,parquet_cross:110,ring_inlay:100,hex_center:90,star_cut:120};
+
+/* ============================================================  STATE  */
+var appState={items:[],activeItemId:0,activeLayer:null};
+var isRotating=true, showDimensions=true;
+var textureCache={}, modalState={partName:null,type:null};
+
+window.onload=function(){
+  try{ const s=sessionStorage.getItem('cadState_stool_v3'); if(s){appState=JSON.parse(s);if(!appState.items)appState.items=[];} }catch(e){appState.items=[];}
+  
+  const shouldAdd = sessionStorage.getItem('addNew');
+  if(appState.items.length===0 || shouldAdd === 'true'){
+    createNewStool(false);
+    sessionStorage.removeItem('addNew');
+  }
+  if(!appState.activeLayer) appState.activeLayer='Seat';
+
+  // Initialize Shop Badge
+  updateShopBadgeUI();
+
+  renderUI(); updatePrice();
+  loadPrevProjectBar();
+  setTimeout(()=>init3D(),120);
+};
+
+/* ── Shop Badge Logic ── */
+function toggleShopBadge() {
+  const badge = document.getElementById('shop-info-badge');
+  const icon = document.getElementById('shop-badge-toggle-icon');
+  badge.classList.toggle('minimized');
+  icon.innerHTML = badge.classList.contains('minimized') ? '<i class="fas fa-chevron-up"></i>' : '<i class="fas fa-chevron-down"></i>';
+}
+
+function updateShopBadgeUI() {
+  const shopName = sessionStorage.getItem('selectedShopName');
+  const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+  const badge = document.getElementById('shop-info-badge');
+
+  if (shopName) {
+    badge.style.display = 'block';
+    document.getElementById('selected-shop-display-name').innerHTML = `<i class="fas fa-store"></i> ${shopName}`;
+    const matList = document.getElementById('shop-materials-list');
+    matList.innerHTML = '';
+    if (shopMatsRaw) {
+      const mats = JSON.parse(shopMatsRaw);
+      mats.forEach(m => {
+        const span = document.createElement('span');
+        span.className = 'shop-mat-tag';
+        span.innerText = m;
+        matList.appendChild(span);
       });
+    }
+  } else {
+    badge.style.display = 'none';
+  }
+}
+function getActiveItem(){ return appState.items.find(i=>i.id===appState.activeItemId); }
+function saveState(){ sessionStorage.setItem('cadState_stool_v3',JSON.stringify(appState)); }
 
-      // Footrest Ring
-      if(active.hasFootrest) {
-        addMesh(new THREE.TorusGeometry(dF.w/2, 0.03, 16, 32), active.selections.Footrest, 0, dL.h*0.35, 0, Math.PI/2, 0, 0);
-      }
+function createNewStool(shouldRender=true){
+  const n=appState.items.length+1;
+  const ni={
+    id:Date.now(), type:'stool', name:'Bar Stool Design '+n,
+    selections:{ Seat:'#8B4513', Legs:'#8B4513', Back:'#8B4513' },
+    dims:{ Seat:{w:38,h:5,d:38}, Legs:{w:4,h:72,d:4}, Back:{w:36,h:30,d:3} },
+    carvings:{ Seat:'none', Legs:'none', Back:'none' },
+    shapes:{ Seat:'round_seat', Legs:'round_post', Back:'low_slat' },
+    holes:{ Seat:'none' },
+    globalScale:{x:1,y:1,z:1},
+    hasFootrest:false, hasHBar:false, hasBack:false,
+    hasSwivel:false, hasXBrace:false, hasStretcher:false,
+    cornerRadius:0, heightPreset:'bar',
+    accessories:{},
+  };
+  appState.items.push(ni); appState.activeItemId=ni.id; appState.activeLayer='Seat';
+  saveState();
+  if(shouldRender&&scene){ renderUI();build3DScene();updatePrice(); }
+}
 
-      currentGroup.scale.set(active.globalScale.x, active.globalScale.y, active.globalScale.z);
-      scene.add(currentGroup);
+function applyHeightPreset(preset){
+  const ai=getActiveItem(); if(!ai) return;
+  ai.heightPreset=preset;
+  const heights={counter:64,bar:75,xtall:84,custom:ai.dims.Legs.h};
+  if(preset!=='custom'){ if(!ai.dims.Legs) ai.dims.Legs={w:4,h:72,d:4}; ai.dims.Legs.h=heights[preset]; }
+  saveState(); renderUI(); build3DScene(); updatePrice();
+  document.querySelectorAll('.height-preset-btn').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('hpre-'+preset); if(el) el.classList.add('active');
+  const labels={counter:'Counter Height',bar:'Bar Height',xtall:'Extra Tall',custom:'Custom Height'};
+  const bd=document.getElementById('height-badge-text'); if(bd) bd.textContent=labels[preset]||'Custom';
+}
+
+function toggleRotation(){ isRotating=!isRotating; if(controls)controls.autoRotate=isRotating; document.getElementById('btn-rotate').innerHTML=isRotating?'<i class="fas fa-pause"></i> Stop Rotate':'<i class="fas fa-play"></i> Auto Rotate'; }
+function toggleDimensions(){ showDimensions=!showDimensions; build3DScene(); document.getElementById('btn-dims').innerHTML=showDimensions?'<i class="fas fa-ruler-combined"></i> Hide Ruler':'<i class="fas fa-ruler-combined"></i> Show Ruler'; }
+function resetView(){ resetCamera(); build3DScene(); }
+function updateGlobalScale(axis,val){ const i=getActiveItem(); if(!i.globalScale)i.globalScale={x:1,y:1,z:1}; i.globalScale[axis]=val/100; document.getElementById('gs-'+axis).innerText=val; saveState();build3DScene();updatePrice(); }
+
+/* ============================================================  UI  */
+function renderUI(){ renderSceneList();renderProperties();calculateScore();updatePrice();renderAccessories(); }
+
+function renderSceneList(){
+  const list=document.getElementById('scene-list'); list.innerHTML='';
+  appState.items.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='scene-item'+(item.id===appState.activeItemId?' active':'');
+    div.onclick=e=>{ if(e.target.closest('.btn-delete'))return; appState.activeItemId=item.id;appState.activeLayer='Seat';renderUI();build3DScene(); };
+    div.innerHTML='<span><i class="fas fa-chair"></i> '+item.name+'</span><button class="btn-delete" onclick="deleteItem('+item.id+')"><i class="fas fa-trash-alt"></i></button>';
+    list.appendChild(div);
+  });
+}
+
+function renderProperties(){
+  const ai=getActiveItem(); if(!ai) return;
+  document.getElementById('project-name').value=ai.name;
+  if (ai.gender && document.getElementById('gender-pref')) {
+    document.getElementById('gender-pref').value = ai.gender;
+  }
+  const gs=ai.globalScale||{x:1,y:1,z:1};
+  ['x','y','z'].forEach(a=>{ const v=Math.round(gs[a]*100); const el=document.getElementById('gs-'+a); if(el)el.innerText=v; const sl=document.getElementById('inp-scale-'+a); if(sl)sl.value=v; });
+
+  document.querySelectorAll('.height-preset-btn').forEach(b=>b.classList.remove('active'));
+  const hpEl=document.getElementById('hpre-'+(ai.heightPreset||'bar')); if(hpEl)hpEl.classList.add('active');
+  const labels={counter:'Counter Height',bar:'Bar Height',xtall:'Extra Tall',custom:'Custom Height'};
+  const bd=document.getElementById('height-badge-text'); if(bd) bd.textContent=labels[ai.heightPreset||'bar']||'Custom';
+
+  const rg=document.getElementById('rec-mat-grid'),ag=document.getElementById('all-mat-grid'),rc=document.getElementById('rec-mat-container');
+  rg.innerHTML=''; ag.innerHTML='';
+
+  const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+  const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
+  const shopName = sessionStorage.getItem('selectedShopName') || 'the selected shop';
+
+  let hr=false;
+  Object.keys(materialDB).forEach(k=>{
+    const m=materialDB[k]; if(m.rec)hr=true;
+    const card=document.createElement('div'); card.className='mat-card-lg'+(m.rec?' recommended':'');
+    
+    const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+    if (!isInShop) {
+      card.innerHTML += `<div class="warn-icon" title="[NOT IN SHOP LIST]"><i class="fas fa-exclamation-triangle"></i></div>`;
     }
 
-    /* ==========================================================================
-       UTILITIES & PUBLISHING
-       ========================================================================== */
-    function toggleRotation() { isRotating = !isRotating; controls.autoRotate = isRotating; }
-    function toggleDimensions() { showDimensions = !showDimensions; build3DScene(); }
-    function resetView() { camera.position.set(8, 6, 8); controls.target.set(0, 1, 0); }
-    function toggleDesignAnalysis() { document.getElementById('design-analysis-card').classList.toggle('minimized'); }
+    card.onclick = () => {
+      if (!isInShop) {
+        alert(`This material is not available at the selected workshop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
+        return;
+      }
+      applyMaterialToActiveLayer(m.hex);
+    };
+    card.title=m.note||m.name;
+    card.innerHTML='<div class="mat-card-icon">'+m.icon+'</div><div class="mat-card-name">'+m.name+'</div>';
+    if(m.rec) rg.appendChild(card); else ag.appendChild(card);
+  });
+  rc.style.display=hr?'block':'none';
 
-    function openDesignModal(p, t) {
-      document.getElementById('design-modal-overlay').classList.add('open');
-      const s = document.getElementById('design-modal-scroll'); s.innerHTML = '';
-      const list = shapeDB[p.toLowerCase()] || [];
-      list.forEach(i => {
-        const c = document.createElement('div'); c.className = 'design-card';
-        c.onclick = () => { getActiveItem().shapes[p] = i.id; renderProperties(); build3DScene(); closeDesignModal(); };
-        c.innerHTML = `<i class="design-icon fas fa-${i.icon}"></i><div class="design-name">${i.name}</div>`;
-        s.appendChild(c);
+  const tmap={hasFootrest:'toggle-footrest',hasHBar:'toggle-hbar',hasBack:'toggle-back',hasSwivel:'toggle-swivel',hasXBrace:'toggle-xbrace',hasStretcher:'toggle-stretcher'};
+  Object.keys(tmap).forEach(f=>{ const btn=document.getElementById(tmap[f]); if(btn){btn.textContent=ai[f]?'On':'Off';btn.classList.toggle('active',!!ai[f]);} });
+
+  const container=document.getElementById('layers-container'); container.innerHTML='';
+  STOOL_PARTS.forEach(part=>{
+    const hex=(ai.selections||{})[part]||'#8B4513';
+    const dims=(ai.dims||{})[part]||{w:38,h:5,d:38};
+    const curCarv=(ai.carvings||{})[part]||'none';
+    const curShape=(ai.shapes||{})[part]||'round_seat';
+    const curHole=(ai.holes||{}).Seat||'none';
+    const isActive=appState.activeLayer===part;
+
+    let shapeList=[], sName='Standard';
+    if(part==='Seat'){ shapeList=seatShapeDB; sName=(seatShapeDB.find(s=>s.id===curShape)||{name:'Standard'}).name; }
+    else if(part==='Legs'){ shapeList=legShapeDB; sName=(legShapeDB.find(s=>s.id===curShape)||{name:'Standard'}).name; }
+    else if(part==='Back'){ shapeList=backShapeDB; sName=(backShapeDB.find(s=>s.id===curShape)||{name:'Standard'}).name; }
+    const cName=(carvingDB[curCarv]||{name:'Smooth'}).name;
+    const hName=(seatCutoutDB.find(h=>h.id===curHole)||{name:'Solid'}).name;
+    const crVal=part==='Seat'?Math.round((ai.cornerRadius||0)*100):0;
+
+    const dl={Seat:{w:'Width',h:'Thickness',d:'Depth'},Legs:{w:'Width',h:'Height',d:'Depth'},Back:{w:'Width',h:'Height',d:'Thickness'}}[part]||{w:'W',h:'H',d:'D'};
+
+    const layer=document.createElement('div');
+    layer.className='layer-item'+(isActive?' active-layer open':'');
+    layer.onclick=e=>{ if(e.target.closest('.view-focus-btn')||e.target.tagName==='INPUT'||e.target.closest('.clickable-design-val'))return; setActiveLayer(part); };
+    layer.innerHTML=`
+      <div class="layer-header">
+        <span><i class="fas fa-layer-group"></i> ${part}${isActive?' (Selected)':''}</span>
+        <button class="view-focus-btn" onclick="focusOnPart('${part}')">${isActive?'<i class="fas fa-eye"></i>':'<i class="far fa-eye"></i>'}</button>
+        <div class="color-preview" style="background:${hex}"></div>
+      </div>
+      <div class="layer-content">
+        <div class="part-control-row">
+          <div class="part-control-label">Shape / Base Style <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-shape-info')"><i class="fas fa-info"></i></button></div>
+          <div class="clickable-design-val" onclick="openDesignModal('${part}','shape')"><span>${sName}</span><i class="fas fa-edit"></i></div>
+        </div>
+        ${part==='Seat'?`
+        <div class="part-control-row">
+          <div class="part-control-label">Corner Radius <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-radius-info')"><i class="fas fa-info"></i></button></div>
+          <div class="corner-radius-row">
+            <label>Sharp</label>
+            <input type="range" min="0" max="100" value="${crVal}" oninput="updateCornerRadius(this.value)">
+            <span class="val-display">${crVal}</span>
+            <label>Round</label>
+          </div>
+        </div>
+        <div class="part-control-row">
+          <div class="part-control-label">Seat Cutout <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-holes-info')"><i class="fas fa-info"></i></button></div>
+          <div class="clickable-design-val" onclick="openDesignModal('Seat','holes')"><span>${hName}</span><i class="fas fa-edit"></i></div>
+        </div>`:''}
+        <div class="part-control-row">
+          <div class="part-control-label">Carving / Texture <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-carving-info')"><i class="fas fa-info"></i></button></div>
+          <div class="clickable-design-val" onclick="openDesignModal('${part}','carving')"><span>${cName}</span><i class="fas fa-edit"></i></div>
+        </div>
+        <div class="part-control-row">
+          <div class="part-control-label">Hex Color <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-color-info')"><i class="fas fa-info"></i></button></div>
+          <div class="hex-wrapper">
+            <input type="color" value="${hex}" oninput="updateColor('${part}',this.value)">
+            <input type="text" class="hex-text-input" value="${hex}" onchange="updateColor('${part}',this.value)">
+          </div>
+        </div>
+        <div class="part-control-row">
+          <div class="part-control-label">Dimensions (cm) <button class="lbl-info-btn" onclick="showTooltip(event,'lyr-dims-info')"><i class="fas fa-info"></i></button></div>
+          <div class="dim-row">
+            <div class="dim-group"><input class="dim-input" type="number" value="${dims.w}" oninput="updateDim('${part}','w',this.value)"><div class="dim-label">${dl.w}</div></div>
+            <div class="dim-group"><input class="dim-input" type="number" value="${dims.h}" oninput="updateDim('${part}','h',this.value)"><div class="dim-label">${dl.h}</div></div>
+            <div class="dim-group"><input class="dim-input" type="number" value="${dims.d}" oninput="updateDim('${part}','d',this.value)"><div class="dim-label">${dl.d}</div></div>
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(layer);
+  });
+}
+
+function setActiveLayer(p){ appState.activeLayer=p; renderProperties(); focusOnPart(p); }
+function applyMaterialToActiveLayer(hex){ if(!appState.activeLayer)return; updateColor(appState.activeLayer,hex); renderProperties(); }
+function updateColor(part,hex){ const i=getActiveItem();if(!i.selections)i.selections={};i.selections[part]=hex;build3DScene();saveState();calculateScore();updatePrice(); }
+function updateDim(part,axis,val){ const i=getActiveItem();if(!i.dims)i.dims={};if(!i.dims[part])i.dims[part]={w:38,h:5,d:38};i.dims[part][axis]=parseInt(val)||0;saveState();build3DScene();updatePrice(); }
+function updateGenderPref(val){ const ai=getActiveItem(); if(ai){ ai.gender=val; saveState(); } }
+function updateProjectName(val){ getActiveItem().name=val; renderSceneList(); saveState(); }
+function updateCornerRadius(val){ const ai=getActiveItem();if(!ai)return;ai.cornerRadius=val/100;const row=document.querySelector('.corner-radius-row');if(row)row.querySelector('.val-display').textContent=val;saveState();build3DScene(); }
+
+function toggleFeature(prop,btn){
+  const ai=getActiveItem(); if(!ai) return;
+  ai[prop]=!ai[prop]; btn.textContent=ai[prop]?'On':'Off'; btn.classList.toggle('active',!!ai[prop]);
+  saveState(); build3DScene(); updatePrice();
+}
+
+/* ============================================================  PRICE  */
+function updatePrice(){
+  const ai=getActiveItem(); if(!ai) return;
+  let cost=0;
+  STOOL_PARTS.forEach(part=>{
+    const hex=(ai.selections||{})[part]||'#8B4513';
+    const mk=Object.keys(materialDB).find(k=>materialDB[k].hex.toLowerCase()===hex.toLowerCase())||'mahogany';
+    const md=materialDB[mk]||materialDB.mahogany;
+    const d=(ai.dims||{})[part]||{w:38,h:5,d:38};
+    let partCost=(d.w*d.h*d.d)/5000*md.price;
+    const shapeId=(ai.shapes||{})[part]||'round_seat';
+    partCost*=(shapeComplexityMult[shapeId]||1.0);
+    const carvId=(ai.carvings||{})[part]||'none';
+    partCost+=(carvingCostAdd[carvId]||0)*0.6;
+    if(part==='Seat'){ const cutId=(ai.holes||{}).Seat||'none'; partCost+=(cutoutCostAdd[cutId]||0); }
+    cost+=partCost;
+  });
+  if(ai.hasFootrest) cost+=180; if(ai.hasHBar) cost+=150;
+  if(ai.hasBack) cost+=220; if(ai.hasSwivel) cost+=380;
+  if(ai.hasXBrace) cost+=120; if(ai.hasStretcher) cost+=100;
+  const gs=ai.globalScale||{x:1,y:1,z:1};
+  const sf=(gs.x||1)*(gs.y||1)*(gs.z||1);
+  let total=Math.round((800+cost)*sf);
+  const ACC_COSTS={seat_cushion:650,footrest_bumpers:180,armrests:520,cup_holder:290,bag_hook:160,anti_scratch_feet:90,lumbar_pad:380,nonslip_base:140};
+  if(ai.accessories){ Object.keys(ai.accessories).forEach(id=>{ if(ai.accessories[id]&&ai.accessories[id].on) total+=(ACC_COSTS[id]||200); }); }
+  const priceEl = document.getElementById('total-price');
+  if (priceEl && priceEl.dataset.manual === 'true') return;
+  priceEl.innerHTML='&#8369;'+total.toLocaleString('en-US');
+}
+
+function calculateScore(){
+  const item = getActiveItem(); if (!item) return;
+  const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+  const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
+
+  let totalD=0, tq=0, rc=0, cnt=0, unavailPenalty=0;
+  const selections = item.selections || {};
+  
+  Object.values(selections).forEach(hex=>{
+    const mat=Object.values(materialDB).find(m=>m.hex.toLowerCase()===hex.toLowerCase());
+    if(mat){
+      totalD+=mat.dura; tq+=mat.qual; if(mat.rec)rc++; cnt++;
+      const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === mat.name.toLowerCase());
+      if (!isInShop) unavailPenalty += 15;
+    } else { totalD+=50; tq+=50; cnt++; }
+  });
+
+  const avgD = cnt>0 ? Math.round(totalD/cnt) : 0, aq = cnt>0 ? Math.round(tq/cnt) : 0;
+  
+  const barDura = document.getElementById('bar-dura');
+  const valDura = document.getElementById('score-dura-val');
+  if (barDura) {
+    barDura.style.width = avgD + '%';
+    barDura.style.background = avgD > 80 ? '#2ecc71' : avgD > 50 ? 'orange' : '#e74c3c';
+    if (valDura) valDura.innerText = avgD + '%';
+  }
+
+  const barQual = document.getElementById('bar-qual');
+  const valQual = document.getElementById('score-qual-val');
+  if (barQual) {
+    barQual.style.width = aq + '%';
+    if (valQual) valQual.innerText = aq + '%';
+  }
+
+  let finalScore = ((avgD + aq) / 2) + ((rc / cnt) * 15) - unavailPenalty;
+  finalScore = Math.max(0, Math.min(100, Math.round(finalScore)));
+
+  const status = document.getElementById('rec-status');
+  if (status) {
+    if (finalScore >= 95) {
+      status.innerHTML = '<i class="fas fa-crown" style="color:#f1c40f"></i> <span style="color:#f1c40f;font-weight:bold">Elite Design Configuration</span>';
+    } else if (finalScore >= 80) {
+      status.innerHTML = '<i class="fas fa-check-circle" style="color:#2ecc71"></i> Optimal Material Synergy';
+    } else if (finalScore >= 60) {
+      status.innerHTML = '<i class="fas fa-info-circle" style="color:#3498db"></i> Standard Professional Build';
+    } else {
+      status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#e74c3c"></i> Sub-optimal Material Choice';
+    }
+    if (rc > 0 && finalScore < 95) {
+      status.innerHTML += `<div class="elite-bonus" style="font-size:0.72rem;color:#2ecc71;font-weight:800;margin-top:4px;"><i class="fas fa-arrow-up"></i> Recommended Material Bonus Applied</div>`;
+    }
+  }
+}
+
+function deleteItem(id){
+  if(confirm('Delete this design?')){
+    appState.items=appState.items.filter(i=>i.id!==id);
+    if(!appState.items.length) createNewStool(true); else appState.activeItemId=appState.items[0].id;
+    appState.activeLayer='Seat'; saveState(); renderUI(); build3DScene();
+  }
+}
+
+/* ============================================================  DESIGN MODAL  */
+function openDesignModal(partName,type){
+  modalState={partName,type};
+  document.getElementById('design-modal-title').innerText='Select '+type.charAt(0).toUpperCase()+type.slice(1)+' for '+partName;
+  const scrollArea=document.getElementById('design-modal-scroll'); scrollArea.innerHTML='';
+  const legend=document.createElement('div'); legend.className='render-legend';
+  legend.innerHTML='<div class="render-legend-item"><div class="legend-dot ok"></div> All options fully rendered in 3D</div>';
+  scrollArea.appendChild(legend);
+  const ai=getActiveItem(); let db,activeId;
+  if(type==='shape'){
+    db= partName==='Seat'?seatShapeDB : partName==='Legs'?legShapeDB : backShapeDB;
+    activeId=(ai.shapes||{})[partName];
+  } else if(type==='holes'){
+    db=seatCutoutDB; activeId=(ai.holes||{}).Seat;
+  } else {
+    db=carvingDB; activeId=(ai.carvings||{})[partName];
+  }
+  let groups={};
+  if(Array.isArray(db)) db.forEach(item=>{ const c=item.cat||'General'; if(!groups[c])groups[c]=[]; groups[c].push(item); });
+  else Object.keys(db).forEach(k=>{ const item=Object.assign({id:k},db[k]); const c=item.cat||'General'; if(!groups[c])groups[c]=[]; groups[c].push(item); });
+  Object.keys(groups).forEach(catName=>{
+    const title=document.createElement('div'); title.className='modal-section-title'; title.innerText=catName; scrollArea.appendChild(title);
+    const grid=document.createElement('div'); grid.className='design-grid';
+    groups[catName].forEach(item=>{
+      const card=document.createElement('div'); card.className='design-card'+(item.id===activeId?' active':'');
+      card.onclick=()=>selectDesign(item.id);
+      const iconName=item.faIcon?item.icon:(carvingDB[item.id]?carvingDB[item.id].icon:(item.icon||'circle'));
+      card.innerHTML=`<i class="design-icon fas fa-${iconName}"></i><div class="design-name">${item.name}</div>`;
+      grid.appendChild(card);
+    });
+    scrollArea.appendChild(grid);
+  });
+  document.getElementById('design-modal-overlay').classList.add('open');
+  focusOnPart(partName);
+}
+function closeDesignModal(){ document.getElementById('design-modal-overlay').classList.remove('open'); modalState={partName:null,type:null}; }
+function closeDesignModalBg(e){ if(e.target===document.getElementById('design-modal-overlay')) closeDesignModal(); }
+function selectDesign(newId){
+  const item=getActiveItem();
+  if(modalState.type==='shape'){if(!item.shapes)item.shapes={};item.shapes[modalState.partName]=newId;}
+  else if(modalState.type==='holes'){if(!item.holes)item.holes={};item.holes.Seat=newId;}
+  else{if(!item.carvings)item.carvings={};item.carvings[modalState.partName]=newId;}
+  build3DScene();saveState();renderProperties();calculateScore();updatePrice();closeDesignModal();
+}
+
+/* ============================================================  TEXTURE  */
+function createPatternTexture(style){
+  if(textureCache[style]) return textureCache[style];
+  const canvas=document.createElement('canvas'); canvas.width=512; canvas.height=512;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#808080'; ctx.fillRect(0,0,512,512);
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=10;
+  if(style==='linear_groove'){ctx.strokeStyle='#2d2d2d';ctx.lineWidth=10;for(let i=0;i<=512;i+=64){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(512,i);ctx.stroke();}}
+  else if(style==='lattice'){for(let i=-512;i<1024;i+=64){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i+512,512);ctx.moveTo(i,512);ctx.lineTo(i+512,0);ctx.stroke();}}
+  else if(style==='button_tufted'){for(let y=80;y<512;y+=90)for(let x=80;x<512;x+=90){ctx.beginPath();ctx.arc(x,y,14,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fill();}}
+  else if(style==='channel_quilted'){ctx.lineWidth=20;for(let i=0;i<=512;i+=55){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(512,i);ctx.stroke();}}
+  else if(style==='leather_stitch'){ctx.strokeStyle='#ddbb88';ctx.lineWidth=3;ctx.setLineDash([6,4]);for(let i=30;i<512;i+=60){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(512,i);ctx.stroke();}}
+  else if(style==='wood_grain'){for(let i=0;i<512;i+=4){ctx.strokeStyle='rgba(0,0,0,'+(Math.random()*0.15)+')';ctx.lineWidth=1+Math.random()*2;ctx.beginPath();ctx.moveTo(i+Math.random()*8-4,0);ctx.lineTo(i+Math.random()*8-4,512);ctx.stroke();}}
+  else if(style==='weave'){ctx.fillStyle='#C19A6B';ctx.fillRect(0,0,512,512);ctx.lineWidth=14;const step=40;for(let y=step/2;y<512;y+=step)for(let x=0;x<512;x+=step){ctx.strokeStyle='#99734D';ctx.beginPath();ctx.moveTo(x+5,y);ctx.lineTo(x+step/2-5,y);ctx.stroke();}for(let x=step/2;x<512;x+=step)for(let y=0;y<512;y+=step){ctx.strokeStyle='#D7BDA0';ctx.beginPath();ctx.moveTo(x,y+5);ctx.lineTo(x,y+step/2-5);ctx.stroke();ctx.strokeStyle='#99734D';ctx.beginPath();ctx.moveTo(x,y+step/2+5);ctx.lineTo(x,y+step-5);ctx.stroke();}}
+  else if(style==='marble_vein'){for(let i=0;i<30;i++){ctx.strokeStyle='rgba(255,255,255,'+(Math.random()*0.4+0.1)+')';ctx.lineWidth=Math.random()*6+1;ctx.beginPath();let x=Math.random()*512,y=Math.random()*512;ctx.moveTo(x,y);for(let j=0;j<10;j++){x+=Math.random()*80-40;y+=Math.random()*80-40;ctx.lineTo(x,y);}ctx.stroke();}}
+  else if(style==='brushed_metal'){ctx.strokeStyle='rgba(200,200,200,0.3)';ctx.lineWidth=1;for(let i=0;i<512;i+=3){ctx.beginPath();ctx.moveTo(0,i+Math.random()*2);ctx.lineTo(512,i+Math.random()*2);ctx.stroke();}}
+  else if(style==='floral'){ctx.fillStyle='rgba(255,255,255,0.6)';for(let i=0;i<5;i++){ctx.beginPath();ctx.arc(50+i*100,256+Math.sin(i)*80,35,0,Math.PI*2);ctx.fill();}}
+  else if(style==='rustic'){for(let i=0;i<5000;i++){ctx.fillStyle='rgba(128,128,128,'+(Math.random()*0.5)+')';ctx.fillRect(Math.random()*512,Math.random()*512,Math.random()*4,(Math.random()*4)*4);}}
+  const texture=new THREE.CanvasTexture(canvas);
+  texture.wrapS=THREE.RepeatWrapping; texture.wrapT=THREE.RepeatWrapping;
+  textureCache[style]=texture; return texture;
+}
+
+/* ============================================================  3D ENGINE  */
+var scene,camera,renderer,currentGroup,controls,dimGroup;
+
+function init3D(){
+  if(typeof scene !== "undefined" && scene) return;
+  const container=document.getElementById('canvas-container');
+  const W=container.clientWidth||800, H=container.clientHeight||600;
+  scene=new THREE.Scene(); scene.background=new THREE.Color(0x1e1e1e);
+  camera=new THREE.PerspectiveCamera(45,W/H,0.1,200);
+  renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+  renderer.setSize(W,H); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  container.innerHTML=''; container.appendChild(renderer.domElement);
+  controls=new THREE.OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true; controls.autoRotate=isRotating; controls.autoRotateSpeed=0.5;
+  const ambient=new THREE.AmbientLight(0xfff0e8,0.45); scene.add(ambient);
+  const dir=new THREE.DirectionalLight(0xfff5ee,1.15); dir.position.set(8,14,10); dir.castShadow=true; scene.add(dir);
+  const dir2=new THREE.DirectionalLight(0xffe0c0,0.4); dir2.position.set(-6,8,-5); scene.add(dir2);
+  scene.add(new THREE.GridHelper(20, 20, 0x444444, 0x2a2a2a));
+  dimGroup=new THREE.Group(); scene.add(dimGroup);
+  resetCamera(); build3DScene(); animate();
+}
+function animate(){ requestAnimationFrame(animate); if(controls)controls.update(); if(renderer&&scene&&camera)renderer.render(scene,camera); }
+function resetCamera(){ if(camera)camera.position.set(8,7,10); if(controls)controls.target.set(0,2.5,0); }
+
+function focusOnPart(partName){
+  if(!currentGroup||!controls) return;
+  const meshes=currentGroup.children.filter(m=>m.name===partName);
+  if(!meshes.length) return;
+  const box=new THREE.Box3(); meshes.forEach(m=>box.expandByObject(m));
+  const center=new THREE.Vector3(); box.getCenter(center);
+  controls.target.set(center.x,center.y,center.z);
+  const ai=getActiveItem();
+  if(ai&&ai.dims&&ai.dims[partName]){ const d=ai.dims[partName]; const dist=Math.max(d.w,d.h,d.d)/40+3; camera.position.set(center.x+dist,center.y+dist*0.5,center.z+dist); }
+}
+
+function createDimensionLine(start, end, label, offset) {
+  if (!showDimensions) return;
+  const off = offset || new THREE.Vector3();
+  const p1 = start.clone().add(off), p2 = end.clone().add(off);
+  dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1, p2]), new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 })));
+  const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0, 0, 512, 128);
+  ctx.font = 'Bold 80px Segoe UI'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 4;
+  ctx.fillText(label, 256, 64);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
+  sprite.position.copy(p1).lerp(p2, 0.5); sprite.position.y += 0.05;
+  sprite.scale.set(1.2, 0.3, 1);
+  dimGroup.add(sprite);
+}
+
+/* ============================================================  SEAT SHAPE  */
+function buildSeatShape(shapeId, dSeat, cornerRadius){
+  const hw=dSeat.w/2, hd=dSeat.d/2;
+  const cr=Math.max(0,Math.min(1,cornerRadius||0));
+  let s=new THREE.Shape();
+
+  const ellipse=(S,W,H)=>{ const kx=W*0.5523,ky=H*0.5523; S.moveTo(0,-H); S.bezierCurveTo(kx,-H,W,-ky,W,0); S.bezierCurveTo(W,ky,kx,H,0,H); S.bezierCurveTo(-kx,H,-W,ky,-W,0); S.bezierCurveTo(-W,-ky,-kx,-H,0,-H); };
+  const roundedRect=(S,W,H,r)=>{ r=Math.min(r,W/2-0.001,H/2-0.001); S.moveTo(-W/2+r,-H/2); S.lineTo(W/2-r,-H/2); S.absarc(W/2-r,-H/2+r,r,-Math.PI/2,0,false); S.lineTo(W/2,H/2-r); S.absarc(W/2-r,H/2-r,r,0,Math.PI/2,false); S.lineTo(-W/2+r,H/2); S.absarc(-W/2+r,H/2-r,r,Math.PI/2,Math.PI,false); S.lineTo(-W/2,-H/2+r); S.absarc(-W/2+r,-H/2+r,r,Math.PI,Math.PI*1.5,false); S.closePath(); };
+
+  if(shapeId==='round_seat'){ s.absarc(0,0,Math.min(hw,hd),0,Math.PI*2,false); }
+  else if(shapeId==='oval_seat'){ ellipse(s,hw,hd); }
+  else if(shapeId==='square_seat'){ if(cr>0)roundedRect(s,hw*2,hw*2,Math.min(hw,hd)*cr*0.85); else{const hs=Math.min(hw,hd);s.moveTo(-hs,-hs);s.lineTo(hs,-hs);s.lineTo(hs,hs);s.lineTo(-hs,hs);s.closePath();} }
+  else if(shapeId==='rect_seat'){ if(cr>0)roundedRect(s,hw*2,hd*2,Math.min(hw,hd)*cr*0.85); else{s.moveTo(-hw,-hd);s.lineTo(hw,-hd);s.lineTo(hw,hd);s.lineTo(-hw,hd);s.closePath();} }
+  else if(shapeId==='saddle_seat'){ s.moveTo(0,-hd);s.bezierCurveTo(hw*0.7,-hd*1.05,hw,0,hw*0.75,hd*0.7);s.bezierCurveTo(hw*0.5,hd,0,hd*1.05,0,hd*1.0);s.bezierCurveTo(0,hd*1.05,-hw*0.5,hd,-hw*0.75,hd*0.7);s.bezierCurveTo(-hw,-0.0,-hw*0.7,-hd*1.05,0,-hd);s.closePath(); }
+  else if(shapeId==='contoured_seat'){ s.moveTo(-hw,-hd*0.6);s.bezierCurveTo(-hw*0.7,-hd,-0,- hd*1.05,hw*0.0,-hd);s.bezierCurveTo(hw*0.5,-hd*1.05,hw,-hd*0.6,hw,-hd*0.1);s.bezierCurveTo(hw,hd*0.5,hw*0.6,hd,0,hd);s.bezierCurveTo(-hw*0.6,hd,-hw,hd*0.5,-hw,-hd*0.1);s.closePath(); }
+  else if(shapeId==='bicycle_seat'){ s.moveTo(-hw*0.15,-hd);s.bezierCurveTo(hw*0.3,-hd*1.05,hw*0.9,-hd*0.8,hw*0.85,0);s.bezierCurveTo(hw*0.9,hd*0.5,hw*0.5,hd*0.9,0,hd*0.85);s.bezierCurveTo(-hw*0.5,hd*0.9,-hw*0.9,hd*0.5,-hw*0.85,0);s.bezierCurveTo(-hw*0.9,-hd*0.8,-hw*0.6,-hd*1.05,-hw*0.15,-hd);s.closePath(); }
+  else if(shapeId==='tractor_seat'){ const scl=4,scW=(hw*2)/scl;s.moveTo(-hw,-hd);for(let i=0;i<scl;i++){const x=-hw+(i+0.5)*scW;s.absarc(x,hd,scW*0.45,Math.PI,0,false);}s.lineTo(hw,-hd);s.closePath(); }
+  else if(shapeId==='hex_seat'){ for(let i=0;i<6;i++){const a=(Math.PI/3)*i+Math.PI/6;i===0?s.moveTo(Math.cos(a)*hw,Math.sin(a)*hd):s.lineTo(Math.cos(a)*hw,Math.sin(a)*hd);}s.closePath(); }
+  else if(shapeId==='shield_seat'){ s.moveTo(0,-hd);s.quadraticCurveTo(hw*0.55,-hd*0.2,hw,hd*0.1);s.quadraticCurveTo(hw,hd*0.55,0,hd);s.quadraticCurveTo(-hw,hd*0.55,-hw,hd*0.1);s.quadraticCurveTo(-hw*0.55,-hd*0.2,0,-hd);s.closePath(); }
+  else if(shapeId==='wave_seat'){ s.moveTo(-hw,-hd);const seg=8;for(let i=0;i<=seg;i++){const t=i/seg;const x=-hw+t*hw*2;s.lineTo(x,hd+(i%2===0?1:-1)*hd*0.14);}for(let i=seg;i>=0;i--){const t=i/seg;s.lineTo(-hw+t*hw*2,-hd+(i%2===0?-1:1)*hd*0.14);}s.closePath(); }
+  else if(shapeId==='organic_seat'){ s.moveTo(0,-hd);s.bezierCurveTo(hw*0.6,-hd*1.1,hw*1.05,-hd*0.4,hw*0.9,0);s.bezierCurveTo(hw*1.0,hd*0.5,hw*0.5,hd*1.15,0,hd);s.bezierCurveTo(-hw*0.55,hd*1.1,-hw*1.05,hd*0.4,-hw*0.85,0);s.bezierCurveTo(-hw*0.9,-hd*0.5,-hw*0.6,-hd*1.1,0,-hd);s.closePath(); }
+  else if(shapeId==='octagon_seat'){ const oct=8;for(let i=0;i<oct;i++){const a=(Math.PI*2/oct)*i+Math.PI/oct;i===0?s.moveTo(Math.cos(a)*hw,Math.sin(a)*hd):s.lineTo(Math.cos(a)*hw,Math.sin(a)*hd);}s.closePath(); }
+  else if(shapeId==='cross_seat'){ const w=hw*0.4;s.moveTo(-w,-hd);s.lineTo(w,-hd);s.lineTo(w,-w);s.lineTo(hw,-w);s.lineTo(hw,w);s.lineTo(w,w);s.lineTo(w,hd);s.lineTo(-w,hd);s.lineTo(-w,w);s.lineTo(-hw,w);s.lineTo(-hw,-w);s.lineTo(-w,-w);s.closePath(); }
+  else if(shapeId==='star_seat'){ const pts=10,ro=Math.min(hw,hd),ri=ro*0.45;for(let i=0;i<pts;i++){const a=(Math.PI*2/pts)*i-Math.PI/2;const r=i%2===0?ro:ri;i===0?s.moveTo(Math.cos(a)*r,Math.sin(a)*r):s.lineTo(Math.cos(a)*r,Math.sin(a)*r);}s.closePath(); }
+  else if(shapeId==='clover_seat'){ const r=Math.min(hw,hd)*0.52;for(let i=0;i<3;i++){const a=(Math.PI*2/3)*i-Math.PI/2;const cx=Math.cos(a)*r*0.68,cy=Math.sin(a)*r*0.68;i===0?s.absarc(cx,cy,r,a+Math.PI,a+Math.PI*3,false):s.absarc(cx,cy,r,a+Math.PI*0.5,a+Math.PI*2.5,false);}s.closePath(); }
+  else { s.moveTo(-hw,-hd);s.lineTo(hw,-hd);s.lineTo(hw,hd);s.lineTo(-hw,hd);s.closePath(); }
+  return s;
+}
+
+function punchSeatCutout(s,cutId,dSeat){
+  if(cutId==='none') return;
+  const hw=dSeat.w/2, hd=dSeat.d/2;
+  if(cutId==='center_oval'){const h=new THREE.Path();const kx=hw*0.1,ky=hd*0.1,ox=hw*0.18,oy=hd*0.2;h.moveTo(0,-oy);h.bezierCurveTo(kx,-oy,ox,-ky,ox,0);h.bezierCurveTo(ox,ky,kx,oy,0,oy);h.bezierCurveTo(-kx,oy,-ox,ky,-ox,0);h.bezierCurveTo(-ox,-ky,-kx,-oy,0,-oy);s.holes.push(h);}
+  else if(cutId==='round_hole'){const h=new THREE.Path();h.absarc(0,0,Math.min(hw,hd)*0.18,0,Math.PI*2,true);s.holes.push(h);}
+  else if(cutId==='slot_vent'){const h=new THREE.Path();h.moveTo(-hw*0.04,-hd*0.48);h.lineTo(hw*0.04,-hd*0.48);h.lineTo(hw*0.04,hd*0.48);h.lineTo(-hw*0.04,hd*0.48);h.closePath();s.holes.push(h);}
+  else if(cutId==='grip_holes'){[[-hw*0.3,0],[hw*0.3,0]].forEach(([gx,gz])=>{const h=new THREE.Path();h.absarc(gx,gz,Math.min(hw,hd)*0.1,0,Math.PI*2,true);s.holes.push(h);});}
+  else if(cutId==='handle_slot'){const h=new THREE.Path();h.moveTo(-hw*0.22,-hd*0.035);h.lineTo(hw*0.22,-hd*0.035);h.lineTo(hw*0.22,hd*0.035);h.lineTo(-hw*0.22,hd*0.035);h.closePath();s.holes.push(h);}
+  else if(cutId==='parquet_cross'){const bw=hw*0.06,bl=hd*0.55;const h1=new THREE.Path();h1.moveTo(-bw,-bl);h1.lineTo(bw,-bl);h1.lineTo(bw,bl);h1.lineTo(-bw,bl);h1.closePath();s.holes.push(h1);const h2=new THREE.Path();h2.moveTo(-bl,-bw);h2.lineTo(bl,-bw);h2.lineTo(bl,bw);h2.lineTo(-bl,bw);h2.closePath();s.holes.push(h2);}
+  else if(cutId==='ring_inlay'){const ro=Math.min(hw,hd)*0.42,ri=ro*0.68;const o=new THREE.Path();o.absarc(0,0,ro,0,Math.PI*2,false);s.holes.push(o);const inn=new THREE.Path();inn.absarc(0,0,ri,0,Math.PI*2,true);s.holes.push(inn);}
+  else if(cutId==='hex_center'){const r=Math.min(hw,hd)*0.3;const h=new THREE.Path();for(let i=0;i<6;i++){const a=(Math.PI/3)*i+Math.PI/6;i===0?h.moveTo(Math.cos(a)*r,Math.sin(a)*r):h.lineTo(Math.cos(a)*r,Math.sin(a)*r);}h.closePath();s.holes.push(h);}
+  else if(cutId==='star_cut'){const pts=8,ro=Math.min(hw,hd)*0.28,ri=ro*0.45;const h=new THREE.Path();for(let i=0;i<pts;i++){const a=(Math.PI*2/pts)*i-Math.PI/2;const r=i%2===0?ro:ri;i===0?h.moveTo(Math.cos(a)*r,Math.sin(a)*r):h.lineTo(Math.cos(a)*r,Math.sin(a)*r);}h.closePath();s.holes.push(h);}
+}
+
+/* ============================================================  3D SCENE BUILD  */
+function build3DScene(){
+  if(!scene) return;
+  if(currentGroup) scene.remove(currentGroup);
+  currentGroup=new THREE.Group();
+  dimGroup.clear();
+
+  const ai=getActiveItem(); if(!ai) return;
+  const S=50;
+  const getDims=p=>{ const d=(ai.dims||{})[p]||{w:38,h:5,d:38}; return{w:d.w/S,h:d.h/S,d:d.d/S}; };
+  const dSeat=getDims('Seat');
+  const dLeg=getDims('Legs');
+  const dBack=getDims('Back');
+
+  const seatShapeId=(ai.shapes||{}).Seat||'round_seat';
+  const legShapeId =(ai.shapes||{}).Legs||'round_post';
+  const backShapeId=(ai.shapes||{}).Back||'low_slat';
+  const seatCutout =(ai.holes||{}).Seat||'none';
+  const seatCarv   =(ai.carvings||{}).Seat||'none';
+  const legCarv    =(ai.carvings||{}).Legs||'none';
+  const backCarv   =(ai.carvings||{}).Back||'none';
+  const seatHex    =(ai.selections||{}).Seat||'#8B4513';
+  const legHex     =(ai.selections||{}).Legs||'#8B4513';
+  const backHex    =(ai.selections||{}).Back||'#8B4513';
+  const cornerRadius=ai.cornerRadius||0;
+
+  let _mi=0;
+  const getMat=(hex,ck)=>{
+    ck=ck||'none';
+    const mk=Object.keys(materialDB).find(k=>materialDB[k].hex.toLowerCase()===hex.toLowerCase());
+    const rMap={narra:0.38,kamagong:0.22,molave:0.3,mahogany:0.28,tanguile:0.42,oak:0.44,pine:0.54,bamboo:0.46,brushed_steel:0.38,chrome:0.06,matte_black:0.88,black_leather:0.72,tan_leather:0.68,velvet_navy:0.92,velvet_gray:0.9};
+    const roughness=mk&&rMap[mk]!==undefined?rMap[mk]:0.45;
+    const isChrome=mk==='chrome';
+    const isMetal=['brushed_steel','chrome','matte_black'].includes(mk);
+    const mat=new THREE.MeshStandardMaterial({
+      color:new THREE.Color(hex),roughness,metalness:isChrome?0.96:(isMetal?0.72:0.04),
+      side:THREE.DoubleSide, polygonOffset:true,polygonOffsetFactor:_mi,polygonOffsetUnits:_mi
+    });
+    _mi++;
+    if(ck!=='none'){
+      const tex=createPatternTexture(ck).clone(); tex.repeat.set(2,2); tex.needsUpdate=true;
+      mat.bumpMap=tex; mat.bumpScale=0.06;
+    }
+    return mat;
+  };
+
+  const sg=(fn,fb)=>{ try{ const g=fn(); return(g&&g.attributes&&g.attributes.position&&g.attributes.position.count>0)?g:fb; }catch(e){ return fb; } };
+  const addMesh=(name,geo,hex,carv,x,y,z,rx=0,ry=0,rz=0)=>{
+    if(!geo) return;
+    const mesh=new THREE.Mesh(geo,getMat(hex,carv));
+    mesh.position.set(x,y,z); mesh.rotation.set(rx,ry,rz);
+    mesh.name=name; mesh.castShadow=true; mesh.receiveShadow=true;
+    currentGroup.add(mesh); return mesh;
+  };
+
+  const isPedestal=['single_pedestal','tulip_pedestal','cross_base'].includes(legShapeId);
+  const isTripod=legShapeId==='tripod';
+  const legH=dLeg.h;
+  const yLeg=legH/2;
+  const yTop=legH + dSeat.h/2;
+  const legInset=Math.max(dLeg.w*0.5,0.06);
+  const seatR=Math.min(dSeat.w/2,dSeat.d/2);
+  const lx=seatR*0.62-legInset*0.5; const lz=seatR*0.62-legInset*0.5;
+  const lxR=Math.max(lx,legInset); const lzR=Math.max(lz,legInset);
+
+  /* === SEAT === */
+  const seatGeo=sg(()=>{
+    const shape=buildSeatShape(seatShapeId,dSeat,cornerRadius);
+    punchSeatCutout(shape,seatCutout,dSeat);
+    const g=new THREE.ExtrudeGeometry(shape,{depth:dSeat.h,bevelEnabled:true,bevelSize:0.006,bevelThickness:0.006,bevelSegments:2});
+    g.translate(0,0,-dSeat.h/2); g.rotateX(Math.PI/2); return g;
+  }, new THREE.CylinderGeometry(Math.min(dSeat.w,dSeat.d)/2,Math.min(dSeat.w,dSeat.d)/2,dSeat.h,32));
+  addMesh('Seat',seatGeo,seatHex,seatCarv,0,yTop,0);
+
+  /* === SWIVEL MECHANISM === */
+  if(ai.hasSwivel){
+    const swivelR=Math.min(dSeat.w,dSeat.d)*0.25;
+    const swivelH=0.08;
+    addMesh('Legs',new THREE.CylinderGeometry(swivelR,swivelR*1.1,swivelH,32),'#8a8a8a','none',0,legH+swivelH/2,0);
+    addMesh('Legs',new THREE.TorusGeometry(swivelR*0.78,swivelR*0.08,8,32),'#c0c8d0','none',0,legH+swivelH*0.9,0,Math.PI/2,0,0);
+    addMesh('Legs',new THREE.CylinderGeometry(swivelR*0.35,swivelR*0.35,legH*0.45,20),'#8a8a8a','none',0,legH*0.77,0);
+  }
+
+  /* === LEGS === */
+  const buildPostLeg=()=>{
+    if(legShapeId==='round_post') return new THREE.CylinderGeometry(dLeg.w/2,dLeg.w/2,legH,20);
+    if(legShapeId==='tapered_round') return new THREE.CylinderGeometry(dLeg.w*0.18,dLeg.w/2,legH,20);
+    if(legShapeId==='tapered_sq'){const g=new THREE.CylinderGeometry(dLeg.w*0.22,dLeg.w/2,legH,4);g.rotateY(Math.PI/4);return g;}
+    if(legShapeId==='fluted') return new THREE.CylinderGeometry(dLeg.w/2,dLeg.w/2,legH,14);
+    if(legShapeId==='industrial_pipe') return new THREE.CylinderGeometry(dLeg.w*0.42,dLeg.w*0.42,legH,16);
+    if(legShapeId==='turned_leg'){
+      const g=new THREE.CylinderGeometry(dLeg.w/2,dLeg.w/2,legH,28,12);
+      const pos=g.attributes.position;
+      for(let i=0;i<pos.count;i++){const yv=pos.getY(i);const sc=1+Math.sin((yv/legH+0.5)*Math.PI*6)*0.2;pos.setX(i,pos.getX(i)*sc);pos.setZ(i,pos.getZ(i)*sc);}
+      g.computeVertexNormals(); return g;
+    }
+    if(legShapeId==='cabriole'){
+      class CabCurve extends THREE.Curve{getPoint(t){return new THREE.Vector3(Math.sin(t*Math.PI)*dLeg.w*0.4,t*legH-legH/2,0);}}
+      return sg(()=>new THREE.TubeGeometry(new CabCurve(),24,dLeg.w*0.28,8,false),new THREE.CylinderGeometry(dLeg.w*0.28,dLeg.w/2,legH,8));
+    }
+    if(legShapeId==='carved_leg') return new THREE.CylinderGeometry(dLeg.w/2,dLeg.w*0.65,legH*0.88,8);
+    return new THREE.BoxGeometry(dLeg.w,legH,dLeg.d);
+  };
+
+  if(isPedestal){
+    if(legShapeId==='single_pedestal'){
+      const colH=legH*0.82; const colR=dLeg.w*0.55;
+      addMesh('Legs',new THREE.CylinderGeometry(colR*0.5,colR,colH,24),legHex,legCarv,0,colH/2,0);
+      addMesh('Legs',new THREE.CylinderGeometry(dSeat.w*0.22,dSeat.w*0.28,dLeg.d*0.5,24),legHex,legCarv,0,colH+dLeg.d*0.25,0);
+      for(let i=0;i<4;i++){const a=(Math.PI/2)*i+Math.PI/4;const fR=dSeat.w*0.22;addMesh('Legs',new THREE.BoxGeometry(fR,legH*0.12,dLeg.d*0.45),legHex,legCarv,Math.cos(a)*fR*0.42,legH*0.06,Math.sin(a)*fR*0.42,0,a,0.18);}
+    } else if(legShapeId==='tulip_pedestal'){
+      const pts=[new THREE.Vector2(dLeg.w*0.2,0),new THREE.Vector2(dLeg.w*0.1,legH*0.25),new THREE.Vector2(dLeg.w*0.07,legH*0.55),new THREE.Vector2(dLeg.w*0.18,legH*0.72),new THREE.Vector2(dLeg.w*0.25,legH)];
+      addMesh('Legs',new THREE.LatheGeometry(pts,24),legHex,legCarv,0,0,0);
+      addMesh('Legs',new THREE.CylinderGeometry(dSeat.w*0.2,dSeat.w*0.18,dLeg.d*0.4,24),legHex,legCarv,0,legH+dLeg.d*0.2,0);
+    } else { // cross_base / 4-star
+      addMesh('Legs',new THREE.CylinderGeometry(dLeg.w*0.5,dLeg.w*0.55,legH*0.88,20),legHex,legCarv,0,legH*0.44,0);
+      for(let i=0;i<4;i++){const a=(Math.PI/2)*i;const aL=dSeat.w*0.32;addMesh('Legs',new THREE.BoxGeometry(aL,dLeg.w*0.5,dLeg.w*0.5),legHex,legCarv,Math.cos(a)*aL*0.5,legH*0.05,Math.sin(a)*aL*0.5,0,a,0);}
+      addMesh('Legs',new THREE.CylinderGeometry(dSeat.w*0.18,dSeat.w*0.22,dLeg.d*0.45,20),legHex,legCarv,0,legH+dLeg.d*0.22,0);
+    }
+  } else if(isTripod){
+    for(let i=0;i<3;i++){
+      const a=(Math.PI*2/3)*i-Math.PI/6;
+      const tx=Math.cos(a)*lxR*1.1, tz=Math.sin(a)*lzR*1.1;
+      const tiltAng=0.2;
+      addMesh('Legs',new THREE.CylinderGeometry(dLeg.w*0.4,dLeg.w*0.45,legH*1.05,14),legHex,legCarv,tx*0.5,yLeg,tz*0.5,Math.cos(a+Math.PI/2)*tiltAng,0,Math.sin(a+Math.PI/2)*tiltAng);
+    }
+  } else if(legShapeId==='hairpin'){
+    const pinR=dLeg.w*0.08;
+    class HairCurve extends THREE.Curve{
+      constructor(ox){super();this.ox=ox;}
+      getPoint(t){if(t<0.5)return new THREE.Vector3(this.ox,legH*(1-t*2),t*dLeg.d*0.45);return new THREE.Vector3(this.ox,legH*(t-0.5)*2,dLeg.d*0.45*(1-(t-0.5)*2));}
+    }
+    [[-lxR,-lzR],[-lxR,lzR],[lxR,-lzR],[lxR,lzR]].forEach(([px,pz])=>{
+      [-dLeg.d*0.15,0,dLeg.d*0.15].forEach(off=>{
+        const geo=sg(()=>new THREE.TubeGeometry(new HairCurve(off),18,pinR,5,false),new THREE.CylinderGeometry(pinR,pinR,legH,5));
+        addMesh('Legs',geo,legHex,legCarv,px,0,pz);
+      });
+    });
+  } else if(legShapeId==='x_frame'){
+    const slabW=dSeat.w*0.85, slabT=dLeg.d*0.55;
+    const dLen=Math.sqrt(slabW*slabW+legH*legH)*0.5, ang=Math.atan2(legH,slabW);
+    [-lzR,lzR].forEach(zp=>{
+      addMesh('Legs',new THREE.BoxGeometry(dLen*2,slabT,slabT*0.8),legHex,legCarv,0,legH/2,zp,0,0,ang);
+      addMesh('Legs',new THREE.BoxGeometry(dLen*2,slabT,slabT*0.8),legHex,legCarv,0,legH/2,zp,0,0,-ang);
+    });
+    addMesh('Legs',new THREE.BoxGeometry(dSeat.w*0.85,slabT,slabT),legHex,legCarv,0,legH*0.28,0);
+  } else if(legShapeId==='slab_leg'){
+    addMesh('Legs',new THREE.BoxGeometry(dLeg.d*0.5,legH,dSeat.d*0.75),legHex,legCarv,-lxR,yLeg,0);
+    addMesh('Legs',new THREE.BoxGeometry(dLeg.d*0.5,legH,dSeat.d*0.75),legHex,legCarv,+lxR,yLeg,0);
+    addMesh('Legs',new THREE.BoxGeometry(dSeat.w*0.78,dLeg.d*0.5,dLeg.d*0.5),legHex,legCarv,0,legH*0.32,0);
+  } else {
+    const gL=buildPostLeg();
+    if(legShapeId==='cabriole'){
+      addMesh('Legs',gL,legHex,legCarv,-lxR,yLeg,-lzR,0,Math.PI*0.75,0);
+      addMesh('Legs',gL,legHex,legCarv, lxR,yLeg,-lzR,0,Math.PI*0.25,0);
+      addMesh('Legs',gL,legHex,legCarv,-lxR,yLeg, lzR,0,Math.PI*1.25,0);
+      addMesh('Legs',gL,legHex,legCarv, lxR,yLeg, lzR,0,Math.PI*1.75,0);
+    } else {
+      addMesh('Legs',gL,legHex,legCarv,-lxR,yLeg,-lzR);
+      addMesh('Legs',gL,legHex,legCarv, lxR,yLeg,-lzR);
+      addMesh('Legs',gL,legHex,legCarv,-lxR,yLeg, lzR);
+      addMesh('Legs',gL,legHex,legCarv, lxR,yLeg, lzR);
+    }
+  }
+
+  /* === FOOTREST RING === */
+  if(ai.hasFootrest && !isPedestal && !isTripod){
+    const fY=legH*0.38;
+    const fR=Math.max(lxR,lzR)*1.05+dLeg.w*0.1;
+    const ringR=dLeg.w*0.3;
+    const ringGeo=sg(()=>new THREE.TorusGeometry(fR,ringR,10,52),null);
+    if(ringGeo) addMesh('Legs',ringGeo,legHex,'none',0,fY,0,Math.PI/2,0,0);
+  }
+
+  /* === H-BAR FOOTREST === */
+  if(ai.hasHBar && !isPedestal){
+    const fY=legH*0.32;
+    const barT=dLeg.w*0.5;
+    addMesh('Legs',new THREE.CylinderGeometry(barT*0.4,barT*0.4,lxR*2,12),legHex,'none',0,fY,lzR,0,0,Math.PI/2);
+    addMesh('Legs',new THREE.CylinderGeometry(barT*0.4,barT*0.4,lxR*2,12),legHex,'none',0,fY,-lzR,0,0,Math.PI/2);
+    addMesh('Legs',new THREE.CylinderGeometry(barT*0.4,barT*0.4,lzR*2,12),legHex,'none',lxR,fY,0);
+    addMesh('Legs',new THREE.CylinderGeometry(barT*0.4,barT*0.4,lzR*2,12),legHex,'none',-lxR,fY,0);
+  }
+
+  /* === X-BRACE === */
+  if(ai.hasXBrace && !isPedestal){
+    const bY=legH*0.28;
+    const bLen=Math.sqrt((lxR*2)*(lxR*2)+(lzR*2)*(lzR*2));
+    const bT=dLeg.w*0.28;
+    const angXZ=Math.atan2(lzR*2,lxR*2);
+    addMesh('Legs',new THREE.CylinderGeometry(bT,bT,bLen,10),legHex,'none',0,bY,0,0,0,angXZ+Math.PI/2);
+    addMesh('Legs',new THREE.CylinderGeometry(bT,bT,bLen,10),legHex,'none',0,bY,0,0,0,-angXZ+Math.PI/2);
+  }
+
+  /* === SIDE STRETCHERS === */
+  if(ai.hasStretcher && !isPedestal){
+    const sY=legH*0.25;
+    const sT=dLeg.w*0.38;
+    addMesh('Legs',new THREE.CylinderGeometry(sT,sT,lxR*2,10),legHex,'none',0,sY,-lzR);
+    addMesh('Legs',new THREE.CylinderGeometry(sT,sT,lxR*2,10),legHex,'none',0,sY, lzR);
+  }
+
+  /* === BACK REST === */
+  if(ai.hasBack && backShapeId!=='no_back'){
+    const yBackBase=legH+dSeat.h;
+    const bW=dBack.w, bH=dBack.h, bT=dBack.d;
+    const backX=0, backZ=-dSeat.d/2*0.88;
+    const buildBackGeo=()=>{
+      if(backShapeId==='low_slat') return new THREE.BoxGeometry(bW,bH*0.5,bT*0.9);
+      if(backShapeId==='crossbar_back') return sg(()=>{ const g=new THREE.CylinderGeometry(bT*0.38,bT*0.38,bW,14); g.rotateZ(Math.PI/2); return g; }, new THREE.BoxGeometry(bW,bT*0.7,bT*0.7));
+      if(backShapeId==='panel_back') return new THREE.BoxGeometry(bW,bH,bT);
+      if(backShapeId==='arch_back'){
+        return sg(()=>{
+          const sh=new THREE.Shape(); sh.moveTo(-bW/2,0); sh.lineTo(bW/2,0); sh.lineTo(bW/2,bH*0.65); sh.absarc(0,bH*0.65,bW/2,0,Math.PI,false); sh.closePath();
+          const g=new THREE.ExtrudeGeometry(sh,{depth:bT,bevelEnabled:false}); g.translate(0,0,-bT/2); return g;
+        }, new THREE.BoxGeometry(bW,bH,bT));
+      }
+      if(backShapeId==='open_oval'){
+        return sg(()=>{
+          const sh=new THREE.Shape(); const kx=bW*0.28,ky=bH*0.28;
+          sh.moveTo(0,-bH*0.45); sh.bezierCurveTo(kx,-bH*0.45,bW*0.45,-ky,bW*0.45,0); sh.bezierCurveTo(bW*0.45,ky,kx,bH*0.45,0,bH*0.45);
+          sh.bezierCurveTo(-kx,bH*0.45,-bW*0.45,ky,-bW*0.45,0); sh.bezierCurveTo(-bW*0.45,-ky,-kx,-bH*0.45,0,-bH*0.45);
+          const hole=new THREE.Path(); const hkx=bW*0.2,hky=bH*0.2;
+          hole.moveTo(0,-bH*0.3); hole.bezierCurveTo(hkx,-bH*0.3,bW*0.3,-hky,bW*0.3,0); hole.bezierCurveTo(bW*0.3,hky,hkx,bH*0.3,0,bH*0.3);
+          hole.bezierCurveTo(-hkx,bH*0.3,-bW*0.3,hky,-bW*0.3,0); hole.bezierCurveTo(-bW*0.3,-hky,-hkx,-bH*0.3,0,-bH*0.3);
+          sh.holes.push(hole);
+          const g=new THREE.ExtrudeGeometry(sh,{depth:bT,bevelEnabled:false}); g.translate(0,0,-bT/2); return g;
+        }, new THREE.BoxGeometry(bW,bH,bT));
+      }
+      if(backShapeId==='ladder_back'){
+        for(let i=0;i<3;i++){
+          const yS=yBackBase+bH*0.18+i*(bH*0.28);
+          addMesh('Back',new THREE.CylinderGeometry(bT*0.28,bT*0.28,bW*0.92,10),backHex,backCarv,backX,yS,backZ,0,0,Math.PI/2);
+        }
+        addMesh('Back',new THREE.CylinderGeometry(bT*0.32,bT*0.32,bH,10),backHex,backCarv,backX-bW*0.44,yBackBase+bH/2,backZ);
+        addMesh('Back',new THREE.CylinderGeometry(bT*0.32,bT*0.32,bH,10),backHex,backCarv,backX+bW*0.44,yBackBase+bH/2,backZ);
+        return null;
+      }
+      if(backShapeId==='windsor_back'){
+        const nS=7;
+        for(let i=0;i<nS;i++){
+          const t=i/(nS-1); const sx=(t-0.5)*bW*0.82;
+          const spinH=bH*(0.65+Math.abs(t-0.5)*0.18);
+          addMesh('Back',new THREE.CylinderGeometry(bT*0.18,bT*0.22,spinH,8),backHex,backCarv,backX+sx,yBackBase+spinH/2,backZ);
+        }
+        addMesh('Back',new THREE.BoxGeometry(bW,bH*0.08,bT*1.4),backHex,backCarv,backX,yBackBase+bH*0.75,backZ);
+        return null;
+      }
+      if(backShapeId==='curved_back'){
+        return sg(()=>{
+          const sh=new THREE.Shape(); sh.moveTo(-bW/2,0); sh.lineTo(bW/2,0); sh.lineTo(bW/2,bH*0.7); sh.quadraticCurveTo(0,bH*1.05,-bW/2,bH*0.7); sh.closePath();
+          const g=new THREE.ExtrudeGeometry(sh,{depth:bT,bevelEnabled:false}); g.translate(0,0,-bT/2); return g;
+        }, new THREE.BoxGeometry(bW,bH,bT));
+      }
+      if(backShapeId==='caned_back'){
+        const g=new THREE.BoxGeometry(bW,bH,bT*0.5); return g;
+      }
+      if(backShapeId==='geometric_back'){
+        return sg(()=>{
+          const sh=new THREE.Shape(); sh.moveTo(-bW/2,0); sh.lineTo(bW/2,0); sh.lineTo(bW/2,bH); sh.lineTo(-bW/2,bH); sh.closePath();
+          const h1=new THREE.Path(); h1.moveTo(-bW*0.3,bH*0.1); h1.lineTo(0,bH*0.5); h1.lineTo(bW*0.3,bH*0.1); h1.lineTo(bW*0.3,bH*0.85); h1.lineTo(-bW*0.3,bH*0.85); h1.closePath(); sh.holes.push(h1);
+          const g=new THREE.ExtrudeGeometry(sh,{depth:bT,bevelEnabled:false}); g.translate(0,0,-bT/2); return g;
+        }, new THREE.BoxGeometry(bW,bH,bT));
+      }
+      if(backShapeId==='hairpin_back'){
+        const pinR=bT*0.22; const nP=3;
+        for(let i=0;i<nP;i++){
+          const t=i/(nP-1); const px=(t-0.5)*bW*0.78;
+          class BPCurve extends THREE.Curve{getPoint(t){if(t<0.5)return new THREE.Vector3(bT*0.2,t*bH*2,0);return new THREE.Vector3(bT*0.2,(1-t)*bH*2,bT*0.4);}}
+          const g=sg(()=>new THREE.TubeGeometry(new BPCurve(),14,pinR,6,false),null);
+          if(g) addMesh('Back',g,backHex,backCarv,backX+px,yBackBase,backZ);
+        }
+        return null;
+      }
+      return new THREE.BoxGeometry(bW,bH,bT);
+    };
+    const backGeo=buildBackGeo();
+    if(backGeo){
+      addMesh('Back',backGeo,backHex,backCarv,backX,yBackBase+bH/2,backZ);
+    }
+    // Back support posts
+    if(['low_slat','crossbar_back','panel_back','arch_back','open_oval','curved_back','caned_back','geometric_back'].includes(backShapeId)){
+      addMesh('Back',new THREE.CylinderGeometry(bT*0.28,bT*0.28,bH*0.6,10),backHex,backCarv,backX-bW*0.42,yBackBase+bH*0.3,backZ);
+      addMesh('Back',new THREE.CylinderGeometry(bT*0.28,bT*0.28,bH*0.6,10),backHex,backCarv,backX+bW*0.42,yBackBase+bH*0.3,backZ);
+    }
+  }
+
+  /* === SCALE & ADD === */
+  const gs=ai.globalScale||{x:1,y:1,z:1};
+  currentGroup.scale.set(gs.x||1,gs.y||1,gs.z||1);
+  scene.add(currentGroup);
+
+  /* === DIMENSION RULERS === */
+  if(showDimensions){
+    const gx=gs.x||1, gy=gs.y||1, gz=gs.z||1;
+    const sR=Math.min(dSeat.w,dSeat.d)/2;
+    createDimensionLine(
+      new THREE.Vector3(-sR*gx,0,0), new THREE.Vector3(sR*gx,0,0),
+      Math.round(dSeat.w*S*gx)+'cm W',
+      new THREE.Vector3(0,yTop*gy+dSeat.h*gy*0.5+0.18,sR*gz+0.05));
+    createDimensionLine(
+      new THREE.Vector3(-sR*gx-0.25,0,0), new THREE.Vector3(-sR*gx-0.25,legH*gy,0),
+      Math.round(legH*S*gy)+'cm H', new THREE.Vector3(-0.1,0,0));
+    createDimensionLine(
+      new THREE.Vector3(sR*gx+0.1,0,-sR*gz), new THREE.Vector3(sR*gx+0.1,0,sR*gz),
+      Math.round(dSeat.d*S*gz)+'cm D',
+      new THREE.Vector3(0,yTop*gy,0));
+  }
+
+  /* === ACCESSORIES 3D === */
+  ensureAccState(ai);
+  buildAccessories3D(ai,dSeat,yTop,getMat,sg,currentGroup);
+  currentGroup.scale.set(gs.x||1,gs.y||1,gs.z||1);
+}
+
+/* ============================================================  ACCESSORIES  */
+const ACC_MATS_STOOL=[
+  {id:'#8B4513',name:'Mahogany',hex:'#8B4513'},{id:'#d4ac7d',name:'Oak',hex:'#d4ac7d'},
+  {id:'#e8e8e8',name:'Marble',hex:'#e8e8e8'},{id:'#8a8a8a',name:'Steel',hex:'#8a8a8a'},
+  {id:'#c0c8d0',name:'Chrome',hex:'#c0c8d0'},{id:'#1c1c1c',name:'Matte Black',hex:'#1c1c1c'},
+  {id:'#2a2018',name:'Black Leather',hex:'#2a2018'},{id:'#c8966e',name:'Tan Leather',hex:'#c8966e'},
+  {id:'#1a2a4a',name:'Navy Velvet',hex:'#1a2a4a'},{id:'#c8a050',name:'Brass',hex:'#c8a050'},
+  {id:'#bdb76b',name:'Bamboo',hex:'#bdb76b'},{id:'#4a7c3f',name:'Sage Felt',hex:'#4a7c3f'},
+];
+
+const ACC_DEFS_STOOL=[
+  {
+    id:'seat_cushion', name:'Seat Cushion / Pad', icon:'fas fa-square',
+    desc:'A removable padded cushion that sits on top of the stool seat, available in various thicknesses and materials.',
+    defaultMat:'#2a2018',
+    params:{ thickness:5, padding:8 },
+    paramDefs:[
+      {key:'thickness',label:'Thick', min:2, max:12, step:1, unit:'cm'},
+      {key:'padding',  label:'Overhang',min:0,max:16,step:2, unit:'mm'},
+    ]
+  },
+  {
+    id:'footrest_bumpers', name:'Footrest Non-Slip Bumpers', icon:'fas fa-grip-horizontal',
+    desc:'Rubberized anti-slip bumpers fitted to the footrest ring or H-bar to protect and grip.',
+    defaultMat:'#1c1c1c',
+    params:{ count:4, size:6 },
+    paramDefs:[
+      {key:'count', label:'Count',  min:2, max:8,  step:1, unit:'×'},
+      {key:'size',  label:'Size',   min:3, max:12, step:1, unit:'mm'},
+    ]
+  },
+  {
+    id:'armrests', name:'Armrests', icon:'fas fa-arrows-alt-h',
+    desc:'Low wraparound or straight armrests attached to the seat sides or back posts.',
+    defaultMat:'#8B4513',
+    params:{ length:20, height:22, thickness:4 },
+    paramDefs:[
+      {key:'length',   label:'Length', min:10, max:30, step:2, unit:'cm'},
+      {key:'height',   label:'Elev.',  min:12, max:30, step:2, unit:'cm'},
+      {key:'thickness',label:'Thick',  min:2,  max:8,  step:1, unit:'cm'},
+    ]
+  },
+  {
+    id:'cup_holder', name:'Side Cup Holder', icon:'fas fa-coffee',
+    desc:'A small circular cup cradle mounted on the side of the stool or integrated into the seat edge.',
+    defaultMat:'#c0c8d0',
+    params:{ cupDia:8, holderDepth:5 },
+    paramDefs:[
+      {key:'cupDia',     label:'Diameter', min:5, max:14, step:1, unit:'cm'},
+      {key:'holderDepth',label:'Depth',    min:2, max:8,  step:1, unit:'cm'},
+    ]
+  },
+  {
+    id:'bag_hook', name:'Bag / Purse Hook', icon:'fas fa-tag',
+    desc:'A folding stainless hook mounted under the seat edge for hanging bags or jackets.',
+    defaultMat:'#c0c8d0',
+    params:{ hookSize:5, position:0 },
+    paramDefs:[
+      {key:'hookSize', label:'Size',  min:3, max:9,  step:1, unit:'cm'},
+      {key:'position', label:'Side',  min:0, max:1,  step:1, unit:''},
+    ]
+  },
+  {
+    id:'anti_scratch_feet', name:'Anti-Scratch Leg Caps', icon:'fas fa-shoe-prints',
+    desc:'Rubber or felt glides fitted to the bottom of each leg to protect floors and prevent sliding.',
+    defaultMat:'#1c1c1c',
+    params:{ capH:2, capR:3 },
+    paramDefs:[
+      {key:'capH', label:'Height', min:1, max:5, step:1, unit:'cm'},
+      {key:'capR', label:'Radius', min:2, max:8, step:1, unit:'cm'},
+    ]
+  },
+  {
+    id:'lumbar_pad', name:'Lumbar Support Pad', icon:'fas fa-hand-paper',
+    desc:'A contoured padded lumbar roll that clips or straps to the back rest for extra lower-back support.',
+    defaultMat:'#c8966e',
+    params:{ padW:22, padH:12, padDepth:6 },
+    paramDefs:[
+      {key:'padW',   label:'Width', min:12, max:30, step:2, unit:'cm'},
+      {key:'padH',   label:'Height',min:8,  max:18, step:2, unit:'cm'},
+      {key:'padDepth',label:'Depth',min:3,  max:10, step:1, unit:'cm'},
+    ]
+  },
+  {
+    id:'nonslip_base', name:'Non-Slip Floor Base Ring', icon:'fas fa-circle',
+    desc:'A wide rubber or brass ring welded or clamped at the bottom of a pedestal base for added stability.',
+    defaultMat:'#8a8a8a',
+    params:{ ringDia:28, ringThick:3 },
+    paramDefs:[
+      {key:'ringDia',  label:'Diameter',  min:16, max:42, step:2, unit:'cm'},
+      {key:'ringThick',label:'Thickness', min:1,  max:6,  step:1, unit:'cm'},
+    ]
+  },
+];
+
+function makeDefaultAccState(){
+  const s={};
+  ACC_DEFS_STOOL.forEach(d=>{ const o={on:false,mat:d.defaultMat}; d.paramDefs.forEach(p=>{o[p.key]=d.params[p.key];}); s[d.id]=o; });
+  return s;
+}
+
+function ensureAccState(ai){
+  if(!ai) return;
+  if(!ai.accessories) ai.accessories=makeDefaultAccState();
+  ACC_DEFS_STOOL.forEach(d=>{
+    if(!ai.accessories[d.id]) ai.accessories[d.id]={on:false,mat:d.defaultMat};
+    d.paramDefs.forEach(p=>{ if(ai.accessories[d.id][p.key]===undefined) ai.accessories[d.id][p.key]=d.params[p.key]; });
+  });
+}
+
+function renderAccessories(){
+  const ai=getActiveItem(); if(!ai) return;
+  ensureAccState(ai);
+  const container=document.getElementById('accessories-container'); if(!container) return;
+  container.innerHTML='';
+  ACC_DEFS_STOOL.forEach(def=>{
+    const acc=ai.accessories[def.id]; const isOn=!!acc.on;
+    const div=document.createElement('div');
+    div.className='accessory-item'+(isOn?' enabled':'');
+    div.id='acc-item-'+def.id;
+    const chips=ACC_MATS_STOOL.map(m=>`<div class="acc-mat-chip${acc.mat===m.id?' active':''}" onclick="updateAccMat('${def.id}','${m.id}')"><div class="acc-mat-dot" style="background:${m.hex}"></div>${m.name}</div>`).join('');
+    const sliders=def.paramDefs.map(p=>`
+      <div class="acc-range-row">
+        <label>${p.label}</label>
+        <input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${acc[p.key]!==undefined?acc[p.key]:p.min}" oninput="updateAccParam('${def.id}','${p.key}',this.value,this)">
+        <span class="val-display" id="accv-${def.id}-${p.key}">${acc[p.key]!==undefined?acc[p.key]:p.min}</span>
+        <span style="font-size:0.68rem;color:#555;margin-left:2px;">${p.unit}</span>
+      </div>`).join('');
+    div.innerHTML=`
+      <div class="accessory-header" onclick="toggleAccPanel('${def.id}')">
+        <div class="accessory-icon${isOn?' enabled':''}"><i class="${def.icon}"></i></div>
+        <span class="accessory-title">${def.name}</span>
+        <span class="accessory-badge${isOn?' on':''}">${isOn?'ON':'OFF'}</span>
+        <button class="accessory-toggle${isOn?' on':''}" onclick="event.stopPropagation();toggleAccOn('${def.id}')"></button>
+      </div>
+      <div class="accessory-body" id="acc-body-${def.id}" style="display:${isOn?'block':'none'}">
+        <p class="acc-desc">${def.desc}</p>
+        <div class="acc-control-row">
+          <div class="acc-control-label"><i class="fas fa-palette" style="color:var(--accent);margin-right:3px"></i>Material</div>
+          <div class="acc-mat-grid">${chips}</div>
+        </div>
+        ${def.paramDefs.length?`<div class="acc-control-row"><div class="acc-control-label"><i class="fas fa-sliders-h" style="color:var(--accent);margin-right:3px"></i>Size</div>${sliders}</div>`:''}
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function toggleAccPanel(id){ const body=document.getElementById('acc-body-'+id); if(body) body.style.display=body.style.display==='none'?'block':'none'; }
+function toggleAccOn(id){ const ai=getActiveItem();if(!ai)return;ensureAccState(ai);ai.accessories[id].on=!ai.accessories[id].on;saveState();renderAccessories();build3DScene();updatePrice(); }
+function updateAccMat(id,hex){ const ai=getActiveItem();if(!ai)return;ensureAccState(ai);ai.accessories[id].mat=hex;saveState();build3DScene();renderAccessories(); }
+function updateAccParam(id,key,val,el){ const ai=getActiveItem();if(!ai)return;ensureAccState(ai);ai.accessories[id][key]=parseFloat(val);const d=document.getElementById('accv-'+id+'-'+key);if(d)d.textContent=val;saveState();build3DScene(); }
+
+/* ============================================================  ACCESSORIES 3D  */
+function buildAccessories3D(ai,dSeat,yTop,getMat,sg,grp){
+  if(!ai||!ai.accessories) return;
+  const S=50;
+  const seatR=Math.min(dSeat.w,dSeat.d)/2;
+
+  function accMesh(geo,hex,x,y,z,rx,ry,rz){
+    if(!geo) return; rx=rx||0;ry=ry||0;rz=rz||0;
+    const isM=['#8a8a8a','#c0c8d0','#c8a050','#1c1c1c'].includes(hex);
+    const mat=getMat(hex,'none');
+    if(isM){mat.metalness=0.68;mat.roughness=0.3;}
+    if(hex==='#c0c8d0'){mat.metalness=0.95;mat.roughness=0.06;}
+    const m=new THREE.Mesh(geo,mat);
+    m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;m.receiveShadow=true;grp.add(m);
+  }
+
+  const ai_dims=(ai.dims||{});
+  const legH=(ai_dims.Legs||{h:72}).h/S;
+  const lxR=Math.max(Math.min(dSeat.w,dSeat.d)/2*0.62-0.05,0.08);
+  const yTopSurface=yTop+dSeat.h/2;
+
+  /* SEAT CUSHION */
+  const sc=ai.accessories.seat_cushion;
+  if(sc&&sc.on){
+    const cH=(sc.thickness||5)/S;
+    const cOvh=(sc.padding||8)/(S*10);
+    const yC=yTopSurface+cH/2+0.003;
+    const legShapeId=(ai.shapes||{}).Seat||'round_seat';
+    if(legShapeId==='round_seat'||legShapeId==='oval_seat'){
+      accMesh(new THREE.CylinderGeometry((seatR+cOvh)*1.02,seatR+cOvh,cH,36),sc.mat,0,yC,0);
+    } else {
+      accMesh(new THREE.BoxGeometry(dSeat.w+cOvh*2,cH,dSeat.d+cOvh*2),sc.mat,0,yC,0);
+    }
+    accMesh(new THREE.TorusGeometry(seatR+cOvh-0.01,cH*0.25,8,36),sc.mat,0,yC,0,Math.PI/2,0,0);
+  }
+
+  /* FOOTREST BUMPERS */
+  const fb=ai.accessories.footrest_bumpers;
+  if(fb&&fb.on&&(ai.hasFootrest||ai.hasHBar)){
+    const n=Math.round(fb.count||4);
+    const bR=(fb.size||6)/(S*10);
+    const bH=bR*1.8;
+    const fY=legH*0.38;
+    const ringR=lxR*1.05+0.02;
+    for(let i=0;i<n;i++){
+      const a=(Math.PI*2/n)*i;
+      accMesh(new THREE.CylinderGeometry(bR,bR*1.1,bH,10),fb.mat,Math.cos(a)*ringR,fY,Math.sin(a)*ringR);
+    }
+  }
+
+  /* ARMRESTS */
+  const arm=ai.accessories.armrests;
+  if(arm&&arm.on){
+    const aL=(arm.length||20)/S;
+    const aH=(arm.height||22)/S;
+    const aT=(arm.thickness||4)/S;
+    const yArm=legH+aH;
+    const arZ=-dSeat.d*0.22;
+    [-lxR*1.05, lxR*1.05].forEach(ax=>{
+      accMesh(new THREE.BoxGeometry(aT,aT,aL),arm.mat,ax,yArm,arZ+aL*0.1);
+      accMesh(new THREE.CylinderGeometry(aT*0.35,aT*0.35,aH*0.65,10),arm.mat,ax,legH+aH*0.32,arZ+aL*0.22);
+    });
+  }
+
+  /* CUP HOLDER */
+  const ch=ai.accessories.cup_holder;
+  if(ch&&ch.on){
+    const cR=(ch.cupDia||8)/(S*2);
+    const cD=(ch.holderDepth||5)/S;
+    const cX=seatR+cR*1.2;
+    const cY=yTop;
+    accMesh(new THREE.CylinderGeometry(cR,cR*0.88,cD,24),ch.mat,cX,cY,0);
+    accMesh(new THREE.TorusGeometry(cR*0.9,cR*0.1,8,24),ch.mat,cX,cY+cD/2,0,Math.PI/2,0,0);
+    accMesh(new THREE.CylinderGeometry(cR*0.38,cR*0.38,cD*0.15,18),'#1c1c1c',cX,cY-cD*0.5,0);
+  }
+
+  /* BAG HOOK */
+  const bh=ai.accessories.bag_hook;
+  if(bh&&bh.on){
+    const hR=(bh.hookSize||5)/(S*2);
+    const side=bh.position>=0.5?1:-1;
+    const hX=side*(seatR*0.85);
+    const hY=yTop-dSeat.h*0.4;
+    const hZ=0;
+    accMesh(new THREE.BoxGeometry(hR*2,hR*0.6,hR*0.6),'#c0c8d0',hX,hY,hZ);
+    accMesh(sg(()=>new THREE.TorusGeometry(hR*0.7,hR*0.18,8,16,Math.PI*1.5),null),'#c0c8d0',hX+(side*hR*0.9),hY-hR*0.65,hZ,0,Math.PI/2,0);
+  }
+
+  /* ANTI-SCRATCH FEET */
+  const af=ai.accessories.anti_scratch_feet;
+  if(af&&af.on){
+    const capH=(af.capH||2)/S;
+    const capR=(af.capR||3)/S;
+    const legShapeId=(ai.shapes||{}).Legs||'round_post';
+    const isPed=['single_pedestal','tulip_pedestal','cross_base'].includes(legShapeId);
+    if(isPed){
+      for(let i=0;i<4;i++){
+        const a=(Math.PI/2)*i+Math.PI/4;
+        const r=Math.min((ai.dims.Seat||{}).w||38,50)/(S*2)*0.24;
+        accMesh(new THREE.CylinderGeometry(capR,capR*1.12,capH,16),af.mat,Math.cos(a)*r,capH/2,Math.sin(a)*r);
+      }
+    } else {
+      [[-lxR,-lxR],[-lxR,lxR],[lxR,-lxR],[lxR,lxR]].forEach(([cx,cz])=>{
+        accMesh(new THREE.CylinderGeometry(capR,capR*1.1,capH,16),af.mat,cx,capH/2,cz);
       });
     }
-    function closeDesignModal() { document.getElementById('design-modal-overlay').classList.remove('open'); }
+  }
 
-    function addNewProject() {
-      const p = createNewDesignData('New Stool Template'); appState.items.push(p);
-      appState.activeItemId = p.id; renderUI(); build3DScene();
-    }
+  /* LUMBAR PAD */
+  const lp=ai.accessories.lumbar_pad;
+  if(lp&&lp.on&&ai.hasBack){
+    const pW=(lp.padW||22)/S;
+    const pH=(lp.padH||12)/S;
+    const pD=(lp.padDepth||6)/S;
+    const pZ=-(ai_dims.Seat||{d:38}).d/S*0.5-pD*0.55;
+    const pY=legH+(ai_dims.Legs||{h:72}).h/(S*10)+(ai_dims.Back||{h:30}).h/S*0.18;
+    accMesh(sg(()=>{
+      const sh=new THREE.Shape(); sh.moveTo(-pW/2,-pH/2); sh.lineTo(pW/2,-pH/2); sh.lineTo(pW/2,pH/2); sh.quadraticCurveTo(0,pH*0.62,-pW/2,pH/2); sh.closePath();
+      const g=new THREE.ExtrudeGeometry(sh,{depth:pD,bevelEnabled:true,bevelSize:0.008,bevelThickness:0.008,bevelSegments:2}); g.translate(0,0,-pD/2); return g;
+    },new THREE.BoxGeometry(pW,pH,pD)),lp.mat,0,legH+pH*0.2,pZ);
+  }
 
-    function publishTemplate() {
-      const active = getActiveItem();
-      renderer.render(scene, camera);
-      const preview = renderer.domElement.toDataURL('image/png');
-      
-      const tmpl = {
-        id: Date.now(),
-        type: 'stool',
-        name: active.name,
-        description: active.description,
-        gender: active.tmplGender,
-        badge: active.tmplBadge,
-        previewDataUrl: preview,
-        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
-        publishedAt: new Date().toISOString(),
-        basePrice: parseInt(document.getElementById('total-price').innerText.replace(/\D/g,'')),
-        designData: active
-      };
+  /* NON-SLIP BASE RING */
+  const nb=ai.accessories.nonslip_base;
+  if(nb&&nb.on){
+    const rR=(nb.ringDia||28)/(S*2);
+    const rT=(nb.ringThick||3)/S;
+    const ringGeo=sg(()=>new THREE.TorusGeometry(rR,rT*0.5,10,52),null);
+    if(ringGeo) accMesh(ringGeo,nb.mat,0,rT*0.3,0,Math.PI/2,0,0);
+  }
+}
 
-      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
-      globals.unshift(tmpl);
-      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
-      
-      alert('\u2705 "' + active.name + '" published to marketplace!');
-      window.location.href = 'templates.html';
-    }
+/* ============================================================  INIT ACCESSORIES ON LOAD  */
+window.addEventListener('load',()=>{
+  setTimeout(()=>{ const ai=getActiveItem(); if(ai){ ensureAccState(ai); saveState(); renderAccessories(); } },350);
+});
 
-    window.onload = initApp;
-  </script>
+function exportModel(){
+  if(!currentGroup) return;
+  const exporter=new THREE.STLExporter();
+  const result=exporter.parse(currentGroup,{binary:true});
+  const blob=new Blob([result],{type:'application/octet-stream'});
+  const link=document.createElement('a');
+  const ai=getActiveItem();
+  link.href=URL.createObjectURL(blob);
+  link.download=(ai?ai.name.replace(/\s+/g,'_'):'Stool_Model')+'_Model.stl';
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+}
+
+function toggleDesignAnalysis() {
+  const card = document.getElementById('design-analysis-card');
+  const icon = document.getElementById('da-toggle-icon');
+  if (!card || !icon) return;
+  card.classList.toggle('minimized');
+  if (card.classList.contains('minimized')) {
+    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+  } else {
+    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+  }
+}
+    /* ― Shop Mode: Upload to Templates ― */
+    (function initShopMode() {
+      if (sessionStorage.getItem('craftMode') !== 'shop') return;
+      const uploadBtn = document.getElementById('btn-upload-template');
+      const exportBtn = document.getElementById('btn-main-export');
+      if (uploadBtn) uploadBtn.style.display = 'flex';
+      if (exportBtn) exportBtn.style.display = 'none';
+      const addBtn = document.querySelector('.btn-add');
+      if (addBtn) addBtn.onclick = () => window.location.href = 'shop_studio.html';
+    })();
+</script>
 </body>
 </html>
+
+
+

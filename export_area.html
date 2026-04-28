@@ -6,265 +6,326 @@
   <title>Export Area - Modern Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
   <style>
     :root {
-      --app-bg: #6366f1;
+      --bg-base: #F9F7F4;
+      --bg-glass: rgba(255, 255, 255, 0.6);
+      --accent-primary: #8B5A2B;
+      --accent-hover: #724921;
+      --accent-glow: rgba(139, 90, 43, 0.25);
+      --text-dark: #1F1915;
+      --text-muted: #6B5B53;
+      --border-light: rgba(139, 90, 43, 0.1);
+      
       --panel-bg: #ffffff;
-      --sidebar-bg: #fdfdfd;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
+      --sidebar-bg: #f8f5f2;
       
-      --grad-purple: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
-      --grad-blue: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-      --grad-dark: linear-gradient(135deg, #334155 0%, #1e1e1e 100%);
-      
-      --shadow-soft: 0 10px 25px rgba(0,0,0,0.03);
-      --shadow-heavy: 0 25px 50px rgba(0,0,0,0.15);
-      --radius-lg: 30px;
+      --radius-lg: 32px;
       --radius-md: 16px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
     body {
-      font-family: 'Nunito', sans-serif;
-      background: var(--app-bg);
-      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-dark);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 2rem;
+      position: relative;
+      overflow-x: hidden;
     }
+
+    /* Subtle textured grain across the bg */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="100" y2="100" stroke="%23000000" stroke-width="0.3" opacity="0.02"/><line x1="0" y1="100" x2="100" y2="0" stroke="%23000000" stroke-width="0.2" opacity="0.015"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* --- BLURRED SHADOW BLOBS --- */
+    .ambient-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      z-index: -1;
+      pointer-events: none;
+    }
+    .blob-1 { width: 500px; height: 500px; background: #E8D5C4; top: -100px; right: -100px; }
+    .blob-2 { width: 600px; height: 600px; background: #F1E5D8; bottom: -200px; left: -200px; }
 
     .app-container {
       background: var(--panel-bg);
       width: 100%;
-      max-width: 1400px;
-      height: 90vh;
+      max-width: 1440px;
+      height: 92vh;
       min-height: 800px;
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-heavy);
+      box-shadow: 0 40px 100px rgba(44, 30, 22, 0.12);
       display: grid;
-      grid-template-columns: 240px 1fr 380px;
+      grid-template-columns: 260px 1fr 400px;
       overflow: hidden;
+      position: relative;
+      z-index: 10;
+      border: 1px solid rgba(139, 90, 43, 0.05);
     }
 
     /* --- LEFT SIDEBAR --- */
     .sidebar {
       background: var(--sidebar-bg);
-      border-right: 1px solid #f1f5f9;
-      padding: 2.5rem 1.5rem;
+      border-right: 1px solid rgba(139, 90, 43, 0.08);
+      padding: 3rem 1.8rem;
       display: flex;
       flex-direction: column;
     }
     .brand {
-      font-weight: 800;
-      font-size: 1.4rem;
-      color: var(--text-main);
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.6rem;
+      color: var(--text-dark);
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 3rem;
+      gap: 10px;
+      margin-bottom: 4rem;
+      text-decoration: none;
     }
     .brand-icon {
-      background: var(--grad-purple);
-      color: #fff;
-      width: 40px; height: 40px;
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem;
+      color: var(--accent-primary);
+      font-size: 1.5rem;
     }
-    .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
     .nav-link {
-      display: flex; align-items: center; gap: 12px;
-      padding: 1rem 1.2rem;
-      border-radius: 12px;
+      display: flex; align-items: center; gap: 14px;
+      padding: 1rem 1.4rem;
+      border-radius: 14px;
       color: var(--text-muted);
       text-decoration: none;
       font-weight: 600;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.95rem;
     }
-    .nav-link:hover, .nav-link.active { background: #eff6ff; color: #4f46e5; }
-    .nav-link i { font-size: 1.1rem; width: 20px; text-align: center; }
+    .nav-link:hover { color: var(--accent-primary); background: rgba(139, 90, 43, 0.05); }
+    .nav-link.active { background: var(--accent-primary); color: #fff; box-shadow: 0 8px 20px var(--accent-glow); }
+    .nav-link i { font-size: 1.2rem; width: 24px; text-align: center; }
 
     .profile-card {
       margin-top: auto;
       background: #fff;
-      border: 1px solid #f1f5f9;
-      padding: 1rem;
+      border: 1px solid rgba(139, 90, 43, 0.1);
+      padding: 1.2rem;
       border-radius: var(--radius-md);
       display: flex; align-items: center; gap: 12px;
-      box-shadow: var(--shadow-soft);
+      box-shadow: 0 10px 20px rgba(44, 30, 22, 0.04);
     }
-    .profile-card i { font-size: 2rem; color: var(--text-muted); }
-    .profile-info h4 { font-size: 0.9rem; margin-bottom: 2px; }
-    .profile-info p { font-size: 0.75rem; color: var(--text-muted); }
+    .profile-card i { font-size: 2.2rem; color: var(--accent-primary); }
+    .profile-info h4 { font-size: 0.95rem; margin-bottom: 2px; font-weight: 700; }
+    .profile-info p { font-size: 0.8rem; color: var(--text-muted); }
 
     /* --- CENTER COLUMN (Main Content) --- */
-    .main-content { padding: 2.5rem 3rem; overflow-y: auto; background: #fcfcfd; }
+    .main-content { padding: 3rem 4rem; overflow-y: auto; background: #fff; }
     
-    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    h1 { font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px;}
-    .sub-heading { color: var(--text-muted); font-size: 0.95rem; font-weight: 600; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;}
+    .sub-heading { color: var(--text-muted); font-size: 1rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
     
     .price-tag {
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #f59e0b;
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--accent-primary);
     }
 
     /* Top Stats */
-    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-    .stat-card { background: #fff; border: 1px solid #f1f5f9; border-radius: var(--radius-md); padding: 1.2rem 1.5rem; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; }
-    .stat-card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 0.5rem; }
-    .stat-card .val { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem; }
+    .stat-card { background: #fff; border: 1px solid rgba(139, 90, 43, 0.08); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: 0 4px 15px rgba(44, 30, 22, 0.02); display: flex; flex-direction: column; }
+    .stat-card h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 0.6rem; font-weight: 700; }
+    .stat-card .val { font-size: 1.4rem; font-weight: 700; color: var(--text-dark); }
     
-    .analysis-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; margin-top: 8px; overflow: hidden; }
-    .analysis-bar-fill { height: 100%; border-radius: 4px; }
+    .analysis-bar-bg { width: 100%; height: 6px; background: rgba(139, 90, 43, 0.08); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+    .analysis-bar-fill { height: 100%; border-radius: 3px; }
 
     /* Preview Image */
     .preview-box {
-      background: var(--grad-dark);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-soft);
-      height: 380px;
+      background: #1f1915;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      height: 420px;
       display: flex; align-items: center; justify-content: center;
       overflow: hidden;
-      margin-bottom: 2.5rem;
+      margin-bottom: 3rem;
+      position: relative;
+    }
+    .preview-box::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+      pointer-events: none;
     }
     .preview-box img { width: 100%; height: 100%; object-fit: contain; }
-    .preview-fallback { color: #94a3b8; font-weight: 600; text-align: center;}
+    .preview-fallback { color: rgba(255, 255, 255, 0.3); font-weight: 500; text-align: center;}
 
     /* Data Table */
-    .section-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.2rem; }
-    h2 { font-size: 1.3rem; font-weight: 700; color: var(--text-main); }
+    .section-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem; }
+    h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--text-dark); }
     
     .data-card {
       background: #fff;
       border-radius: var(--radius-md);
-      padding: 1.5rem;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid #f1f5f9;
-      margin-bottom: 2rem;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(44, 30, 22, 0.03);
+      border: 1px solid rgba(139, 90, 43, 0.08);
+      margin-bottom: 2.5rem;
     }
-    table { width: 100%; border-collapse: collapse; font-family: 'Inter', sans-serif;}
-    th { text-align: left; padding: 1rem 0; color: var(--text-muted); font-size: 0.8rem; border-bottom: 1px solid #eee; text-transform: uppercase; letter-spacing: 0.5px;}
-    td { padding: 1rem 0; font-size: 0.95rem; border-bottom: 1px solid #f8fafc; font-weight: 600;}
-    .mono { font-family: monospace; color: #4f46e5; font-weight: 800; font-size: 1rem;}
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 1.2rem 0; color: var(--text-muted); font-size: 0.85rem; border-bottom: 1px solid rgba(139, 90, 43, 0.08); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;}
+    td { padding: 1.2rem 0; font-size: 1rem; border-bottom: 1px solid rgba(139, 90, 43, 0.04); color: var(--text-dark); }
+    .mono { font-family: 'Inter', monospace; color: var(--accent-primary); font-weight: 700; }
     
     /* MATERIAL BADGE STYLING */
     .mat-badge {
-        background: #e0e7ff;
-        color: #4f46e5;
-        padding: 6px 12px;
+        background: rgba(139, 90, 43, 0.08);
+        color: var(--accent-primary);
+        padding: 6px 14px;
         border-radius: 8px;
         font-size: 0.85rem;
         font-weight: 700;
         display: inline-block;
+        border: 1px solid rgba(139, 90, 43, 0.1);
     }
 
     /* --- RIGHT COLUMN (Summary) --- */
     .right-panel {
-      background: #fff;
-      border-left: 1px solid #f1f5f9;
-      padding: 2.5rem 2rem;
+      background: var(--sidebar-bg);
+      border-left: 1px solid rgba(139, 90, 43, 0.08);
+      padding: 3rem 2rem;
       display: flex; flex-direction: column;
       overflow-y: auto;
     }
 
     .status-card {
       background: #fff;
-      border-radius: var(--radius-md);
-      padding: 1.5rem;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.06);
-      border: 1px solid #f8fafc;
-      margin-bottom: 2rem;
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 15px 40px rgba(44, 30, 22, 0.06);
+      border: 1px solid rgba(139, 90, 43, 0.05);
+      margin-bottom: 2.5rem;
       text-align: center;
     }
-    .status-card h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;}
+    .status-card h3 { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     .status-badge {
-      display: inline-block; padding: 0.4rem 1.2rem; border-radius: 50px; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;
+      display: inline-block; padding: 0.5rem 1.4rem; border-radius: 50px; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.2rem;
     }
-    .st-pending { background: #fef3c7; color: #d97706; }
-    .st-progress { background: #e0e7ff; color: #4f46e5; }
-    .st-success { background: #d1fae5; color: #059669; }
-    .st-cancelled { background: #fee2e2; color: #dc2626; }
+    .st-pending { background: #FEF3C7; color: #D97706; }
+    .st-progress { background: rgba(139, 90, 43, 0.1); color: var(--accent-primary); }
+    .st-success { background: #D1FAE5; color: #059669; }
+    .st-cancelled { background: #FEE2E2; color: #DC2626; }
     
-    .status-note { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.4; }
+    .status-note { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.8rem; line-height: 1.6; }
 
     .btn {
-      width: 100%; padding: 0.8rem; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 0.8rem;
+      width: 100%; padding: 1.1rem; border-radius: 14px; border: none; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 1rem;
     }
-    .btn-primary { background: var(--grad-purple); color: #fff; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
-    .btn-gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);}
-    .btn-gold:hover { transform: translateY(-2px); }
+    .btn-primary { 
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%); 
+      color: #fff; 
+      box-shadow: 0 8px 20px var(--accent-glow); 
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transform: skewX(-25deg);
+      animation: shine 4s infinite 2s;
+    }
+    @keyframes shine {
+      0% { left: -100%; }
+      20% { left: 200%; }
+      100% { left: 200%; }
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 25px var(--accent-glow); }
+    .btn-gold { background: #F59E0B; color: #fff; box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);}
+    .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(245, 158, 11, 0.35); }
 
-    .progress-container { background: #f8fafc; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; text-align: left; display: none; }
-    .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700;}
-    .progress-bar-wrap { width: 100%; height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
-    .progress-bar-fill { height: 100%; background: var(--grad-blue); width: 0%; transition: width 0.8s ease; }
+    .progress-container { background: rgba(139, 90, 43, 0.04); border-radius: 16px; padding: 1.2rem; margin-bottom: 2rem; text-align: left; display: none; border: 1px solid rgba(139, 90, 43, 0.05); }
+    .progress-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; font-weight: 700;}
+    .progress-bar-wrap { width: 100%; height: 8px; background: rgba(139, 90, 43, 0.08); border-radius: 10px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: var(--accent-primary); width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
 
     /* Chat Area */
     .chat-section { flex: 1; display: flex; flex-direction: column; }
-    .chat-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; }
-    .chat-box { flex: 1; background: #f8fafc; border-radius: var(--radius-md); padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 250px; border: 1px solid #f1f5f9; }
-    .msg { padding: 0.7rem 1rem; border-radius: 12px; font-size: 0.85rem; max-width: 85%; font-family: 'Inter', sans-serif;}
-    .msg.shop { background: #e0e7ff; color: #3730a3; align-self: flex-start; border-bottom-left-radius: 4px; }
-    .msg.user { background: var(--grad-purple); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .chat-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.2rem; }
+    .chat-box { flex: 1; background: #fff; border-radius: 20px; padding: 1.2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; min-height: 250px; border: 1px solid rgba(139, 90, 43, 0.08); box-shadow: inset 0 2px 10px rgba(44, 30, 22, 0.02); }
+    .msg { padding: 0.8rem 1.1rem; border-radius: 16px; font-size: 0.9rem; max-width: 88%; line-height: 1.5; }
+    .msg.shop { background: rgba(139, 90, 43, 0.06); color: var(--text-dark); align-self: flex-start; border-bottom-left-radius: 4px; }
+    .msg.user { background: var(--accent-primary); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px var(--accent-glow); }
     
-    .chat-input-row { display: flex; gap: 10px; margin-top: 1rem; }
-    .chat-input-row input { flex: 1; padding: 0.8rem 1rem; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; font-family: 'Inter', sans-serif; font-size: 0.9rem;}
-    .chat-input-row input:focus { border-color: #6366f1; }
-    .btn-send { width: auto; padding: 0 1.2rem; margin: 0; background: #6366f1; color: white; border-radius: 12px;}
+    .chat-input-row { display: flex; gap: 12px; margin-top: 1.5rem; }
+    .chat-input-row input { flex: 1; padding: 1rem 1.4rem; border-radius: 14px; border: 1px solid rgba(139, 90, 43, 0.15); outline: none; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: border-color 0.3s; background: #fff; }
+    .chat-input-row input:focus { border-color: var(--accent-primary); }
+    .btn-send { width: auto; padding: 0 1.5rem; margin: 0; background: var(--accent-primary); color: white; border-radius: 14px;}
 
-    /* PAYMENT MODAL */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .modal-box { background: #fff; border-radius: 24px; width: 100%; max-width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden; font-family: 'Inter', sans-serif;}
-    .modal-header { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9;}
-    .modal-header h2 { font-family: 'Nunito', sans-serif; font-size: 1.3rem; margin: 0;}
-    .close-btn { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: var(--text-muted); display:flex; align-items:center; justify-content:center;}
+    /* MODALS */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(31, 25, 21, 0.6); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(12px); }
+    .modal-box { background: #fff; border-radius: 32px; width: 100%; max-width: 500px; box-shadow: 0 30px 70px rgba(0,0,0,0.2); overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.2); }
+    .modal-header { padding: 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(139, 90, 43, 0.08);}
+    .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; margin: 0;}
+    .close-btn { background: rgba(139, 90, 43, 0.05); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: var(--text-muted); display:flex; align-items:center; justify-content:center; transition: all 0.2s;}
+    .close-btn:hover { background: rgba(139, 90, 43, 0.1); color: var(--accent-primary); }
     
-    .modal-body { padding: 1.5rem; max-height: 60vh; overflow-y: auto; }
-    .dp-amount-box { background: #f8fafc; border-radius: 16px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem; border: 1px dashed #cbd5e1; }
-    .dp-amount-box span { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
-    .dp-amount-box h1 { color: #4f46e5; font-size: 2.5rem; margin-top: 0.5rem; font-family: 'Nunito', sans-serif; }
+    .modal-body { padding: 2rem; max-height: 65vh; overflow-y: auto; }
+    .dp-amount-box { background: var(--sidebar-bg); border-radius: 24px; padding: 2rem; text-align: center; margin-bottom: 2rem; border: 2px dashed rgba(139, 90, 43, 0.2); }
+    .dp-amount-box span { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em; }
+    .dp-amount-box h1 { color: var(--accent-primary); font-size: 3rem; margin-top: 0.8rem; font-family: 'Playfair Display', serif; }
     
-    .wallet-card { border: 1px solid #f1f5f9; border-radius: 12px; margin-bottom: 1rem; overflow: hidden; }
-    .wallet-header { padding: 1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;}
-    .wallet-header.gcash { background: #007DFE; }
-    .wallet-header.maya { background: #1A1A1A; color: #00E463; }
-    .wallet-details { padding: 1rem; font-size: 0.85rem; line-height: 1.6; background: #fff;}
-    
-    .modal-footer { padding: 1.5rem; background: #f8fafc; border-top: 1px solid #f1f5f9; }
-    .modal-footer input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #cbd5e1; border-radius: 10px; margin-top: 5px; margin-bottom: 15px; outline:none; }
-    .modal-footer input:focus { border-color: #4f46e5; }
+    .modal-footer { padding: 2rem; background: var(--sidebar-bg); border-top: 1px solid rgba(139, 90, 43, 0.08); }
+    .modal-footer input { width: 100%; padding: 1.1rem; border: 1px solid rgba(139, 90, 43, 0.15); border-radius: 12px; margin-top: 8px; margin-bottom: 20px; outline:none; font-size: 1rem; }
+    .modal-footer input:focus { border-color: var(--accent-primary); }
     
     /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(139, 90, 43, 0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(139, 90, 43, 0.2); }
+
     /* RATING MODAL */
-    .rating-stars { display: flex; justify-content: center; gap: 8px; margin: 1.5rem 0; font-size: 2.5rem; color: #cbd5e1; cursor: pointer; }
-    .rating-stars i { transition: all 0.2s; }
-    .rating-stars i:hover, .rating-stars i.active { color: #f59e0b; transform: scale(1.1); }
-    .review-textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; font-family: 'Inter', sans-serif; resize: none; margin-bottom: 1rem; outline: none; }
-    .review-textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    .rating-stars { display: flex; justify-content: center; gap: 12px; margin: 2rem 0; font-size: 2.8rem; color: #E2E8F0; cursor: pointer; }
+    .rating-stars i { transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .rating-stars i:hover, .rating-stars i.active { color: #F59E0B; transform: scale(1.15); }
+    .review-textarea { width: 100%; border: 1px solid rgba(139, 90, 43, 0.15); border-radius: 16px; padding: 1.2rem; font-family: 'Inter', sans-serif; resize: none; margin-bottom: 1.5rem; outline: none; font-size: 1rem; transition: border-color 0.3s; }
+    .review-textarea:focus { border-color: var(--accent-primary); }
   </style>
 </head>
 
 <body>
 
+  <!-- Backdrops -->
+  <div class="ambient-blob blob-1"></div>
+  <div class="ambient-blob blob-2"></div>
+
   <div class="app-container">
     
     <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-icon"><i class="fas fa-layer-group"></i></div>
+      <a href="front_page.html" class="brand">
+        <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.4em; width: auto;">
         FurniCraft
-      </div>
+      </a>
       
       <ul class="nav-menu">
         <li><a href="furniture-builder.html" class="nav-link"><i class="fas fa-cube"></i> 3D Builder</a></li>
@@ -364,6 +425,12 @@
 
         <button id="btnPlaceOrder" class="btn btn-primary" onclick="placeOrder()"><i class="fas fa-paper-plane"></i> Place Order</button>
         <button id="btnPayDp" class="btn btn-gold" style="display:none;" onclick="openPaymentModal()"><i class="fas fa-wallet"></i> Pay Downpayment</button>
+        <div id="modifyTimerWrap" style="display:none; margin-top:12px; text-align:center;">
+          <button id="btnModifyOrder" class="btn btn-outline" style="border:1px solid var(--accent-primary); color:var(--accent-primary); background:transparent; width:100%;" onclick="modifyOrder()">
+            <i class="fas fa-edit"></i> Modify Order
+          </button>
+          <div id="modifyTimer" style="font-size:0.75rem; color:var(--text-muted); margin-top:5px; font-weight:600;"></div>
+        </div>
       </div>
 
       <div class="chat-section">
@@ -443,6 +510,47 @@
     </div>
   </div>
 
+  <!-- Modify Order Confirmation Modal -->
+  <div id="modifyModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 480px;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(139,90,43,0.1); padding-bottom: 1rem;">
+        <h2 style="color: #d97706; display:flex; align-items:center; gap:10px;">
+          <i class="fas fa-exclamation-triangle"></i> Modify Order
+        </h2>
+        <button class="close-btn" onclick="closeModifyModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem 0;">
+        <div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom: 0.6rem;">
+            <i class="fas fa-coins" style="color: #d97706; font-size: 1.2rem;"></i>
+            <strong style="color: #92400e; font-size: 1rem;">Modification Fee: ₱500.00</strong>
+          </div>
+          <p style="color: #78350f; font-size: 0.85rem; line-height: 1.5; margin: 0;">
+            This fee will be added to your total balance upon re-submission.
+          </p>
+        </div>
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom: 0.6rem;">
+            <i class="fas fa-undo-alt" style="color: #dc2626; font-size: 1.1rem;"></i>
+            <strong style="color: #991b1b; font-size: 0.95rem;">Status Reset</strong>
+          </div>
+          <p style="color: #7f1d1d; font-size: 0.85rem; line-height: 1.5; margin: 0;">
+            Your order status will reset to <b>"Pending"</b> for shop re-approval after modification.
+          </p>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.88rem; text-align: center; margin-top: 0.8rem;">
+          You will be taken back to the 3D designer to make your changes.
+        </p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn" style="flex:1; background: #f1f5f9; color: var(--text-dark); border: 1px solid var(--border-light);" onclick="closeModifyModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:2; margin:0; background: #d97706;" onclick="confirmModifyOrder()">
+          <i class="fas fa-edit"></i> Proceed to Modify
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const activeShopId = 1;
     const activeShopName = "Irawan Custom Woodworks";
@@ -459,7 +567,14 @@
       return 'Client (' + expId.substring(0,6) + ')';
     }
 
-    function moneySafe(txt){ const s = String(txt || '').trim(); return s ? s : "₱0"; }
+    function moneySafe(txt){
+      const s = String(txt || '').trim();
+      if (!s) return '\u20B10';
+      // Extract numeric value and re-format with proper peso sign
+      const num = parseFloat(s.replace(/[^0-9.-]+/g, ''));
+      if (isNaN(num) || num === 0) return '\u20B10';
+      return '\u20B1' + num.toLocaleString('en-US');
+    }
 
     function loadExportDraft(){
       const currentExportId = sessionStorage.getItem('currentExportId') || '';
@@ -492,7 +607,7 @@
       try { parsed = cadStateStr ? JSON.parse(cadStateStr) : null; } catch(e){}
 
       if (parsed && parsed.items && parsed.items.length) {
-        activeItem = parsed.items.find(i => i.id === exportDraft?.activeItemId) || parsed.items[0];
+        activeItem = parsed.items[0];
         
         // Scale Setup
         const gs = activeItem?.globalScale || {x:1,y:1,z:1};
@@ -552,13 +667,33 @@
       let configHTML = '';
       if (item.config) {
           const configItems = [];
+          if (item.config.style !== undefined) configItems.push(`Style: <b style="text-transform: capitalize;">${item.config.style.replace(/_/g, ' ')}</b>`);
           if (item.config.seatCount !== undefined) configItems.push(`<b>${item.config.seatCount}</b> Seats`);
           if (item.config.shelfCount !== undefined) configItems.push(`<b>${item.config.shelfCount}</b> Shelves`);
           if (item.config.drawerCount !== undefined) configItems.push(`<b>${item.config.drawerCount}</b> Drawers`);
           if (item.config.doorCount !== undefined) configItems.push(`<b>${item.config.doorCount}</b> Doors`);
           if (item.config.hasArmrests !== undefined) configItems.push(`Armrests: <b>${item.config.hasArmrests ? 'Yes' : 'No'}</b>`);
           if (item.config.hasPedestal !== undefined) configItems.push(`Pedestal: <b>${item.config.hasPedestal ? 'Yes' : 'No'}</b>`);
-          if (item.config.style !== undefined) configItems.push(`Style: <b style="text-transform: capitalize;">${item.config.style}</b>`);
+          if (item.config.hasBack !== undefined) configItems.push(`Backrest: <b>${item.config.hasBack ? 'Included' : 'None'}</b>`);
+          if (item.config.hasSwivel !== undefined) configItems.push(`Swivel: <b>${item.config.hasSwivel ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasFootrest !== undefined) configItems.push(`Footrest: <b>${item.config.hasFootrest ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasLeaves !== undefined) configItems.push(`Extension Leaves: <b>${item.config.hasLeaves ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasCrossbar !== undefined) configItems.push(`Crossbar: <b>${item.config.hasCrossbar ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasSideRails !== undefined) configItems.push(`Side Rails: <b>${item.config.hasSideRails ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasCrown !== undefined) configItems.push(`Crown: <b>${item.config.hasCrown ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasPlinth !== undefined) configItems.push(`Plinth: <b>${item.config.hasPlinth ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasMidRail !== undefined) configItems.push(`Mid Rail: <b>${item.config.hasMidRail ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasBackPanel !== undefined) configItems.push(`Back Panel: <b>${item.config.hasBackPanel ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasDrawers !== undefined) configItems.push(`Drawers: <b>${item.config.hasDrawers ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasGlassDoors !== undefined) configItems.push(`Glass Doors: <b>${item.config.hasGlassDoors ? 'Yes' : 'No'}</b>`);
+          if (item.config.storageStyle !== undefined) configItems.push(`Storage: <b style="text-transform: capitalize;">${item.config.storageStyle.replace(/_/g, ' ')}</b>`);
+          if (item.config.desktopHardware !== undefined) configItems.push(`Hardware: <b style="text-transform: capitalize;">${item.config.desktopHardware.replace(/_/g, ' ')}</b>`);
+          if (item.config.leftArm !== undefined) configItems.push(`Left Arm: <b>${item.config.leftArm ? 'Visible' : 'Hidden'}</b>`);
+          if (item.config.rightArm !== undefined) configItems.push(`Right Arm: <b>${item.config.rightArm ? 'Visible' : 'Hidden'}</b>`);
+          if (item.config.isRocking !== undefined) configItems.push(`Rocking Chair: <b>${item.config.isRocking ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasHBar !== undefined) configItems.push(`H-Bar: <b>${item.config.hasHBar ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasXBrace !== undefined) configItems.push(`X-Brace: <b>${item.config.hasXBrace ? 'Yes' : 'No'}</b>`);
+          if (item.config.hasStretcher !== undefined) configItems.push(`Stretcher: <b>${item.config.hasStretcher ? 'Yes' : 'No'}</b>`);
           
           if (configItems.length > 0) {
               configHTML = `<div style="margin-top: 10px; padding: 10px; background: #e0e7ff; color: #3730a3; border-radius: 8px;">
@@ -659,15 +794,26 @@
       const btnPlaceOrder = document.getElementById('btnPlaceOrder');
       const btnPayDp = document.getElementById('btnPayDp');
       const progressContainer = document.getElementById('progressContainer');
+      const modifyTimerWrap = document.getElementById('modifyTimerWrap');
+      const btnModify = document.getElementById('btnModifyOrder');
 
       if (myOrder) {
-        btnPlaceOrder.style.display = 'none'; 
         const st = myOrder.status; 
         let note = "Waiting for shop review.";
         let uiStatus = 'pending';
+        
         progressContainer.style.display = 'none';
+        btnPayDp.style.display = 'none';
+        btnPlaceOrder.style.display = 'none';
 
-        if(st === 'approved') { 
+        // Check if this is a modified order returning from builder
+        const isModifiedOrder = !!myOrder.modifiedAt;
+
+        if (st === 'modified_pending') {
+            uiStatus = 'modified';
+            note = "Modified order submitted! Awaiting shop re-approval.";
+        }
+        else if(st === 'approved') { 
             uiStatus = 'progress'; 
             note = "Order accepted! Please pay the required downpayment."; 
             btnPayDp.style.display = 'flex'; 
@@ -675,67 +821,99 @@
         else if (st === 'payment_verifying') { 
             uiStatus = 'progress'; 
             note = "Payment proof submitted! Waiting for shop verification."; 
-            btnPayDp.style.display = 'none'; 
         }
         else if (st === 'in_progress') {
-          uiStatus = 'progress'; 
-          note = "Payment verified! Your order is currently in production."; 
-          btnPayDp.style.display = 'none';
-          
-          progressContainer.style.display = 'block';
-          const pVal = myOrder.progressValue || 10;
-          const pLbl = myOrder.progressLabel || 'Sourcing Materials';
-          document.getElementById('progressText').textContent = pLbl;
-          document.getElementById('progressPercentNum').textContent = pVal + '%';
-          document.getElementById('progressBarFill').style.width = pVal + '%';
-          document.getElementById('progressBarFill').style.background = 'var(--grad-blue)';
+            uiStatus = 'progress'; 
+            note = "Payment verified! Your order is currently in production."; 
+            progressContainer.style.display = 'block';
+            const pVal = myOrder.progressValue || 10;
+            const pLbl = myOrder.progressLabel || 'Sourcing Materials';
+            document.getElementById('progressText').textContent = pLbl;
+            document.getElementById('progressPercentNum').textContent = pVal + '%';
+            document.getElementById('progressBarFill').style.width = pVal + '%';
+            document.getElementById('progressBarFill').style.background = 'var(--grad-blue)';
         }
         else if (st === 'completed') {
-          uiStatus = 'success'; 
-          note = "Order is completed and ready!"; 
-          btnPayDp.style.display = 'none';
-          
-          progressContainer.style.display = 'block';
-          document.getElementById('progressText').textContent = "Completed & Ready";
-          document.getElementById('progressPercentNum').textContent = '100%';
-          document.getElementById('progressBarFill').style.width = '100%';
-          document.getElementById('progressBarFill').style.background = '#10b981'; 
-          
-          if (!myOrder.hasRated) {
-              if (!document.getElementById('btnRateShop')) {
-                  const btn = document.createElement('button');
-                  btn.id = 'btnRateShop';
-                  btn.className = 'btn btn-gold';
-                  btn.style.marginTop = '10px';
-                  btn.style.backgroundColor = '#10b981';
-                  btn.innerHTML = '<i class="fas fa-star"></i> Leave a Review';
-                  btn.onclick = openRatingModal;
-                  document.querySelector('.status-card').appendChild(btn);
-              } else {
-                  document.getElementById('btnRateShop').style.display = 'flex';
-              }
-              
-              if (!sessionStorage.getItem('ratingModalAutoShown_' + myOrder.id)) {
-                  sessionStorage.setItem('ratingModalAutoShown_' + myOrder.id, 'true');
-                  setTimeout(openRatingModal, 800);
-              }
-          } else {
-              if (document.getElementById('btnRateShop')) document.getElementById('btnRateShop').style.display = 'none';
-              note = "Order completed! Thanks for your review.";
-          }
+            uiStatus = 'success'; 
+            note = "Order is completed and ready!"; 
+            progressContainer.style.display = 'block';
+            document.getElementById('progressText').textContent = "Completed & Ready";
+            document.getElementById('progressPercentNum').textContent = '100%';
+            document.getElementById('progressBarFill').style.width = '100%';
+            document.getElementById('progressBarFill').style.background = '#10b981'; 
+            
+            if (!myOrder.hasRated) {
+                if (!document.getElementById('btnRateShop')) {
+                    const btn = document.createElement('button');
+                    btn.id = 'btnRateShop';
+                    btn.className = 'btn btn-gold';
+                    btn.style.marginTop = '10px';
+                    btn.style.backgroundColor = '#10b981';
+                    btn.innerHTML = '<i class="fas fa-star"></i> Leave a Review';
+                    btn.onclick = openRatingModal;
+                    document.querySelector('.status-card').appendChild(btn);
+                } else {
+                    document.getElementById('btnRateShop').style.display = 'flex';
+                }
+                
+                if (!sessionStorage.getItem('ratingModalAutoShown_' + myOrder.id)) {
+                    sessionStorage.setItem('ratingModalAutoShown_' + myOrder.id, 'true');
+                    setTimeout(openRatingModal, 800);
+                }
+            } else {
+                if (document.getElementById('btnRateShop')) document.getElementById('btnRateShop').style.display = 'none';
+                note = "Order completed! Thanks for your review.";
+            }
         }
         else if (st === 'declined') { 
             uiStatus = 'cancelled'; 
             note = "Order was declined by the shop."; 
-            btnPayDp.style.display = 'none'; 
             if (document.getElementById('btnRateShop')) document.getElementById('btnRateShop').style.display = 'none';
+        }
+
+        // Show Modify button for editable states
+        const canModify = ['pending', 'modified_pending', 'approved', 'payment_verifying', 'in_progress'].includes(st);
+        if (canModify) {
+            modifyTimerWrap.style.display = 'block';
+            btnModify.innerHTML = '<i class="fas fa-edit"></i> Modify Order';
+        } else {
+            modifyTimerWrap.style.display = 'none';
+        }
+
+        // Running timer for active orders
+        const submittedAt = myOrder.submittedAt ? new Date(myOrder.submittedAt).getTime() : 0;
+        if (st === 'payment_verifying' || st === 'in_progress') {
+            startRunningTime(submittedAt);
+        } else if (runningTimeInterval) {
+            clearInterval(runningTimeInterval);
+        }
+
+        // Show modification fee info if order has been modified
+        const timerDisplay = document.getElementById('modifyTimer');
+        if (isModifiedOrder && timerDisplay) {
+            const feeHTML = `<div style="margin-top:6px; padding:6px 10px; background:#fffbeb; border:1px solid #fcd34d; border-radius:8px; font-size:0.75rem; color:#92400e;">
+              <i class="fas fa-coins"></i> Modification Fee: <b>₱500</b> added &bull; Total: <b>₱${(myOrder.totalAdjustedPrice || myOrder.price || 0).toLocaleString()}</b>
+            </div>`;
+            if (st === 'payment_verifying' || st === 'in_progress') {
+                // Timer already showing, append fee below
+            } else {
+                timerDisplay.innerHTML = feeHTML;
+            }
         }
 
         setStatus(uiStatus, note);
       } else {
-        btnPlaceOrder.style.display = 'flex'; 
-        btnPayDp.style.display = 'none'; 
-        progressContainer.style.display = 'none';
+        // Check if returning from a modify session — auto-submit
+        const modifyId = sessionStorage.getItem('modifyOrderId');
+        if (modifyId && exportDraft) {
+            // Auto-submit the modified order
+            placeOrder();
+            return;
+        }
+        if (btnPlaceOrder) btnPlaceOrder.style.display = 'flex'; 
+        if (btnPayDp) btnPayDp.style.display = 'none'; 
+        if (modifyTimerWrap) modifyTimerWrap.style.display = 'none';
+        if (progressContainer) progressContainer.style.display = 'none';
         setStatus('pending', 'No order created yet. Submit to shop for review.');
       }
     }
@@ -743,34 +921,128 @@
     function setStatus(status, note){
       const pill = document.getElementById('statusPill');
       let statusLabel = status;
+      if (status === 'pending') statusLabel = 'Pending';
+      if (status === 'modified') statusLabel = 'Modified Order';
       if (status === 'progress') statusLabel = 'In Progress';
       if (status === 'success') statusLabel = 'Success';
       if (status === 'cancelled') statusLabel = 'Cancelled';
       pill.className = 'status-badge st-' + status;
+      if (status === 'modified') {
+        pill.style.background = '#fffbeb';
+        pill.style.color = '#92400e';
+        pill.style.border = '1px solid #fcd34d';
+      }
       pill.textContent = statusLabel;
       document.getElementById('statusNote').textContent = note || '';
     }
 
     function placeOrder(){
       const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
-      if (commissions.find(c => c.exportId === exportDraft?.exportId)) { alert("You have already placed this precise order!"); return; }
-      let numericPrice = parseFloat((exportDraft?.estimatedPriceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
-
-      const desc = `Design: ${exportDraft?.projectName || 'Custom'} (${exportDraft?.furnitureType || 'Item'})`;
-      commissions.push({
-        id: Date.now(), 
-        customerName: getCustName(),
-        exportId: exportDraft?.exportId,
-        previewImage: exportDraft?.previewDataUrl,
-        description: desc,
-        duration: 14, price: numericPrice, status: 'pending', submittedAt: new Date().toISOString()
-      });
-      localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
+      const modifyId = sessionStorage.getItem('modifyOrderId');
       
-      // Notify User
-      sendUserNotification(getCustName(), `Your order for "${desc}" has been submitted for shop review.`, "status");
+      let numericPrice = parseFloat((exportDraft?.estimatedPriceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
+      const desc = `Design: ${exportDraft?.projectName || 'Custom'} (${exportDraft?.furnitureType || 'Item'})`;
+      const cadState = exportDraft?.cadState || sessionStorage.getItem('cadState') || '';
+
+      if (modifyId) {
+        // UPDATE EXISTING ORDER (modified re-submission)
+        const idx = commissions.findIndex(c => c.id == modifyId);
+        if (idx !== -1) {
+          commissions[idx].previewImage = exportDraft?.previewDataUrl;
+          commissions[idx].description = desc;
+          commissions[idx].price = numericPrice;
+          commissions[idx].cadState = cadState;
+          commissions[idx].modifiedAt = new Date().toISOString();
+          commissions[idx].exportId = exportDraft?.exportId || commissions[idx].exportId;
+          
+          // Apply Modification Fee
+          commissions[idx].modificationFee = (commissions[idx].modificationFee || 0) + 500;
+          commissions[idx].totalAdjustedPrice = numericPrice + commissions[idx].modificationFee;
+          
+          // Set special modified_pending status so shop sees it clearly
+          commissions[idx].status = 'modified_pending';
+          commissions[idx].requiresShopMessage = true;
+          
+          localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
+          sessionStorage.removeItem('modifyOrderId');
+          
+          // Send notification to customer
+          sendUserNotification(getCustName(), `Your modified order for "${desc}" has been re-submitted. A ₱500 modification fee was added (Total fee: ₱${commissions[idx].modificationFee}). Awaiting shop re-approval.`, "status");
+        }
+      } else {
+        // NEW ORDER
+        if (commissions.find(c => c.exportId === exportDraft?.exportId)) { alert("You have already placed this precise order!"); return; }
+        
+        commissions.push({
+          id: Date.now(), 
+          customerName: getCustName(),
+          exportId: exportDraft?.exportId,
+          previewImage: exportDraft?.previewDataUrl,
+          description: desc,
+          cadState: cadState,
+          duration: 14, price: numericPrice, status: 'pending', submittedAt: new Date().toISOString()
+        });
+        localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
+        sendUserNotification(getCustName(), `Your order for "${desc}" has been submitted for shop review.`, "status");
+      }
       
       loadOrderStatus(); 
+    }
+
+    /* --- MODIFY ORDER FLOW --- */
+    function modifyOrder() {
+      // Open the in-page modal instead of browser confirm()
+      document.getElementById('modifyModal').style.display = 'flex';
+    }
+
+    function closeModifyModal() {
+      document.getElementById('modifyModal').style.display = 'none';
+    }
+
+    function confirmModifyOrder() {
+      closeModifyModal();
+
+      const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
+      const myOrder = commissions.find(c => c.customerName === getCustName() && c.exportId === exportDraft?.exportId);
+      if (!myOrder) return;
+
+      // Store modify context in sessionStorage so builder and export know this is a modification
+      sessionStorage.setItem('cadState', myOrder.cadState || '');
+      sessionStorage.setItem('currentExportId', myOrder.exportId);
+      sessionStorage.setItem('modifyOrderId', String(myOrder.id));
+
+      // Determine which 3D designer to redirect to
+      const desc = (myOrder.description || '').toLowerCase();
+      let targetFile = 'chair.html';
+      if (desc.includes('bed')) targetFile = 'bed.html';
+      else if (desc.includes('sofa')) targetFile = 'sofa.html';
+      else if (desc.includes('table')) targetFile = 'table.html';
+      else if (desc.includes('desk')) targetFile = 'desk.html';
+      else if (desc.includes('cabinet')) targetFile = 'cabinet.html';
+      else if (desc.includes('bookshelf')) targetFile = 'bookshelf.html';
+      else if (desc.includes('stool')) targetFile = 'stool.html';
+
+      window.location.href = `${targetFile}?mode=modify&orderId=${myOrder.id}`;
+    }
+
+    let runningTimeInterval = null;
+    function startRunningTime(startTimeMs) {
+      if (runningTimeInterval) clearInterval(runningTimeInterval);
+      const display = document.getElementById('modifyTimer');
+
+      const update = () => {
+        const now = Date.now();
+        const diffMs = now - startTimeMs;
+        
+        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+        
+        display.innerHTML = `<i class="fas fa-clock"></i> Order Duration: <b>${days}d ${hours}h ${minutes}m ${seconds}s</b>`;
+      };
+      update();
+      runningTimeInterval = setInterval(update, 1000);
     }
 
     // --- PAYMENT MODAL ---

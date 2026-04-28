@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,27 +7,39 @@
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/three@0.128.0/build/three.min.js">
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+  <script>
     /* ― Shop Mode: Upload to Templates ― */
     (function initShopMode() {
       if (sessionStorage.getItem('craftMode') !== 'shop') return;
-      const uploadBtn = document.getElementById('btn-upload-template');
-      const exportBtn = document.getElementById('btn-main-export');
-      if (uploadBtn) uploadBtn.style.display = 'flex';
-      if (exportBtn) exportBtn.style.display = 'none';
-      const addBtn = document.querySelector('.btn-add');
-      if (addBtn) addBtn.onclick = () => window.location.href = 'craft.html?mode=shop';
+      window.addEventListener('load', () => {
+        const uploadBtn = document.getElementById('btn-upload-template');
+        const exportBtn = document.getElementById('btn-main-export');
+        if (uploadBtn) uploadBtn.style.display = 'flex';
+        if (exportBtn) exportBtn.style.display = 'none';
+        const addBtn = document.querySelector('.btn-add');
+        if (addBtn) addBtn.onclick = () => window.location.href = 'shop_studio.html';
+      });
     })();
 
     function uploadToTemplates() {
       const nameInput = document.getElementById('project-name');
-      const projectName = (nameInput && nameInput.value.trim()) || 'Custom stool Design';
+      const projectName = (nameInput && nameInput.value.trim()) || 'Custom Stool Design';
       const priceEl = document.getElementById('total-price');
       const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
       const costVal = parseFloat(priceText) || 8000;
       let previewDataUrl = '';
       const canvas = document.querySelector('#canvas-container canvas');
-      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
+      if (canvas) { 
+        try { 
+          if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
+            renderer.render(scene, camera);
+          }
+          previewDataUrl = canvas.toDataURL('image/png'); 
+        } catch(e) { console.error('Template preview capture failed', e); } 
+      }
       const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
       const tmpl = {
         id: Date.now() + 20002,
@@ -52,99 +64,7 @@
       alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
       window.location.href = 'templates.html';
     }
-</script>
-  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js">
-    /* ― Shop Mode: Upload to Templates ― */
-    (function initShopMode() {
-      if (sessionStorage.getItem('craftMode') !== 'shop') return;
-      const uploadBtn = document.getElementById('btn-upload-template');
-      const exportBtn = document.getElementById('btn-main-export');
-      if (uploadBtn) uploadBtn.style.display = 'flex';
-      if (exportBtn) exportBtn.style.display = 'none';
-      const addBtn = document.querySelector('.btn-add');
-      if (addBtn) addBtn.onclick = () => window.location.href = 'craft.html?mode=shop';
-    })();
-
-    function uploadToTemplates() {
-      const nameInput = document.getElementById('project-name');
-      const projectName = (nameInput && nameInput.value.trim()) || 'Custom stool Design';
-      const priceEl = document.getElementById('total-price');
-      const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
-      const costVal = parseFloat(priceText) || 8000;
-      let previewDataUrl = '';
-      const canvas = document.querySelector('#canvas-container canvas');
-      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
-      const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
-      const tmpl = {
-        id: Date.now() + 20002,
-        type: 'stool',
-        name: projectName,
-        description: 'Custom stool crafted in 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
-        previewDataUrl: previewDataUrl,
-        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
-        publishedAt: new Date().toISOString(),
-        basePrice: costVal,
-        designData: ai
-      };
-      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
-      globals.unshift(tmpl);
-      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
-      
-      let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
-      custom.unshift(tmpl);
-      localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
-
-      sessionStorage.removeItem('craftMode');
-      alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
-      window.location.href = 'templates.html';
-    }
-</script>
-  <script src="https://unpkg.com/three@0.128.0/examples/js/exporters/STLExporter.js">
-    /* ― Shop Mode: Upload to Templates ― */
-    (function initShopMode() {
-      if (sessionStorage.getItem('craftMode') !== 'shop') return;
-      const uploadBtn = document.getElementById('btn-upload-template');
-      const exportBtn = document.getElementById('btn-main-export');
-      if (uploadBtn) uploadBtn.style.display = 'flex';
-      if (exportBtn) exportBtn.style.display = 'none';
-      const addBtn = document.querySelector('.btn-add');
-      if (addBtn) addBtn.onclick = () => window.location.href = 'craft.html?mode=shop';
-    })();
-
-    function uploadToTemplates() {
-      const nameInput = document.getElementById('project-name');
-      const projectName = (nameInput && nameInput.value.trim()) || 'Custom stool Design';
-      const priceEl = document.getElementById('total-price');
-      const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
-      const costVal = parseFloat(priceText) || 8000;
-      let previewDataUrl = '';
-      const canvas = document.querySelector('#canvas-container canvas');
-      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
-      const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
-      const tmpl = {
-        id: Date.now() + 20002,
-        type: 'stool',
-        name: projectName,
-        description: 'Custom stool crafted in 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
-        previewDataUrl: previewDataUrl,
-        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
-        publishedAt: new Date().toISOString(),
-        basePrice: costVal,
-        designData: ai
-      };
-      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
-      globals.unshift(tmpl);
-      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
-      
-      let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
-      custom.unshift(tmpl);
-      localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
-
-      sessionStorage.removeItem('craftMode');
-      alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
-      window.location.href = 'templates.html';
-    }
-</script>
+  </script>
 
   <style>
     :root {
@@ -606,7 +526,10 @@
       <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
         <i class="fas fa-arrow-left"></i> Back
       </button>
-      <button class="btn-export" onclick="goToExport()">
+      <button class="btn-export" id="btn-upload-template" onclick="uploadToTemplates()" style="display:none; background: linear-gradient(135deg,#10b981,#059669) !important;">
+        <i class="fas fa-cloud-upload-alt"></i> Upload to Templates
+      </button>
+      <button class="btn-export" id="btn-main-export" onclick="goToExport()">
         <i class="fas fa-file-export"></i> Export
       </button>
     </div>
@@ -827,101 +750,92 @@ function goToCraft() {
         sessionStorage.setItem('prevProjectName', ai.name);
         sessionStorage.setItem('prevProjectPage', 'stool.html');
     }
-    const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'craft.html?mode=shop' : 'craft.html';
+    const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
 }
 
-function goToExport() {
-  const wasRotating = controls.autoRotate;
-  const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
-  
-  if (wasRotating) controls.autoRotate = false;
-  if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
-  
-  renderer.render(scene, camera);
-  
-  const canvas = document.querySelector('#canvas-container canvas');
-  const previewImageURL = canvas ? canvas.toDataURL("image/png") : "";
-  
-  if (wasRotating) controls.autoRotate = true;
-  if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
-  
-  const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
-  if (!activeItem) {
-    saveState();
-    window.location.href = 'export_area.html';
-    return;
-  }
-  
-  const priceEl = document.getElementById('total-price');
-  const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.-]+/g, "") : "0";
-  const numericPrice = parseFloat(priceText) || 0;
-  
-  const duraEl = document.getElementById('score-dura-val');
-  const qualEl = document.getElementById('score-qual-val');
-  const durabilityText = duraEl ? duraEl.innerText.replace('%', '') : "90";
-  const qualityText = qualEl ? qualEl.innerText.replace('%', '') : "90";
-  
-  const formattedMaterials = {};
-  const selections = activeItem.selections || {};
-  
-  Object.keys(selections).forEach(partName => {
-    const hex = selections[partName];
-    if (typeof materialDB !== 'undefined') {
-        const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
-        formattedMaterials[partName] = matKey ? materialDB[matKey].name : 'Custom Material';
-    } else {
-        formattedMaterials[partName] = 'Custom Material';
+    function goToExport() {
+      try {
+          let previewImageURL = '';
+          try {
+            const wasRotating = (typeof controls !== 'undefined' && controls) ? controls.autoRotate : false;
+            const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
+            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = false;
+            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
+            
+            if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
+              renderer.render(scene, camera);
+            }
+            const canvas = document.querySelector('#canvas-container canvas');
+            if (canvas) previewImageURL = canvas.toDataURL('image/png');
+            
+            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = true;
+            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
+          } catch(e) { console.warn('Export screenshot failed:', e); }
+
+          const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
+          if (activeItem) {
+              const priceEl = document.getElementById('total-price');
+              const priceText = priceEl ? (priceEl.innerText || priceEl.textContent || '0') : '0';
+              const numericPrice = parseFloat(priceText.replace(/[^0-9.-]+/g, '')) || 0;
+              
+              const duraEl = document.getElementById('score-dura-val');
+              const qualEl = document.getElementById('score-qual-val');
+              const durabilityText = duraEl ? (duraEl.innerText || duraEl.textContent || '90').replace('%','') : '90';
+              const qualityText = qualEl ? (qualEl.innerText || qualEl.textContent || '90').replace('%','') : '90';
+              
+              const formattedMaterials = {};
+              Object.keys(activeItem.selections || {}).forEach(p => {
+                const hex = activeItem.selections[p];
+                if(hex) {
+                    const matKey = typeof materialDB !== 'undefined' ? Object.keys(materialDB).find(k => materialDB[k].hex && materialDB[k].hex.toLowerCase() === hex.toLowerCase()) : null;
+                    formattedMaterials[p] = matKey ? materialDB[matKey].name : 'Custom Material';
+                } else {
+                    formattedMaterials[p] = 'Custom Material';
+                }
+              });
+              
+              let configObj = { style: (activeItem.shapes && activeItem.shapes.Seat) || 'standard' };
+              if (activeItem.hasBack !== undefined) configObj.hasBack = activeItem.hasBack;
+              if (activeItem.hasSwivel !== undefined) configObj.hasSwivel = activeItem.hasSwivel;
+              if (activeItem.hasFootrest !== undefined) configObj.hasFootrest = activeItem.hasFootrest;
+              if (activeItem.hasHBar !== undefined) configObj.hasHBar = activeItem.hasHBar;
+              if (activeItem.hasXBrace !== undefined) configObj.hasXBrace = activeItem.hasXBrace;
+              if (activeItem.hasStretcher !== undefined) configObj.hasStretcher = activeItem.hasStretcher;
+
+              const exportData = {
+                exportId: 'EXP-' + Date.now().toString().slice(-6),
+                projectName: activeItem.name || 'Custom Stool',
+                furnitureType: 'Stool Designer Pro',
+                estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
+                previewDataUrl: previewImageURL,
+                cadState: JSON.stringify({ 
+                  items: [{ 
+                    id: activeItem.id, 
+                    globalScale: activeItem.globalScale || {x:1,y:1,z:1}, 
+                    materials: formattedMaterials, 
+                    dims: activeItem.dims || {}, 
+                    config: configObj, 
+                    analysis: { 
+                      durability: parseInt(durabilityText)||90, 
+                      quality: parseInt(qualityText)||90 
+                    } 
+                  }] 
+                })
+              };
+              
+              const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
+              drafts.unshift(exportData);
+              localStorage.setItem('exportDrafts', JSON.stringify(drafts));
+              sessionStorage.setItem('currentExportId', exportData.exportId);
+          }
+      } catch (err) {
+          console.error("Export data generation failed, navigating anyway.", err);
+      } finally {
+          if(typeof saveState === 'function') saveState();
+          window.location.href = 'export_area.html';
+      }
     }
-  });
-  
-  let dimsToExport = activeItem.dims || {};
-  
-  const customConfig = {
-      seatCount: activeItem.seatCount,
-      shelfCount: activeItem.shelfCount,
-      drawerCount: activeItem.drawerCount,
-      doorCount: activeItem.doorCount,
-      hasArmrests: activeItem.hasArmrests,
-      hasPedestal: activeItem.hasPedestal,
-      style: activeItem.style
-  };
-  
-  const exportData = {
-    exportId: 'EXP-' + Date.now().toString().slice(-6),
-    projectName: activeItem.name || 'Custom Stool',
-    furnitureType: 'Stool Designer Pro',
-    estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
-    previewDataUrl: previewImageURL,
-    cadState: JSON.stringify({
-      items: [{
-        id: activeItem.id,
-        globalScale: activeItem.globalScale || { x: 1, y: 1, z: 1 },
-        materials: formattedMaterials,
-        dims: dimsToExport,
-        config: customConfig,
-        analysis: {
-          durability: parseInt(durabilityText) || 90,
-          quality: parseInt(qualityText) || 90
-        }
-      }]
-    })
-  };
-  
-  const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
-  drafts.unshift(exportData);
-  localStorage.setItem('exportDrafts', JSON.stringify(drafts));
-  sessionStorage.setItem('currentExportId', exportData.exportId);
-  
-  saveState();
-  window.location.href = 'export_area.html';
-}
 
-function goToCraft(){ 
-  saveState();
-  const ai=getActiveItem();
-  if(ai){ sessionStorage.setItem('prevProjectName',ai.name); sessionStorage.setItem('prevProjectPage','stool.html'); }
-  window.location.href='craft.html'; 
-}
 function goToPrevProject(){ const p=sessionStorage.getItem('prevProjectPage'); if(p) window.location.href=p; }
 function loadPrevProjectBar(){
   const n=sessionStorage.getItem('prevProjectName'), p=sessionStorage.getItem('prevProjectPage');
@@ -1106,7 +1020,7 @@ const cutoutCostAdd={none:0,center_oval:60,round_hole:45,slot_vent:50,grip_holes
 
 /* ============================================================  STATE  */
 let appState={items:[],activeItemId:0,activeLayer:null};
-let isRotating=true, showDimensions=true;
+var isRotating=true, showDimensions=true;
 let textureCache={}, modalState={partName:null,type:null};
 
 window.onload=function(){
@@ -1341,6 +1255,8 @@ function toggleFeature(prop,btn){
 }
 
 /* ============================================================  PRICE  */
+
+
 function updatePrice(){
   const ai=getActiveItem(); if(!ai) return;
   let cost=0;
@@ -1365,7 +1281,7 @@ function updatePrice(){
   let total=Math.round((800+cost)*sf);
   const ACC_COSTS={seat_cushion:650,footrest_bumpers:180,armrests:520,cup_holder:290,bag_hook:160,anti_scratch_feet:90,lumbar_pad:380,nonslip_base:140};
   if(ai.accessories){ Object.keys(ai.accessories).forEach(id=>{ if(ai.accessories[id]&&ai.accessories[id].on) total+=(ACC_COSTS[id]||200); }); }
-  document.getElementById('total-price').innerHTML='&#8369;'+total.toLocaleString('en-US');
+  document.getElementById('total-price').innerHTML='₱'+total.toLocaleString('en-US');
 }
 
 function calculateScore(){
@@ -1499,9 +1415,10 @@ function createPatternTexture(style){
 }
 
 /* ============================================================  3D ENGINE  */
-let scene,camera,renderer,currentGroup,controls,dimGroup;
+var scene,camera,renderer,currentGroup,controls,dimGroup;
 
 function init3D(){
+  if(typeof scene !== "undefined" && scene) return;
   const container=document.getElementById('canvas-container');
   const W=container.clientWidth||800, H=container.clientHeight||600;
   scene=new THREE.Scene(); scene.background=new THREE.Color(0x1e1e1e);
@@ -2219,50 +2136,6 @@ function toggleDesignAnalysis() {
     icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
   }
 }
-    /* ― Shop Mode: Upload to Templates ― */
-    (function initShopMode() {
-      if (sessionStorage.getItem('craftMode') !== 'shop') return;
-      const uploadBtn = document.getElementById('btn-upload-template');
-      const exportBtn = document.getElementById('btn-main-export');
-      if (uploadBtn) uploadBtn.style.display = 'flex';
-      if (exportBtn) exportBtn.style.display = 'none';
-      const addBtn = document.querySelector('.btn-add');
-      if (addBtn) addBtn.onclick = () => window.location.href = 'craft.html?mode=shop';
-    })();
-
-    function uploadToTemplates() {
-      const nameInput = document.getElementById('project-name');
-      const projectName = (nameInput && nameInput.value.trim()) || 'Custom stool Design';
-      const priceEl = document.getElementById('total-price');
-      const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
-      const costVal = parseFloat(priceText) || 8000;
-      let previewDataUrl = '';
-      const canvas = document.querySelector('#canvas-container canvas');
-      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
-      const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
-      const tmpl = {
-        id: Date.now() + 20002,
-        type: 'stool',
-        name: projectName,
-        description: 'Custom stool crafted in 3D studio by ' + (sessionStorage.getItem('username') || 'Shop Owner') + '.',
-        previewDataUrl: previewDataUrl,
-        publishedBy: sessionStorage.getItem('username') || 'Shop Owner',
-        publishedAt: new Date().toISOString(),
-        basePrice: costVal,
-        designData: ai
-      };
-      let globals = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
-      globals.unshift(tmpl);
-      localStorage.setItem('shop_templates_global', JSON.stringify(globals));
-      
-      let custom = JSON.parse(localStorage.getItem('shop_custom_designs') || '[]');
-      custom.unshift(tmpl);
-      localStorage.setItem('shop_custom_designs', JSON.stringify(custom));
-
-      sessionStorage.removeItem('craftMode');
-      alert('\u2705 "' + tmpl.name + '" published to Templates Gallery!');
-      window.location.href = 'templates.html';
-    }
 </script>
 </body>
 </html>

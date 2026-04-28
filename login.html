@@ -24,7 +24,15 @@
       --glass-border:   rgba(255,255,255,0.75);
       --error:          #C0392B;
       --success:        #27AE60;
-      --warning:        #E67E22;
+      --warning:        #D35400;
+    }
+
+    /* Fix double eye and browser defaults */
+    input::-ms-reveal,
+    input::-ms-clear,
+    input::-webkit-reveal,
+    input::-webkit-clear-button {
+      display: none !important;
     }
 
     body {
@@ -129,7 +137,7 @@
       text-transform:uppercase; letter-spacing:.04em;
     }
     .field-icon {
-      position:absolute; left:16px; bottom:16px;
+      position:absolute; left:16px; top:46px;
       color:var(--text-muted); font-size:1.05rem; pointer-events:none;
       transition:color .2s;
     }
@@ -164,20 +172,25 @@
 
     /* ─── Password field with toggle ─── */
     .pass-toggle {
-      position:absolute; right:12px; bottom:12px;
+      position:absolute; right:16px; top:46px;
       background:none; border:none; cursor:pointer;
-      color:var(--text-muted); font-size:.95rem;
-      transition:color .2s; padding:2px 4px;
+      color:var(--text-muted); font-size:1rem;
+      transition:color .2s; padding:2px;
+      display: flex; align-items: center; justify-content: center;
     }
     .pass-toggle:hover { color:var(--wood); }
 
-    /* ─── Strength bar ─── */
-    .strength-row { display:flex; gap:4px; margin-top:6px; }
-    .strength-seg {
-      flex:1; height:4px; border-radius:4px;
-      background:rgba(122,78,45,.15); transition:background .3s;
-    }
     .strength-label { font-size:.76rem; margin-top:4px; color:var(--text-muted); text-align:right; }
+
+    /* ─── Pass Indicator ─── */
+    .pass-indicator {
+      font-size: .72rem; color: var(--text-muted);
+      margin-top: 4px; display: flex; justify-content: space-between;
+      padding: 0 4px; min-height: 1.1rem; align-items: center;
+    }
+    .caps-warn { color: var(--warning); font-weight: 700; display: none; }
+    .pass-requirement { font-weight: 500; transition: color .2s; }
+    .pass-requirement.met { color: var(--success); }
 
     /* ─── Terms checkbox ─── */
     .terms-row {
@@ -433,10 +446,15 @@
     <div class="field" style="margin-top:.9rem;">
       <label>Password</label>
       <i class="fas fa-lock field-icon"></i>
-      <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password">
+      <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password" 
+             oninput="updatePassIndicator(this, 'loginPassInd')" onkeydown="checkCaps(event, 'loginPassInd'); if(event.key==='Enter')handleLogin()">
       <button type="button" class="pass-toggle" onclick="togglePass('loginPass',this)" tabindex="-1">
         <i class="fas fa-eye"></i>
       </button>
+      <div id="loginPassInd" class="pass-indicator">
+        <span class="caps-warn"><i class="fas fa-arrow-up-z-a"></i> CAPS LOCK IS ON</span>
+        <span class="pass-requirement" data-min="8">Min. 8 characters required</span>
+      </div>
     </div>
 
     <div style="text-align:right;margin-bottom:1rem;">
@@ -478,10 +496,15 @@
       <label>Password</label>
       <i class="fas fa-lock field-icon"></i>
       <input type="password" id="signupPass" placeholder="Min. 8 characters"
-             autocomplete="new-password" oninput="checkStrength(this)">
+             autocomplete="new-password" oninput="checkStrength(this); updatePassIndicator(this, 'signupPassInd')"
+             onkeydown="checkCaps(event, 'signupPassInd')">
       <button type="button" class="pass-toggle" onclick="togglePass('signupPass',this)" tabindex="-1">
         <i class="fas fa-eye"></i>
       </button>
+      <div id="signupPassInd" class="pass-indicator">
+        <span class="caps-warn"><i class="fas fa-arrow-up-z-a"></i> CAPS LOCK IS ON</span>
+        <span class="pass-requirement" data-min="8">Min. 8 characters required</span>
+      </div>
     </div>
     <div class="strength-row" id="strengthBar">
       <div class="strength-seg" id="seg1"></div>
@@ -811,6 +834,34 @@ function togglePass(id, btn){
   icon.className=inp.type==='password'?'fas fa-eye':'fas fa-eye-slash';
 }
 
+function updatePassIndicator(inp, indId) {
+  const container = document.getElementById(indId);
+  const reqSpan = container.querySelector('.pass-requirement');
+  const min = parseInt(reqSpan.getAttribute('data-min'));
+  const len = inp.value.length;
+  
+  if (len === 0) {
+    reqSpan.innerHTML = `<i class="fas fa-circle-exclamation"></i> ${len}/${min} characters (${min} more needed)`;
+    reqSpan.classList.remove('met');
+  } else if (len < min) {
+    reqSpan.innerHTML = `<i class="fas fa-clock"></i> ${len}/${min} characters (${min - len} more needed)`;
+    reqSpan.classList.remove('met');
+  } else {
+    reqSpan.innerHTML = `<i class="fas fa-check-circle"></i> ${len}/${min} - Requirement met`;
+    reqSpan.classList.add('met');
+  }
+}
+
+function checkCaps(e, indId) {
+  const container = document.getElementById(indId);
+  const warn = container.querySelector('.caps-warn');
+  if (e.getModifierState && e.getModifierState('CapsLock')) {
+    warn.style.display = 'block';
+  } else {
+    warn.style.display = 'none';
+  }
+}
+
 /* ─── Strength meter ─── */
 function checkStrength(inp){
   const v=inp.value;
@@ -949,7 +1000,7 @@ function handleLogin(){
   hideAlert('loginAlert');
 
   if(!isGmail(email)){ showAlert('loginAlert','loginAlertMsg','Please enter a valid @gmail.com address.'); return; }
-  if(pass.length<6){ showAlert('loginAlert','loginAlertMsg','Password must be at least 6 characters.'); return; }
+  if(pass.length<8){ showAlert('loginAlert','loginAlertMsg','Password must be at least 8 characters.'); return; }
 
   currentEmail=email; currentMode='login';
   triggerOtp(email);

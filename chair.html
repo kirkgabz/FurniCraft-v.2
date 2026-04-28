@@ -1425,90 +1425,84 @@
        NAVIGATION & EXPORT
        ========================================================================== */
     function goToExport() {
-  const wasRotating = controls.autoRotate;
-  const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
-  
-  if (wasRotating) controls.autoRotate = false;
-  if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
-  
-  renderer.render(scene, camera);
-  
-  const canvas = document.querySelector('#canvas-container canvas');
-  const previewImageURL = canvas ? canvas.toDataURL("image/png") : "";
-  
-  if (wasRotating) controls.autoRotate = true;
-  if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
-  
-  const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
-  if (!activeItem) {
-    saveState();
-    window.location.href = 'export_area.html';
-    return;
-  }
-  
-  const priceEl = document.getElementById('total-price');
-  const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.-]+/g, "") : "0";
-  const numericPrice = parseFloat(priceText) || 0;
-  
-  const duraEl = document.getElementById('score-dura-val');
-  const qualEl = document.getElementById('score-qual-val');
-  const durabilityText = duraEl ? duraEl.innerText.replace('%', '') : "90";
-  const qualityText = qualEl ? qualEl.innerText.replace('%', '') : "90";
-  
-  const formattedMaterials = {};
-  const selections = activeItem.selections || {};
-  
-  Object.keys(selections).forEach(partName => {
-    const hex = selections[partName];
-    if (typeof materialDB !== 'undefined') {
-        const matKey = Object.keys(materialDB).find(k => materialDB[k].hex.toLowerCase() === hex.toLowerCase());
-        formattedMaterials[partName] = matKey ? materialDB[matKey].name : 'Custom Material';
-    } else {
-        formattedMaterials[partName] = 'Custom Material';
+      try {
+          let previewImageURL = '';
+          try {
+            const wasRotating = (typeof controls !== 'undefined' && controls) ? controls.autoRotate : false;
+            const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
+            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = false;
+            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
+            
+            if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
+              renderer.render(scene, camera);
+            }
+            const canvas = document.querySelector('#canvas-container canvas');
+            if (canvas) previewImageURL = canvas.toDataURL('image/png');
+            
+            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = true;
+            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
+          } catch(e) { console.warn('Export screenshot failed:', e); }
+
+          const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
+          if (activeItem) {
+              const priceEl = document.getElementById('total-price');
+              const priceText = priceEl ? (priceEl.innerText || priceEl.textContent || '0') : '0';
+              const numericPrice = parseFloat(priceText.replace(/[^0-9.-]+/g, '')) || 0;
+              
+              const duraEl = document.getElementById('score-dura-val');
+              const qualEl = document.getElementById('score-qual-val');
+              const durabilityText = duraEl ? (duraEl.innerText || duraEl.textContent || '90').replace('%','') : '90';
+              const qualityText = qualEl ? (qualEl.innerText || qualEl.textContent || '90').replace('%','') : '90';
+              
+              const formattedMaterials = {};
+              Object.keys(activeItem.selections || {}).forEach(p => {
+                const hex = activeItem.selections[p];
+                if(hex) {
+                    const matKey = typeof materialDB !== 'undefined' ? Object.keys(materialDB).find(k => materialDB[k].hex && materialDB[k].hex.toLowerCase() === hex.toLowerCase()) : null;
+                    formattedMaterials[p] = matKey ? materialDB[matKey].name : 'Custom Material';
+                } else {
+                    formattedMaterials[p] = 'Custom Material';
+                }
+              });
+              
+              let configObj = { style: (activeItem.shapes && activeItem.shapes.Seat) || 'standard' };
+              if (activeItem.isLeftArmVisible !== undefined) configObj.leftArm = activeItem.isLeftArmVisible;
+              if (activeItem.isRightArmVisible !== undefined) configObj.rightArm = activeItem.isRightArmVisible;
+              if (activeItem.type === 'rocking_chair') configObj.isRocking = true;
+
+              const exportData = {
+                exportId: 'EXP-' + Date.now().toString().slice(-6),
+                projectName: activeItem.name || 'Custom Chair',
+                furnitureType: 'Chair Designer Pro',
+                estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
+                previewDataUrl: previewImageURL,
+                cadState: JSON.stringify({ 
+                  items: [{ 
+                    id: activeItem.id, 
+                    globalScale: activeItem.globalScale || {x:1,y:1,z:1}, 
+                    materials: formattedMaterials, 
+                    dims: activeItem.dims || {}, 
+                    config: configObj, 
+                    analysis: { 
+                      durability: parseInt(durabilityText)||90, 
+                      quality: parseInt(qualityText)||90 
+                    } 
+                  }] 
+                })
+              };
+              
+              const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
+              drafts.unshift(exportData);
+              localStorage.setItem('exportDrafts', JSON.stringify(drafts));
+              sessionStorage.setItem('currentExportId', exportData.exportId);
+          }
+      } catch (err) {
+          console.error("Export data generation failed, navigating anyway.", err);
+      } finally {
+          if(typeof saveState === 'function') saveState();
+          window.location.href = 'export_area.html';
+      }
     }
-  });
-  
-  let dimsToExport = activeItem.dims || {};
-  
-  const customConfig = {
-      seatCount: activeItem.seatCount,
-      shelfCount: activeItem.shelfCount,
-      drawerCount: activeItem.drawerCount,
-      doorCount: activeItem.doorCount,
-      hasArmrests: activeItem.hasArmrests,
-      hasPedestal: activeItem.hasPedestal,
-      style: activeItem.style
-  };
-  
-  const exportData = {
-    exportId: 'EXP-' + Date.now().toString().slice(-6),
-    projectName: activeItem.name || 'Custom Chair',
-    furnitureType: 'Chair Designer Pro',
-    estimatedPriceText: 'â‚±' + numericPrice.toLocaleString('en-US'),
-    previewDataUrl: previewImageURL,
-    cadState: JSON.stringify({
-      items: [{
-        id: activeItem.id,
-        globalScale: activeItem.globalScale || { x: 1, y: 1, z: 1 },
-        materials: formattedMaterials,
-        dims: dimsToExport,
-        config: customConfig,
-        analysis: {
-          durability: parseInt(durabilityText) || 90,
-          quality: parseInt(qualityText) || 90
-        }
-      }]
-    })
-  };
-  
-  const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
-  drafts.unshift(exportData);
-  localStorage.setItem('exportDrafts', JSON.stringify(drafts));
-  sessionStorage.setItem('currentExportId', exportData.exportId);
-  
-  saveState();
-  window.location.href = 'export_area.html';
-}
 
     function goToCraft() {
       saveState();
@@ -1518,7 +1512,7 @@
         sessionStorage.setItem('prevProjectPage', 'chair.html');
       }
       const isShop = sessionStorage.getItem('craftMode') === 'shop';
-      window.location.href = isShop ? 'craft.html?mode=shop' : 'craft.html';
+      window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
     }
     function goToPrevProject() {
       const p = sessionStorage.getItem('prevProjectPage');
@@ -1545,7 +1539,7 @@
       
       // Update link on "Add New" button to stay in shop mode
       const addBtn = document.querySelector('.btn-add');
-      if (addBtn) addBtn.onclick = () => window.location.href = 'craft.html?mode=shop';
+      if (addBtn) addBtn.onclick = () => window.location.href = 'shop_studio.html';
     })();
 
     function uploadToTemplates() {
@@ -1865,7 +1859,7 @@
        STATE
        ========================================================================== */
     let appState = { items: [], activeItemId: 0, activeLayer: null };
-    let isRotating = true, showDimensions = true, textureCache = {}, modalState = { partName: null, type: null };
+    var isRotating = true, showDimensions = true, textureCache = {}, modalState = { partName: null, type: null };
 
     window.onload = function () {
       try {
@@ -2108,6 +2102,7 @@
     function updateDim(part, axis, val) { const item = getActiveItem(); if (!item.dims) item.dims = {}; if (!item.dims[part]) item.dims[part] = { w: 50, h: 50, d: 50 }; item.dims[part][axis] = parseInt(val) || 0; saveState(); build3DScene(); updatePrice(); }
     function updateProjectName(val) { getActiveItem().name = val; renderSceneList(); saveState(); }
 
+
     function updatePrice() {
       const activeItem = getActiveItem(); if (!activeItem) return;
       let addedCost = 0;
@@ -2128,7 +2123,7 @@
       const gs = activeItem.globalScale || { x: 1, y: 1, z: 1 };
       const scaleMultiplier = gs.x * gs.y * gs.z;
       const baseCost = assetsDB[activeItem.type || 'chair'].basePrice;
-      document.getElementById('total-price').innerHTML = '&#8369;' + Math.round((baseCost + addedCost) * scaleMultiplier).toLocaleString();
+      document.getElementById('total-price').innerHTML = '₱' + Math.round((baseCost + addedCost) * scaleMultiplier).toLocaleString();
     }
 
     function calculateScore() {
@@ -2354,9 +2349,10 @@
     /* ==========================================================================
        3D ENGINE
        ========================================================================== */
-    let scene, camera, renderer, currentGroup, controls, dimGroup;
+    var scene, camera, renderer, currentGroup, controls, dimGroup;
 
     function init3D() {
+  if(typeof scene !== "undefined" && scene) return;
       const container = document.getElementById('canvas-container');
       const width = container.clientWidth || 800, height = container.clientHeight || 600;
       scene = new THREE.Scene(); scene.background = new THREE.Color(0x1e1e1e);

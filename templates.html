@@ -150,13 +150,13 @@
     .gf-btn{flex:1;min-width:0;padding:6px 4px;border-radius:20px;border:1px solid #444;background:transparent;color:#888;font-size:.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:.18s;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;}
     .gf-btn:hover{border-color:#aaa;color:#ddd;background:#2a2a2e;}
     .gf-btn.active-all{background:rgba(142,68,173,.2);border-color:var(--accent);color:var(--accent);}
-    .gf-btn.active-boy{background:rgba(52,152,219,.18);border-color:#3498db;color:#5dade2;}
-    .gf-btn.active-girl{background:rgba(231,76,60,.18);border-color:#e74c3c;color:#f1948a;}
+    .gf-btn.active-male{background:rgba(52,152,219,.18);border-color:#3498db;color:#5dade2;}
+    .gf-btn.active-female{background:rgba(231,76,60,.18);border-color:#e74c3c;color:#f1948a;}
     .gf-result-label{padding:4px 12px 6px;font-size:.68rem;color:#666;letter-spacing:.05em;text-transform:uppercase;}
     /* gender badge on list item */
     .g-badge{font-size:.58rem;padding:2px 6px;border-radius:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;}
-    .g-badge-boy{background:rgba(52,152,219,.18);color:#5dade2;border:1px solid rgba(52,152,219,.35);}
-    .g-badge-girl{background:rgba(231,76,60,.15);color:#f1948a;border:1px solid rgba(231,76,60,.3);}
+    .g-badge-male{background:rgba(52,152,219,.18);color:#5dade2;border:1px solid rgba(52,152,219,.35);}
+    .g-badge-female{background:rgba(231,76,60,.15);color:#f1948a;border:1px solid rgba(231,76,60,.3);}
     .g-badge-neutral{background:rgba(149,165,166,.12);color:#95a5a6;border:1px solid rgba(149,165,166,.25);}
     /* gender strip on active item */
     .g-strip{width:4px;border-radius:2px;flex-shrink:0;align-self:stretch;min-height:38px;}
@@ -185,8 +185,8 @@
     <!-- Gender preference filter -->
     <div class="gender-filter-bar">
       <button class="gf-btn active-all" id="gf-all"    onclick="setGenderFilter('all')">   <i class="fas fa-th-large"></i>All</button>
-      <button class="gf-btn"            id="gf-boy"    onclick="setGenderFilter('boy')">   <i class="fas fa-mars"></i>Boy</button>
-      <button class="gf-btn"            id="gf-girl"   onclick="setGenderFilter('girl')">  <i class="fas fa-venus"></i>Girl</button>
+      <button class="gf-btn"            id="gf-male"   onclick="setGenderFilter('male')">  <i class="fas fa-mars"></i>Male</button>
+      <button class="gf-btn"            id="gf-female" onclick="setGenderFilter('female')"> <i class="fas fa-venus"></i>Female</button>
       <button class="gf-btn"            id="gf-neutral" onclick="setGenderFilter('neutral')"><i class="fas fa-circle"></i>Unisex</button>
     </div>
     <div class="gf-result-label" id="gf-result-label"></div>
@@ -310,63 +310,153 @@ function goToExport(){
   if(!activeTemplate) return;
   const price=document.getElementById('total-price').innerText.replace(/[^0-9.-]+/g,'');
   
-  const iframe = document.getElementById('fidelity-iframe');
-  let targetWin = window;
-  if (activeTemplate.id > 10000 && iframe && iframe.style.display !== 'none') {
-      try { if(iframe.contentWindow && iframe.contentWindow.scene) targetWin = iframe.contentWindow; } catch(e){}
+  let prevImageUrl = activeTemplate.previewDataUrl || '';
+  let itemData = null;
+
+  // 1. Identify/Clone Item Data
+  if (activeTemplate.id > 10000 && activeTemplate.designData) {
+      itemData = JSON.parse(JSON.stringify(activeTemplate.designData));
+  } else {
+      itemData = {
+          id: activeTemplate.id,
+          type: activeTemplate.type,
+          name: activeTemplate.name,
+          dims: activeTemplate.dims || {},
+          globalScale: activeTemplate.scale || {x:1, y:1, z:1},
+          selections: activeTemplate.selections || {}
+      };
   }
 
-  let prevImageUrl = '';
-  if (targetWin.scene && targetWin.camera && targetWin.renderer && targetWin.THREE) {
-      const sc = targetWin.scene;
-      const cam = targetWin.camera;
-      const ren = targetWin.renderer;
-      const ctrl = targetWin.controls;
-      
+  // 2. Ensure Materials Map and Analysis Scores are accurate
+  if (!itemData.materials) itemData.materials = {};
+  let td=0, tq=0, count=0;
+  const sels = itemData.selections || {};
+  Object.keys(sels).forEach(part => {
+      const hexC = sels[part];
+      const mk = Object.keys(materialDB).find(k=>materialDB[k].hex.toLowerCase()===hexC.toLowerCase());
+      if(mk) {
+          const m=materialDB[mk];
+          itemData.materials[part] = m.name; // Apply accurate name
+          td+=m.dura; tq+=m.qual; count++;
+      } else {
+          if (!itemData.materials[part]) itemData.materials[part] = 'Standard Wood';
+          td+=50; tq+=50; count++;
+      }
+  });
+  
+  // Calculate final scores
+  const finalD = count ? Math.round(td/count) : 0;
+  const finalQ = count ? Math.round(tq/count) : 0;
+  itemData.analysis = { durability: finalD, quality: finalQ };
+
+  // 3. Capture Fresh Snapshot (More Zoomed)
+  function compressCanvas(canvasEl) {
+      if (!canvasEl) return '';
+      try {
+          const tmp = document.createElement('canvas');
+          tmp.width = 500;
+          tmp.height = 400;
+          const ctx = tmp.getContext('2d');
+          ctx.fillStyle = '#1e1e24';
+          ctx.fillRect(0,0,500,400);
+          const s = Math.min(500/canvasEl.width, 400/canvasEl.height);
+          ctx.drawImage(canvasEl, (500-canvasEl.width*s)/2, (400-canvasEl.height*s)/2, canvasEl.width*s, canvasEl.height*s);
+          return tmp.toDataURL('image/jpeg', 0.8);
+      } catch(e) { return ''; }
+  }
+
+  // Try to find a renderer to capture from
+  let sc = null, cam = null, ren = null, ctrl = null, t3 = null;
+  const iframe = document.getElementById('fidelity-iframe');
+  if (activeTemplate.id > 10000 && iframe && iframe.style.display !== 'none') {
+      try { 
+          if(iframe.contentWindow && iframe.contentWindow.scene) {
+              sc = iframe.contentWindow.scene;
+              cam = iframe.contentWindow.camera;
+              ren = iframe.contentWindow.renderer;
+              ctrl = iframe.contentWindow.controls;
+              t3 = iframe.contentWindow.THREE;
+          }
+      } catch(e){}
+  }
+
+  // Fallback to global variables in templates.html
+  if (!sc && typeof scene !== 'undefined') {
+      sc = scene;
+      cam = camera;
+      ren = renderer;
+      ctrl = typeof controls !== 'undefined' ? controls : null;
+      t3 = typeof THREE !== 'undefined' ? THREE : null;
+  }
+
+  if (sc && cam && ren && t3) {
       const oldPos = cam.position.clone();
-      const oldTarget = ctrl ? ctrl.target.clone() : new targetWin.THREE.Vector3(0,0,0);
+      const oldTarget = ctrl ? ctrl.target.clone() : new t3.Vector3(0,0,0);
       const oldAuto = ctrl ? ctrl.autoRotate : false;
       const oldBg = sc.background;
       
-      // Make background clean for export
-      sc.background = new targetWin.THREE.Color(0x1e1e24);
+      sc.background = new t3.Color(0x1e1e24);
 
-      let obj3D = targetWin.currentGroup;
-      if (!obj3D) obj3D = sc;
-      const box = new targetWin.THREE.Box3().setFromObject(obj3D);
-      const size = box.getSize(new targetWin.THREE.Vector3());
-      const center = box.getCenter(new targetWin.THREE.Vector3());
+      let obj3D = (typeof currentGroup !== 'undefined') ? currentGroup : null;
+      if (!obj3D || sc.children.includes(obj3D) === false) obj3D = sc;
+      
+      const box = new t3.Box3().setFromObject(obj3D);
+      const size = box.getSize(new t3.Vector3());
+      const center = box.getCenter(new t3.Vector3());
       
       const maxDim = Math.max(size.x, size.y, size.z);
       const fov = cam.fov * (Math.PI / 180);
-      let cameraZ = Math.abs((maxDim / 2) / Math.tan(fov / 2)) * 1.6;
-      if (cameraZ < 5) cameraZ = 12; // ensure it's not too tight
+      let cameraZ = Math.abs((maxDim / 2) / Math.tan(fov / 2)) * 1.35;
+      if (cameraZ < 4) cameraZ = 4;
       
       if (ctrl) ctrl.autoRotate = false;
       
-      // Perfect front view angle (slightly elevated front)
-      cam.position.set(center.x, center.y + size.y*0.15, center.z + cameraZ);
+      cam.position.set(center.x + size.x*0.4, center.y + size.y*0.3, center.z + cameraZ);
       if (ctrl) { ctrl.target.set(center.x, center.y, center.z); ctrl.update(); }
       else cam.lookAt(center);
       
-      ren.render(sc, cam);
-      prevImageUrl = ren.domElement.toDataURL('image/png');
+      try {
+          ren.render(sc, cam);
+          const freshImg = compressCanvas(ren.domElement);
+          if (freshImg) prevImageUrl = freshImg;
+      } catch(e) { console.warn("Render capture failed:", e); }
       
-      // Restore
       sc.background = oldBg;
       cam.position.copy(oldPos);
       if (ctrl) { ctrl.target.copy(oldTarget); ctrl.autoRotate = oldAuto; ctrl.update(); }
   } else {
       const canvas=document.querySelector('#canvas-container canvas');
-      prevImageUrl=canvas?canvas.toDataURL('image/png'):'';
+      if (canvas) {
+          const freshImg = compressCanvas(canvas);
+          if (freshImg) prevImageUrl = freshImg;
+      }
   }
 
-  const exp={exportId:'EXP-'+Date.now().toString().slice(-6),projectName:activeTemplate.name,furnitureType:'Pre-Made Template',estimatedPriceText:'₱'+parseFloat(price).toLocaleString(),previewDataUrl:prevImageUrl,cadState:JSON.stringify({items:[{id:activeTemplate.id,type:activeTemplate.type,name:activeTemplate.name}]})};
-  const drafts=JSON.parse(localStorage.getItem('exportDrafts')||'[]');
-  drafts.unshift(exp); localStorage.setItem('exportDrafts',JSON.stringify(drafts));
-  sessionStorage.setItem('currentExportId',exp.exportId);
-  window.location.href='export_area.html';
+  const exp={
+      exportId:'EXP-'+Date.now().toString().slice(-6),
+      projectName:activeTemplate.name,
+      furnitureType: activeTemplate.id > 10000 ? 'Custom Shop Design' : 'Pre-Made Template',
+      estimatedPriceText:'₱'+parseFloat(price).toLocaleString(),
+      previewDataUrl:prevImageUrl,
+      cadState:JSON.stringify({items:[itemData]})
+  };
+  
+  try {
+      let drafts=JSON.parse(localStorage.getItem('exportDrafts')||'[]');
+      if (drafts.length > 15) drafts = drafts.slice(0, 15);
+      drafts.unshift(exp); 
+      localStorage.setItem('exportDrafts',JSON.stringify(drafts));
+      sessionStorage.setItem('currentExportId',exp.exportId);
+      window.location.href='export_area.html';
+  } catch (err) {
+      alert("Storage quota exceeded. Clearing old export drafts.");
+      localStorage.removeItem('exportDrafts');
+      localStorage.setItem('exportDrafts', JSON.stringify([exp]));
+      sessionStorage.setItem('currentExportId',exp.exportId);
+      window.location.href='export_area.html';
+  }
 }
+
 function goToCraft(){
   if(activeTemplate){sessionStorage.setItem('prevProjectName',activeTemplate.name);sessionStorage.setItem('prevProjectPage','templates.html');}
   window.location.href='craft.html';
@@ -404,23 +494,33 @@ document.addEventListener('click',e=>{if(!e.target.closest('.info-btn')&&!e.targ
 
 /* ═══ MATERIAL DB ═══ */
 const materialDB={
-  narra:       {name:'Narra',        icon:'🌳',hex:'#8B4513',dura:95,qual:98,price:3.5, rec:['table','chair','cabinet','bed','sofa','desk','stool','bookshelf']},
-  kamagong:    {name:'Kamagong',     icon:'🌳',hex:'#1a0a00',dura:98,qual:99,price:4.8, rec:['table','cabinet','bed']},
-  molave:      {name:'Molave',       icon:'🌳',hex:'#7a5230',dura:92,qual:93,price:3.2, rec:['table','chair','desk']},
-  mahogany:    {name:'Mahogany',     icon:'🪵',hex:'#5c3a21',dura:85,qual:90,price:2.8, rec:['table','cabinet','bed','bookshelf']},
-  tanguile:    {name:'Tanguile',     icon:'🌳',hex:'#a0522d',dura:80,qual:84,price:2.4, rec:['chair','desk','stool']},
-  yakal:       {name:'Yakal',        icon:'🌳',hex:'#6b3a2a',dura:96,qual:94,price:4.2, rec:['bed','table']},
-  oak:         {name:'Oak',          icon:'🌳',hex:'#d4ac7d',dura:80,qual:85,price:2.5, rec:['bed','bookshelf','desk']},
-  pine:        {name:'Pine',         icon:'🌲',hex:'#c9a96e',dura:65,qual:72,price:1.8, rec:['stool','bookshelf']},
-  rubberwood:  {name:'Rubber Wood',  icon:'🌿',hex:'#c8a87a',dura:70,qual:75,price:1.6, rec:['chair','stool']},
-  steel:       {name:'Steel',        icon:'⚙️',hex:'#95a5a6',dura:99,qual:88,price:4.0, rec:['chair','desk','stool']},
-  fabric:      {name:'Fabric',       icon:'🧶',hex:'#34495e',dura:60,qual:85,price:2.1, rec:['sofa','chair']},
-  leather:     {name:'Leather',      icon:'🐄',hex:'#2c3e50',dura:75,qual:95,price:4.5, rec:['sofa','chair']},
-  velvet:      {name:'Red Velvet',   icon:'🧣',hex:'#7b1fa2',dura:55,qual:92,price:3.0, rec:['sofa']},
-  gold:        {name:'Gold Trim',    icon:'✨',hex:'#f1c40f',dura:70,qual:100,price:8.0,rec:[]},
-  glass:       {name:'Glass Top',    icon:'💎',hex:'#a8d8ea',dura:60,qual:90,price:3.5, rec:['table','desk']},
-  white_wood:  {name:'White Wood',   icon:'⬜',hex:'#eeeeee',dura:65,qual:72,price:1.5, rec:['bed','bookshelf']},
-  matte_black: {name:'Matte Black',  icon:'⬛',hex:'#1a1a1a',dura:82,qual:80,price:2.0, rec:['desk','stool']},
+  narra: { name: 'Narra', icon: '🌳', hex: '#8B4513', dura: 95, qual: 98, price: 4.2, rec: true, note: 'National tree of PH. Dense, golden-brown hardwood.' },
+  ipil: { name: 'Ipil', icon: '🌳', hex: '#6B4226', dura: 98, qual: 96, price: 4.8, rec: true, note: 'Highly durable, termite-resistant local hardwood.' },
+  dao: { name: 'Dao', icon: '🪵', hex: '#4B3621', dura: 92, qual: 97, price: 4.5, rec: true, note: 'Premium local wood with distinctive dark streaks.' },
+  guijo: { name: 'Guijo', icon: '🌳', hex: '#8B4513', dura: 96, qual: 94, price: 4.1, rec: true, note: 'Extremely dense and strong for heavy slabs.' },
+  apitong: { name: 'Apitong', icon: '🌲', hex: '#A0522D', dura: 94, qual: 88, price: 3.6, rec: true, note: 'Tough, resilient wood ideal for structural bases.' },
+  kamagong: { name: 'Kamagong', icon: '🪵', hex: '#2c1a0e', dura: 97, qual: 99, price: 5.5, rec: true, note: 'Philippine Ebony. Extremely hard and durable.' },
+  molave: { name: 'Molave', icon: '🌳', hex: '#6b4226', dura: 93, qual: 95, price: 4.0, rec: true, note: 'Very hard PH hardwood. Termite-resistant.' },
+  mahogany: { name: 'Mahogany', icon: '🪵', hex: '#5c3a21', dura: 85, qual: 90, price: 2.8, rec: true, note: 'Classic furniture wood. Rich reddish-brown.' },
+  tanguile: { name: 'Tanguile', icon: '🌲', hex: '#a0522d', dura: 80, qual: 82, price: 2.2, rec: true, note: 'Philippine red lauan. Common furniture grade.' },
+  yakal: { name: 'Yakal', icon: '🌳', hex: '#7a4f2e', dura: 88, qual: 86, price: 3.1, rec: true, note: 'Heavy PH hardwood. Strong and resistant.' },
+  rattan: { name: 'Rattan', icon: '🧺', hex: '#D2B48C', dura: 75, qual: 85, price: 1.8, rec: true, note: 'Classic woven cane for heritage textures.' },
+  capiz: { name: 'Capiz Shell', icon: '🐚', hex: '#F5F5DC', dura: 60, qual: 95, price: 5.2, rec: true, note: 'Translucent, pearlescent shell for elegant inlays.' },
+  walnut: { name: 'Walnut', icon: '🪵', hex: '#3D2B1F', dura: 88, qual: 96, price: 6.2, rec: false, note: 'Luxurious, fine-grained dark brown wood.' },
+  teak: { name: 'Teak', icon: '🌲', hex: '#C19A6B', dura: 95, qual: 94, price: 7.5, rec: false, note: 'Premium, naturally weather-resistant golden-brown wood.' },
+  maple: { name: 'Maple', icon: '🌲', hex: '#F4A460', dura: 82, qual: 88, price: 3.8, rec: false, note: 'Hard, light-colored wood for clean, modern finishes.' },
+  oak: { name: 'Oak', icon: '🌳', hex: '#d4ac7d', dura: 80, qual: 85, price: 2.5, rec: true, note: 'Imported. Tight grain, very workable.' },
+  pine: { name: 'Pine', icon: '🌲', hex: '#c8a96e', dura: 55, qual: 58, price: 1.4, rec: true, note: 'Soft imported wood. Budget-friendly but less durable.' },
+  rubber_wood: { name: 'Rubber Wood', icon: '🌿', hex: '#d4b896', dura: 62, qual: 65, price: 1.6, rec: true, note: 'Hevea wood. Eco-friendly, medium hardness.' },
+  bamboo: { name: 'Bamboo', icon: '🎋', hex: '#bdb76b', dura: 70, qual: 72, price: 1.2, rec: true, note: 'Sustainable. Harder than most softwoods.' },
+  fabric_gray: { name: 'Gray Fabric', icon: '🧶', hex: '#7f8c8d', dura: 65, qual: 75, price: 1.5, rec: false, note: 'Standard upholstery fabric.' },
+  leather_brown: { name: 'Brown Leather', icon: '👞', hex: '#5c4033', dura: 85, qual: 92, price: 4.8, rec: false, note: 'Premium seating material.' },
+  velvet_blue: { name: 'Blue Velvet', icon: '🌟', hex: '#1f3a93', dura: 60, qual: 85, price: 3.2, rec: false, note: 'Luxurious but requires maintenance.' },
+  iron: { name: 'Black Iron', icon: '⛓️', hex: '#1A1A1A', dura: 98, qual: 82, price: 3.2, rec: false, note: 'Heavy-duty standard for industrial frame parts.' },
+  brass_aged: { name: 'Aged Brass', icon: '🔧', hex: '#B8860B', dura: 90, qual: 97, price: 6.8, rec: false, note: 'Warm, vintage metallic accent for legs or inlays.' },
+  marbled_gold: { name: 'Brushed Gold', icon: '🪙', hex: '#D4AF37', dura: 90, qual: 98, price: 7.5, rec: false, note: 'Ultra-premium metallic finish for luxury accents.' },
+  smoked_glass: { name: 'Smoked Glass', icon: '🧊', hex: '#333333', dura: 75, qual: 94, price: 6.2, rec: false, note: 'Elegant darkened tempered glass.' },
+  brushed_steel: { name: 'Brushed Steel', icon: '🔨', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
 };
 
 /* ═══ CARVING DB ═══ */
@@ -455,7 +555,7 @@ const TEMPLATES=[
    shapes:{Seat:'round',Back:'square',Legs:'tapered'},
    dims:{Seat:{w:46,h:6,d:46},Back:{w:46,h:38,d:5},Legs:{w:5,h:46,d:5}},
    scale:{x:1,y:1,z:1},basePrice:5800},
-  {id:3,type:'sofa',name:'Luxe Velvet Lounge',icon:'fa-couch',badge:'premium',gender:'girl',
+  {id:3,type:'sofa',name:'Luxe Velvet Lounge',icon:'fa-couch',badge:'premium',gender:'female',
    description:'Opulent 3-seat sofa in deep royal velvet with studded arms and a dark leather frame. A statement piece for any living room.',
    tags:['Sofa','Velvet','Luxury','3-Seat'],
    parts:['Frame','Cushions','Arms'],
@@ -473,7 +573,7 @@ const TEMPLATES=[
    shapes:{Headboard:'square',Frame:'square',Legs:'square'},
    dims:{Headboard:{w:192,h:100,d:10},Frame:{w:192,h:30,d:210},Legs:{w:8,h:18,d:8}},
    scale:{x:1,y:1,z:1},basePrice:22000},
-  {id:5,type:'cabinet',name:'Antique Narra Wardrobe',icon:'fa-door-closed',badge:'premium',gender:'girl',
+  {id:5,type:'cabinet',name:'Antique Narra Wardrobe',icon:'fa-door-closed',badge:'premium',gender:'female',
    description:'Stately two-door wardrobe in heirloom-grade Narra with ornate floral-carved doors and a rustic-aged body.',
    tags:['Cabinet','Wardrobe','Narra','Antique'],
    parts:['Body','Doors'],
@@ -482,7 +582,7 @@ const TEMPLATES=[
    shapes:{Body:'square',Doors:'square'},
    dims:{Body:{w:110,h:210,d:62},Doors:{w:48,h:200,d:5}},
    scale:{x:1,y:1,z:1},basePrice:28000},
-  {id:6,type:'table',name:'Glass-Top Executive Desk',icon:'fa-desktop',badge:'new',gender:'boy',
+  {id:6,type:'table',name:'Glass-Top Executive Desk',icon:'fa-desktop',badge:'new',gender:'male',
    description:'Sleek executive desk with a transparent glass top and matte black steel frame. Built for modern offices and home studies.',
    tags:['Desk','Glass','Steel','Modern','Office'],
    parts:['Top','Legs'],
@@ -491,7 +591,7 @@ const TEMPLATES=[
    shapes:{Top:'square',Legs:'tapered'},
    dims:{Top:{w:160,h:5,d:75},Legs:{w:6,h:76,d:6}},
    scale:{x:1,y:1,z:1},basePrice:12000},
-  {id:7,type:'chair',name:'Baroque Throne Chair',icon:'fa-crown',badge:'premium',gender:'girl',
+  {id:7,type:'chair',name:'Baroque Throne Chair',icon:'fa-crown',badge:'premium',gender:'female',
    description:'Extravagant high-back throne in rich Kamagong with a floral-carved back, gold-trimmed tapered legs and a deep velvet seat.',
    tags:['Chair','Baroque','Kamagong','Throne'],
    parts:['Seat','Back','Legs'],
@@ -530,10 +630,10 @@ const TEMPLATES=[
 ];
 
 /* ═══ STATE ═══ */
-let activeTemplate=null, activeLayer=null, isRotating=true, showDimensions=true;
-let editConfirmed=false, pendingEdit=null, textureCache={}, modalState={partName:null,type:null};
-let cabinetOpen=true; // doors start open so compartments are visible
-let activeGenderFilter='all'; // 'all' | 'boy' | 'girl' | 'neutral'
+var activeTemplate=null, activeLayer=null, isRotating=true, showDimensions=true;
+var editConfirmed=false, pendingEdit=null, textureCache={}, modalState={partName:null,type:null};
+var cabinetOpen=true; // doors start open so compartments are visible
+var activeGenderFilter='all'; // 'all' | 'boy' | 'girl' | 'neutral'
 
 /* ═══ EDIT CONFIRMATION ═══ */
 function requestEdit(type,...args){
@@ -655,11 +755,11 @@ const GENDER_STRIP_COLOR={boy:'#3498db',girl:'#e74c3c',neutral:'#7f8c8d'};
 function setGenderFilter(g){
   activeGenderFilter=g;
   // update button states
-  ['all','boy','girl','neutral'].forEach(k=>{
+  ['all','male','female','neutral'].forEach(k=>{
     const btn=document.getElementById('gf-'+k);
     if(!btn)return;
-    btn.className='gf-btn'+(k===g?' '+(k==='neutral'?'active-all':('active-'+k)):'')||'gf-btn';
-    if(k===g) btn.classList.add(k==='neutral'?'active-all':('active-'+k));
+    btn.className='gf-btn';
+    if(k===g) btn.classList.add(k==='all'?'active-all':('active-'+k));
   });
   buildTemplateList();
   // auto-load first visible template
@@ -862,25 +962,68 @@ function calculateCost(){
 
 /* ═══ VIEWPORT CONTROLS ═══ */
 function toggleRotation(){
-  isRotating=!isRotating;if(controls)controls.autoRotate=isRotating;
-  const iframe = document.getElementById('fidelity-iframe');
-  if (iframe && iframe.style.display !== 'none') { try { const win = iframe.contentWindow; if (win) { win.isRotating = isRotating; if(win.controls) win.controls.autoRotate = isRotating; } } catch(e) {} }
-  document.getElementById('btn-rotate').innerHTML=isRotating?'<i class="fas fa-pause"></i> Stop Rotate':'<i class="fas fa-play"></i> Auto Rotate';
+  isRotating=!isRotating;
+  syncViewportState();
+  const btn = document.getElementById('btn-rotate');
+  if(btn) btn.innerHTML=isRotating?'<i class="fas fa-pause"></i> Stop Rotate':'<i class="fas fa-play"></i> Auto Rotate';
 }
 function toggleDimensions(){
-  showDimensions=!showDimensions;build3DScene();
-  const iframe = document.getElementById('fidelity-iframe');
-  if (iframe && iframe.style.display !== 'none') { try { const win = iframe.contentWindow; if (win && typeof win.buildFurniture === 'function') { win.showDimensions = showDimensions; win.buildFurniture(); } } catch(e) {} }
-  document.getElementById('btn-dims').innerHTML=showDimensions?'<i class="fas fa-ruler-combined"></i> Hide Ruler':'<i class="fas fa-ruler-combined"></i> Show Ruler';
+  showDimensions=!showDimensions;
+  syncViewportState();
+  const btn = document.getElementById('btn-dims');
+  if(btn) btn.innerHTML=showDimensions?'<i class="fas fa-ruler-combined"></i> Hide Ruler':'<i class="fas fa-ruler-combined"></i> Show Ruler';
 }
 function toggleCabinetDoor(){
   cabinetOpen=!cabinetOpen;
+  syncViewportState();
   const btn=document.getElementById('btn-cabinet-door');
-  btn.innerHTML=cabinetOpen?'<i class="fas fa-door-open"></i> Close Doors':'<i class="fas fa-door-closed"></i> Open Doors';
-  build3DScene();
-  const iframe = document.getElementById('fidelity-iframe');
-  if (iframe && iframe.style.display !== 'none') { try { const win = iframe.contentWindow; if (win && typeof win.buildFurniture === 'function') { win.cabinetOpen = cabinetOpen; win.buildFurniture(); } } catch(e) {} }
+  if(btn) btn.innerHTML=cabinetOpen?'<i class="fas fa-door-open"></i> Close Doors':'<i class="fas fa-door-closed"></i> Open Doors';
 }
+
+function syncViewportState() {
+  // Sync Built-in 3D
+  if(controls) controls.autoRotate = isRotating;
+  if(scene) build3DScene();
+
+  // Sync Iframe 3D
+  const iframe = document.getElementById('fidelity-iframe');
+  if (iframe && iframe.style.display !== 'none') {
+    try {
+      const win = iframe.contentWindow;
+      if (win) {
+        win.isRotating = isRotating;
+        win.showDimensions = showDimensions;
+        win.cabinetOpen = cabinetOpen;
+        win.doorsOpen = cabinetOpen;
+        
+        if (win.controls) win.controls.autoRotate = isRotating;
+        
+        // Trigger re-render in child if functions exist
+        if (typeof win.buildFurniture === 'function') win.buildFurniture();
+        else if (typeof win.build3DScene === 'function') win.build3DScene();
+        
+        // Hide internal UI in case it showed up
+        const rotateBtn = win.document.getElementById('btn-rotate');
+        if (rotateBtn) rotateBtn.style.display = 'none';
+        const dimBtn = win.document.getElementById('btn-dims');
+        if (dimBtn) dimBtn.style.display = 'none';
+      }
+    } catch(e) {}
+  }
+}
+
+// Watchdog to ensure iframe stays in sync even if it re-inits
+setInterval(() => {
+  const iframe = document.getElementById('fidelity-iframe');
+  if (iframe && iframe.style.display !== 'none') {
+    try {
+      const win = iframe.contentWindow;
+      if (win && win.controls && win.controls.autoRotate !== isRotating) {
+        win.controls.autoRotate = isRotating;
+      }
+    } catch(e) {}
+  }
+}, 1000);
 function resetView(){
   resetCamera();if(scene)build3DScene();
   const iframe = document.getElementById('fidelity-iframe');
@@ -917,7 +1060,7 @@ function getMat(hexC,carvKey){
 }
 
 /* ═══ 3D ENGINE ═══ */
-let scene,camera,renderer,currentGroup,controls,dimGroup;
+var scene,camera,renderer,currentGroup,controls,dimGroup;
 
 function init3D(){
   const container=document.getElementById('canvas-container');
@@ -929,7 +1072,7 @@ function init3D(){
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   container.innerHTML='';container.appendChild(renderer.domElement);
   controls=new THREE.OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=true;controls.autoRotate=true;controls.autoRotateSpeed=0.5;
+  controls.enableDamping=true;controls.autoRotate=isRotating;controls.autoRotateSpeed=0.5;
   scene.add(new THREE.AmbientLight(0xffffff,0.45));
   const dL=new THREE.DirectionalLight(0xffffff,1.1);dL.position.set(8,14,10);dL.castShadow=true;scene.add(dL);
   const fL=new THREE.DirectionalLight(0xffffff,0.35);fL.position.set(-8,6,-8);scene.add(fL);
@@ -996,22 +1139,36 @@ function build3DScene(){
                const doc = win.document;
                const style = doc.createElement('style');
                style.innerHTML = `
-                  .panel-left { display: none !important; }
-                  .panel-right { display: none !important; }
-                  header { display: none !important; }
-                  .viewport { width: 100% !important; border:none !important; margin:0 !important; border-radius:8px !important; }
-                  .footer-bar { display: none !important; }
-                  .workspace { padding: 0 !important; }
-                  body { background: transparent !important; overflow: hidden; }
+                  .panel-left, .panel-right, header, .footer-bar, .nav-buttons, 
+                  .back-btn, .header-controls, .shop-info-badge, .score-card,
+                  .viewport-controls, .info-btn, .lbl-info-btn, .btn-add,
+                  #prev-project-bar, .total-price-tag { display: none !important; }
+                  .viewport { width: 100% !important; height: 100% !important; border:none !important; margin:0 !important; border-radius:8px !important; }
+                  .workspace { padding: 0 !important; margin: 0 !important; height: 100vh !important; }
+                  body { background: transparent !important; overflow: hidden !important; padding: 0 !important; }
+                  #canvas-container { height: 100vh !important; border-radius: 8px !important; }
                `;
                doc.head.appendChild(style);
-               if(typeof win.init3D === 'function' && !win.scene) win.init3D();
+               
+               // Sync state immediately
+               win.isRotating = isRotating;
+               win.showDimensions = showDimensions;
+               win.cabinetOpen = cabinetOpen;
+               win.doorsOpen = cabinetOpen;
+               
+               if(typeof win.init3D === 'function' && !win.scene) {
+                 win.init3D();
+               } else if (win.controls) {
+                 win.controls.autoRotate = isRotating;
+                 if (typeof win.build3DScene === 'function') win.build3DScene();
+               }
              } catch(e){}
           };
           
           iframe.src = activeTemplate.type + '.html';
       }
       iframe.style.display = 'block';
+      if (renderer && renderer.domElement) renderer.domElement.style.display = 'none';
       return;
   }
   

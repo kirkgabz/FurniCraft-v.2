@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Irawan Woodworks - Partner Dashboard</title>
+  <title>AFMB Valeza Rattan - Partner Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -1637,10 +1637,14 @@
       window.location.href = 'shop_login.html';
     }
 
-    const username = sessionStorage.getItem('username') || 'Shop Admin';
+    let username = sessionStorage.getItem('username') || 'Shop Admin';
+    if (username === 'Irawan Custom Woodworks') {
+        username = 'AFMB Valeza Rattan Furniture and Fixtures';
+        sessionStorage.setItem('username', username);
+    }
     document.getElementById('welcomeText').textContent = `Authenticated As: ${username}`;
 
-    let managedShopId = 1;
+    let managedShopId = sessionStorage.getItem('selectedShopId') || 1;
     let activeCustomer = '';
     let currentDpRate = 20;
 
@@ -1939,7 +1943,17 @@
     }
 
     function loadMessages() {
-      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      let msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      let hasOldName = false;
+      msgs.forEach(m => {
+          if (m.text && m.text.includes('Irawan Custom Woodworks')) {
+              m.text = m.text.replace(/Irawan Custom Woodworks/g, 'AFMB Valeza Rattan Furniture and Fixtures');
+              hasOldName = true;
+          }
+      });
+      if (hasOldName) {
+          localStorage.setItem(getMessagesKey(), JSON.stringify(msgs));
+      }
       const box = document.getElementById('messagesBox');
       if (!box) return;
 
@@ -2051,15 +2065,25 @@
     function updateStats() {
       const c = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
       const m = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
-      document.getElementById('statCommissions').textContent = c.length;
-      document.getElementById('statPending').textContent = c.filter(x => x.status === 'pending').length;
-      document.getElementById('statMessages').textContent = new Set(m.map(x => x.customerName)).size;
+      
+      const safeC = Array.isArray(c) ? c : [];
+      const safeM = Array.isArray(m) ? m : [];
+
+      document.getElementById('statCommissions').textContent = safeC.length;
+      document.getElementById('statPending').textContent = safeC.filter(x => x && x.status === 'pending').length;
+      document.getElementById('statMessages').textContent = new Set(safeM.filter(x => x && x.customerName).map(x => x.customerName)).size;
 
       let totalFees = 0;
-      c.forEach(order => {
-        if (order.price) { totalFees += (order.price * 0.005); }
+      safeC.forEach(order => {
+        if (order && order.price) { 
+           totalFees += (parseFloat(order.price) * 0.005) || 0; 
+        }
       });
       document.getElementById('statFees').textContent = '₱' + totalFees.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      
+      const templates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');
+      const safeTemplates = Array.isArray(templates) ? templates : [];
+      document.getElementById('statModels').textContent = safeTemplates.length;
     }
 
     /* ══════════════════════════════════════════
@@ -2628,27 +2652,65 @@
     function goToMain() { window.location.href = 'front_page.html'; }
 
     window.onload = () => {
+      // --- MIGRATION: Rescue orphaned transactions/chats ---
+      let myComms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      let myChats = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      let rescued = false;
+      
+      // We pull them safely from localStorage
+      let keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+          let key = localStorage.key(i);
+          if (key && key.startsWith('projectProposals_shop_') && key !== getCommissionsKey()) {
+              try {
+                  let orphaned = JSON.parse(localStorage.getItem(key) || '[]');
+                  if (Array.isArray(orphaned) && orphaned.length > 0) {
+                      myComms.push(...orphaned);
+                      rescued = true;
+                  }
+                  keysToRemove.push(key);
+              } catch(e) {}
+          }
+          if (key && key.startsWith('chatMessages_shop_') && key !== getMessagesKey()) {
+              try {
+                  let orphaned = JSON.parse(localStorage.getItem(key) || '[]');
+                  if (Array.isArray(orphaned) && orphaned.length > 0) {
+                      myChats.push(...orphaned);
+                      rescued = true;
+                  }
+                  keysToRemove.push(key);
+              } catch(e) {}
+          }
+      }
+      if (rescued) {
+          localStorage.setItem(getCommissionsKey(), JSON.stringify(myComms));
+          localStorage.setItem(getMessagesKey(), JSON.stringify(myChats));
+      }
+      // Clean up empty keys
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      // --- END MIGRATION ---
+
       const s = JSON.parse(localStorage.getItem(getSettingsKey()) || '{"dpRate": 20}');
       updateDpRate(s.dpRate);
       loadPermitStatus();
       loadCommissions();
       loadReviews();
       updateStats();
-      // Sync 3D Models counter
-      const modelsCount = JSON.parse(localStorage.getItem('shop_templates_global') || '[]').length;
-      document.getElementById('statModels').textContent = modelsCount;
 
       // Real-time Chat Polling & Storage Sync
       refreshChatThreads();
       setInterval(() => {
         refreshChatThreads();
         loadMessages();
+        updateStats();
       }, 1500);
 
       window.addEventListener('storage', (e) => {
-        if (e.key === getMessagesKey() || e.key === getCommissionsKey()) {
+        if (e.key === getMessagesKey() || e.key === getCommissionsKey() || e.key === 'shop_templates_global') {
           refreshChatThreads();
           loadMessages();
+          loadCommissions();
+          updateStats();
         }
       });
     };

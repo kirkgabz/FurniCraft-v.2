@@ -467,7 +467,7 @@
           <h3 style="font-family:'Outfit', sans-serif; margin-bottom:1rem; color:#1e293b;"><i class="fas fa-qrcode" style="color:#3b82f6;"></i> Universal Payment QR</h3>
           <img src="images/universal_qr_code.png" alt="Scan to Pay QR Code" style="width: 180px; height: 180px; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); margin-bottom: 1rem;">
           <div style="font-size:0.85rem; color:#64748b;">
-            <strong>Merchant Name:</strong> Irawan Custom Woodworks<br>
+            <strong>Merchant Name:</strong> AFMB Valeza Rattan Furniture and Fixtures<br>
             Powered by National QR Standard
           </div>
         </div>
@@ -492,7 +492,7 @@
       <div class="modal-body" style="text-align: center;">
         <i class="fas fa-box-open" style="font-size: 3rem; color: #10b981; margin-bottom: 1rem;"></i>
         <h3 style="font-family: 'Nunito', sans-serif; color: var(--text-main); margin-bottom: 0.5rem;">Your order is complete!</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">How was your experience working with <b>Irawan Custom Woodworks</b>?</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">How was your experience working with <b>AFMB Valeza Rattan Furniture and Fixtures</b>?</p>
         
         <div class="rating-stars" id="starContainer">
           <i class="fas fa-star" data-rating="1" onclick="setRating(1)"></i>
@@ -513,8 +513,8 @@
 
 
   <script>
-    const activeShopId = 1;
-    const activeShopName = "Irawan Custom Woodworks";
+    const activeShopId = sessionStorage.getItem('selectedShopId') || 1;
+    const activeShopName = sessionStorage.getItem('selectedShopName') || "AFMB Valeza Rattan Furniture and Fixtures";
     let exportDraft = null;
     let activeItem = null;
 
@@ -680,7 +680,18 @@
       const chatBox = document.getElementById('chatBox');
       if (!chatBox) return;
       
-      const messages = JSON.parse(localStorage.getItem(getDashChatKey()) || '[]');
+      let messages = JSON.parse(localStorage.getItem(getDashChatKey()) || '[]');
+      let hasOldName = false;
+      messages.forEach(m => {
+          if (m.text && m.text.includes('Irawan Custom Woodworks')) {
+              m.text = m.text.replace(/Irawan Custom Woodworks/g, 'AFMB Valeza Rattan Furniture and Fixtures');
+              hasOldName = true;
+          }
+      });
+      if (hasOldName) {
+          localStorage.setItem(getDashChatKey(), JSON.stringify(messages));
+      }
+      
       const myMessages = messages.filter(m => m.customerName === getCustName());
 
       // Only re-render if the message count has changed to preserve scroll position if the user is reading old messages

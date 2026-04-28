@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shop Partner Login — FurniCraft</title>
-  <meta name="description" content="Shop partner login for Irawan Custom Woodworks on the FurniCraft platform.">
+  <meta name="description" content="Shop partner login for AFMB Valeza Rattan Furniture and Fixtures on the FurniCraft platform.">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap"
@@ -471,7 +471,7 @@
     <canvas id="starCanvas"></canvas>
     <div class="panel-content">
       <div class="brand-logo"><i class="fas fa-store"></i></div>
-      <h2>Irawan<br>Woodworks</h2>
+      <h2>AFMB Valeza<br>Rattan Furniture</h2>
       <p>Access your dedicated partner dashboard to manage orders, customize furniture designs, and track your catalog
         performance.</p>
       <div class="stat-pills">
@@ -607,11 +607,11 @@
       loginBtn.disabled = true;
 
       setTimeout(() => {
-        // Locked to Irawan Custom Woodworks
+        // Locked to AFMB Valeza Rattan Furniture and Fixtures
         if (user.toLowerCase() === "irawan" && pass === "password123") {
           sessionStorage.setItem('isLoggedIn', 'true');
           sessionStorage.setItem('userType', 'shop');
-          sessionStorage.setItem('username', 'Irawan Custom Woodworks');
+          sessionStorage.setItem('username', 'AFMB Valeza Rattan Furniture and Fixtures');
           sessionStorage.setItem('managedShopId', '1');
           btnText.textContent = 'Welcome back!';
           setTimeout(() => { window.location.href = 'shop_dashboard.html'; }, 700);

@@ -792,8 +792,12 @@
 
         if (st === 'approved') { 
             uiStatus = 'progress'; 
-            note = "Order accepted! Please pay the required downpayment."; 
-            btnPayDp.style.display = 'flex'; 
+            if (!myOrder.referenceNumber) {
+                note = "Order accepted! Please pay the required downpayment."; 
+                btnPayDp.style.display = 'flex'; 
+            } else {
+                note = "Payment proof submitted! Waiting for shop confirmation.";
+            }
         }
         else if (st === 'payment_verifying') { 
             uiStatus = 'progress'; 
@@ -938,7 +942,6 @@
       const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
       const index = commissions.findIndex(c => c.customerName === getCustName() && c.exportId === exportDraft?.exportId);
       if (index !== -1) {
-        commissions[index].status = 'payment_received'; 
         commissions[index].referenceNumber = refInput;
         
         const settings = JSON.parse(localStorage.getItem(`shop_settings_${activeShopId}`) || '{"dpRate": 20}');
@@ -949,7 +952,7 @@
         localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
         
         // Notify User
-        sendUserNotification(getCustName(), `Payment proof submitted for "${commissions[index].description}". Status: Verifying.`, "payment");
+        sendUserNotification(getCustName(), `Payment proof submitted for "${commissions[index].description}". Waiting for shop confirmation.`, "payment");
         
         closePaymentModal(); loadOrderStatus(); 
       }

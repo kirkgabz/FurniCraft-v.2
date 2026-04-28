@@ -366,12 +366,31 @@ function goToExport(){
 
   // 4. Capture EXACT current viewport
   try {
-      // If there's an active renderer/scene/camera, render it as is
-      if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
-          renderer.render(scene, camera);
+      let canvas = null;
+      let targetRenderer = null;
+      let targetScene = null;
+      let targetCamera = null;
+
+      const iframe = document.getElementById('fidelity-iframe');
+      if (iframe && iframe.style.display !== 'none' && activeTemplate.id > 10000) {
+          try {
+              const win = iframe.contentWindow;
+              targetRenderer = win.renderer;
+              targetScene = win.scene;
+              targetCamera = win.camera;
+              canvas = win.document.querySelector('canvas');
+          } catch(e) {}
+      } else {
+          targetRenderer = typeof renderer !== 'undefined' ? renderer : null;
+          targetScene = typeof scene !== 'undefined' ? scene : null;
+          targetCamera = typeof camera !== 'undefined' ? camera : null;
+          canvas = document.querySelector('#canvas-container canvas');
+      }
+
+      if (targetRenderer && targetScene && targetCamera) {
+          targetRenderer.render(targetScene, targetCamera);
       }
       
-      const canvas = document.querySelector('#canvas-container canvas');
       if (canvas) {
           const freshImg = compressCanvas(canvas);
           if (freshImg) prevImageUrl = freshImg;

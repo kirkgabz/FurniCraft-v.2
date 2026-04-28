@@ -1798,14 +1798,15 @@
             </div>
           </div>
 
-          ${c.referenceNumber ? `
+          ${(st === 'payment_received' || st === 'payment_verifying' || st === 'in_progress' || st === 'completed') ? `
             <div class="payment-info-box">
               <span><i class="fas fa-check-circle"></i> Paid DP: <b>₱${Math.round(c.paidDpAmount || dp).toLocaleString()}</b></span>
-              <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary);"><i class="fas fa-hashtag"></i> Ref: ${c.referenceNumber}</span>
+              <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary);"><i class="fas fa-hashtag"></i> Ref: ${c.referenceNumber || 'Manual/OTC'}</span>
             </div>
           ` : `
-            <div class="payment-info-box unpaid">
+            <div class="payment-info-box unpaid" style="display:flex; justify-content:space-between; align-items:center;">
               <span><i class="fas fa-receipt"></i> Awaiting DP: <b>₱${dp.toLocaleString()}</b></span>
+              ${c.referenceNumber ? `<span style="font-weight: 600; font-size: 0.85rem; color: #d97706;"><i class="fas fa-hashtag"></i> User Submitted Ref: ${c.referenceNumber}</span>` : ''}
             </div>
           `}
 
@@ -1890,6 +1891,12 @@
       const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
       const i = comms.findIndex(x => x.id === id);
       if (i !== -1) {
+        if ((st === 'payment_received' || st === 'payment_verifying' || st === 'in_progress' || st === 'completed') && !comms[i].referenceNumber) {
+           let ref = prompt("Please enter the payment Reference Number (or leave blank for Manual/OTC):");
+           comms[i].referenceNumber = ref || "Manual/OTC";
+           comms[i].paidDpAmount = comms[i].price * (currentDpRate / 100);
+        }
+
         comms[i].status = st;
         if (st === 'in_progress') {
           comms[i].progressValue = 10;

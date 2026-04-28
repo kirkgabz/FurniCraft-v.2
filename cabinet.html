@@ -678,9 +678,8 @@
 
     <div class="brand"><img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft Studio - Storage Cabinet Pro</div>
 
-    <div class="header-controls" style="display: flex; gap: 10px;">
-
-      <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button class="btn-export" style="background:#444 !important;" onclick="goBack()">
         <i class="fas fa-arrow-left"></i> Back
       </button>
       <button class="btn-export" id="btn-upload-template" onclick="uploadToTemplates()" style="display:none; background: linear-gradient(135deg,#10b981,#059669) !important;">
@@ -689,7 +688,6 @@
       <button class="btn-export" id="btn-main-export" onclick="goToExport()">
         <i class="fas fa-file-export"></i> Export
       </button>
-
     </div>
 
   </header>
@@ -724,7 +722,9 @@
 
       </div>
 
-      <button class="btn-add" onclick="goToCraft()"><i class="fas fa-plus"></i> Add New Furniture Project</button>
+      <button class="btn-add" onclick="goToCraft()">
+        <i class="fas fa-plus"></i> Add New Furniture Design
+      </button>
 
     </aside>
 
@@ -752,7 +752,7 @@
 
           <div class="shop-info-label">
 
-            <i class="fas fa-hammer"></i> Active Workshop
+            <i class="fas fa-hammer"></i> Selected Shop
 
           </div>
 
@@ -1032,17 +1032,17 @@
 
 ============================================================ */
 
-function goToCraft() {
+    function goBack() {
+      const isShop = sessionStorage.getItem('craftMode') === 'shop';
+      window.location.href = isShop ? 'shop_dashboard.html' : 'main.html';
+    }
 
-  saveState();
-
-  const ai = getActiveItem();
-
-  if (ai) { sessionStorage.setItem('prevProjectName', ai.name); sessionStorage.setItem('prevProjectPage', 'cabinet.html'); }
-
-  const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
-
-}
+    function goToCraft() {
+      saveState();
+      const ai = getActiveItem();
+      if (ai) { sessionStorage.setItem('prevProjectName', ai.name); sessionStorage.setItem('prevProjectPage', 'cabinet.html'); }
+      const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
+    }
 
 function goToPrevProject() { const p = sessionStorage.getItem('prevProjectPage'); if (p) window.location.href = p; }
 
@@ -1344,65 +1344,66 @@ const carvingDB={
 
 ============================================================ */
 
-let appState={items:[],activeItemId:0,activeLayer:null};
+        const STORAGE_KEY = 'furnicraft_v2_projects';
+        const PAGE_TYPE = 'cabinet';
 
-var isRotating=true,showDimensions=true;
+        let appState = { items: [], activeItemId: 0, activeLayer: null };
+        var isRotating = true, showDimensions = true;
+        let textureCache = {}, modalState = { partName: null, type: null };
+        let doorsOpen = false, doorAnimating = false, doorMeshes = [];
 
-var doorsOpen=false; // NEW: door open/close state
+        window.onload = function () {
+            try {
+                let saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    appState = JSON.parse(saved);
+                    if (!appState.items) appState.items = [];
+                }
+            } catch (e) { appState.items = []; }
 
-let textureCache={};
+            const shouldAdd = sessionStorage.getItem('addNew');
+            if (shouldAdd === 'true') {
+                createNewCabinet(false);
+                sessionStorage.removeItem('addNew');
+            } else if (appState.items.length === 0) {
+                createNewCabinet(false);
+            }
 
-let doorMeshes=[]; // store door mesh groups for animation
+            // Ensure we have an active item and it's valid for this page
+            let activeItem = getActiveItem();
+            if (!activeItem) {
+                activeItem = appState.items.find(i => i.type === PAGE_TYPE);
+                if (activeItem) {
+                    appState.activeItemId = activeItem.id;
+                } else {
+                    createNewCabinet(false);
+                    activeItem = getActiveItem();
+                }
+            }
 
-let modalState={partName:null,type:null};
+            // If activeItem is NOT a cabinet, redirect to its page
+            if (activeItem.type !== PAGE_TYPE) {
+                window.location.href = activeItem.type + '.html';
+                return;
+            }
 
-let doorAnimTarget=0, doorAnimCurrent=0, doorAnimating=false;
+            if (!appState.activeLayer) appState.activeLayer = 'Carcass';
 
+            // Initialize Shop Badge
+            updateShopBadgeUI();
 
-
-window.onload=function(){
-
-  try{ const s=sessionStorage.getItem('cadState_cabinet_v1'); if(s){appState=JSON.parse(s);if(!appState.items)appState.items=[];} }catch(e){appState.items=[];}
-
-  
-
-  const shouldAdd = sessionStorage.getItem('addNew');
-
-  if(appState.items.length===0 || shouldAdd === 'true'){
-
-    createNewCabinet(false);
-
-    sessionStorage.removeItem('addNew');
-
-  }
-
-  if(!appState.activeLayer)appState.activeLayer='Carcass';
-
-
-
-  // Initialize Shop Badge
-
-  updateShopBadgeUI();
-
-
-
-  renderUI(); updatePrice();
-
-  loadPrevProjectBar();
-
-  const ai=getActiveItem();
-
-  if(ai){
-
-    const btn=document.getElementById('toggle-backpanel');
-
-    if(btn){ btn.textContent=ai.hasBackPanel?'On':'Off'; btn.classList.toggle('active',!!ai.hasBackPanel); }
-
-  }
-
-  setTimeout(()=>init3D(),100);
-
-};
+            renderUI(); updatePrice();
+            loadPrevProjectBar();
+            
+            if (activeItem) {
+                const btn = document.getElementById('toggle-backpanel');
+                if (btn) {
+                    btn.textContent = activeItem.hasBackPanel ? 'On' : 'Off';
+                    btn.classList.toggle('active', !!activeItem.hasBackPanel);
+                }
+            }
+            setTimeout(() => init3D(), 100);
+        };
 
 
 
@@ -1468,9 +1469,9 @@ function updateShopBadgeUI() {
 
 }
 
-function getActiveItem(){ return appState.items.find(i=>i.id===appState.activeItemId); }
+function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
 
-function saveState(){ sessionStorage.setItem('cadState_cabinet_v1',JSON.stringify(appState)); }
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }
 
 
 
@@ -1616,24 +1617,42 @@ function renderUI(){ renderSceneList();renderProperties();calculateScore();updat
 
 
 
-function renderSceneList(){
+function renderSceneList() {
+    const list = document.getElementById('scene-list');
+    if (!list) return;
+    list.innerHTML = '';
 
-  const list=document.getElementById('scene-list'); list.innerHTML='';
+    const iconMap = {
+        bed: 'fas fa-bed',
+        bookshelf: 'fas fa-book-open',
+        cabinet: 'fas fa-archive',
+        chair: 'fas fa-chair',
+        rocking_chair: 'fas fa-rocking-chair',
+        desk: 'fas fa-desktop',
+        sofa: 'fas fa-couch',
+        stool: 'fas fa-chair',
+        table: 'fas fa-table'
+    };
 
-  appState.items.forEach(item=>{
+    appState.items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
+        div.onclick = (e) => {
+            if (e.target.closest('.btn-delete')) return;
+            appState.activeItemId = item.id;
+            saveState();
 
-    const div=document.createElement('div');
-
-    div.className='scene-item'+(item.id===appState.activeItemId?' active':'');
-
-    div.onclick=e=>{ if(e.target.closest('.btn-delete'))return; appState.activeItemId=item.id;appState.activeLayer='Carcass';renderUI();build3DScene(); };
-
-    div.innerHTML='<span><i class="fas fa-archive"></i> '+item.name+'</span><button class="btn-delete" onclick="deleteItem('+item.id+')"><i class="fas fa-trash-alt"></i></button>';
-
-    list.appendChild(div);
-
-  });
-
+            if (item.type !== PAGE_TYPE) {
+                window.location.href = item.type + '.html';
+            } else {
+                appState.activeLayer = 'Carcass';
+                renderUI(); build3DScene();
+            }
+        };
+        const icon = iconMap[item.type] || 'fas fa-cube';
+        div.innerHTML = '<span><i class="' + icon + '"></i> ' + item.name + '</span><button class="btn-delete" onclick="deleteItem(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>';
+        list.appendChild(div);
+    });
 }
 
 
@@ -1688,7 +1707,7 @@ function renderProperties(){
 
       if (!isInShop) {
 
-        alert(`This material is not available at the selected workshop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
+        alert(`This material is not available at the selected shop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
 
         return;
 
@@ -1852,19 +1871,12 @@ function updateShelfCount(val){ const ai=getActiveItem();if(!ai)return; ai.shelf
       try {
           let previewImageURL = '';
           try {
-            const wasRotating = (typeof controls !== 'undefined' && controls) ? controls.autoRotate : false;
-            const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
-            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = false;
-            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
-            
+            // Capture exact current viewport state (including rotation and dimensions if visible)
             if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
               renderer.render(scene, camera);
             }
             const canvas = document.querySelector('#canvas-container canvas');
             if (canvas) previewImageURL = canvas.toDataURL('image/png');
-            
-            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = true;
-            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
           } catch(e) { console.warn('Export screenshot failed:', e); }
 
           const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;

@@ -1438,14 +1438,16 @@
           </div>
         </section>
 
-        <section class="section-card">
+        <section class="section-card" style="position: relative; overflow: hidden;">
           <div class="section-header">
-            <h2 style="font-size: 1.3rem;"><i class="fas fa-comment-alt"></i> Live Support</h2>
+            <h2 style="font-size: 1.3rem;"><i class="fas fa-comment-alt" style="color: var(--accent-primary);"></i> Live Chat</h2>
+            <div id="activeChatCount" class="badge badge-info" style="margin-left: auto; display: none;">0</div>
           </div>
           <div style="margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
-            <select id="customerThreadSelect" onchange="changeThread()" style="flex: 1;"></select>
+            <select id="customerThreadSelect" onchange="changeThread()" style="flex: 1;" title="Select Customer Thread"></select>
+            <button class="btn btn-outline" style="padding: 0.8rem 1rem;" onclick="refreshChatThreads(); loadMessages();" title="Sync Chat"><i class="fas fa-sync"></i></button>
             <button class="btn btn-danger" style="padding: 0.8rem 1rem;" onclick="openReportModal()"
-              title="Report Customer"><i class="fas fa-flag"></i></button>
+               title="Report Customer"><i class="fas fa-flag"></i></button>
           </div>
           <div class="chat-container">
             <div id="messagesBox" class="chat-messages"></div>
@@ -1764,6 +1766,7 @@
         let badgeClass = 'badge-pending';
         let badgeText = 'Pending';
         if (st === 'approved') { badgeClass = 'badge-info'; badgeText = 'Ask Payment'; }
+        if (st === 'payment_received') { badgeClass = 'badge-warning'; badgeText = 'Proof Submitted'; }
         if (st === 'payment_verifying') { badgeClass = 'badge-warning'; badgeText = 'Review Pay'; }
         if (st === 'in_progress') { badgeClass = 'badge-success'; badgeText = 'In Build'; }
         if (st === 'completed') { badgeClass = 'badge-success'; badgeText = 'Finished'; }
@@ -1776,25 +1779,25 @@
             ${c.previewImage ? `<div style="width:100px; height:100px; border-radius:12px; overflow:hidden; background:var(--bg-main); border:1px solid var(--border); margin-right:15px; flex-shrink:0;"><img src="${c.previewImage}" style="width:100%; height:100%; object-fit:contain;" /></div>` : ''}
             <div class="item-main-info" style="flex:1;">
               <span class="badge ${badgeClass}">${badgeText}</span>
-              ${c.modifiedAt ? `<span class="badge badge-warning" style="background:#fff3cd; color:#856404; border:1px solid #ffeeba; margin-left:5px;"><i class="fas fa-history"></i> Modified</span>` : ''}
+
               <h4 style="margin-top: 0.8rem;">${c.description || 'Custom Request'}</h4>
               <div class="item-meta">
                 <span><i class="fas fa-user-circle"></i> ${c.customerName}</span>
                 <span><i class="far fa-clock"></i> ${new Date(c.id).toLocaleDateString()}</span>
-                ${c.modifiedAt ? `<span style="color:var(--text-muted); font-size:0.75rem;"><i class="fas fa-edit"></i> Last: ${new Date(c.modifiedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>` : ''}
+
                 <span style="color:#ef4444; font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Fee (0.5%): ₱${(price * 0.005).toLocaleString()}</span>
               </div>
             </div>
             <div class="price-tag" style="flex-shrink:0; text-align:right;">
               ₱${price.toLocaleString()}
-              ${c.modificationFee ? `<div style="font-size:0.7rem; color:var(--accent-primary); margin-top:4px;">+ ₱${c.modificationFee} Mod Fee</div>` : ''}
-              ${c.totalAdjustedPrice ? `<div style="font-size:0.85rem; font-weight:800; color:var(--text-main); margin-top:4px; border-top:1px solid var(--border); padding-top:4px;">Total: ₱${c.totalAdjustedPrice.toLocaleString()}</div>` : ''}
+
             </div>
           </div>
 
           ${c.referenceNumber ? `
             <div class="payment-info-box">
-              <span><i class="fas fa-check-circle"></i> Paid DP: <b>₱${Math.round(c.paidDpAmount || dp).toLocaleString()}</b> (Ref: ${c.referenceNumber})</span>
+              <span><i class="fas fa-check-circle"></i> Paid DP: <b>₱${Math.round(c.paidDpAmount || dp).toLocaleString()}</b></span>
+              <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary);"><i class="fas fa-hashtag"></i> Ref: ${c.referenceNumber}</span>
             </div>
           ` : `
             <div class="payment-info-box unpaid">
@@ -1808,6 +1811,7 @@
               <select onchange="updateCommissionStatus(${c.id}, this.value)">
                 <option value="pending" ${st === 'pending' ? 'selected' : ''}>Pending</option>
                 <option value="approved" ${st === 'approved' ? 'selected' : ''}>Accept/Ask Pay</option>
+                <option value="payment_received" ${st === 'payment_received' ? 'selected' : ''}>Proof Received</option>
                 <option value="payment_verifying" ${st === 'payment_verifying' ? 'selected' : ''}>Verify Pay</option>
                 <option value="in_progress" ${st === 'in_progress' ? 'selected' : ''}>In Build</option>
                 <option value="completed" ${st === 'completed' ? 'selected' : ''}>Finished</option>
@@ -1894,6 +1898,7 @@
         let msg = "";
         let type = "status";
         if (st === 'approved') msg = `Order accepted! Please pay the downpayment for "${comms[i].description}".`;
+        if (st === 'payment_received') msg = `We received your payment proof for "${comms[i].description}". We are reviewing it now.`;
         if (st === 'payment_verifying') msg = `We are verifying your payment for "${comms[i].description}".`;
         if (st === 'in_progress') msg = `Payment verified! Build started for "${comms[i].description}".`;
         if (st === 'completed') msg = `Project Finished! Your "${comms[i].description}" is 100% complete.`;
@@ -1936,17 +1941,40 @@
     function loadMessages() {
       const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
       const box = document.getElementById('messagesBox');
-      box.innerHTML = '';
+      if (!box) return;
+
       const active = msgs.filter(m => m.customerName === activeCustomer);
+      
+      // Prevent redundant rendering
+      if (box.dataset.msgCount == active.length && box.dataset.activeCust == activeCustomer) return;
+      box.dataset.msgCount = active.length;
+      box.dataset.activeCust = activeCustomer;
+
+      box.innerHTML = '';
       if (!active.length) {
-        box.innerHTML = '<p style="text-align:center; padding-top:2rem; color:var(--text-light)">No chat records.</p>';
+        box.innerHTML = `<p style="text-align:center; padding-top:2rem; color:var(--text-light)">No messages with <b>${activeCustomer || 'this customer'}</b>.</p>`;
+        return;
       }
+
       active.forEach(m => {
         const d = document.createElement('div');
         d.className = `msg ${m.sender === 'shop' ? 'shop' : 'user'}`;
-        d.textContent = m.text;
+        
+        const timeStr = m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+        
+        d.innerHTML = `
+          <div class="msg-text">${m.text}</div>
+          <div class="msg-meta" style="font-size: 0.65rem; opacity: 0.7; margin-top: 4px; text-align: ${m.sender === 'shop' ? 'right' : 'left'}">${timeStr}</div>
+        `;
         box.appendChild(d);
+
+        // Mark as read if from user
+        if (m.sender === 'user' && !m.read) m.read = true;
       });
+      
+      // Update the main messages array with 'read' status
+      localStorage.setItem(getMessagesKey(), JSON.stringify(msgs));
+
       box.scrollTop = box.scrollHeight;
     }
 
@@ -1968,6 +1996,56 @@
     function changeThread() {
       activeCustomer = document.getElementById('customerThreadSelect').value;
       loadMessages();
+    }
+
+    function refreshChatThreads() {
+      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      
+      // Combine unique customers from messages and commissions
+      const msgCustomers = msgs.map(m => m.customerName);
+      const commCustomers = comms.map(c => c.customerName);
+      const allCustomers = [...new Set([...msgCustomers, ...commCustomers])].filter(Boolean);
+      
+      const sel = document.getElementById('customerThreadSelect');
+      const currentVal = sel.value;
+      
+      // Update badge for total active threads
+      const badge = document.getElementById('activeChatCount');
+      if (badge) {
+        badge.textContent = allCustomers.length;
+        badge.style.display = allCustomers.length > 0 ? 'inline-block' : 'none';
+      }
+
+      // To avoid flickering, only rebuild if the list has changed
+      const existingOptions = Array.from(sel.options).map(o => o.value);
+      const sortedNew = [...allCustomers].sort();
+      const sortedOld = [...existingOptions].filter(o => o !== "").sort();
+      
+      if (JSON.stringify(sortedNew) !== JSON.stringify(sortedOld)) {
+        sel.innerHTML = '';
+        if (allCustomers.length === 0) {
+          const o = document.createElement('option');
+          o.value = ""; o.textContent = "No active customers";
+          sel.appendChild(o);
+        } else {
+          allCustomers.forEach(c => {
+            const hasUnread = msgs.some(m => m.customerName === c && m.sender === 'user' && !m.read);
+            const o = document.createElement('option');
+            o.value = c; 
+            o.textContent = (hasUnread ? "● " : "") + c;
+            sel.appendChild(o);
+          });
+        }
+      }
+
+      if (allCustomers.includes(currentVal)) {
+        sel.value = currentVal;
+      } else if (!activeCustomer && allCustomers.length > 0) {
+        activeCustomer = allCustomers[0];
+        sel.value = activeCustomer;
+        loadMessages();
+      }
     }
 
     function updateStats() {
@@ -2530,6 +2608,18 @@
         date: new Date().toISOString().split('T')[0]
       });
       localStorage.setItem('infraction_reports', JSON.stringify(reports));
+
+      // Notify Admin
+      let adminNotifs = JSON.parse(localStorage.getItem('user_notifications_Admin') || '[]');
+      adminNotifs.push({
+        id: Date.now(),
+        message: `SHOP REPORT: "${activeCustomer}" has been reported by a shop for: ${reason.substring(0, 50)}...`,
+        type: 'infraction',
+        date: new Date().toISOString(),
+        read: false
+      });
+      localStorage.setItem('user_notifications_Admin', JSON.stringify(adminNotifs));
+
       alert('Report with evidence submitted to administration for review.');
       closeReportModal();
     }
@@ -2540,16 +2630,6 @@
     window.onload = () => {
       const s = JSON.parse(localStorage.getItem(getSettingsKey()) || '{"dpRate": 20}');
       updateDpRate(s.dpRate);
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const sel = document.getElementById('customerThreadSelect');
-      users.forEach(u => {
-        if (!u.role || u.role === 'customer') {
-          const o = document.createElement('option');
-          o.value = u.name; o.textContent = u.name;
-          sel.appendChild(o);
-        }
-      });
-      if (sel.options.length) { activeCustomer = sel.value; loadMessages(); }
       loadPermitStatus();
       loadCommissions();
       loadReviews();
@@ -2557,6 +2637,20 @@
       // Sync 3D Models counter
       const modelsCount = JSON.parse(localStorage.getItem('shop_templates_global') || '[]').length;
       document.getElementById('statModels').textContent = modelsCount;
+
+      // Real-time Chat Polling & Storage Sync
+      refreshChatThreads();
+      setInterval(() => {
+        refreshChatThreads();
+        loadMessages();
+      }, 1500);
+
+      window.addEventListener('storage', (e) => {
+        if (e.key === getMessagesKey() || e.key === getCommissionsKey()) {
+          refreshChatThreads();
+          loadMessages();
+        }
+      });
     };
   </script>
 </body>

@@ -1373,7 +1373,7 @@
       <i class="fas fa-bed"></i> FurniCraft Studio - Bed Designer Pro
     </div>
     <div class="header-controls" style="display: flex; gap: 10px;">
-      <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
+      <button class="btn-export" style="background:#444 !important;" onclick="goBack()">
         <i class="fas fa-arrow-left"></i> Back
       </button>
       <button class="btn-export" id="btn-upload-template" onclick="uploadToTemplates()" style="display:none; background: linear-gradient(135deg,#10b981,#059669) !important;">
@@ -1425,7 +1425,7 @@
       <div id="shop-info-badge" class="shop-info-badge" style="display:none">
         <div class="shop-info-header" onclick="toggleShopBadge()">
           <div class="shop-info-label">
-            <i class="fas fa-hammer"></i> Active Workshop
+            <i class="fas fa-hammer"></i> Selected Shop
           </div>
           <div class="shop-info-toggle-btn" id="shop-badge-toggle-icon">
             <i class="fas fa-chevron-down"></i>
@@ -1563,22 +1563,17 @@
     /* ═══════════════════════════════════════════════
        NAVIGATION
     ═══════════════════════════════════════════════ */
-    function goToCraft() {
-      saveState();
-      const ai = getActiveItem();
-      if (ai) {
-        sessionStorage.setItem('prevProjectName', ai.name);
-        sessionStorage.setItem('prevProjectPage', 'bed.html');
-      }
-      const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
+    function goBack() {
+      const isShop = sessionStorage.getItem('craftMode') === 'shop';
+      window.location.href = isShop ? 'shop_dashboard.html' : 'main.html';
     }
-
 
     function goToCraft() {
       saveState();
       const ai = getActiveItem();
       if (ai) { sessionStorage.setItem('prevProjectName', ai.name); sessionStorage.setItem('prevProjectPage', 'bed.html'); }
-      const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
+      const isShop = sessionStorage.getItem('craftMode') === 'shop'; 
+      window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
     }
     function goToPrevProject() { const p = sessionStorage.getItem('prevProjectPage'); if (p) window.location.href = p; }
     function loadPrevProjectBar() {
@@ -1750,16 +1745,47 @@
       twin: { w: 99, d: 190 }, full: { w: 137, d: 190 }, queen: { w: 153, d: 203 }, king: { w: 193, d: 203 }
     };
 
+    const STORAGE_KEY = 'furnicraft_v2_projects';
+    const PAGE_TYPE = 'bed';
+
     window.onload = function () {
       try {
-        let saved = sessionStorage.getItem('cadState_bed_v1');
-        if (saved) { appState = JSON.parse(saved); if (!appState.items) appState.items = []; }
+        let saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) { 
+          appState = JSON.parse(saved); 
+          if (!appState.items) appState.items = []; 
+        }
       } catch (e) { appState.items = []; }
-      if (appState.items.length === 0) {
+
+      const shouldAdd = sessionStorage.getItem('addNew');
+      if (shouldAdd === 'true') {
+        createNewBed(false, 'plain');
+        sessionStorage.removeItem('addNew');
+      } else if (appState.items.length === 0) {
         createNewBed(false, 'plain');
       }
-      const ai = getActiveItem();
-      if (ai && !appState.activeLayer) appState.activeLayer = bedParts[0];
+
+      // Ensure we have an active item and it's valid for this page
+      let activeItem = getActiveItem();
+      if (!activeItem) {
+          activeItem = appState.items.find(i => i.type === PAGE_TYPE);
+          if (activeItem) {
+              appState.activeItemId = activeItem.id;
+          } else {
+              createNewBed(false, 'plain');
+              activeItem = getActiveItem();
+          }
+      }
+
+      // If activeItem is NOT a bed, redirect to its page
+      if (activeItem.type !== PAGE_TYPE) {
+          window.location.href = activeItem.type + '.html';
+          return;
+      }
+
+      if (activeItem && !appState.activeLayer) {
+          appState.activeLayer = bedParts[0];
+      }
 
       // Initialize Shop Badge
       updateShopBadgeUI();
@@ -1818,7 +1844,7 @@
     }
 
     function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
-    function saveState() { sessionStorage.setItem('cadState_bed_v1', JSON.stringify(appState)); }
+    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }
 
     /* ═══════════════════════════════════════════════
        BED PRESETS
@@ -1912,7 +1938,6 @@
       const item = getActiveItem(); if (!item) return;
       const s = BED_SIZES[size]; if (!s) return;
       item.bedSize = size;
-      const bw = s.w / 10, bd = s.d / 10;  // to cm scale (we use 10cm = 1 unit)
       // Update dims proportionally
       item.dims.Headboard.w = s.w; item.dims.Footboard.w = s.w;
       item.dims.Frame.w = s.w; item.dims.Frame.d = s.d + 10;
@@ -1948,8 +1973,20 @@
       if (!list) return;
       list.innerHTML = '';
 
+      const iconMap = {
+        bed: 'fas fa-bed',
+        bookshelf: 'fas fa-book-open',
+        cabinet: 'fas fa-archive',
+        chair: 'fas fa-chair',
+        rocking_chair: 'fas fa-rocking-chair',
+        desk: 'fas fa-desktop',
+        sofa: 'fas fa-couch',
+        stool: 'fas fa-chair',
+        table: 'fas fa-table'
+      };
+
       const addBtn = document.createElement('div');
-      addBtn.style.cssText = 'margin:8px 0 4px;padding:10px 12px;border-radius:6px;background:#1e2a2e;border:1px dashed #2e4a4e;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#6abfbf;transition:0.15s;';
+      addBtn.style.cssText = 'margin:8px 0 4px;padding:10px 12px;border-radius:6px;background:#1e2a2e;border:1px dashed #2e4a2e;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#6abfbf;transition:0.15s;';
       addBtn.innerHTML = '<i class="fas fa-bed" style="color:#6abfbf"></i><span>+ New Plain Bed</span>';
       addBtn.onmouseover = () => addBtn.style.background = '#243034';
       addBtn.onmouseout = () => addBtn.style.background = '#1e2a2e';
@@ -1962,11 +1999,17 @@
         div.onclick = (e) => {
           if (e.target.closest('.btn-delete')) return;
           appState.activeItemId = item.id;
-          appState.activeLayer = 'Headboard';
-          renderUI();
-          build3DScene();
+          saveState();
+          
+          if (item.type !== PAGE_TYPE) {
+              window.location.href = item.type + '.html';
+          } else {
+              appState.activeLayer = bedParts[0];
+              renderUI(); build3DScene();
+          }
         };
-        div.innerHTML = '<span><i class="fas fa-bed"></i> ' + item.name + '</span><button class="btn-delete" onclick="deleteItem(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>';
+        const icon = iconMap[item.type] || 'fas fa-cube';
+        div.innerHTML = '<span><i class="' + icon + '"></i> ' + item.name + '</span><button class="btn-delete" onclick="deleteItem(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>';
         list.appendChild(div);
       });
     }
@@ -2042,7 +2085,7 @@
 
         card.onclick = () => {
           if (!isInShop) {
-            alert(`This material is not available at the selected workshop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
+            alert(`This material is not available at the selected shop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
             return;
           }
           applyMaterialToActiveLayer(m.hex);
@@ -2117,19 +2160,12 @@
       try {
           let previewImageURL = '';
           try {
-            const wasRotating = (typeof controls !== 'undefined' && controls) ? controls.autoRotate : false;
-            const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
-            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = false;
-            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
-            
+            // Capture exact current viewport state (including rotation and dimensions if visible)
             if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
               renderer.render(scene, camera);
             }
             const canvas = document.querySelector('#canvas-container canvas');
             if (canvas) previewImageURL = canvas.toDataURL('image/png');
-            
-            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = true;
-            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
           } catch(e) { console.warn('Export screenshot failed:', e); }
 
           const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;

@@ -336,7 +336,7 @@ function goToExport(){
       const mk = Object.keys(materialDB).find(k=>materialDB[k].hex.toLowerCase()===hexC.toLowerCase());
       if(mk) {
           const m=materialDB[mk];
-          itemData.materials[part] = m.name; // Apply accurate name
+          itemData.materials[part] = m.name; 
           td+=m.dura; tq+=m.qual; count++;
       } else {
           if (!itemData.materials[part]) itemData.materials[part] = 'Standard Wood';
@@ -344,12 +344,11 @@ function goToExport(){
       }
   });
   
-  // Calculate final scores
   const finalD = count ? Math.round(td/count) : 0;
   const finalQ = count ? Math.round(tq/count) : 0;
   itemData.analysis = { durability: finalD, quality: finalQ };
 
-  // 3. Capture Fresh Snapshot (More Zoomed)
+  // 3. Helper to compress canvas
   function compressCanvas(canvasEl) {
       if (!canvasEl) return '';
       try {
@@ -365,73 +364,21 @@ function goToExport(){
       } catch(e) { return ''; }
   }
 
-  // Try to find a renderer to capture from
-  let sc = null, cam = null, ren = null, ctrl = null, t3 = null;
-  const iframe = document.getElementById('fidelity-iframe');
-  if (activeTemplate.id > 10000 && iframe && iframe.style.display !== 'none') {
-      try { 
-          if(iframe.contentWindow && iframe.contentWindow.scene) {
-              sc = iframe.contentWindow.scene;
-              cam = iframe.contentWindow.camera;
-              ren = iframe.contentWindow.renderer;
-              ctrl = iframe.contentWindow.controls;
-              t3 = iframe.contentWindow.THREE;
-          }
-      } catch(e){}
-  }
-
-  // Fallback to global variables in templates.html
-  if (!sc && typeof scene !== 'undefined') {
-      sc = scene;
-      cam = camera;
-      ren = renderer;
-      ctrl = typeof controls !== 'undefined' ? controls : null;
-      t3 = typeof THREE !== 'undefined' ? THREE : null;
-  }
-
-  if (sc && cam && ren && t3) {
-      const oldPos = cam.position.clone();
-      const oldTarget = ctrl ? ctrl.target.clone() : new t3.Vector3(0,0,0);
-      const oldAuto = ctrl ? ctrl.autoRotate : false;
-      const oldBg = sc.background;
+  // 4. Capture EXACT current viewport
+  try {
+      // If there's an active renderer/scene/camera, render it as is
+      if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
+          renderer.render(scene, camera);
+      }
       
-      sc.background = new t3.Color(0x1e1e24);
-
-      let obj3D = (typeof currentGroup !== 'undefined') ? currentGroup : null;
-      if (!obj3D || sc.children.includes(obj3D) === false) obj3D = sc;
-      
-      const box = new t3.Box3().setFromObject(obj3D);
-      const size = box.getSize(new t3.Vector3());
-      const center = box.getCenter(new t3.Vector3());
-      
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const fov = cam.fov * (Math.PI / 180);
-      let cameraZ = Math.abs((maxDim / 2) / Math.tan(fov / 2)) * 1.35;
-      if (cameraZ < 4) cameraZ = 4;
-      
-      if (ctrl) ctrl.autoRotate = false;
-      
-      cam.position.set(center.x + size.x*0.4, center.y + size.y*0.3, center.z + cameraZ);
-      if (ctrl) { ctrl.target.set(center.x, center.y, center.z); ctrl.update(); }
-      else cam.lookAt(center);
-      
-      try {
-          ren.render(sc, cam);
-          const freshImg = compressCanvas(ren.domElement);
-          if (freshImg) prevImageUrl = freshImg;
-      } catch(e) { console.warn("Render capture failed:", e); }
-      
-      sc.background = oldBg;
-      cam.position.copy(oldPos);
-      if (ctrl) { ctrl.target.copy(oldTarget); ctrl.autoRotate = oldAuto; ctrl.update(); }
-  } else {
-      const canvas=document.querySelector('#canvas-container canvas');
+      const canvas = document.querySelector('#canvas-container canvas');
       if (canvas) {
           const freshImg = compressCanvas(canvas);
           if (freshImg) prevImageUrl = freshImg;
       }
-  }
+  } catch(e) { console.warn('Export screenshot failed:', e); }
 
+  // 5. Build export object
   const exp={
       exportId:'EXP-'+Date.now().toString().slice(-6),
       projectName:activeTemplate.name,

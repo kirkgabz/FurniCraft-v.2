@@ -394,13 +394,27 @@
       if (isShopMode) {
         window.location.href = 'shop_dashboard.html';
       } else {
-        window.history.back();
+        window.location.href = 'main.html';
       }
     }
 
     function openBuilder(type) {
+      const STORAGE_KEY = 'furnicraft_v2_projects';
+      let appState = { items: [], activeItemId: 0 };
+      try {
+        let saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) appState = JSON.parse(saved);
+      } catch (e) { }
+
       sessionStorage.setItem('targetFurniture', type);
       sessionStorage.setItem('addNew', 'true');
+
+      // Optimization: if we have projects, and we're NOT forced to "add new" in a specific way,
+      // we might want to just set the activeItemId to the latest of that type.
+      // But the user's requirement says "add the current and previous design in any furniture types".
+      // This implies when they pick a type from craft.html, they WANT to add a new one.
+      // The designer pages already handle `addNew === 'true'` by calling createNew...
+      
       if (isShopMode) {
         sessionStorage.setItem('craftMode', 'shop');
       } else {

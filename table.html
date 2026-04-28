@@ -3476,9 +3476,8 @@
 
     <div class="brand"><img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft Studio - Dining Table Pro</div>
 
-    <div class="header-controls" style="display: flex; gap: 10px;">
-
-      <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button class="btn-export" style="background:#444 !important;" onclick="goBack()">
         <i class="fas fa-arrow-left"></i> Back
       </button>
       <button class="btn-export" id="btn-upload-template" onclick="uploadToTemplates()" style="display:none; background: linear-gradient(135deg,#10b981,#059669) !important;">
@@ -3487,7 +3486,6 @@
       <button class="btn-export" id="btn-main-export" onclick="goToExport()">
         <i class="fas fa-file-export"></i> Export
       </button>
-
     </div>
 
   </header>
@@ -3524,7 +3522,7 @@
 
       </div>
 
-      <button class="btn-add" onclick="goToCraft()"><i class="fas fa-plus"></i> Add New Furniture Project</button>
+      <button class="btn-add" onclick="goToCraft()"><i class="fas fa-plus"></i> Add New Furniture Design</button>
 
     </aside>
 
@@ -3863,6 +3861,11 @@
     // Previous project stored in sessionStorage so craft.html can read it
 
 
+
+    function goBack() {
+      const isShop = sessionStorage.getItem('craftMode') === 'shop';
+      window.location.href = isShop ? 'shop_dashboard.html' : 'main.html';
+    }
 
 
 
@@ -4358,45 +4361,59 @@
 
        ============================================================ */
 
-    let appState = { items: [], activeItemId: 0, activeLayer: null };
+        const STORAGE_KEY = 'furnicraft_v2_projects';
+        const PAGE_TYPE = 'table';
 
-    var isRotating = true, showDimensions = true;
+        let appState = { items: [], activeItemId: 0, activeLayer: null };
+        var isRotating = true, showDimensions = true;
+        let textureCache = {}, modalState = { partName: null, type: null };
 
-    let textureCache = {}, modalState = { partName: null, type: null };
+        window.onload = function () {
+            try {
+                let saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    appState = JSON.parse(saved);
+                    if (!appState.items) appState.items = [];
+                }
+            } catch (e) { appState.items = []; }
 
+            const shouldAdd = sessionStorage.getItem('addNew');
+            if (shouldAdd === 'true') {
+                createNewTable(false);
+                sessionStorage.removeItem('addNew');
+            } else if (appState.items.length === 0) {
+                createNewTable(false);
+            }
 
+            // Ensure we have an active item and it's valid for this page
+            let activeItem = getActiveItem();
+            if (!activeItem) {
+                activeItem = appState.items.find(i => i.type === PAGE_TYPE);
+                if (activeItem) {
+                    appState.activeItemId = activeItem.id;
+                } else {
+                    createNewTable(false);
+                    activeItem = getActiveItem();
+                }
+            }
 
-    window.onload = function () {
+            // If activeItem is NOT a table, redirect to its page
+            if (activeItem.type !== PAGE_TYPE) {
+                window.location.href = activeItem.type + '.html';
+                return;
+            }
 
-      try { const s = sessionStorage.getItem('cadState_table_v10'); if (s) { appState = JSON.parse(s); if (!appState.items) appState.items = []; } } catch (e) { appState.items = []; }
+            if (!appState.activeLayer) appState.activeLayer = 'Tabletop';
 
+            renderUI(); updatePrice();
+            loadPrevProjectBar();
+            loadShopInfo();
+            setTimeout(() => init3D(), 100);
+        };
 
+function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
 
-      const shouldAdd = sessionStorage.getItem('addNew');
-
-      if (appState.items.length === 0 || shouldAdd === 'true') {
-
-        createNewTable(false);
-
-        sessionStorage.removeItem('addNew');
-
-      }
-
-      if (!appState.activeLayer) appState.activeLayer = 'Tabletop';
-
-      renderUI(); updatePrice();
-
-      loadPrevProjectBar();
-
-      loadShopInfo();
-
-      setTimeout(() => init3D(), 100);
-
-    };
-
-    function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
-
-    function saveState() { sessionStorage.setItem('cadState_table_v10', JSON.stringify(appState)); }
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }
 
 
 
@@ -4559,23 +4576,41 @@
 
 
     function renderSceneList() {
+        const list = document.getElementById('scene-list');
+        if (!list) return;
+        list.innerHTML = '';
 
-      const list = document.getElementById('scene-list'); list.innerHTML = '';
+        const iconMap = {
+            bed: 'fas fa-bed',
+            bookshelf: 'fas fa-book-open',
+            cabinet: 'fas fa-archive',
+            chair: 'fas fa-chair',
+            rocking_chair: 'fas fa-rocking-chair',
+            desk: 'fas fa-desktop',
+            sofa: 'fas fa-couch',
+            stool: 'fas fa-chair',
+            table: 'fas fa-table'
+        };
 
-      appState.items.forEach(item => {
+        appState.items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
+            div.onclick = (e) => {
+                if (e.target.closest('.btn-delete')) return;
+                appState.activeItemId = item.id;
+                saveState();
 
-        const div = document.createElement('div');
-
-        div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
-
-        div.onclick = e => { if (e.target.closest('.btn-delete')) return; appState.activeItemId = item.id; appState.activeLayer = 'Tabletop'; renderUI(); build3DScene(); };
-
-        div.innerHTML = '<span><i class="fas fa-table"></i> ' + item.name + '</span><button class="btn-delete" onclick="deleteItem(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>';
-
-        list.appendChild(div);
-
-      });
-
+                if (item.type !== PAGE_TYPE) {
+                    window.location.href = item.type + '.html';
+                } else {
+                    appState.activeLayer = 'Tabletop';
+                    renderUI(); build3DScene();
+                }
+            };
+            const icon = iconMap[item.type] || 'fas fa-cube';
+            div.innerHTML = '<span><i class="' + icon + '"></i> ' + item.name + '</span><button class="btn-delete" onclick="deleteItem(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>';
+            list.appendChild(div);
+        });
     }
 
 
@@ -4612,7 +4647,7 @@
 
         const isAvailable = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
 
-        const warningIcon = !isAvailable ? '<div class="mat-warning-icon" title="Not available at chosen workshop"><i class="fas fa-exclamation"></i></div>' : '';
+        const warningIcon = !isAvailable ? '<div class="mat-warning-icon" title="Not available at chosen shop"><i class="fas fa-exclamation"></i></div>' : '';
 
 
 
@@ -4622,7 +4657,7 @@
 
           if (!isAvailable) {
 
-            alert("This material is not available at the selected workshop: " + (sessionStorage.getItem('selectedShopName') || 'the chosen shop') + ".\n\nPlease choose a material listed in the shop's inventory below.");
+            alert("This material is not available at the selected shop: " + (sessionStorage.getItem('selectedShopName') || 'the chosen shop') + ".\n\nPlease choose a material listed in the shop's inventory below.");
 
             return;
 
@@ -4704,11 +4739,11 @@
 
         if (recFillKeys.length) fillChipsHtml += `<div style="width:100%;font-size:0.62rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:6px 0 3px;"><i class="fas fa-star" style="margin-right:3px"></i>Recommended</div>`;
 
-        recFillKeys.forEach(k => { const m = materialDB[k]; const isAvail = shopMatsFill.length === 0 || shopMatsFill.some(sm => sm.toLowerCase() === m.name.toLowerCase()); const warn = !isAvail ? ' title="Not available at chosen workshop"' : ''; const warnDot = !isAvail ? '<i class="fas fa-exclamation" style="color:#f1c40f;font-size:0.55rem;margin-left:2px"></i>' : ''; fillChipsHtml += `<div class="inlay-fill-chip${inlayFill === m.hex ? ' active' : ''}" onclick="updateInlayFill('${m.hex}')"${warn}><div class="inlay-fill-dot" style="background:${m.hex}"></div>${m.name}${warnDot}</div>`; });
+        recFillKeys.forEach(k => { const m = materialDB[k]; const isAvail = shopMatsFill.length === 0 || shopMatsFill.some(sm => sm.toLowerCase() === m.name.toLowerCase()); const warn = !isAvail ? ' title="Not available at chosen shop"' : ''; const warnDot = !isAvail ? '<i class="fas fa-exclamation" style="color:#f1c40f;font-size:0.55rem;margin-left:2px"></i>' : ''; fillChipsHtml += `<div class="inlay-fill-chip${inlayFill === m.hex ? ' active' : ''}" onclick="updateInlayFill('${m.hex}')"${warn}><div class="inlay-fill-dot" style="background:${m.hex}"></div>${m.name}${warnDot}</div>`; });
 
         if (allFillKeys.length) fillChipsHtml += `<div style="width:100%;font-size:0.62rem;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:6px 0 3px;">All Materials</div>`;
 
-        allFillKeys.forEach(k => { const m = materialDB[k]; const isAvail = shopMatsFill.length === 0 || shopMatsFill.some(sm => sm.toLowerCase() === m.name.toLowerCase()); const warn = !isAvail ? ' title="Not available at chosen workshop"' : ''; const warnDot = !isAvail ? '<i class="fas fa-exclamation" style="color:#f1c40f;font-size:0.55rem;margin-left:2px"></i>' : ''; fillChipsHtml += `<div class="inlay-fill-chip${inlayFill === m.hex ? ' active' : ''}" onclick="updateInlayFill('${m.hex}')"${warn}><div class="inlay-fill-dot" style="background:${m.hex}"></div>${m.name}${warnDot}</div>`; });
+        allFillKeys.forEach(k => { const m = materialDB[k]; const isAvail = shopMatsFill.length === 0 || shopMatsFill.some(sm => sm.toLowerCase() === m.name.toLowerCase()); const warn = !isAvail ? ' title="Not available at chosen shop"' : ''; const warnDot = !isAvail ? '<i class="fas fa-exclamation" style="color:#f1c40f;font-size:0.55rem;margin-left:2px"></i>' : ''; fillChipsHtml += `<div class="inlay-fill-chip${inlayFill === m.hex ? ' active' : ''}" onclick="updateInlayFill('${m.hex}')"${warn}><div class="inlay-fill-dot" style="background:${m.hex}"></div>${m.name}${warnDot}</div>`; });
 
         layer.innerHTML = `
 
@@ -4884,19 +4919,12 @@
       try {
           let previewImageURL = '';
           try {
-            const wasRotating = (typeof controls !== 'undefined' && controls) ? controls.autoRotate : false;
-            const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
-            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = false;
-            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
-            
+            // Capture exact current viewport state (including rotation and dimensions if visible)
             if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
               renderer.render(scene, camera);
             }
             const canvas = document.querySelector('#canvas-container canvas');
             if (canvas) previewImageURL = canvas.toDataURL('image/png');
-            
-            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = true;
-            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
           } catch(e) { console.warn('Export screenshot failed:', e); }
 
           const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;

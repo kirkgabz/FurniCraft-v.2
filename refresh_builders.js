@@ -19,13 +19,10 @@ function makeUploadFn(type, icon, defaultName, tag) {
       // Capture 3D preview screenshot
       let previewDataUrl = '';
       try {
-        if (typeof controls !== 'undefined') controls.autoRotate = false;
-        if (typeof showDimensions !== 'undefined' && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
+        // Capture exact current viewport state (including rotation and dimensions if visible)
         if (typeof renderer !== 'undefined' && typeof scene !== 'undefined' && typeof camera !== 'undefined') renderer.render(scene, camera);
         const canvas = document.querySelector('#canvas-container canvas');
         if (canvas) previewDataUrl = canvas.toDataURL('image/png');
-        if (typeof controls !== 'undefined') controls.autoRotate = true;
-        if (typeof showDimensions !== 'undefined' && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
       } catch(e) {}
 
       const nameInput = document.getElementById('project-name');

@@ -851,8 +851,15 @@
         <div class="stat-card">
           <div class="stat-icon pink"><i class="fas fa-wallet"></i></div>
           <div class="stat-info">
-            <h3 id="totalRevenue">$145.2K</h3>
-            <p>Gross Platform Revenue</p>
+            <h3 id="totalRevenue">₱0.00</h3>
+            <p>Platform Revenue</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="fas fa-flag"></i></div>
+          <div class="stat-info">
+            <h3 id="totalReports">0</h3>
+            <p>Active Reports</p>
           </div>
         </div>
       </div>
@@ -1003,7 +1010,8 @@
         permits = [
           { id: 1, shopName: 'Irawan Woodworks', owner: 'Ramon Irawan', ...mockMap['Irawan Woodworks'], docType: 'Full Permit Package', docLink: '#doc_view', status: 'approved', date: '2026-04-14' },
           { id: 2, shopName: 'Timber & Co.', owner: 'Alice Dela Cruz', ...mockMap['Timber & Co.'], docType: 'Full Permit Package', docLink: '#doc_view', status: 'suspended', date: '2026-04-15' },
-          { id: 3, shopName: 'Modern Minimalist', owner: 'John Smith', ...mockMap['Modern Minimalist'], docType: 'Full Permit Package', docLink: '#doc_view', status: 'approved', date: '2026-04-10' }
+          { id: 3, shopName: 'Modern Minimalist', owner: 'John Smith', ...mockMap['Modern Minimalist'], docType: 'Full Permit Package', docLink: '#doc_view', status: 'approved', date: '2026-04-10' },
+          { id: 5, shopName: 'Valeza Rattan Fixtures', owner: 'Ramon Irawan', category: 'Rattan Furniture', address: 'Davao City', contact: '09123334444', email: 'val@rattan.com', docType: 'Full Permit Package', docLink: '#doc_view', status: 'suspended', date: '2026-04-18', suspendedAt: new Date(Date.now() - 432000000).toISOString(), suspensionReason: 'Violation of marketplace safety standards and multiple customer complaints regarding item quality.' }
         ];
         needsUpdate = true;
       } else {
@@ -1049,16 +1057,44 @@
 
       // Demo Patch: Ensure at least one banned user exists for the list
       let currentAdminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
-      if (!currentAdminUsers.find(u => u.status === 'banned')) {
-          currentAdminUsers.push({ 
-              id: 201, 
-              name: 'Mark Anthony', 
-              email: 'mark.a@gmail.com', 
-              role: 'Customer', 
-              status: 'banned', 
-              joined: '2026-03-15', 
-              bannedAt: new Date(Date.now() - 259200000).toISOString(), 
-              banReason: 'Repeated attempts to bypass payment security protocols.' 
+      if (currentAdminUsers.filter(u => u.status === 'banned').length < 3) {
+          const mockBans = [
+            { 
+                id: 201, 
+                name: 'Mark Anthony', 
+                email: 'mark.a@gmail.com', 
+                role: 'Customer', 
+                status: 'banned', 
+                joined: '2026-03-15', 
+                bannedAt: new Date(Date.now() - 259200000).toISOString(), 
+                banReason: 'Repeated attempts to bypass payment security protocols.' 
+            },
+            { 
+                id: 205, 
+                name: 'Julian Reyes', 
+                email: 'julian.reyes@provider.com', 
+                role: 'Customer', 
+                status: 'banned', 
+                joined: '2026-02-10', 
+                bannedAt: new Date(Date.now() - 864000000).toISOString(), 
+                banReason: 'Harassment of multiple shop owners and unprofessional behavior in live chat.' 
+            },
+            { 
+                id: 208, 
+                name: 'Sophia Lim', 
+                email: 'sophia.lim@email.net', 
+                role: 'Customer', 
+                status: 'banned', 
+                joined: '2026-04-01', 
+                bannedAt: new Date(Date.now() - 172800000).toISOString(), 
+                banReason: 'Fraudulent refund claims and chargeback abuse detected by financial audit.' 
+            }
+          ];
+
+          mockBans.forEach(mb => {
+            if (!currentAdminUsers.find(u => u.id === mb.id)) {
+              currentAdminUsers.push(mb);
+            }
           });
           localStorage.setItem('admin_users', JSON.stringify(currentAdminUsers));
       }
@@ -2047,7 +2083,41 @@
       if(document.getElementById('totalRevenue')) {
         document.getElementById('totalRevenue').innerText = '₱' + platformFees.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
       }
+
+      let reports = JSON.parse(localStorage.getItem('infraction_reports') || '[]');
+      if(document.getElementById('totalReports')) {
+        document.getElementById('totalReports').innerText = reports.length;
+      }
     }
+    
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'infraction_reports' || e.key === 'user_notifications_Admin' || e.key === 'shop_permits') {
+        syncGlobalStats();
+        loadAdminNotifs();
+      }
+    });
+    
+    function seedMockData() {
+      let users = JSON.parse(localStorage.getItem('admin_users') || '[]');
+      if (users.length < 5) {
+        const mockUsers = [
+          { id: 901, name: 'John Doe', email: 'john.doe@example.com', status: 'banned', banReason: 'Repeated non-payment of orders', bannedAt: new Date(Date.now() - 86400000 * 3).toISOString() },
+          { id: 902, name: 'Jane Smith', email: 'jane.smith@example.com', status: 'active' },
+          { id: 903, name: 'Robert Brown', email: 'robert.b@example.com', status: 'banned', banReason: 'Harassment of shop owners', bannedAt: new Date(Date.now() - 86400000 * 7).toISOString() },
+          { id: 904, name: 'Maria Garcia', email: 'm.garcia@example.com', status: 'active' },
+          { id: 905, name: 'Shop Scammer', email: 'scammer@fake.com', status: 'banned', banReason: 'Fraudulent payment proofs', bannedAt: new Date(Date.now() - 3600000 * 5).toISOString() }
+        ];
+        // Merge without duplicates
+        mockUsers.forEach(mu => {
+          if (!users.some(u => u.email === mu.email)) {
+            users.push(mu);
+          }
+        });
+        localStorage.setItem('admin_users', JSON.stringify(users));
+      }
+    }
+    
+    seedMockData();
     setTimeout(syncGlobalStats, 500);
   </script>
 </body>

@@ -30,8 +30,14 @@
       const priceText = priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : '8000';
       const costVal = parseFloat(priceText) || 8000;
       let previewDataUrl = '';
-      const canvas = document.querySelector('#canvas-container canvas');
-      if (canvas) { try { previewDataUrl = canvas.toDataURL('image/png'); } catch(e) {} }
+      
+      try {
+        // Capture exact current viewport state (including rotation and dimensions if visible)
+        if (typeof renderer !== 'undefined' && typeof scene !== 'undefined' && typeof camera !== 'undefined') renderer.render(scene, camera);
+        const canvas = document.querySelector('#canvas-container canvas');
+        if (canvas) previewDataUrl = canvas.toDataURL('image/png');
+      } catch(e) { console.warn('Export screenshot failed:', e); }
+
       const ai = typeof getActiveItem === 'function' ? getActiveItem() : null;
       const tmpl = {
         id: Date.now() + 20002,

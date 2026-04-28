@@ -9,17 +9,12 @@ const files = [
 const robust_function = `    function goToExport() {
       let previewImageURL = '';
       try {
-        const wasRotating = (typeof controls !== 'undefined' && controls) ? controls.autoRotate : false;
-        const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
-        if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = false;
-        if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
+        // Capture exact current viewport state (including rotation and dimensions if visible)
         if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
           renderer.render(scene, camera);
         }
         const canvas = document.querySelector('#canvas-container canvas');
         if (canvas) previewImageURL = canvas.toDataURL('image/png');
-        if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = true;
-        if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
       } catch(e) { console.warn('Export screenshot failed:', e); }
 
       const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
@@ -78,7 +73,7 @@ const robust_function = `    function goToExport() {
       window.location.href = 'export_area.html';
     }`;
 
-const dir = 'c:\\CASE STUDY\\FurniCraft';
+const dir = 'c:\\Users\\Lenovo\\Desktop\\Prototype\\FurniCraft';
 const pattern1 = /function\s+goToExport\(\)\s*\{[\s\S]*?window\.location\.href\s*=\s*'export_area\.html';\s*\n?\s*\}/g;
 const pattern2 = /function\s+goToExport\(\)\s*\{[\s\S]*?renderer\.render\(scene,\s*camera\);[\s\S]*?window\.location\.href\s*=\s*'export_area\.html';\s*\n?\s*\}/g;
 

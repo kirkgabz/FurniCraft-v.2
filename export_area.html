@@ -322,13 +322,18 @@
   <div class="app-container">
     
     <aside class="sidebar">
-      <a href="front_page.html" class="brand">
-        <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.4em; width: auto;">
-        FurniCraft
-      </a>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4rem;">
+        <button onclick="history.back()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem; transition:color 0.2s;" title="Back">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <a href="front_page.html" class="brand" style="margin-bottom:0;">
+          <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.4em; width: auto;">
+          FurniCraft
+        </a>
+      </div>
       
       <ul class="nav-menu">
-        <li><a href="furniture-builder.html" class="nav-link"><i class="fas fa-cube"></i> 3D Builder</a></li>
+
         <li><a href="main.html" class="nav-link"><i class="fas fa-home"></i> Main Site</a></li>
         <li><a href="#" class="nav-link active"><i class="fas fa-file-export"></i> Active Export</a></li>
       </ul>
@@ -425,17 +430,12 @@
 
         <button id="btnPlaceOrder" class="btn btn-primary" onclick="placeOrder()"><i class="fas fa-paper-plane"></i> Place Order</button>
         <button id="btnPayDp" class="btn btn-gold" style="display:none;" onclick="openPaymentModal()"><i class="fas fa-wallet"></i> Pay Downpayment</button>
-        <div id="modifyTimerWrap" style="display:none; margin-top:12px; text-align:center;">
-          <button id="btnModifyOrder" class="btn btn-outline" style="border:1px solid var(--accent-primary); color:var(--accent-primary); background:transparent; width:100%;" onclick="modifyOrder()">
-            <i class="fas fa-edit"></i> Modify Order
-          </button>
-          <div id="modifyTimer" style="font-size:0.75rem; color:var(--text-muted); margin-top:5px; font-weight:600;"></div>
-        </div>
+
       </div>
 
       <div class="chat-section">
         <div class="chat-header">
-          <h2>Shop Activity</h2>
+          <h2>Live Chat</h2>
           <span style="font-size: 0.8rem; color: #10b981; font-weight: 700;"><i class="fas fa-circle"></i> Online</span>
         </div>
         
@@ -510,46 +510,7 @@
     </div>
   </div>
 
-  <!-- Modify Order Confirmation Modal -->
-  <div id="modifyModal" class="modal-overlay">
-    <div class="modal-box" style="max-width: 480px;">
-      <div class="modal-header" style="border-bottom: 1px solid rgba(139,90,43,0.1); padding-bottom: 1rem;">
-        <h2 style="color: #d97706; display:flex; align-items:center; gap:10px;">
-          <i class="fas fa-exclamation-triangle"></i> Modify Order
-        </h2>
-        <button class="close-btn" onclick="closeModifyModal()"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-body" style="padding: 1.5rem 0;">
-        <div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom: 0.6rem;">
-            <i class="fas fa-coins" style="color: #d97706; font-size: 1.2rem;"></i>
-            <strong style="color: #92400e; font-size: 1rem;">Modification Fee: ₱500.00</strong>
-          </div>
-          <p style="color: #78350f; font-size: 0.85rem; line-height: 1.5; margin: 0;">
-            This fee will be added to your total balance upon re-submission.
-          </p>
-        </div>
-        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom: 0.6rem;">
-            <i class="fas fa-undo-alt" style="color: #dc2626; font-size: 1.1rem;"></i>
-            <strong style="color: #991b1b; font-size: 0.95rem;">Status Reset</strong>
-          </div>
-          <p style="color: #7f1d1d; font-size: 0.85rem; line-height: 1.5; margin: 0;">
-            Your order status will reset to <b>"Pending"</b> for shop re-approval after modification.
-          </p>
-        </div>
-        <p style="color: var(--text-muted); font-size: 0.88rem; text-align: center; margin-top: 0.8rem;">
-          You will be taken back to the 3D designer to make your changes.
-        </p>
-      </div>
-      <div style="display: flex; gap: 10px;">
-        <button class="btn" style="flex:1; background: #f1f5f9; color: var(--text-dark); border: 1px solid var(--border-light);" onclick="closeModifyModal()">Cancel</button>
-        <button class="btn btn-primary" style="flex:2; margin:0; background: #d97706;" onclick="confirmModifyOrder()">
-          <i class="fas fa-edit"></i> Proceed to Modify
-        </button>
-      </div>
-    </div>
-  </div>
+
 
   <script>
     const activeShopId = 1;
@@ -717,24 +678,36 @@
     function getDashChatKey() { return `chatMessages_shop_${activeShopId}`; }
     function loadChat(){
       const chatBox = document.getElementById('chatBox');
-      chatBox.innerHTML = '';
+      if (!chatBox) return;
+      
       const messages = JSON.parse(localStorage.getItem(getDashChatKey()) || '[]');
       const myMessages = messages.filter(m => m.customerName === getCustName());
 
+      // Only re-render if the message count has changed to preserve scroll position if the user is reading old messages
+      if (chatBox.dataset.msgCount == myMessages.length) return;
+      chatBox.dataset.msgCount = myMessages.length;
+
+      chatBox.innerHTML = '';
       if (!myMessages.length){ 
-        appendMsg('shop', `Hello! You are connected to ${activeShopName}. Send us a message if you have questions about your design.`); 
+        appendMsg('shop', `Hello! You are connected to ${activeShopName}. Send us a message if you have questions about your design.`, new Date().toISOString()); 
       } 
       else { 
-        myMessages.forEach(m => appendMsg(m.sender, m.text)); 
+        myMessages.forEach(m => appendMsg(m.sender, m.text, m.timestamp)); 
       }
       chatBox.scrollTop = chatBox.scrollHeight;
     }
     
-    function appendMsg(role, text){
+    function appendMsg(role, text, timestamp){
       const chatBox = document.getElementById('chatBox');
       const div = document.createElement('div');
       div.className = `msg ${role === 'user' ? 'user' : 'shop'}`;
-      div.textContent = text;
+      
+      const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+      
+      div.innerHTML = `
+        <div class="msg-text">${text}</div>
+        <div class="msg-meta" style="font-size: 0.65rem; opacity: 0.6; margin-top: 4px; text-align: ${role === 'user' ? 'right' : 'left'}">${timeStr}</div>
+      `;
       chatBox.appendChild(div);
     }
     
@@ -749,8 +722,8 @@
       input.value = '';
       document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
 
-      // Trigger Chatbot Response
-      setTimeout(() => chatbotResponse(msg), 800);
+      // chatbotResponse disabled for real-time live chat with shop
+      // setTimeout(() => chatbotResponse(msg), 800);
     }
 
     function chatbotResponse(userMsg) {
@@ -806,14 +779,7 @@
         btnPayDp.style.display = 'none';
         btnPlaceOrder.style.display = 'none';
 
-        // Check if this is a modified order returning from builder
-        const isModifiedOrder = !!myOrder.modifiedAt;
-
-        if (st === 'modified_pending') {
-            uiStatus = 'modified';
-            note = "Modified order submitted! Awaiting shop re-approval.";
-        }
-        else if(st === 'approved') { 
+        if (st === 'approved') { 
             uiStatus = 'progress'; 
             note = "Order accepted! Please pay the required downpayment."; 
             btnPayDp.style.display = 'flex'; 
@@ -871,48 +837,22 @@
             if (document.getElementById('btnRateShop')) document.getElementById('btnRateShop').style.display = 'none';
         }
 
-        // Show Modify button for editable states
-        const canModify = ['pending', 'modified_pending', 'approved', 'payment_verifying', 'in_progress'].includes(st);
-        if (canModify) {
-            modifyTimerWrap.style.display = 'block';
-            btnModify.innerHTML = '<i class="fas fa-edit"></i> Modify Order';
-        } else {
-            modifyTimerWrap.style.display = 'none';
-        }
+
 
         // Running timer for active orders
         const submittedAt = myOrder.submittedAt ? new Date(myOrder.submittedAt).getTime() : 0;
-        if (st === 'payment_verifying' || st === 'in_progress') {
+        if (st === 'payment_received' || st === 'payment_verifying' || st === 'in_progress') {
             startRunningTime(submittedAt);
         } else if (runningTimeInterval) {
             clearInterval(runningTimeInterval);
         }
 
-        // Show modification fee info if order has been modified
-        const timerDisplay = document.getElementById('modifyTimer');
-        if (isModifiedOrder && timerDisplay) {
-            const feeHTML = `<div style="margin-top:6px; padding:6px 10px; background:#fffbeb; border:1px solid #fcd34d; border-radius:8px; font-size:0.75rem; color:#92400e;">
-              <i class="fas fa-coins"></i> Modification Fee: <b>₱500</b> added &bull; Total: <b>₱${(myOrder.totalAdjustedPrice || myOrder.price || 0).toLocaleString()}</b>
-            </div>`;
-            if (st === 'payment_verifying' || st === 'in_progress') {
-                // Timer already showing, append fee below
-            } else {
-                timerDisplay.innerHTML = feeHTML;
-            }
-        }
+
 
         setStatus(uiStatus, note);
       } else {
-        // Check if returning from a modify session — auto-submit
-        const modifyId = sessionStorage.getItem('modifyOrderId');
-        if (modifyId && exportDraft) {
-            // Auto-submit the modified order
-            placeOrder();
-            return;
-        }
         if (btnPlaceOrder) btnPlaceOrder.style.display = 'flex'; 
         if (btnPayDp) btnPayDp.style.display = 'none'; 
-        if (modifyTimerWrap) modifyTimerWrap.style.display = 'none';
         if (progressContainer) progressContainer.style.display = 'none';
         setStatus('pending', 'No order created yet. Submit to shop for review.');
       }
@@ -922,127 +862,52 @@
       const pill = document.getElementById('statusPill');
       let statusLabel = status;
       if (status === 'pending') statusLabel = 'Pending';
-      if (status === 'modified') statusLabel = 'Modified Order';
       if (status === 'progress') statusLabel = 'In Progress';
       if (status === 'success') statusLabel = 'Success';
       if (status === 'cancelled') statusLabel = 'Cancelled';
       pill.className = 'status-badge st-' + status;
-      if (status === 'modified') {
-        pill.style.background = '#fffbeb';
-        pill.style.color = '#92400e';
-        pill.style.border = '1px solid #fcd34d';
-      }
+
       pill.textContent = statusLabel;
       document.getElementById('statusNote').textContent = note || '';
     }
 
     function placeOrder(){
       const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
-      const modifyId = sessionStorage.getItem('modifyOrderId');
-      
+
       let numericPrice = parseFloat((exportDraft?.estimatedPriceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
       const desc = `Design: ${exportDraft?.projectName || 'Custom'} (${exportDraft?.furnitureType || 'Item'})`;
       const cadState = exportDraft?.cadState || sessionStorage.getItem('cadState') || '';
 
-      if (modifyId) {
-        // UPDATE EXISTING ORDER (modified re-submission)
-        const idx = commissions.findIndex(c => c.id == modifyId);
-        if (idx !== -1) {
-          commissions[idx].previewImage = exportDraft?.previewDataUrl;
-          commissions[idx].description = desc;
-          commissions[idx].price = numericPrice;
-          commissions[idx].cadState = cadState;
-          commissions[idx].modifiedAt = new Date().toISOString();
-          commissions[idx].exportId = exportDraft?.exportId || commissions[idx].exportId;
-          
-          // Apply Modification Fee
-          commissions[idx].modificationFee = (commissions[idx].modificationFee || 0) + 500;
-          commissions[idx].totalAdjustedPrice = numericPrice + commissions[idx].modificationFee;
-          
-          // Set special modified_pending status so shop sees it clearly
-          commissions[idx].status = 'modified_pending';
-          commissions[idx].requiresShopMessage = true;
-          
-          localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
-          sessionStorage.removeItem('modifyOrderId');
-          
-          // Send notification to customer
-          sendUserNotification(getCustName(), `Your modified order for "${desc}" has been re-submitted. A ₱500 modification fee was added (Total fee: ₱${commissions[idx].modificationFee}). Awaiting shop re-approval.`, "status");
-        }
-      } else {
-        // NEW ORDER
-        if (commissions.find(c => c.exportId === exportDraft?.exportId)) { alert("You have already placed this precise order!"); return; }
-        
-        commissions.push({
-          id: Date.now(), 
-          customerName: getCustName(),
-          exportId: exportDraft?.exportId,
-          previewImage: exportDraft?.previewDataUrl,
-          description: desc,
-          cadState: cadState,
-          duration: 14, price: numericPrice, status: 'pending', submittedAt: new Date().toISOString()
-        });
-        localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
-        sendUserNotification(getCustName(), `Your order for "${desc}" has been submitted for shop review.`, "status");
-      }
+      // NEW ORDER
+      if (commissions.find(c => c.exportId === exportDraft?.exportId)) { alert("You have already placed this precise order!"); return; }
+      
+      commissions.push({
+        id: Date.now(), 
+        customerName: getCustName(),
+        exportId: exportDraft?.exportId,
+        previewImage: exportDraft?.previewDataUrl,
+        description: desc,
+        cadState: cadState,
+        duration: 14, price: numericPrice, status: 'pending', submittedAt: new Date().toISOString()
+      });
+      localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
+      sendUserNotification(getCustName(), `Your order for "${desc}" has been submitted for shop review.`, "status");
       
       loadOrderStatus(); 
     }
 
-    /* --- MODIFY ORDER FLOW --- */
-    function modifyOrder() {
-      // Open the in-page modal instead of browser confirm()
-      document.getElementById('modifyModal').style.display = 'flex';
-    }
 
-    function closeModifyModal() {
-      document.getElementById('modifyModal').style.display = 'none';
-    }
-
-    function confirmModifyOrder() {
-      closeModifyModal();
-
-      const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
-      const myOrder = commissions.find(c => c.customerName === getCustName() && c.exportId === exportDraft?.exportId);
-      if (!myOrder) return;
-
-      // Store modify context in sessionStorage so builder and export know this is a modification
-      sessionStorage.setItem('cadState', myOrder.cadState || '');
-      sessionStorage.setItem('currentExportId', myOrder.exportId);
-      sessionStorage.setItem('modifyOrderId', String(myOrder.id));
-
-      // Determine which 3D designer to redirect to
-      const desc = (myOrder.description || '').toLowerCase();
-      let targetFile = 'chair.html';
-      if (desc.includes('bed')) targetFile = 'bed.html';
-      else if (desc.includes('sofa')) targetFile = 'sofa.html';
-      else if (desc.includes('table')) targetFile = 'table.html';
-      else if (desc.includes('desk')) targetFile = 'desk.html';
-      else if (desc.includes('cabinet')) targetFile = 'cabinet.html';
-      else if (desc.includes('bookshelf')) targetFile = 'bookshelf.html';
-      else if (desc.includes('stool')) targetFile = 'stool.html';
-
-      window.location.href = `${targetFile}?mode=modify&orderId=${myOrder.id}`;
-    }
 
     let runningTimeInterval = null;
     function startRunningTime(startTimeMs) {
       if (runningTimeInterval) clearInterval(runningTimeInterval);
-      const display = document.getElementById('modifyTimer');
-
+      // Removed modifyTimer reference as the element is gone
       const update = () => {
-        const now = Date.now();
-        const diffMs = now - startTimeMs;
-        
-        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-        
-        display.innerHTML = `<i class="fas fa-clock"></i> Order Duration: <b>${days}d ${hours}h ${minutes}m ${seconds}s</b>`;
+        // Timer logic can remain if needed for other displays, 
+        // but since we removed modifyTimerWrap, we just do nothing for now.
       };
-      update();
-      runningTimeInterval = setInterval(update, 1000);
+      // update(); // Disable for now
+      // runningTimeInterval = setInterval(update, 1000);
     }
 
     // --- PAYMENT MODAL ---
@@ -1062,7 +927,7 @@
       const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
       const index = commissions.findIndex(c => c.customerName === getCustName() && c.exportId === exportDraft?.exportId);
       if (index !== -1) {
-        commissions[index].status = 'payment_verifying'; 
+        commissions[index].status = 'payment_received'; 
         commissions[index].referenceNumber = refInput;
         
         const settings = JSON.parse(localStorage.getItem(`shop_settings_${activeShopId}`) || '{"dpRate": 20}');
@@ -1149,6 +1014,13 @@
         loadOrderStatus(); 
         setInterval(loadOrderStatus, 2000); 
         setInterval(loadChat, 2000); 
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === getDashChatKey() || e.key === getDashCommissionsKey()) {
+                loadChat();
+                loadOrderStatus();
+            }
+        });
     };
   </script>
 </body>

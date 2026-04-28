@@ -2387,9 +2387,15 @@
 
         <div class="header-controls" style="display: flex; gap: 10px;">
 
-            <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
+            <button class="btn-export" style="background:#444 !important;" onclick="goBack()">
 
                 <i class="fas fa-arrow-left"></i> Back
+
+            </button>
+
+            <button class="btn-export" id="btn-upload-template" onclick="uploadToTemplates()" style="display:none; background: linear-gradient(135deg,#10b981,#059669) !important;">
+
+                <i class="fas fa-cloud-upload-alt"></i> Upload to Templates
 
             </button>
 
@@ -2485,7 +2491,7 @@
 
                     <div class="shop-info-label">
 
-                        <i class="fas fa-hammer"></i> Active Workshop
+                        <i class="fas fa-hammer"></i> Selected Shop
 
                     </div>
 
@@ -2701,13 +2707,13 @@
 
                         <span class="shelf-count-label">Shelves:</span>
 
-                        <button class="toggle-btn" onclick="changeShelfCount(-1)"><i class="fas fa-minus"></i></button>
+                        <button id="btn-shelf-minus" class="toggle-btn" onclick="changeShelfCount(-1)"><i class="fas fa-minus"></i></button>
 
                         <span id="shelf-count-display"
 
                             style="font-size:1.2rem;font-weight:700;color:var(--accent);min-width:24px;text-align:center;">3</span>
 
-                        <button class="toggle-btn" onclick="changeShelfCount(1)"><i class="fas fa-plus"></i></button>
+                        <button id="btn-shelf-plus" class="toggle-btn" onclick="changeShelfCount(1)"><i class="fas fa-plus"></i></button>
 
                         <span class="shelf-count-label" style="margin-left:12px;">Back Panel:</span>
 
@@ -2775,105 +2781,88 @@
 
         ========================================================================== */
 
-        function goToCraft() {
+        function goBack() {
 
-        saveState();
+            const isShop = sessionStorage.getItem('craftMode') === 'shop';
 
-        const ai = getActiveItem();
-
-        if (ai) {
-
-            sessionStorage.setItem('prevProjectName', ai.name);
-
-            sessionStorage.setItem('prevProjectPage', 'bookshelf.html');
+            window.location.href = isShop ? 'shop_dashboard.html' : 'main.html';
 
         }
 
-        const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
+        
 
-    }
-
-    
-
-    function goToExport() {
-      try {
-          let previewImageURL = '';
+        function goToExport() {
           try {
-            const wasRotating = (typeof controls !== 'undefined' && controls) ? controls.autoRotate : false;
-            const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
-            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = false;
-            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
-            
-            if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
-              renderer.render(scene, camera);
-            }
-            const canvas = document.querySelector('#canvas-container canvas');
-            if (canvas) previewImageURL = canvas.toDataURL('image/png');
-            
-            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = true;
-            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
-          } catch(e) { console.warn('Export screenshot failed:', e); }
-
-          const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
-          if (activeItem) {
-              const priceEl = document.getElementById('total-price');
-              const priceText = priceEl ? (priceEl.innerText || priceEl.textContent || '0') : '0';
-              const numericPrice = parseFloat(priceText.replace(/[^0-9.-]+/g, '')) || 0;
-              
-              const duraEl = document.getElementById('score-dura-val');
-              const qualEl = document.getElementById('score-qual-val');
-              const durabilityText = duraEl ? (duraEl.innerText || duraEl.textContent || '90').replace('%','') : '90';
-              const qualityText = qualEl ? (qualEl.innerText || qualEl.textContent || '90').replace('%','') : '90';
-              
-              const formattedMaterials = {};
-              Object.keys(activeItem.selections || {}).forEach(p => {
-                const hex = activeItem.selections[p];
-                if(hex) {
-                    const matKey = typeof materialDB !== 'undefined' ? Object.keys(materialDB).find(k => materialDB[k].hex && materialDB[k].hex.toLowerCase() === hex.toLowerCase()) : null;
-                    formattedMaterials[p] = matKey ? materialDB[matKey].name : 'Custom Material';
-                } else {
-                    formattedMaterials[p] = 'Custom Material';
+              let previewImageURL = '';
+              try {
+                // Capture exact current viewport state (including rotation and dimensions if visible)
+                if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
+                  renderer.render(scene, camera);
                 }
-              });
-              
-              let configObj = { style: activeItem.style || 'Standard' };
-              if (activeItem.hasBackPanel !== undefined) configObj.hasBackPanel = activeItem.hasBackPanel;
-              if (activeItem.shelfCount !== undefined) configObj.shelfCount = activeItem.shelfCount;
-              if (activeItem.doorCount !== undefined) configObj.doorCount = activeItem.doorCount;
+                const canvas = document.querySelector('#canvas-container canvas');
+                if (canvas) previewImageURL = canvas.toDataURL('image/png');
+              } catch(e) { console.warn('Export screenshot failed:', e); }
 
-              const exportData = {
-                exportId: 'EXP-' + Date.now().toString().slice(-6),
-                projectName: activeItem.name || 'Custom Bookshelf',
-                furnitureType: 'Bookshelf Designer Pro',
-                estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
-                previewDataUrl: previewImageURL,
-                cadState: JSON.stringify({ 
-                  items: [{ 
-                    id: activeItem.id, 
-                    globalScale: activeItem.globalScale || {x:1,y:1,z:1}, 
-                    materials: formattedMaterials, 
-                    dims: activeItem.dims || {}, 
-                    config: configObj, 
-                    analysis: { 
-                      durability: parseInt(durabilityText)||90, 
-                      quality: parseInt(qualityText)||90 
-                    } 
-                  }] 
-                })
-              };
-              
-              const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
-              drafts.unshift(exportData);
-              localStorage.setItem('exportDrafts', JSON.stringify(drafts));
-              sessionStorage.setItem('currentExportId', exportData.exportId);
+              const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
+              if (activeItem) {
+                  const priceEl = document.getElementById('total-price');
+                  const priceText = priceEl ? (priceEl.innerText || priceEl.textContent || '0') : '0';
+                  const numericPrice = parseFloat(priceText.replace(/[^0-9.-]+/g, '')) || 0;
+                  
+                  const duraEl = document.getElementById('score-dura-val');
+                  const qualEl = document.getElementById('score-qual-val');
+                  const durabilityText = duraEl ? (duraEl.innerText || duraEl.textContent || '90').replace('%','') : '90';
+                  const qualityText = qualEl ? (qualEl.innerText || qualEl.textContent || '90').replace('%','') : '90';
+                  
+                  const formattedMaterials = {};
+                  Object.keys(activeItem.selections || {}).forEach(p => {
+                    const hex = activeItem.selections[p];
+                    if(hex) {
+                        const matKey = typeof materialDB !== 'undefined' ? Object.keys(materialDB).find(k => materialDB[k].hex && materialDB[k].hex.toLowerCase() === hex.toLowerCase()) : null;
+                        formattedMaterials[p] = matKey ? materialDB[matKey].name : 'Custom Material';
+                    } else {
+                        formattedMaterials[p] = 'Custom Material';
+                    }
+                  });
+                  
+                  let configObj = { style: activeItem.style || 'Standard' };
+                  if (activeItem.hasBackPanel !== undefined) configObj.hasBackPanel = activeItem.hasBackPanel;
+                  if (activeItem.shelfCount !== undefined) configObj.shelfCount = activeItem.shelfCount;
+                  if (activeItem.doorCount !== undefined) configObj.doorCount = activeItem.doorCount;
+
+                  const exportData = {
+                    exportId: 'EXP-' + Date.now().toString().slice(-6),
+                    projectName: activeItem.name || 'Custom Bookshelf',
+                    furnitureType: 'Bookshelf Designer Pro',
+                    estimatedPriceText: '₱' + numericPrice.toLocaleString('en-US'),
+                    previewDataUrl: previewImageURL,
+                    cadState: JSON.stringify({ 
+                      items: [{ 
+                        id: activeItem.id, 
+                        globalScale: activeItem.globalScale || {x:1,y:1,z:1}, 
+                        materials: formattedMaterials, 
+                        dims: activeItem.dims || {}, 
+                        config: configObj, 
+                        analysis: { 
+                          durability: parseInt(durabilityText)||90, 
+                          quality: parseInt(qualityText)||90 
+                        } 
+                      }] 
+                    })
+                  };
+                  
+                  const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
+                  drafts.unshift(exportData);
+                  localStorage.setItem('exportDrafts', JSON.stringify(drafts));
+                  sessionStorage.setItem('currentExportId', exportData.exportId);
+              }
+          } catch (err) {
+              console.error("Export data generation failed, navigating anyway.", err);
+          } finally {
+              if(typeof saveState === 'function') saveState();
+              window.location.href = 'export_area.html';
           }
-      } catch (err) {
-          console.error("Export data generation failed, navigating anyway.", err);
-      } finally {
-          if(typeof saveState === 'function') saveState();
-          window.location.href = 'export_area.html';
-      }
-    }
+        }
 
         function goToCraft() {
 
@@ -3235,46 +3224,56 @@
 
         ========================================================================== */
 
+        const STORAGE_KEY = 'furnicraft_v2_projects';
+        const PAGE_TYPE = 'bookshelf';
+
         let appState = { items: [], activeItemId: 0, activeLayer: null };
-
-        var isRotating = true, showDimensions = true, textureCache = {}, modalState = { partName: null, type: null };
-
-
+        var isRotating = true, showDimensions = true;
+        let textureCache = {}, modalState = { partName: null, type: null };
 
         window.onload = function () {
-
             try {
-
-                let savedState = sessionStorage.getItem('cadState_bookshelf_v1');
-
-                if (savedState) { appState = JSON.parse(savedState); if (!appState.items) appState.items = []; }
-
+                let saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    appState = JSON.parse(saved);
+                    if (!appState.items) appState.items = [];
+                }
             } catch (e) { appState.items = []; }
 
-            
-
             const shouldAdd = sessionStorage.getItem('addNew');
-
-            if (appState.items.length === 0 || shouldAdd === 'true') {
-
+            if (shouldAdd === 'true') {
                 createNewBookshelf(false);
-
                 sessionStorage.removeItem('addNew');
-
+            } else if (appState.items.length === 0) {
+                createNewBookshelf(false);
             }
 
-            const activeItem = getActiveItem();
+            // Ensure we have an active item and it's valid for this page
+            let activeItem = getActiveItem();
+            if (!activeItem) {
+                activeItem = appState.items.find(i => i.type === PAGE_TYPE);
+                if (activeItem) {
+                    appState.activeItemId = activeItem.id;
+                } else {
+                    createNewBookshelf(false);
+                    activeItem = getActiveItem();
+                }
+            }
 
-            if (activeItem && !appState.activeLayer) appState.activeLayer = assetsDB.bookshelf.parts[0];
+            // If activeItem is NOT a bookshelf, redirect to its page
+            if (activeItem.type !== PAGE_TYPE) {
+                window.location.href = activeItem.type + '.html';
+                return;
+            }
+
+            if (activeItem && !appState.activeLayer) {
+                appState.activeLayer = assetsDB.bookshelf.parts[0];
+            }
 
             renderUI(); updatePrice();
-
             loadPrevProjectBar();
-
             loadShopInfo();
-
             setTimeout(() => { init3D(); }, 100);
-
         };
 
 
@@ -3345,9 +3344,7 @@
 
 
 
-        function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
-
-        function saveState() { sessionStorage.setItem('cadState_bookshelf_v1', JSON.stringify(appState)); }
+        function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }
 
 
 
@@ -3428,15 +3425,22 @@
 
 
         function changeShelfCount(delta) {
-
             const item = getActiveItem(); if (!item) return;
-
-            item.shelfCount = Math.min(8, Math.max(1, (item.shelfCount || 3) + delta));
-
+            const current = item.shelfCount || 3;
+            const next = current + delta;
+            
+            // Apply strict limits to prevent visual bugs or overlapping shelves
+            if (next < 1 || next > 10) {
+                console.warn("Shelf count limit reached (1-10)");
+                return;
+            }
+            
+            item.shelfCount = next;
             document.getElementById('shelf-count-display').textContent = item.shelfCount;
-
-            saveState(); build3DScene(); updatePrice();
-
+            saveState(); 
+            build3DScene(); 
+            updatePrice();
+            renderProperties(); // Update button disabled states
         }
 
 
@@ -3504,55 +3508,49 @@
 
 
         function renderSceneList() {
-
             const list = document.getElementById('scene-list');
-
+            if (!list) return;
             list.innerHTML = '';
 
-
+            const iconMap = {
+                bed: 'fas fa-bed',
+                bookshelf: 'fas fa-book-open',
+                cabinet: 'fas fa-archive',
+                chair: 'fas fa-chair',
+                rocking_chair: 'fas fa-rocking-chair',
+                desk: 'fas fa-desktop',
+                sofa: 'fas fa-couch',
+                stool: 'fas fa-chair',
+                table: 'fas fa-table'
+            };
 
             const floatBtn = document.createElement('div');
-
             floatBtn.style.cssText = 'margin:8px 0 4px;padding:10px 12px;border-radius:6px;background:#2e1004;border:1px dashed #79280a;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#ff8a65;transition:0.15s;';
-
             floatBtn.innerHTML = '<i class="fas fa-layer-group" style="color:#ff8a65"></i><span>+ New Floating Shelf</span>';
-
             floatBtn.onmouseover = () => floatBtn.style.background = '#4a1906';
-
             floatBtn.onmouseout = () => floatBtn.style.background = '#2e1004';
-
             floatBtn.onclick = () => createFloatingBookshelf();
-
             list.appendChild(floatBtn);
 
-
-
             appState.items.forEach(item => {
-
                 const div = document.createElement('div');
-
                 div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
-
                 div.onclick = (e) => {
-
                     if (e.target.closest('.btn-delete')) return;
-
-                    appState.activeItemId = item.id; appState.activeLayer = 'Frame';
-
-                    renderUI(); build3DScene();
-
+                    appState.activeItemId = item.id;
+                    saveState();
+                    
+                    if (item.type !== PAGE_TYPE) {
+                        window.location.href = item.type + '.html';
+                    } else {
+                        appState.activeLayer = assetsDB.bookshelf.parts[0];
+                        renderUI(); build3DScene();
+                    }
                 };
-
-                const isFloating = item.shapes && item.shapes['Frame'] === 'floating_frame';
-
-                const icon = isFloating ? 'fas fa-layer-group' : 'fas fa-book-open';
-
+                const icon = iconMap[item.type] || 'fas fa-cube';
                 div.innerHTML = '<span><i class="' + icon + '"></i> ' + item.name + '</span><button class="btn-delete" onclick="deleteItem(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>';
-
                 list.appendChild(div);
-
             });
-
         }
 
 
@@ -3577,7 +3575,18 @@
 
 
 
-            document.getElementById('shelf-count-display').textContent = activeItem.shelfCount || 3;
+            const shelfCount = activeItem.shelfCount || 3;
+            document.getElementById('shelf-count-display').textContent = shelfCount;
+            
+            // Disable buttons at limits
+            const btnMinus = document.getElementById('btn-shelf-minus');
+            const btnPlus = document.getElementById('btn-shelf-plus');
+            if(btnMinus) btnMinus.disabled = (shelfCount <= 1);
+            if(btnPlus) btnPlus.disabled = (shelfCount >= 10);
+            if(btnMinus) btnMinus.style.opacity = (shelfCount <= 1) ? '0.3' : '1';
+            if(btnPlus) btnPlus.style.opacity = (shelfCount >= 10) ? '0.3' : '1';
+            if(btnMinus) btnMinus.style.cursor = (shelfCount <= 1) ? 'not-allowed' : 'pointer';
+            if(btnPlus) btnPlus.style.cursor = (shelfCount >= 10) ? 'not-allowed' : 'pointer';
 
             const backBtn = document.getElementById('toggle-back-panel');
 
@@ -3629,7 +3638,7 @@
 
                     if (!isInShop) {
 
-                        alert(`This material is not available at the selected workshop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
+                        alert(`This material is not available at the selected shop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
 
                         return;
 

@@ -1247,7 +1247,7 @@
       <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft Studio - Dining Chair Pro
     </div>
     <div class="header-controls" style="display: flex; gap: 10px;">
-      <button class="btn-export" style="background:#444 !important;" onclick="goToCraft()">
+      <button class="btn-export" style="background:#444 !important;" onclick="goBack()">
         <i class="fas fa-arrow-left"></i> Back
       </button>
       <button class="btn-export" id="btn-upload-template" onclick="uploadToTemplates()" style="display:none; background: linear-gradient(135deg,#10b981,#059669) !important;">
@@ -1428,19 +1428,12 @@
       try {
           let previewImageURL = '';
           try {
-            const wasRotating = (typeof controls !== 'undefined' && controls) ? controls.autoRotate : false;
-            const wereDimsShowing = typeof showDimensions !== 'undefined' ? showDimensions : false;
-            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = false;
-            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = false; build3DScene(); }
-            
+            // Capture exact current viewport state (including rotation and dimensions if visible)
             if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && scene && typeof camera !== 'undefined' && camera) {
               renderer.render(scene, camera);
             }
             const canvas = document.querySelector('#canvas-container canvas');
             if (canvas) previewImageURL = canvas.toDataURL('image/png');
-            
-            if (wasRotating && typeof controls !== 'undefined' && controls) controls.autoRotate = true;
-            if (wereDimsShowing && typeof build3DScene === 'function') { showDimensions = true; build3DScene(); }
           } catch(e) { console.warn('Export screenshot failed:', e); }
 
           const activeItem = typeof getActiveItem === 'function' ? getActiveItem() : null;
@@ -1503,16 +1496,16 @@
           window.location.href = 'export_area.html';
       }
     }
+    function goBack() {
+      const isShop = sessionStorage.getItem('craftMode') === 'shop';
+      window.location.href = isShop ? 'shop_dashboard.html' : 'main.html';
+    }
 
     function goToCraft() {
       saveState();
       const ai = getActiveItem();
-      if (ai) {
-        sessionStorage.setItem('prevProjectName', ai.name);
-        sessionStorage.setItem('prevProjectPage', 'chair.html');
-      }
-      const isShop = sessionStorage.getItem('craftMode') === 'shop';
-      window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
+      if (ai) { sessionStorage.setItem('prevProjectName', ai.name); sessionStorage.setItem('prevProjectPage', 'chair.html'); }
+      const isShop = sessionStorage.getItem('craftMode') === 'shop'; window.location.href = isShop ? 'shop_studio.html' : 'craft.html';
     }
     function goToPrevProject() {
       const p = sessionStorage.getItem('prevProjectPage');
@@ -1858,23 +1851,51 @@
     /* ==========================================================================
        STATE
        ========================================================================== */
+    const STORAGE_KEY = 'furnicraft_v2_projects';
+    const PAGE_TYPE = 'chair';
+
     let appState = { items: [], activeItemId: 0, activeLayer: null };
     var isRotating = true, showDimensions = true, textureCache = {}, modalState = { partName: null, type: null };
 
     window.onload = function () {
       try {
-        let savedState = sessionStorage.getItem('cadState_chair_v6');
-        if (savedState) { appState = JSON.parse(savedState); if (!appState.items) appState.items = []; }
+        let savedState = localStorage.getItem(STORAGE_KEY);
+        if (savedState) { 
+          appState = JSON.parse(savedState); 
+          if (!appState.items) appState.items = []; 
+        }
       } catch (e) { appState.items = []; }
 
       const shouldAdd = sessionStorage.getItem('addNew');
-      if (appState.items.length === 0 || shouldAdd === 'true') {
+      if (shouldAdd === 'true') {
         createNewChair(false);
         sessionStorage.removeItem('addNew');
+      } else if (appState.items.length === 0) {
+        createNewChair(false);
       }
 
-      const activeItem = getActiveItem();
-      if (activeItem && !appState.activeLayer) appState.activeLayer = assetsDB[activeItem.type].parts[0];
+      // Ensure we have an active item and it's valid for this page
+      let activeItem = getActiveItem();
+      if (!activeItem) {
+          activeItem = appState.items.find(i => i.type === 'chair' || i.type === 'rocking_chair');
+          if (activeItem) {
+              appState.activeItemId = activeItem.id;
+          } else {
+              createNewChair(false);
+              activeItem = getActiveItem();
+          }
+      }
+
+      // If activeItem is NOT a chair, redirect to its page
+      if (activeItem.type !== 'chair' && activeItem.type !== 'rocking_chair') {
+          window.location.href = (activeItem.type === 'rocking_chair' ? 'chair' : activeItem.type) + '.html';
+          return;
+      }
+
+      if (activeItem && !appState.activeLayer) {
+          appState.activeLayer = 'Seat';
+      }
+
       renderUI(); updatePrice();
       loadPrevProjectBar();
       loadShopInfo();
@@ -1882,7 +1903,7 @@
     };
 
     function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
-    function saveState() { sessionStorage.setItem('cadState_chair_v6', JSON.stringify(appState)); }
+    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }
 
     function createNewChair(shouldRender = true) {
       const newItem = {
@@ -1952,6 +1973,18 @@
       const list = document.getElementById('scene-list');
       list.innerHTML = '';
 
+      const iconMap = {
+        bed: 'fas fa-bed',
+        bookshelf: 'fas fa-book-open',
+        cabinet: 'fas fa-archive',
+        chair: 'fas fa-chair',
+        rocking_chair: 'fas fa-rocking-chair',
+        desk: 'fas fa-desktop',
+        sofa: 'fas fa-couch',
+        stool: 'fas fa-chair',
+        table: 'fas fa-table'
+      };
+
       const rockBtn = document.createElement('div');
       rockBtn.style.cssText = 'margin:8px 0 4px;padding:10px 12px;border-radius:6px;background:#1e2a1e;border:1px dashed #2e4a2e;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#6abf6a;transition:0.15s;';
       rockBtn.innerHTML = '<i class="fas fa-rocking-chair" style="color:#6abf6a"></i><span>+ New Rocking Chair</span>';
@@ -1964,11 +1997,18 @@
         const div = document.createElement('div');
         div.className = 'scene-item' + (item.id === appState.activeItemId ? ' active' : '');
         div.onclick = (e) => {
-          appState.activeItemId = item.id; appState.activeLayer = 'Seat';
-          renderUI(); build3DScene();
+          if (e.target.closest('.btn-delete')) return;
+          appState.activeItemId = item.id;
+          saveState();
+          
+          if (item.type !== 'chair' && item.type !== 'rocking_chair') {
+              window.location.href = (item.type === 'rocking_chair' ? 'chair' : item.type) + '.html';
+          } else {
+              appState.activeLayer = 'Seat';
+              renderUI(); build3DScene();
+          }
         };
-        const isRocking = item.type === 'rocking_chair';
-        const icon = isRocking ? 'fas fa-rocking-chair' : 'fas fa-chair';
+        const icon = iconMap[item.type] || 'fas fa-cube';
         div.innerHTML = '<span><i class="' + icon + '"></i> ' + item.name + '</span><button class="btn-delete" onclick="deleteItem(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>';
         list.appendChild(div);
       });
@@ -1998,14 +2038,14 @@
         const m = materialDB[k]; if (m.rec) hasRecs = true;
 
         const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
-        const warningIcon = !isInShop ? '<div class="mat-warning-icon" title="Not available at chosen workshop"><i class="fas fa-exclamation"></i></div>' : '';
+        const warningIcon = !isInShop ? '<div class="mat-warning-icon" title="Not available at chosen shop"><i class="fas fa-exclamation"></i></div>' : '';
 
         const card = document.createElement('div');
         card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
 
         card.onclick = () => {
           if (!isInShop) {
-            alert(`This material is not available at the selected workshop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
+            alert(`This material is not available at the selected shop: ${shopName}.\n\nPlease choose a material listed in the shop's inventory below for production feasibility.`);
             return;
           }
           applyMaterialToActiveLayer(m.hex);
@@ -2531,7 +2571,7 @@
       if (isRocking || seatShape === 'rocking_seat') {
         effectiveSeatTopY = buildRockingChair3D(getDims, itemShapes, itemHoles, itemCarvings, itemSelections, addMesh, getMat, sg, seatTopY, yB, backZ, dSeat, dBack, dLeg, SCALE);
       } else {
-        buildStandardChair3D(getDims, itemShapes, itemHoles, itemCarvings, itemSelections, addMesh, getMat, sg, seatTopY, yB, backZ, dSeat, dBack, dLeg, locX, locZ, yL, yS, seatShape, legShape, SCALE);
+        effectiveSeatTopY = buildStandardChair3D(getDims, itemShapes, itemHoles, itemCarvings, itemSelections, addMesh, getMat, sg, seatTopY, yB, backZ, dSeat, dBack, dLeg, locX, locZ, yL, yS, seatShape, legShape, SCALE);
       }
 
       if (activeItem.isLeftArmVisible || activeItem.isRightArmVisible) {
@@ -2733,7 +2773,7 @@
         else { s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh); s.lineTo(-hw, hh); s.closePath(); }
         punchBackHoles(s, backHole, dBack);
         const bvl = (backStyle === 'padded_back' || backStyle === 'shield_back' || backStyle === 'balloon_back' || backStyle === 'wingback');
-        const g = new THREE.ExtrudeGeometry(s, { depth: dBack.d, bevelEnabled: bvl, bevelSize: bvl ? 0.012 : 0, bevelThickness: 0.012, bevelSegments: 3 });
+        const g = new THREE.ExtrudeGeometry(s, { depth: dBack.d, bevelEnabled: bvl, bevelSize: bvl ? 0.012 : 0, bevelThickness: 0.012, bevelSegments: 4 });
         g.translate(0, 0, -dBack.d / 2);
 
         // Structural Posts for panel-based rocking chair back
@@ -2790,8 +2830,8 @@
         }
       }
 
-      // Return a reference Y for the armrests to attach (approximation for legacy pass)
-      return seatTopY;
+      // Return exact top height of the seat for arm attachment
+      return sYV + (sH / 2) * Math.cos(seatTilt);
     }
 
     function punchBackHoles(s, backHole, dBack) {
@@ -2868,6 +2908,8 @@
 
       const sH = seatShape === 'padded_seat' ? dSeat.h * 2.2 : dSeat.h;
       const seatY = seatShape === 'padded_seat' ? seatTopY + dSeat.h * 0.6 : yS;
+      const effectiveSeatTop = seatY + sH / 2;
+
       const makeSeatTopShape = (taper_front_ratio, taper_back_ratio) => {
         const tfr = taper_front_ratio !== undefined ? taper_front_ratio : 1.0;
         const tbr = taper_back_ratio !== undefined ? taper_back_ratio : 1.0;
@@ -2906,61 +2948,62 @@
         addMesh('Seat', geo, seatHex, seatCarv, 0, seatY, 0);
       }
 
-      const bpW = Math.max(dLeg.w * 0.95, 0.04), bpH = dBack.h + dSeat.h * 0.5;
-      const bpY = seatTopY + bpH / 2 - dSeat.h * 0.5;
+      const bpW = Math.max(dLeg.w * 0.95, 0.04), bpH = dBack.h + (effectiveSeatTop - seatTopY) + dSeat.h * 0.1;
+      const adjustedYB = effectiveSeatTop + dBack.h / 2;
+
       const needPosts = !['spindle_back', 'slat_back', 'ladder_back', 'cross_back'].includes(backShape);
       if (needPosts) {
-        addMesh('Back', new THREE.BoxGeometry(bpW, bpH, bpW), backHex, 'none', -(dBack.w / 2 - bpW / 2), bpY, backZ);
-        addMesh('Back', new THREE.BoxGeometry(bpW, bpH, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), bpY, backZ);
+        addMesh('Back', new THREE.BoxGeometry(bpW, bpH, bpW), backHex, 'none', -(dBack.w / 2 - bpW / 2), effectiveSeatTop + dBack.h / 2 - (dBack.h + bpH) / 2 + bpH, backZ);
+        addMesh('Back', new THREE.BoxGeometry(bpW, bpH, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), effectiveSeatTop + dBack.h / 2 - (dBack.h + bpH) / 2 + bpH, backZ);
       }
-
-
 
       const extrudeBack = (s, bvl = false) => { const g = new THREE.ExtrudeGeometry(s, { depth: dBack.d, bevelEnabled: bvl, bevelSize: bvl ? 0.011 : 0, bevelThickness: 0.011, bevelSegments: 2 }); g.translate(0, 0, -dBack.d / 2); return g; };
 
       if (backShape === 'round_back') {
         const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.quadraticCurveTo(hw * 1.15, 0, hw, hh); s.quadraticCurveTo(0, hh * 1.1, -hw, hh); s.quadraticCurveTo(-hw * 1.15, 0, -hw, -hh); punchBackHoles(s, backHole, dBack); return extrudeBack(s, false); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
-        addMesh('Back', geo, backHex, backCarv, 0, yB, backZ);
+        addMesh('Back', geo, backHex, backCarv, 0, adjustedYB, backZ);
       } else if (backShape === 'spindle_back') {
         const cnt = 5, sR = dBack.w / (cnt * 4.5), step = (dBack.w - bpW * 2) / (cnt - 1);
-        addMesh('Back', new THREE.BoxGeometry(dBack.w + bpW, bpW, dBack.d * 1.1), backHex, 'none', 0, yB + dBack.h / 2 - bpW / 2, backZ);
-        addMesh('Back', new THREE.BoxGeometry(dBack.w + bpW, bpW, dBack.d * 1.1), backHex, 'none', 0, yB - dBack.h / 2 + bpW / 2, backZ);
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', -(dBack.w / 2 - bpW / 2), yB, backZ);
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), yB, backZ);
-        for (let i = 0; i < cnt; i++) addMesh('Back', new THREE.CylinderGeometry(sR, sR * 1.2, dBack.h * 0.82, 14), backHex, 'none', -dBack.w / 2 + bpW + i * step, yB, backZ);
+        addMesh('Back', new THREE.BoxGeometry(dBack.w + bpW, bpW, dBack.d * 1.1), backHex, 'none', 0, adjustedYB + dBack.h / 2 - bpW / 2, backZ);
+        addMesh('Back', new THREE.BoxGeometry(dBack.w + bpW, bpW, dBack.d * 1.1), backHex, 'none', 0, adjustedYB - dBack.h / 2 + bpW / 2, backZ);
+        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', -(dBack.w / 2 - bpW / 2), adjustedYB, backZ);
+        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), adjustedYB, backZ);
+        for (let i = 0; i < cnt; i++) addMesh('Back', new THREE.CylinderGeometry(sR, sR * 1.2, dBack.h * 0.82, 14), backHex, 'none', -dBack.w / 2 + bpW + i * step, adjustedYB, backZ);
       } else if (backShape === 'slat_back') {
         const cnt = 4, totalW = dBack.w - bpW * 2, slatW = totalW / (cnt * 2 - 1), step = slatW * 2;
-        addMesh('Back', new THREE.BoxGeometry(dBack.w + bpW, bpW, dBack.d * 1.1), backHex, 'none', 0, yB + dBack.h / 2 - bpW / 2, backZ);
-        addMesh('Back', new THREE.BoxGeometry(dBack.w + bpW, bpW, dBack.d * 1.1), backHex, 'none', 0, yB - dBack.h / 2 + bpW / 2, backZ);
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', -(dBack.w / 2 - bpW / 2), yB, backZ);
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), yB, backZ);
-        for (let i = 0; i < cnt; i++) addMesh('Back', new THREE.BoxGeometry(slatW, dBack.h * 0.82, dBack.d * 0.85), backHex, 'none', -totalW / 2 + i * step + slatW / 2, yB, backZ);
+        addMesh('Back', new THREE.BoxGeometry(dBack.w + bpW, bpW, dBack.d * 1.1), backHex, 'none', 0, adjustedYB + dBack.h / 2 - bpW / 2, backZ);
+        addMesh('Back', new THREE.BoxGeometry(dBack.w + bpW, bpW, dBack.d * 1.1), backHex, 'none', 0, adjustedYB - dBack.h / 2 + bpW / 2, backZ);
+        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', -(dBack.w / 2 - bpW / 2), adjustedYB, backZ);
+        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), adjustedYB, backZ);
+        for (let i = 0; i < cnt; i++) addMesh('Back', new THREE.BoxGeometry(slatW, dBack.h * 0.82, dBack.d * 0.85), backHex, 'none', -totalW / 2 + i * step + slatW / 2, adjustedYB, backZ);
       } else if (backShape === 'ladder_back') {
         const cnt = 4, step = dBack.h / (cnt - 1);
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h * 1.05, bpW), backHex, 'none', -(dBack.w / 2 - bpW / 2), yB, backZ);
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h * 1.05, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), yB, backZ);
-        for (let i = 0; i < cnt; i++) addMesh('Back', new THREE.BoxGeometry(dBack.w, bpW * 0.85, dBack.d), backHex, 'none', 0, yB - dBack.h / 2 + i * step, backZ);
+        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h * 1.05, bpW), backHex, 'none', -(dBack.w / 2 - bpW / 2), adjustedYB, backZ);
+        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h * 1.05, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), adjustedYB, backZ);
+        for (let i = 0; i < cnt; i++) addMesh('Back', new THREE.BoxGeometry(dBack.w, bpW * 0.85, dBack.d), backHex, 'none', 0, adjustedYB - dBack.h / 2 + i * step, backZ);
       } else if (backShape === 'cross_back') {
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', -(dBack.w / 2 - bpW / 2), yB, backZ);
-        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), yB, backZ);
-        addMesh('Back', new THREE.BoxGeometry(dBack.w + bpW, bpW, dBack.d * 1.1), backHex, 'none', 0, yB + dBack.h / 2 - bpW / 2, backZ);
+        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', -(dBack.w / 2 - bpW / 2), adjustedYB, backZ);
+        addMesh('Back', new THREE.BoxGeometry(bpW, dBack.h, bpW), backHex, 'none', (dBack.w / 2 - bpW / 2), adjustedYB, backZ);
+        addMesh('Back', new THREE.BoxGeometry(dBack.w + bpW, bpW, dBack.d * 1.1), backHex, 'none', 0, adjustedYB + dBack.h / 2 - bpW / 2, backZ);
         const dLen = Math.sqrt(dBack.w * dBack.w + dBack.h * dBack.h) * 0.96, dAng = Math.atan2(dBack.h, dBack.w);
         const dGeo = new THREE.BoxGeometry(dLen, bpW * 0.85, dBack.d);
-        addMesh('Back', dGeo, backHex, 'none', 0, yB, backZ, 0, 0, dAng);
-        addMesh('Back', dGeo, backHex, 'none', 0, yB, backZ, 0, 0, -dAng);
+        addMesh('Back', dGeo, backHex, 'none', 0, adjustedYB, backZ, 0, 0, dAng);
+        addMesh('Back', dGeo, backHex, 'none', 0, adjustedYB, backZ, 0, 0, -dAng);
       } else if (backShape === 'balloon_back') {
         const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw * 0.25, -hh); s.lineTo(hw * 0.25, -hh); s.quadraticCurveTo(hw * 0.55, -hh * 0.5, hw * 0.42, hh * 0.5); s.quadraticCurveTo(hw * 0.2, hh * 0.75, 0, hh * 0.78); s.quadraticCurveTo(-hw * 0.2, hh * 0.75, -hw * 0.42, hh * 0.5); s.quadraticCurveTo(-hw * 0.55, -hh * 0.5, -hw * 0.25, -hh); punchBackHoles(s, backHole, dBack); return extrudeBack(s, true); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
-        addMesh('Back', geo, backHex, backCarv, 0, yB, backZ);
+        addMesh('Back', geo, backHex, backCarv, 0, adjustedYB, backZ);
       } else if (backShape === 'shield_back') {
         const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(0, -hh); s.quadraticCurveTo(hw * 0.55, -hh * 0.2, hw, hh * 0.1); s.quadraticCurveTo(hw, hh * 0.55, 0, hh); s.quadraticCurveTo(-hw, hh * 0.55, -hw, hh * 0.1); s.quadraticCurveTo(-hw * 0.55, -hh * 0.2, 0, -hh); punchBackHoles(s, backHole, dBack); return extrudeBack(s, true); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
-        addMesh('Back', geo, backHex, backCarv, 0, yB, backZ);
+        addMesh('Back', geo, backHex, backCarv, 0, adjustedYB, backZ);
       } else if (backShape === 'wingback') {
         const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh * 0.35); s.quadraticCurveTo(hw * 1.0, hh * 0.6, hw * 0.85, hh * 0.75); s.quadraticCurveTo(hw * 0.7, hh * 0.9, hw * 0.4, hh); s.quadraticCurveTo(0, hh * 1.05, -hw * 0.4, hh); s.quadraticCurveTo(-hw * 0.7, hh * 0.9, -hw * 0.85, hh * 0.75); s.quadraticCurveTo(-hw * 1.0, hh * 0.6, -hw, hh * 0.35); s.lineTo(-hw, -hh); punchBackHoles(s, backHole, dBack); return extrudeBack(s, true); }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
-        addMesh('Back', geo, backHex, backCarv, 0, yB, backZ);
+        addMesh('Back', geo, backHex, backCarv, 0, adjustedYB, backZ);
       } else {
         const geo = sg(() => { const hw = dBack.w / 2, hh = dBack.h / 2; const s = new THREE.Shape(); s.moveTo(-hw, -hh); s.lineTo(hw, -hh); s.lineTo(hw, hh); s.lineTo(-hw, hh); s.closePath(); punchBackHoles(s, backHole, dBack); const bvl = backShape === 'padded_back'; const g = new THREE.ExtrudeGeometry(s, { depth: dBack.d, bevelEnabled: bvl, bevelSize: bvl ? 0.014 : 0, bevelThickness: 0.014, bevelSegments: 2 }); g.translate(0, 0, -dBack.d / 2); return g; }, new THREE.BoxGeometry(dBack.w, dBack.h, dBack.d));
-        addMesh('Back', geo, backHex, backCarv, 0, yB, backZ);
+        addMesh('Back', geo, backHex, backCarv, 0, adjustedYB, backZ);
       }
+
+      return effectiveSeatTop;
     }
 
     function buildArmrests(getDims, itemShapes, itemCarvings, itemSelections, addMesh, sg, seatTopY, yB, backZ, dSeat, dLeg, dBack, isRocking, activeItem) {
@@ -2969,72 +3012,83 @@
       const armHex = itemSelections['Armrests'] || '#8B4513';
       const dArm = getDims('Armrests');
       const bW = Math.max(dArm.w, 0.04), pH = Math.max(dArm.h, 0.05), th = Math.max(dArm.d, 0.04);
-      const armXL = -(dSeat.w / 2) + bW / 2, armXR = (dSeat.w / 2) - bW / 2;
 
+      const seatShape = itemShapes['Seat'] || 'square_plank';
       const dRunner = getDims('Runners');
       let seatTilt = 0;
-      let sYV = seatTopY - dSeat.h / 2;
+      let sYV = seatTopY;
       let sZV = 0;
       let postY = seatTopY;
 
       if (isRocking) {
-        // Re-calculate the exact parameters for flawless connection
+        // Re-calculate the exact parameters for rocking chairs
         const arcR = dRunner.d * 1.5;
         const rYOff = -0.15;
         const fLegZ = dSeat.d * 0.35, bLegZ = -dSeat.d * 0.35;
         const rSZ = fLegZ + 0.3, rEZ = bLegZ - 0.4;
-
         const getRY = (z) => {
           const mZ = (rSZ + rEZ) / 2, dz = z - mZ, cY = Math.sqrt(Math.max(0, arcR * arcR - Math.pow((rEZ - rSZ) / 2, 2)));
           return (cY - Math.sqrt(Math.max(0, arcR * arcR - dz * dz))) + rYOff;
         };
         const fLegY = getRY(fLegZ), bLegY = getRY(bLegZ);
-
         seatTilt = -Math.atan2(fLegY - bLegY, fLegZ - bLegZ);
         sZV = (fLegZ + bLegZ) / 2;
         const seatBaseY = (fLegY + bLegY) / 2 + dLeg.h;
-        sYV = seatBaseY + dSeat.h / 2;
+        sYV = seatBaseY + dSeat.h / 2; // Approximated center
+        const sH = dSeat.h;
+        postY = sYV + (sH / 2) * Math.cos(seatTilt); // Adjust seatTopY based on rocking tilt
       }
 
-      const postZ = isRocking ? dSeat.d * 0.32 : (dSeat.d / 2 * 1.0 - dLeg.d * 0.4);
-      const barLen = isRocking ? dSeat.d * 0.82 : dSeat.d * 0.80;
+      const postZ = isRocking ? dSeat.d * 0.32 : (dSeat.d / 2 * 0.7 - dLeg.d * 0.2);
+      const barLen = isRocking ? dSeat.d * 0.82 : dSeat.d * 0.85;
       const barCtrZ = postZ - barLen / 2 + th;
 
-      // Arm support rests exactly flush with the seated plane utilizing 2D matrix projection
-      if (isRocking) {
-        postY = sYV + (dSeat.h / 2) * Math.cos(seatTilt) - (postZ - sZV) * Math.sin(seatTilt);
-      }
+      // Smart Alignment: Calculate X position based on seat width at postZ
+      const getWidthAtZ = (z) => {
+        const halfW = dSeat.w / 2, halfD = dSeat.d / 2;
+        if (seatShape === 'round_plank') {
+          const r = halfW;
+          if (Math.abs(z) > r) return halfW * 0.8;
+          return Math.sqrt(Math.max(0, r * r - z * z));
+        } else if (seatShape === 'hex_plank' || seatShape === 'oct_plank') {
+          return halfW * 0.92;
+        } else if (seatShape === 'tapered_front') {
+          const tF = 0.68;
+          const ratio = (z - (-halfD)) / (halfD - (-halfD));
+          return halfW * (1.0 + ratio * (tF - 1.0));
+        } else if (seatShape === 'tapered_back') {
+          const tB = 0.68;
+          const ratio = (z - (-halfD)) / (halfD - (-halfD));
+          return halfW * (tB + ratio * (1.0 - tB));
+        }
+        return halfW;
+      };
+
+      const effectiveHalfW = getWidthAtZ(postZ);
+      const armXL = -effectiveHalfW + bW / 2, armXR = effectiveHalfW - bW / 2;
 
       const makeArm = (isLeft) => {
         const xPos = isLeft ? armXL : armXR;
         const ac = (armShape === 'pad_arm' && armCarv === 'none') ? 'padded' : armCarv;
 
         if (armShape === 'rocking_arm') {
-          // Classic Heritage Scrolled Arm
           const armY = postY + pH;
-          // Main arm bar with scroll
           const barGeo = new THREE.BoxGeometry(bW * 1.25, th * 1.5, barLen * 0.95);
           addMesh('Armrests', barGeo, armHex, ac, xPos, armY, barCtrZ + barLen * 0.05, seatTilt);
-
-          // Front scroll detail
           const scrollGeo = new THREE.TorusGeometry(th * 1.5, th * 0.6, 12, 20, Math.PI * 1.3);
           addMesh('Armrests', scrollGeo, armHex, ac, xPos, armY - th * 0.5, postZ + th, 0, Math.PI / 2, 0);
-
-          // Turned Support Post
           const supportPts = [];
           for (let i = 0; i <= 12; i++) {
             const t = i / 12;
             const s = 1 + Math.sin(t * Math.PI * 2) * 0.25;
             supportPts.push(new THREE.Vector2(bW * 0.45 * s, t * pH));
           }
-          addMesh('Armrests', new THREE.LatheGeometry(supportPts, 16), armHex, ac, xPos, postY, postZ);
+          const supGeo = new THREE.LatheGeometry(supportPts, 16);
+          addMesh('Armrests', supGeo, armHex, ac, xPos, postY, postZ);
         } else if (armShape === 'modern_rocking_arm' || armShape === 'floating_bar') {
-          // Sleek Minimalist Modern Arm
           const armY = postY + pH;
           const barGeo = new THREE.BoxGeometry(bW * 0.9, th * 0.5, barLen);
           addMesh('Armrests', barGeo, armHex, ac, xPos, armY, barCtrZ, seatTilt);
-
-          // Thin Blade Support
           const supportGeo = new THREE.BoxGeometry(bW * 0.2, pH, dLeg.d * 0.5);
           addMesh('Armrests', supportGeo, armHex, ac, xPos, postY + pH / 2, postZ);
         } else if (armShape === 'l_shape_arm') {

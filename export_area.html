@@ -1095,6 +1095,23 @@
         loadChat(); 
         loadShopPicker();
 
+        // Handle skip shop selection case
+        if (sessionStorage.getItem('selectedShopId') === '0') {
+            const btnPlaceOrder = document.getElementById('btnPlaceOrder');
+            if (btnPlaceOrder) btnPlaceOrder.style.display = 'none';
+            
+            const chatSection = document.querySelector('.chat-section');
+            if (chatSection) {
+                chatSection.style.opacity = '0.5';
+                chatSection.style.pointerEvents = 'none';
+                const h2 = chatSection.querySelector('h2');
+                if (h2) h2.innerHTML += ' <small style="font-size:0.7rem; color:var(--text-muted);">(Select a shop to unlock)</small>';
+            }
+
+            const statusNote = document.getElementById('statusNote');
+            if (statusNote) statusNote.innerText = "You have skipped shop selection. Select a workshop to place an order.";
+        }
+
         // Cross-tab sync
         try {
           const channel = new BroadcastChannel('furnicraft_updates');

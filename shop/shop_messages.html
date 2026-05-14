@@ -314,7 +314,7 @@
           <div id="messagesBox" class="chat-messages">
             <div style="text-align:center; padding:4rem; color:var(--text-light);">Select a customer to start chatting</div>
           </div>
-          <div class="chat-input-area">
+          <div class="chat-input-area" id="chatInputArea" style="display: none;">
             <input id="replyInput" type="text" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendReply()">
             <button class="btn btn-primary" onclick="sendReply()"><i class="fas fa-paper-plane"></i> Send</button>
           </div>
@@ -379,6 +379,8 @@
 
       refreshChatThreads();
       loadMessages();
+      document.getElementById('chatInputArea').style.display = 'flex';
+      setTimeout(() => document.getElementById('replyInput').focus(), 100);
     }
 
     function loadMessages() {

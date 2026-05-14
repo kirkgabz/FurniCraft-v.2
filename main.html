@@ -2053,7 +2053,8 @@
     function openChat(e) {
       if (e) e.preventDefault();
       const shopName = sessionStorage.getItem('selectedShopName');
-      if (!shopName) {
+      const shopId = sessionStorage.getItem('selectedShopId');
+      if (!shopName || shopId === '0') {
         alert('Please select a workshop from Shop Selection first to initiate a secure live chat session.');
         window.location.href = 'shop.html';
         return;
@@ -2216,6 +2217,7 @@
     ══════════════════════════════════════ */
     function updateTemplateCard() {
       const shopName = sessionStorage.getItem('selectedShopName');
+      const shopId = sessionStorage.getItem('selectedShopId');
       const card = document.getElementById('templateCard');
       const icon = document.getElementById('templateIcon');
       const title = document.getElementById('templateTitle');
@@ -2227,7 +2229,7 @@
       /* Update Page Status Tag */
       if (statusTag) {
         statusTag.style.display = 'inline-flex';
-        if (shopName) {
+        if (shopName && shopId !== '0') {
           statusTag.innerHTML = `<span class="shop-name-tag" style="margin-bottom:0;"><i class="fas fa-store"></i> ${shopName} Partner</span>`;
         } else {
           statusTag.innerHTML = `<span class="shop-name-tag" style="margin-bottom:0; background:rgba(0,0,0,0.05); color:var(--muted); border-style:dashed;"><i class="fas fa-globe"></i> Global Artisan Network</span>`;
@@ -2236,9 +2238,9 @@
 
       /* Update sidebar nav label too */
       const navLabel = document.getElementById('navTemplatesLabel');
-      if (navLabel) navLabel.textContent = shopName ? `${shopName} Templates` : 'Pre-made Templates';
+      if (navLabel) navLabel.textContent = (shopName && shopId !== '0') ? `${shopName} Templates` : 'Pre-made Templates';
 
-      if (shopName) {
+      if (shopName && shopId !== '0') {
         /* Shop IS selected — active state */
         card.classList.remove('locked');
         icon.innerHTML = '<i class="fas fa-store"></i>';
@@ -2259,13 +2261,15 @@
       } else {
         /* No shop selected — locked state */
         card.classList.add('locked');
-        icon.innerHTML = '<i class="fas fa-ban"></i>';
+        icon.innerHTML = (shopId === '0') ? '<i class="fas fa-lock"></i>' : '<i class="fas fa-ban"></i>';
 
         const existing = card.querySelector('.shop-name-tag-card');
         if (existing) existing.remove();
 
         title.textContent = 'Pre-made Templates';
-        desc.textContent = 'Choose a verified furniture shop in Shop Selection to unlock and browse that shop\'s exclusive 3D furniture designs.';
+        desc.textContent = (shopId === '0') 
+          ? 'You have skipped shop selection. Please select a verified shop in Shop Selection to unlock and browse their exclusive furniture designs.'
+          : 'Choose a verified furniture shop in Shop Selection to unlock and browse that shop\'s exclusive 3D furniture designs.';
         btn.textContent = 'Browse Templates';
         btn.disabled = true;
         notice.style.display = 'flex';
@@ -2274,14 +2278,16 @@
 
     function goToTemplates() {
       const shopName = sessionStorage.getItem('selectedShopName');
-      if (!shopName) return; /* locked — do nothing */
+      const shopId = sessionStorage.getItem('selectedShopId');
+      if (!shopName || shopId === '0') return; /* locked — do nothing */
       window.location.href = 'templates.html';
     }
 
     function navToTemplates(e) {
       e.preventDefault();
       const shopName = sessionStorage.getItem('selectedShopName');
-      if (!shopName) {
+      const shopId = sessionStorage.getItem('selectedShopId');
+      if (!shopName || shopId === '0') {
         alert('Please select a furniture shop first from Shop Selection.');
         closeNav();
         return;

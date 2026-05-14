@@ -3910,8 +3910,7 @@
       const nameEl = document.getElementById('prev-project-name-text');
 
       if (prevName && prevPage && bar && nameEl) {
-
-        nameEl.textContent = prevName;
+nameEl.textContent = prevName;
 
         bar.style.display = 'block';
 
@@ -3929,6 +3928,10 @@
 
       const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
 
+      const selectedShopId = sessionStorage.getItem('selectedShopId');
+
+      const isSkipShop = selectedShopId === '0';
+
       if (shopName) {
 
         const nameEl = document.getElementById('shop-info-name');
@@ -3943,11 +3946,21 @@
 
         }
 
-        if (shopMatsRaw) {
+        const labelEl = badge.querySelector('.shop-info-label:nth-of-type(2)');
+
+        const container = document.getElementById('shop-info-mats');
+
+        if (isSkipShop) {
+
+          if (labelEl) labelEl.textContent = 'Global Artisan Network - All Materials Available';
+
+          if (container) container.innerHTML = '<span class="shop-mat-tag" style="background:rgba(46,204,113,0.2); border-color:#2ecc71; color:#2ecc71;"><i class="fas fa-globe"></i> Unrestricted Access</span>';
+
+        } else if (shopMatsRaw) {
+
+          if (labelEl) labelEl.textContent = 'Use Materials of the shop';
 
           const mats = JSON.parse(shopMatsRaw);
-
-          const container = document.getElementById('shop-info-mats');
 
           if (container) {
 
@@ -4637,6 +4650,10 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState
 
       const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
 
+      const selectedShopId = sessionStorage.getItem('selectedShopId');
+
+      const isSkipShop = selectedShopId === '0';
+
 
 
       Object.keys(materialDB).forEach(k => {
@@ -4645,7 +4662,7 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState
 
 
 
-        const isAvailable = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+        const isAvailable = isSkipShop || shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
 
         const warningIcon = !isAvailable ? '<div class="mat-warning-icon" title="Not available at chosen shop"><i class="fas fa-exclamation"></i></div>' : '';
 
@@ -4729,7 +4746,7 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState
 
         const shopMatsRawFill = sessionStorage.getItem('selectedShopMaterials');
 
-        const shopMatsFill = shopMatsRawFill ? JSON.parse(shopMatsRawFill) : [];
+        const shopMatsFill = shopMatsRawFill ? JSON.parse(shopMatsRaw) : [];
 
         let fillChipsHtml = `<div class="inlay-fill-chip${inlayFill === 'none' ? ' active' : ''}" onclick="updateInlayFill('none')"><div class="inlay-fill-dot" style="background:#222"></div>None (Open)</div>`;
 
@@ -5092,6 +5109,10 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState
 
       const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
 
+      const selectedShopId = sessionStorage.getItem('selectedShopId');
+
+      const isSkipShop = selectedShopId === '0';
+
 
 
       let totalDura = 0, totalQual = 0, recCount = 0, inShopCount = 0;
@@ -5116,7 +5137,7 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState
 
           const isRec = !!m.rec;
 
-          const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+          const isInShop = isSkipShop || shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
 
 
 

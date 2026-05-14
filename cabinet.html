@@ -1421,53 +1421,40 @@ function toggleShopBadge() {
 
 }
 
+    function updateShopBadgeUI() {
+      const shopId = sessionStorage.getItem('selectedShopId');
+      const isSkipShop = shopId === '0';
+      const shopName = isSkipShop ? 'Global Artisan Network' : sessionStorage.getItem('selectedShopName');
+      const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+      const badge = document.getElementById('shop-info-badge');
 
+      if (shopName) {
+        badge.style.display = 'block';
+        document.getElementById('selected-shop-display-name').innerHTML = `<i class="fas fa-store"></i> ${shopName}`;
+        const matList = document.getElementById('shop-materials-list');
+        matList.innerHTML = '';
 
-function updateShopBadgeUI() {
-
-  const shopName = sessionStorage.getItem('selectedShopName');
-
-  const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
-
-  const badge = document.getElementById('shop-info-badge');
-
-
-
-  if (shopName) {
-
-    badge.style.display = 'block';
-
-    document.getElementById('selected-shop-display-name').innerHTML = `<i class="fas fa-store"></i> ${shopName}`;
-
-    const matList = document.getElementById('shop-materials-list');
-
-    matList.innerHTML = '';
-
-    if (shopMatsRaw) {
-
-      const mats = JSON.parse(shopMatsRaw);
-
-      mats.forEach(m => {
-
-        const span = document.createElement('span');
-
-        span.className = 'shop-mat-tag';
-
-        span.innerText = m;
-
-        matList.appendChild(span);
-
-      });
-
+        if (isSkipShop) {
+          const span = document.createElement('span');
+          span.className = 'shop-mat-tag';
+          span.style.background = 'rgba(52, 152, 219, 0.2)';
+          span.style.borderColor = 'rgba(52, 152, 219, 0.5)';
+          span.style.color = '#fff';
+          span.innerHTML = '<i class="fas fa-globe"></i> Independent Mode - All Materials Available';
+          matList.appendChild(span);
+        } else if (shopMatsRaw) {
+          const mats = JSON.parse(shopMatsRaw);
+          mats.forEach(m => {
+            const span = document.createElement('span');
+            span.className = 'shop-mat-tag';
+            span.innerText = m;
+            matList.appendChild(span);
+          });
+        }
+      } else {
+        badge.style.display = 'none';
+      }
     }
-
-  } else {
-
-    badge.style.display = 'none';
-
-  }
-
-}
 
 function getActiveItem() { return appState.items.find(i => i.id === appState.activeItemId); }
 
@@ -1693,7 +1680,9 @@ function renderProperties(){
 
     
 
-    const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+    const shopId = sessionStorage.getItem('selectedShopId');
+    const isSkipShop = shopId === '0';
+    const isInShop = isSkipShop || shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
 
     if (!isInShop) {
 
@@ -2023,7 +2012,9 @@ function calculateScore(){
 
       totalD+=mat.dura; tq+=mat.qual; if(mat.rec)rc++; cnt++;
 
-      const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === mat.name.toLowerCase());
+      const shopId = sessionStorage.getItem('selectedShopId');
+      const isSkipShop = shopId === '0';
+      const isInShop = isSkipShop || shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === mat.name.toLowerCase());
 
       if (!isInShop) unavailPenalty += 15;
 

@@ -1073,14 +1073,22 @@ function toggleShopBadge() {
 function updateShopBadgeUI() {
   const shopName = sessionStorage.getItem('selectedShopName');
   const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
+  const selectedShopId = sessionStorage.getItem('selectedShopId');
+  const isSkipShop = selectedShopId === '0';
   const badge = document.getElementById('shop-info-badge');
 
   if (shopName) {
     badge.style.display = 'block';
     document.getElementById('selected-shop-display-name').innerHTML = `<i class="fas fa-store"></i> ${shopName}`;
     const matList = document.getElementById('shop-materials-list');
+    const labelEl = badge.querySelector('.shop-info-label:nth-of-type(2)');
+    
     matList.innerHTML = '';
-    if (shopMatsRaw) {
+    if (isSkipShop) {
+      if (labelEl) labelEl.textContent = 'Global Artisan Network - All Materials Available';
+      matList.innerHTML = '<span class="shop-mat-tag" style="background:rgba(46,204,113,0.2); border-color:#2ecc71; color:#2ecc71;"><i class="fas fa-globe"></i> Unrestricted Access</span>';
+    } else if (shopMatsRaw) {
+      if (labelEl) labelEl.textContent = 'Use Materials of the shop';
       const mats = JSON.parse(shopMatsRaw);
       mats.forEach(m => {
         const span = document.createElement('span');
@@ -1192,13 +1200,15 @@ function renderProperties(){
   const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
   const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
   const shopName = sessionStorage.getItem('selectedShopName') || 'the selected shop';
+  const selectedShopId = sessionStorage.getItem('selectedShopId');
+  const isSkipShop = selectedShopId === '0';
 
   let hr=false;
   Object.keys(materialDB).forEach(k=>{
     const m=materialDB[k]; if(m.rec)hr=true;
     const card=document.createElement('div'); card.className='mat-card-lg'+(m.rec?' recommended':'');
     
-    const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+    const isInShop = isSkipShop || shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
     if (!isInShop) {
       card.innerHTML += `<div class="warn-icon" title="[NOT IN SHOP LIST]"><i class="fas fa-exclamation-triangle"></i></div>`;
     }
@@ -1337,6 +1347,8 @@ function calculateScore(){
   const item = getActiveItem(); if (!item) return;
   const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
   const shopMats = shopMatsRaw ? JSON.parse(shopMatsRaw) : [];
+  const selectedShopId = sessionStorage.getItem('selectedShopId');
+  const isSkipShop = selectedShopId === '0';
 
   let totalD=0, tq=0, rc=0, cnt=0, unavailPenalty=0;
   const selections = item.selections || {};
@@ -1345,7 +1357,7 @@ function calculateScore(){
     const mat=Object.values(materialDB).find(m=>m.hex.toLowerCase()===hex.toLowerCase());
     if(mat){
       totalD+=mat.dura; tq+=mat.qual; if(mat.rec)rc++; cnt++;
-      const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === mat.name.toLowerCase());
+      const isInShop = isSkipShop || shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === mat.name.toLowerCase());
       if (!isInShop) unavailPenalty += 15;
     } else { totalD+=50; tq+=50; cnt++; }
   });

@@ -1804,7 +1804,9 @@
     }
 
     function updateShopBadgeUI() {
-      const shopName = sessionStorage.getItem('selectedShopName');
+      const shopId = sessionStorage.getItem('selectedShopId');
+      const isSkipShop = shopId === '0';
+      const shopName = isSkipShop ? 'Global Artisan Network' : sessionStorage.getItem('selectedShopName');
       const shopMatsRaw = sessionStorage.getItem('selectedShopMaterials');
       const badge = document.getElementById('shop-info-badge');
 
@@ -1813,7 +1815,16 @@
         document.getElementById('selected-shop-display-name').innerHTML = `<i class="fas fa-store"></i> ${shopName}`;
         const matList = document.getElementById('shop-materials-list');
         matList.innerHTML = '';
-        if (shopMatsRaw) {
+
+        if (isSkipShop) {
+          const span = document.createElement('span');
+          span.className = 'shop-mat-tag';
+          span.style.background = 'rgba(52, 152, 219, 0.2)';
+          span.style.borderColor = 'rgba(52, 152, 219, 0.5)';
+          span.style.color = '#fff';
+          span.innerHTML = '<i class="fas fa-globe"></i> Independent Mode - All Materials Available';
+          matList.appendChild(span);
+        } else if (shopMatsRaw) {
           const mats = JSON.parse(shopMatsRaw);
           mats.forEach(m => {
             const span = document.createElement('span');
@@ -2078,7 +2089,9 @@
         const card = document.createElement('div');
         card.className = 'mat-card-lg' + (m.rec ? ' recommended' : '');
 
-        const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
+        const shopId = sessionStorage.getItem('selectedShopId');
+        const isSkipShop = shopId === '0';
+        const isInShop = isSkipShop || shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === m.name.toLowerCase());
         if (!isInShop) {
           card.innerHTML += `<div class="warn-icon" title="[NOT IN SHOP LIST]"><i class="fas fa-exclamation-triangle"></i></div>`;
         }
@@ -2269,7 +2282,9 @@
           totalD += d; totalQ += q; count++;
           if (mat.rec) recCount++;
 
-          const isInShop = shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === mat.name.toLowerCase());
+          const shopId = sessionStorage.getItem('selectedShopId');
+          const isSkipShop = shopId === '0';
+          const isInShop = isSkipShop || shopMats.length === 0 || shopMats.some(sm => sm.toLowerCase() === mat.name.toLowerCase());
           if (!isInShop) unavailablePenalty += 15;
         }
       });
@@ -2288,9 +2303,11 @@
         if (document.getElementById('score-qual-val')) document.getElementById('score-qual-val').innerText = Math.round(avgQ) + '%';
       }
 
+      const shopId = sessionStorage.getItem('selectedShopId');
+      const isSkipShop = shopId === '0';
       // Bonus for recommended materials
       let bonus = (recCount / count) * 15;
-      let finalScore = ((avgD + avgQ) / 2) + bonus - unavailablePenalty;
+      let finalScore = ((avgD + avgQ) / 2) + bonus - (isSkipShop ? 0 : unavailablePenalty);
       finalScore = Math.max(0, Math.min(100, Math.round(finalScore)));
 
       const fill = document.getElementById('score-fill');

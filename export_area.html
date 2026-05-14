@@ -268,6 +268,11 @@
     .progress-bar-wrap { width: 100%; height: 8px; background: rgba(139, 90, 43, 0.08); border-radius: 10px; overflow: hidden; }
     .progress-bar-fill { height: 100%; background: var(--accent-primary); width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
 
+    .prog-gallery { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+    .prog-update-item { background: #fff; padding: 10px; border-radius: 12px; border: 1px solid var(--border-light); font-size: 0.85rem; }
+    .prog-update-img { width: 100%; height: auto; border-radius: 8px; margin-bottom: 8px; cursor: zoom-in; }
+    .prog-update-meta { font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 5px; }
+
     /* Chat Area */
     .chat-section { flex: 1; display: flex; flex-direction: column; }
     .chat-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.2rem; }
@@ -419,17 +424,13 @@
         <div class="status-note" id="statusNote">No order created yet.</div>
         
         <div id="progressContainer" class="progress-container">
-            <div class="progress-header">
-                <span id="progressText" style="color: #4f46e5;">Preparing...</span>
-                <span id="progressPercentNum" style="color: var(--text-main);">0%</span>
-            </div>
-            <div class="progress-bar-wrap">
-                <div id="progressBarFill" class="progress-bar-fill"></div>
-            </div>
+            <h4 style="font-family:'Playfair Display', serif; font-size:1.1rem; margin-bottom:1rem;"><i class="fas fa-hammer"></i> Live Build Progress</h4>
+            <div id="progGallery" class="prog-gallery"></div>
         </div>
 
         <button id="btnPlaceOrder" class="btn btn-primary" onclick="placeOrder()"><i class="fas fa-paper-plane"></i> Place Order</button>
         <button id="btnPayDp" class="btn btn-gold" style="display:none;" onclick="openPaymentModal()"><i class="fas fa-wallet"></i> Pay Downpayment</button>
+        <button id="btnRate" class="btn btn-success" style="display:none; background: #10b981; color: white;" onclick="openRatingModal()"><i class="fas fa-star"></i> Rate Experience</button>
 
       </div>
 
@@ -591,8 +592,8 @@
       const tbody = document.getElementById('dimsTbody');
       tbody.innerHTML = '';
       
-      const dims = item?.dims || {};
-      const materials = item?.materials || {}; // Retrieves materials from your chair.html export script
+      const dims = item?.displayDims || item?.dims || {};
+      const materials = item?.materials || {}; 
       const parts = Object.keys(dims);
       const gs = item?.globalScale || {x:1,y:1,z:1};
 
@@ -602,13 +603,14 @@
       }
 
       let maxW = 0, maxD = 0, sumH = 0;
+      const td_ = item?.totalDimensions;
       
       parts.forEach(part => {
         const d = dims[part] || {w:0,h:0,d:0};
         const w = (Number(d.w)||0) * gs.x;
         const h = (Number(d.h)||0) * gs.y;
         const dep = (Number(d.d)||0) * gs.z;
-        const mat = materials[part] || 'Standard Wood'; // Assigns the correct material
+        const mat = materials[part] || 'Standard Wood';
 
         maxW = Math.max(maxW, w); 
         maxD = Math.max(maxD, dep); 
@@ -624,6 +626,13 @@
         `;
         tbody.appendChild(tr);
       });
+
+      // Use pre-calculated totals if available for better accuracy
+      if (td_) {
+          maxW = td_.w * gs.x;
+          maxD = td_.d * gs.z;
+          sumH = td_.h * gs.y;
+      }
       
       let configHTML = '';
       if (item.config) {
@@ -733,8 +742,7 @@
       input.value = '';
       document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
 
-      // chatbotResponse disabled for real-time live chat with shop
-      // setTimeout(() => chatbotResponse(msg), 800);
+      try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'chat' }); } catch(e) {}
     }
 
     function chatbotResponse(userMsg) {
@@ -744,8 +752,8 @@
 
       if (input.includes("furniture") || input.includes("design") || input.includes("canvas")) {
         reply = `You can canvas all our available designs in the 'Pre-made Templates' section of your dashboard, or use our 3D builder to start a fresh custom craft for ${shopName} to evaluate.`;
-      } else if (input.includes("material") || input.includes("wood") || input.includes("finish")) {
-        reply = `We specialize in premium local hardwoods like Mahogany, Acacia, and Narra. Each piece is treated for durability and finished to your preference (Matte, Gloss, or Natural Oil).`;
+      } else if (input.includes("material") || input.includes("wood") || input.includes("finish") || input.includes("rattan")) {
+        reply = `As AFMB Valeza Rattan specialists, we primarily work with premium, sustainable Rattan and high-grade woven materials. We ensure all our pieces are treated for maximum durability and finished to your liking.`;
       } else if (input.includes("price") || input.includes("cost") || input.includes("budget") || input.includes("how much")) {
         reply = `Since this project is custom, the final price depends on your measurements and material choice. Our shop manager will review your submission and provide a formal quote shortly.`;
       } else if (input.includes("hello") || input.includes("hi") || input.includes("hey")) {
@@ -766,6 +774,9 @@
       
       appendMsg('shop', finalReply);
       document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+
+      // Broadcast bot reply to other tabs
+      try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'chat' }); } catch(e) {}
     }
 
     // --- ORDER & PROGRESS SYNC ---
@@ -789,39 +800,51 @@
         progressContainer.style.display = 'none';
         btnPayDp.style.display = 'none';
         btnPlaceOrder.style.display = 'none';
+        if (document.getElementById('btnRate')) document.getElementById('btnRate').style.display = 'none';
 
-        if (st === 'approved') { 
-            uiStatus = 'progress'; 
-            if (!myOrder.referenceNumber) {
-                note = "Order accepted! Please pay the required downpayment."; 
-                btnPayDp.style.display = 'flex'; 
-            } else {
-                note = "Payment proof submitted! Waiting for shop confirmation.";
-            }
+        if (st === 'approved') {
+          note = "Design approved! Please pay the downpayment to start the build.";
+          uiStatus = 'approved';
+          btnPayDp.style.display = 'flex';
         }
-        else if (st === 'payment_verifying') { 
-            uiStatus = 'progress'; 
-            note = "Payment proof submitted! Waiting for shop verification."; 
+        else if (st === 'payment_verifying') {
+          note = "Payment proof received. We are verifying your transaction...";
+          uiStatus = 'progress';
+        }
+        else if (st === 'payment_received') {
+          note = "Payment verified! Your project is now in our production queue.";
+          uiStatus = 'success';
         }
         else if (st === 'in_progress') {
-            uiStatus = 'progress'; 
-            note = "Payment verified! Your order is currently in production."; 
-            progressContainer.style.display = 'block';
-            const pVal = myOrder.progressValue || 10;
-            const pLbl = myOrder.progressLabel || 'Sourcing Materials';
-            document.getElementById('progressText').textContent = pLbl;
-            document.getElementById('progressPercentNum').textContent = pVal + '%';
-            document.getElementById('progressBarFill').style.width = pVal + '%';
-            document.getElementById('progressBarFill').style.background = 'var(--grad-blue)';
+          note = "Your project is currently being built in our workshop!";
+          uiStatus = 'progress';
+          progressContainer.style.display = 'block';
+          
+          // Render Progress Updates (Notes & Images)
+          const gallery = document.getElementById('progGallery');
+          gallery.innerHTML = '';
+          if (myOrder.progressUpdates && myOrder.progressUpdates.length) {
+              myOrder.progressUpdates.slice().reverse().forEach(upd => {
+                  const div = document.createElement('div');
+                  div.className = 'prog-update-item';
+                  div.innerHTML = `
+                      ${upd.image ? `<img src="${upd.image}" class="prog-update-img" onclick="zoomImg('${upd.image}')" />` : ''}
+                      <div class="prog-note"><b>Update:</b> ${upd.note}</div>
+                      <div class="prog-update-meta">
+                        <span>${new Date(upd.timestamp).toLocaleDateString()}</span>
+                        <span>${new Date(upd.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                      </div>
+                  `;
+                  gallery.appendChild(div);
+              });
+          } else {
+              gallery.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:1rem; border:2px dashed var(--border-light); border-radius:12px;">Build is starting! Check back later for photos.</div>';
+          }
         }
         else if (st === 'completed') {
-            uiStatus = 'success'; 
-            note = "Order is completed and ready!"; 
-            progressContainer.style.display = 'block';
-            document.getElementById('progressText').textContent = "Completed & Ready";
-            document.getElementById('progressPercentNum').textContent = '100%';
-            document.getElementById('progressBarFill').style.width = '100%';
-            document.getElementById('progressBarFill').style.background = '#10b981'; 
+          note = "Build complete! It's ready for delivery/pickup.";
+          uiStatus = 'success';
+          if (document.getElementById('btnRate')) document.getElementById('btnRate').style.display = 'flex';
             
             if (!myOrder.hasRated) {
                 if (!document.getElementById('btnRateShop')) {
@@ -849,7 +872,36 @@
         else if (st === 'declined') { 
             uiStatus = 'cancelled'; 
             note = "Order was declined by the shop."; 
+            if (myOrder.declineReason) note += ` Reason: ${myOrder.declineReason}`;
             if (document.getElementById('btnRateShop')) document.getElementById('btnRateShop').style.display = 'none';
+        }
+
+        // --- ORDER INFO DISPLAY ---
+        const infoHtml = `
+            <div style="margin-top:1rem; padding:1rem; background:rgba(255,255,255,0.5); border-radius:12px; border:1px solid rgba(0,0,0,0.05); font-size:0.85rem;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                    <span style="color:var(--text-muted);">Placed On:</span>
+                    <span style="font-weight:600;">${new Date(myOrder.id).toLocaleDateString()}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                    <span style="color:var(--text-muted);">Est. Duration:</span>
+                    <span style="font-weight:600;">${myOrder.duration || 14} Days</span>
+                </div>
+                ${myOrder.referenceNumber ? `
+                <div style="display:flex; justify-content:space-between; padding-top:0.5rem; border-top:1px dashed rgba(0,0,0,0.1);">
+                    <span style="color:var(--text-muted);">Payment Ref:</span>
+                    <span style="font-family:monospace; font-weight:700;">${myOrder.referenceNumber}</span>
+                </div>
+                ` : ''}
+            </div>
+        `;
+        const existingInfo = document.getElementById('orderExtraInfo');
+        if (existingInfo) existingInfo.innerHTML = infoHtml;
+        else {
+            const div = document.createElement('div');
+            div.id = 'orderExtraInfo';
+            div.innerHTML = infoHtml;
+            document.querySelector('.status-card').appendChild(div);
         }
 
 
@@ -1022,19 +1074,37 @@
 
     document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && document.activeElement.id === 'chatInput') sendMsg(); });
     
+    function zoomImg(src) {
+        // Create simple zoom modal if not exists
+        let z = document.getElementById('imageZoomProgress');
+        if (!z) {
+            z = document.createElement('div');
+            z.id = 'imageZoomProgress';
+            z.className = 'modal-overlay';
+            z.style.zIndex = '5000';
+            z.onclick = () => z.style.display = 'none';
+            z.innerHTML = `<img id="zoomedImgProg" src="" style="max-width:90%; max-height:90%; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,0.5); object-fit:contain;">`;
+            document.body.appendChild(z);
+        }
+        document.getElementById('zoomedImgProg').src = src;
+        z.style.display = 'flex';
+    }
+
     window.onload = () => { 
         loadExportDraft(); 
         loadChat(); 
-        loadOrderStatus(); 
-        setInterval(loadOrderStatus, 2000); 
-        setInterval(loadChat, 2000); 
+        loadShopPicker();
 
-        window.addEventListener('storage', (e) => {
-            if (e.key === getDashChatKey() || e.key === getDashCommissionsKey()) {
-                loadChat();
-                loadOrderStatus();
+        // Cross-tab sync
+        try {
+          const channel = new BroadcastChannel('furnicraft_updates');
+          channel.onmessage = (e) => {
+            if (e.data.type === 'chat') loadChat();
+            if (e.data.type === 'order' || e.data.type === 'order_update' || e.data.type === 'order_accepted') {
+              loadOrderStatus();
             }
-        });
+          };
+        } catch(e) {}
     };
   </script>
 </body>

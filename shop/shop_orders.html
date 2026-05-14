@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Orders - FurniCraft</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --bg-base: #F9F7F4;
+      --bg-glass: rgba(255, 255, 255, 0.6);
+      --accent-primary: #8B5A2B;
+      --accent-hover: #724921;
+      --accent-glow: rgba(139, 90, 43, 0.25);
+      --text-dark: #1F1915;
+      --text-muted: #6B5B53;
+      --border-light: rgba(139, 90, 43, 0.1);
+      
+      --bg-main: var(--bg-base);
+      --bg-side: #ffffff;
+      --card-bg: #ffffff;
+      --text-main: var(--text-dark);
+      --text-light: #94a3b8;
+
+      --primary: var(--accent-primary);
+      --primary-soft: rgba(139, 90, 43, 0.08);
+      --accent: #c9a84c;
+      --accent-soft: rgba(201, 168, 76, 0.1);
+
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+
+      --border: var(--border-light);
+      --radius-lg: 32px;
+      --radius-md: 16px;
+      --shadow-sm: 0 4px 15px rgba(44, 30, 22, 0.03);
+      --shadow-md: 0 10px 30px rgba(44, 30, 22, 0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-base); color: var(--text-dark); min-height: 100vh; display: flex; }
+
+    /* --- SIDEBAR --- */
+    .sidebar { width: 280px; background: #ffffff; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 1100; padding: 1.5rem 0; }
+    .sidebar-brand { padding: 0 2rem 2rem; display: flex; align-items: center; gap: 1rem; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.4rem; color: var(--text-dark); }
+    .sidebar-brand img { height: 32px; width: auto; }
+    .sidebar-menu { flex: 1; padding: 0 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .menu-item { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; border-radius: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
+    .menu-item:hover { background: var(--bg-base); color: var(--primary); }
+    .menu-item.active { background: var(--primary-soft); color: var(--primary); }
+    .menu-badge { margin-left: auto; background: var(--primary); color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+    .sidebar-footer { padding: 1.5rem; border-top: 1px solid var(--border); }
+
+    /* --- MAIN --- */
+    .main-wrapper { flex: 1; margin-left: 280px; padding: 2rem 3rem; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--text-dark); }
+
+    .orders-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1.5rem; }
+    .order-stage { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.2rem; height: fit-content; }
+    .order-stage-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.8rem; border-bottom: 1px solid #f1f5f9; }
+    .order-stage-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 0.6rem; }
+    .order-stage-count { background: #f1f5f9; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+
+    .commission-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 16px; padding: 1.2rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.2s; }
+    .commission-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-sm); }
+    .price-tag { font-weight: 800; color: var(--primary); font-size: 1.1rem; }
+    
+    .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+    .badge-pending { background: #fef3c7; color: #d97706; }
+    .badge-info { background: #e0e7ff; color: #4338ca; }
+    .badge-warning { background: #ffedd5; color: #ea580c; }
+    .badge-success { background: #d1fae5; color: #059669; }
+    .badge-danger { background: #fee2e2; color: #dc2626; }
+
+    .control-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .control-group label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+    select { padding: 8px; border-radius: 8px; border: 1px solid var(--border); font-family: inherit; font-size: 0.85rem; outline: none; background: #fff; }
+
+    .progress-track { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+    .progress-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+    .order-empty { text-align: center; padding: 3rem; color: var(--text-light); font-size: 0.9rem; font-style: italic; }
+
+    .btn { padding: 0.6rem 1.2rem; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: 0.2s; border: none; }
+    .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-dark); }
+    .btn-primary { background: var(--primary); color: white; }
+
+    .action-btn { 
+      flex: 1; 
+      padding: 0.6rem 0.5rem; 
+      border-radius: 12px; 
+      font-size: 0.75rem; 
+      font-weight: 700; 
+      cursor: pointer; 
+      border: 1px solid var(--border); 
+      background: white; 
+      color: var(--text-dark);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .action-btn:hover { background: #f1f5f9; border-color: var(--primary); color: var(--primary); }
+    .action-btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+    .action-btn.primary:hover { background: var(--accent-hover); }
+    .action-btn.danger { color: var(--danger); border-color: #fee2e2; }
+    .action-btn.danger:hover { background: #fef2f2; }
+    .action-btn.success { color: var(--success); border-color: #d1fae5; }
+    .action-btn.success:hover { background: #ecfdf5; }
+
+    /* Modal Styling */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 2rem; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: white; border-radius: 24px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 2.5rem; position: relative; }
+    .close-modal { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+    
+    .spec-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
+    .spec-table th { text-align: left; padding: 12px; border-bottom: 2px solid var(--bg-base); color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; }
+    .spec-table td { padding: 12px; border-bottom: 1px solid var(--bg-base); }
+    .mat-tag { background: var(--primary-soft); color: var(--primary); padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; }
+
+    /* Financials UI */
+    .finance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .finance-card { background: #f8fafc; border: 1px solid var(--border); padding: 1rem; border-radius: 12px; }
+    .finance-card h5 { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+    .finance-input-group { display: flex; align-items: center; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; }
+    .finance-input-group i { color: var(--text-light); font-size: 0.8rem; margin-right: 8px; }
+    .finance-input-group input { border: none; outline: none; width: 100%; padding: 6px 0; font-weight: 600; font-size: 0.9rem; }
+    .profit-positive { color: var(--success); font-weight: 800; }
+    .profit-negative { color: var(--danger); font-weight: 800; }
+
+    .expense-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; }
+    .expense-row input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; }
+    .expense-row .amt-input { width: 120px; flex: none; font-weight: 700; text-align: right; }
+    .expense-row .cat-select { width: 110px; flex: none; font-size: 0.75rem; font-weight: 700; }
+    .btn-remove { color: var(--danger); cursor: pointer; padding: 5px; opacity: 0.6; transition: 0.2s; }
+    .btn-remove:hover { opacity: 1; }
+    .add-row-btn { width: 100%; padding: 10px; border: 2px dashed var(--border); border-radius: 12px; color: var(--text-muted); font-weight: 700; cursor: pointer; margin-top: 10px; transition: 0.2s; background: transparent; }
+    .add-row-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+    
+    .image-zoom-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 3000; cursor: zoom-out; }
+    .image-zoom-overlay.open { display: flex; }
+    .image-zoom-overlay img { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 12px; }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .main-wrapper { margin-left: 0; padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <a href="shop_dashboard.html" class="sidebar-brand" style="text-decoration:none; color:inherit;">
+      <img src="../images/FurniCraft Logo without name.png" alt="FurniCraft">
+      FurniCraft
+    </a>
+    <nav class="sidebar-menu">
+      <a href="shop_dashboard.html" class="menu-item">
+        <i class="fas fa-th-large"></i> Dashboard
+      </a>
+      <a href="shop_orders.html" class="menu-item active">
+        <i class="fas fa-shopping-bag"></i> Orders & Progress
+        <span class="menu-badge" id="orderBadge">0</span>
+      </a>
+      <a href="../shop_studio.html" class="menu-item">
+        <i class="fas fa-wand-magic-sparkles"></i> Build a Design Template
+      </a>
+      <a href="shop_messages.html" class="menu-item">
+        <i class="fas fa-comments"></i> Live Chat
+        <span class="menu-badge" id="chatBadge" style="background:var(--danger); display:none;">0</span>
+      </a>
+      <a href="shop_reviews.html" class="menu-item">
+        <i class="fas fa-star"></i> Customer Reviews
+      </a>
+      <a href="../templates.html" class="menu-item">
+        <i class="fas fa-images"></i> Template Gallery
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="javascript:logoutShop()" class="menu-item" style="color: var(--danger);">
+        <i class="fas fa-sign-out-alt"></i> Sign Out
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-wrapper">
+    <header>
+      <h1 class="page-title">Orders Management</h1>
+      <button class="btn btn-outline" onclick="loadCommissions()"><i class="fas fa-sync"></i> Refresh Board</button>
+    </header>
+
+    <div id="ordersBoard" class="orders-board"></div>
+    <div id="ordersPagination" class="pagination-container" style="margin-top: 2rem; display: flex; justify-content: center; gap: 0.5rem;"></div>
+  </main>
+
+  <!-- Spec Modal -->
+  <div id="specModal" class="modal-overlay" onclick="closeSpecModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <i class="fas fa-times close-modal" onclick="closeSpecModal()"></i>
+      <div id="specContent"></div>
+    </div>
+  </div>
+
+  <!-- Image Zoom Overlay -->
+  <div id="imageZoom" class="image-zoom-overlay" onclick="this.classList.remove('open')">
+    <i class="fas fa-times" style="position:absolute; top:2rem; right:2rem; color:white; font-size:2rem; cursor:pointer;" onclick="document.getElementById('imageZoom').classList.remove('open')"></i>
+    <img id="zoomedImg" src="" alt="Zoomed View">
+  </div>
+
+  <!-- Progress Update Modal -->
+  <div id="progressModal" class="modal-overlay" onclick="closeProgressModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width: 500px;">
+      <i class="fas fa-times close-modal" onclick="closeProgressModal()"></i>
+      <h2 style="font-family:'Playfair Display', serif; margin-bottom:1rem;"><i class="fas fa-camera"></i> Progress Update</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Send a photo and a note to show the customer how the build is going.</p>
+      
+      <div class="control-group" style="margin-bottom: 1.5rem;">
+        <label>Note to Customer</label>
+        <textarea id="progNote" style="width:100%; height:100px; padding:12px; border:1px solid var(--border); border-radius:12px; font-family:inherit; outline:none; resize:none;" placeholder="e.g. We've finished the main frame! Now starting the sanding process..."></textarea>
+      </div>
+
+      <div class="control-group" style="margin-bottom: 1.5rem;">
+        <label>Photo Attachment (Optional)</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="file" id="progFile" accept="image/*" style="display:none;" onchange="handleProgFile(this)">
+          <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('progFile').click()"><i class="fas fa-upload"></i> Choose Photo</button>
+          <div id="progFilePreview" style="width:50px; height:50px; border-radius:8px; border:1px solid var(--border); display:none; background-size:cover; background-position:center;"></div>
+        </div>
+      </div>
+
+      <input type="hidden" id="progOrderId">
+      <button class="btn btn-primary" style="width:100%; padding:1rem;" onclick="submitProgressUpdate()"><i class="fas fa-paper-plane"></i> Send Update to Customer</button>
+    </div>
+  </div>
+
+  <script>
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') window.location.href = 'shop_login.html';
+    const managedShopId = String(sessionStorage.getItem('managedShopId') || sessionStorage.getItem('selectedShopId') || "1");
+    let username = sessionStorage.getItem('username') || 'Shop Admin';
+    if (username === 'Irawan Custom Woodworks') {
+        username = 'AFMB Valeza Rattan Furniture and Fixtures';
+        sessionStorage.setItem('username', username);
+    }
+    
+    let currentDpRate = 20;
+    let orderPage = 1;
+    const ordersPerPage = 6;
+
+    const orderStages = [
+      { key: 'pending', title: 'Pending Review', icon: 'fa-hourglass-half', statuses: ['pending'], empty: 'No new proposals.', color: 'var(--warning)' },
+      { key: 'approved', title: 'Accept / Pay', icon: 'fa-file-invoice-dollar', statuses: ['approved'], empty: 'No orders awaiting pay.', color: 'var(--primary)' },
+      { key: 'payment', title: 'Payment Review', icon: 'fa-receipt', statuses: ['payment_received', 'payment_verifying'], empty: 'No proofs to review.', color: '#10b981' },
+      { key: 'in_progress', title: 'Active Builds', icon: 'fa-hammer', statuses: ['in_progress'], empty: 'No active builds.', color: '#8b5cf6' },
+      { key: 'completed', title: 'Finished', icon: 'fa-circle-check', statuses: ['completed'], empty: 'No finished orders.', color: '#059669' },
+      { key: 'declined', title: 'Declined', icon: 'fa-ban', statuses: ['declined'], empty: 'No declined orders.', color: 'var(--danger)' }
+    ];
+
+    function getCommissionsKey() { return `projectProposals_shop_${managedShopId}`; }
+    function getSettingsKey() { return `shop_settings_${managedShopId}`; }
+
+    function loadCommissions() {
+      const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      
+      // Auto-Decline Logic: 7 Days Expiry for Pending
+      let hasChanges = false;
+      const now = Date.now();
+      const expiryTime = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+      commissions.forEach(c => {
+        if (c.status === 'pending' && c.id) {
+          const age = now - c.id;
+          if (age > expiryTime) {
+            c.status = 'declined';
+            c.declineReason = 'Auto-declined due to inactivity (7 days)';
+            hasChanges = true;
+          }
+        }
+      });
+
+      if (hasChanges) {
+        localStorage.setItem(getCommissionsKey(), JSON.stringify(commissions));
+      }
+
+      const board = document.getElementById('ordersBoard');
+      board.innerHTML = '';
+
+      const stageLists = {};
+      orderStages.forEach(stage => {
+        const section = document.createElement('section');
+        section.className = 'order-stage';
+        section.innerHTML = `
+          <div class="order-stage-header">
+            <div class="order-stage-title"><i class="fas ${stage.icon}"></i> ${stage.title}</div>
+            <span class="order-stage-count" id="order-count-${stage.key}">0</span>
+          </div>
+          <div class="order-stage-list" id="order-list-${stage.key}"></div>
+        `;
+        board.appendChild(section);
+        stageLists[stage.key] = section.querySelector('.order-stage-list');
+      });
+
+      const filteredCommissions = commissions.slice().reverse();
+      const totalPages = Math.ceil(filteredCommissions.length / ordersPerPage);
+      if (orderPage > totalPages && totalPages > 0) orderPage = totalPages;
+
+      const startIndex = (orderPage - 1) * ordersPerPage;
+      const paginatedCommissions = filteredCommissions.slice(startIndex, startIndex + ordersPerPage);
+
+      paginatedCommissions.forEach((c) => {
+        const st = c.status || 'pending';
+        const price = c.price || 0;
+        const prog = c.progressValue || 10;
+        
+        let badgeClass = 'badge-pending';
+        let badgeText = 'Pending';
+        if (st === 'approved') { badgeClass = 'badge-info'; badgeText = 'Ask Payment'; }
+        if (st === 'payment_received' || st === 'payment_verifying') { badgeClass = 'badge-warning'; badgeText = 'Review Pay'; }
+        if (st === 'in_progress') { badgeClass = 'badge-success'; badgeText = 'In Build'; }
+        if (st === 'completed') { badgeClass = 'badge-success'; badgeText = 'Finished'; }
+        if (st === 'declined') { badgeClass = 'badge-danger'; badgeText = 'Declined'; }
+
+        const div = document.createElement('div');
+        div.className = 'commission-item';
+        div.style.marginBottom = '1.5rem';
+        
+        const now = Date.now();
+        const durationDays = c.duration || 14;
+        const deadlineTime = c.id + (durationDays * 24 * 60 * 60 * 1000);
+        const deadlineDate = new Date(deadlineTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        // Calculate remaining time for pending approvals (7 day window)
+        const expiryTime = 7 * 24 * 60 * 60 * 1000;
+        const timeLeft = expiryTime - (now - c.id);
+        const daysToApprove = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
+
+        const paid = parseFloat(c.paidDpAmount) || 0;
+        const balance = price - paid;
+
+        div.innerHTML = `
+          <!-- Card Header: Status & Deadline -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.03); padding-bottom: 0.6rem;">
+            <span class="badge ${badgeClass}">${badgeText}</span>
+            <div style="text-align:right;">
+              <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Target Completion</div>
+              <div style="font-size:0.85rem; font-weight:700; color:var(--text-dark);">${deadlineDate}</div>
+            </div>
+          </div>
+
+          <!-- Card Body: Image & Info -->
+          <div style="display:flex; gap: 1rem; align-items: flex-start;">
+            ${c.previewImage ? `
+              <div style="position:relative; width:80px; height:80px; flex-shrink:0;">
+                <img src="${c.previewImage}" onclick="zoomImage('${c.previewImage}')" 
+                  style="width:100%; height:100%; border-radius:12px; object-fit:contain; background:#fff; border:1px solid var(--border); cursor: zoom-in;" />
+                <div style="position:absolute; bottom:-5px; right:-5px; background:var(--primary); color:white; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.6rem; border:2px solid #fff;">
+                  <i class="fas fa-search-plus"></i>
+                </div>
+              </div>
+            ` : ''}
+            <div style="flex:1;">
+              <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-dark); line-height: 1.2;">${c.description || 'Custom Build Project'}</h4>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem;">
+                <i class="fas fa-user-circle"></i> <b>${c.customerName}</b>
+              </p>
+              
+              <div style="display:flex; gap: 8px; margin-top: 0.8rem;">
+                <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem; display:flex; align-items:center; gap:5px;" onclick="openSpecModal(${c.id})">
+                  <i class="fas fa-sliders-h"></i> Full Specs
+                </button>
+                <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem; display:flex; align-items:center; gap:5px;" onclick="openFinanceModal(${c.id})">
+                  <i class="fas fa-chart-line"></i> Financials
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Summary Section -->
+          <div style="margin-top: 1rem; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center;">
+            <div style="border-right: 1px solid var(--border);">
+              <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Total Price</div>
+              <div style="font-size:0.85rem; font-weight:700; color:var(--text-dark);">₱${price.toLocaleString()}</div>
+            </div>
+            <div style="border-right: 1px solid var(--border);">
+              <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Paid DP</div>
+              <div style="font-size:0.85rem; font-weight:700; color:var(--success);">₱${paid.toLocaleString()}</div>
+            </div>
+            <div>
+              <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Balance</div>
+              <div style="font-size:0.85rem; font-weight:700; color:var(--primary);">₱${balance.toLocaleString()}</div>
+            </div>
+          </div>
+
+          ${c.referenceNumber ? `
+            <div style="margin-top:0.8rem; padding:0.6rem 0.8rem; background:rgba(16, 185, 129, 0.05); border-radius:10px; border-left:3px solid var(--success); display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Payment Ref</div>
+                <div style="font-family:monospace; font-weight:700; font-size:0.8rem; color:var(--text-dark);">${c.referenceNumber}</div>
+              </div>
+              <i class="fas fa-check-circle" style="color:var(--success); opacity:0.5;"></i>
+            </div>
+          ` : ''}
+
+          ${st === 'pending' && daysToApprove <= 3 ? `
+            <div style="margin-top:0.8rem; padding:0.6rem; background:rgba(239, 68, 68, 0.05); border-radius:8px; display:flex; align-items:center; gap:8px; color:var(--danger); font-size:0.75rem; font-weight:700;">
+              <i class="fas fa-exclamation-triangle"></i> Expires in ${daysToApprove} days
+            </div>
+          ` : ''}
+
+          <div class="quick-actions" style="display:flex; gap:8px; margin-top:1rem;">
+            ${st === 'pending' ? `
+              <button class="action-btn primary" onclick="updateCommissionStatus(${c.id}, 'approved')"><i class="fas fa-check"></i> Approve</button>
+              <button class="action-btn danger" onclick="updateCommissionStatus(${c.id}, 'declined')"><i class="fas fa-times"></i> Decline</button>
+            ` : ''}
+            
+            ${st === 'approved' ? `
+              <button class="action-btn primary" onclick="updateCommissionStatus(${c.id}, 'payment_received')"><i class="fas fa-receipt"></i> Mark Paid</button>
+              <button class="action-btn" onclick="updateCommissionStatus(${c.id}, 'declined')">Cancel</button>
+            ` : ''}
+
+            ${(st === 'payment_received' || st === 'payment_verifying') ? `
+              <button class="action-btn primary" onclick="updateCommissionStatus(${c.id}, 'in_progress')"><i class="fas fa-hammer"></i> Start Build</button>
+            ` : ''}
+
+            ${st === 'in_progress' ? `
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="action-btn primary" onclick="openProgressUpdateModal(${c.id})">
+                  <i class="fas fa-camera"></i> Send Note and Image Update
+                </button>
+                <button class="action-btn success" style="background:#059669; color:white; border:none;" onclick="updateCommissionStatus(${c.id}, 'completed')">
+                  <i class="fas fa-check-double"></i> Mark as Finished
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+        const stage = orderStages.find(group => group.statuses.includes(st)) || orderStages[0];
+        stageLists[stage.key].appendChild(div);
+      });
+
+      orderStages.forEach(stage => {
+        const list = stageLists[stage.key];
+        const count = commissions.filter(o => {
+          const st = (o.status || 'pending').toLowerCase();
+          return stage.statuses.includes(st);
+        }).length;
+        const countEl = document.getElementById(`order-count-${stage.key}`);
+        if (countEl) countEl.textContent = count;
+        if (list.innerHTML === '') list.innerHTML = `<div class="order-empty">${stage.empty}</div>`;
+      });
+      
+      renderPagination(totalPages);
+      document.getElementById('orderBadge').textContent = commissions.filter(x => x.status !== 'completed' && x.status !== 'declined').length;
+      
+      // Update Chat Badge
+      const msgs = JSON.parse(localStorage.getItem(`chatMessages_shop_${managedShopId}`) || '[]');
+      const unreadCount = msgs.filter(m => m.sender === 'user' && !m.read).length;
+      const chatBadge = document.getElementById('chatBadge');
+      if (chatBadge) {
+        chatBadge.textContent = unreadCount;
+        chatBadge.style.display = unreadCount > 0 ? 'block' : 'none';
+      }
+    }
+
+    function renderPagination(totalPages) {
+      const container = document.getElementById('ordersPagination');
+      if (!container) return;
+      container.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = `btn ${i === orderPage ? 'btn-primary' : 'btn-outline'}`;
+        btn.style.padding = '0.4rem 0.8rem';
+        btn.textContent = i;
+        btn.onclick = () => { orderPage = i; loadCommissions(); };
+        container.appendChild(btn);
+      }
+    }
+
+    function updateCommissionStatus(id, st) {
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const i = comms.findIndex(x => x.id === id);
+      if (i !== -1) {
+        if ((st === 'payment_received' || st === 'payment_verifying' || st === 'in_progress') && !comms[i].referenceNumber) {
+           let ref = prompt("Reference Number (Optional):");
+           comms[i].referenceNumber = ref || "Manual/OTC";
+           comms[i].paidDpAmount = comms[i].price * (currentDpRate / 100);
+        }
+        comms[i].status = st;
+        localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
+        try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'order' }); } catch(e) {}
+        loadCommissions();
+      }
+    }
+
+    function openProgressUpdateModal(id) {
+      document.getElementById('progOrderId').value = id;
+      document.getElementById('progNote').value = '';
+      document.getElementById('progFile').value = '';
+      document.getElementById('progFilePreview').style.display = 'none';
+      document.getElementById('progressModal').classList.add('open');
+    }
+
+    function closeProgressModal(e) {
+      if (e && e.target !== document.getElementById('progressModal')) return;
+      document.getElementById('progressModal').classList.remove('open');
+    }
+
+    let currentProgBase64 = '';
+    function handleProgFile(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          currentProgBase64 = e.target.result;
+          const prev = document.getElementById('progFilePreview');
+          prev.style.backgroundImage = `url(${currentProgBase64})`;
+          prev.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function submitProgressUpdate() {
+      const id = parseInt(document.getElementById('progOrderId').value);
+      const note = document.getElementById('progNote').value.trim();
+
+      if (!note && !currentProgBase64) {
+        alert("Please enter a note or attach a photo.");
+        return;
+      }
+
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const i = comms.findIndex(x => x.id === id);
+      if (i === -1) return;
+
+      if (!comms[i].progressUpdates) comms[i].progressUpdates = [];
+      comms[i].progressUpdates.push({
+        note: note || "New update from workshop",
+        image: currentProgBase64,
+        timestamp: new Date().toISOString()
+      });
+
+      localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
+      currentProgBase64 = '';
+      document.getElementById('progressModal').classList.remove('open');
+      
+      try { 
+        new BroadcastChannel('furnicraft_updates').postMessage({ 
+          type: 'order_update', 
+          orderId: id,
+          customerName: comms[i].customerName,
+          note: note || "New photo update"
+        }); 
+      } catch(e) {}
+      
+      loadCommissions();
+    }
+
+    function openFinanceModal(orderId) {
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const order = comms.find(x => x.id === orderId);
+      if (!order) return;
+
+      const items = order.financialItems || [
+        { desc: 'Narra / Primary Wood', cat: 'material', amt: 0 },
+        { desc: 'Labor / Carpenter', cat: 'labor', amt: 0 }
+      ];
+      
+      let totalCost = 0;
+      items.forEach(i => totalCost += (parseFloat(i.amt) || 0));
+      const profit = (order.price || 0) - totalCost;
+      const margin = order.price > 0 ? (profit / order.price * 100).toFixed(1) : 0;
+
+      const content = document.getElementById('specContent');
+      content.innerHTML = `
+        <h2 style="font-family:'Playfair Display', serif; margin-bottom:1rem;"><i class="fas fa-file-invoice-dollar"></i> Project Costing Note</h2>
+        <div style="background:var(--bg-base); padding:1rem 1.5rem; border-radius:12px; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h4 style="margin-bottom:2px;">${order.description}</h4>
+            <p style="color:var(--text-muted); font-size:0.8rem;">Build Price: <b>₱${(order.price || 0).toLocaleString()}</b></p>
+          </div>
+          <button class="btn btn-primary" onclick="saveProjectCosts(${orderId})" style="padding:0.6rem 1rem;"><i class="fas fa-save"></i> Save Note</button>
+        </div>
+
+        <div id="expenseList">
+          <div style="display:flex; gap:10px; margin-bottom:10px; padding:0 10px; font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">
+            <span style="flex:1;">Description / Item</span>
+            <span style="width:110px;">Category</span>
+            <span style="width:120px; text-align:right;">Amount (₱)</span>
+            <span style="width:25px;"></span>
+          </div>
+          ${items.map((it, idx) => `
+            <div class="expense-row" data-index="${idx}">
+              <input type="text" placeholder="e.g. 5L Epoxy Resin" value="${it.desc}" class="desc-input">
+              <select class="cat-select">
+                <option value="material" ${it.cat === 'material' ? 'selected' : ''}>Material</option>
+                <option value="labor" ${it.cat === 'labor' ? 'selected' : ''}>Labor</option>
+                <option value="other" ${it.cat === 'other' ? 'selected' : ''}>Other</option>
+              </select>
+              <input type="number" placeholder="0.00" value="${it.amt}" class="amt-input">
+              <i class="fas fa-trash btn-remove" onclick="removeExpenseRow(this)"></i>
+            </div>
+          `).join('')}
+        </div>
+
+        <button class="add-row-btn" onclick="addExpenseRow()"><i class="fas fa-plus"></i> Add Expense Item</button>
+
+        <div style="margin-top:2rem; padding:1.5rem; border-radius:16px; background:#1e293b; color:white; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:0.75rem; opacity:0.7; text-transform:uppercase; font-weight:800; margin-bottom:5px;">Total Cost</div>
+            <div style="font-size:1.4rem; font-weight:700;">₱${totalCost.toLocaleString()}</div>
+          </div>
+          <div style="text-align:center;">
+             <div style="font-size:0.75rem; opacity:0.7; text-transform:uppercase; font-weight:800; margin-bottom:5px;">Profit Margin</div>
+             <div style="font-size:1.4rem; font-weight:700; color:#fbbf24;">${margin}%</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.75rem; opacity:0.7; text-transform:uppercase; font-weight:800; margin-bottom:5px;">Net Profit</div>
+            <div style="font-size:1.6rem; font-weight:800;" class="${profit >= 0 ? 'profit-positive' : 'profit-negative'}">
+              ₱${profit.toLocaleString()}
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('specModal').classList.add('open');
+    }
+
+    function addExpenseRow() {
+      const list = document.getElementById('expenseList');
+      const div = document.createElement('div');
+      div.className = 'expense-row';
+      div.innerHTML = `
+        <input type="text" placeholder="New Item Description" class="desc-input">
+        <select class="cat-select">
+          <option value="material">Material</option>
+          <option value="labor">Labor</option>
+          <option value="other">Other</option>
+        </select>
+        <input type="number" placeholder="0.00" class="amt-input">
+        <i class="fas fa-trash btn-remove" onclick="removeExpenseRow(this)"></i>
+      `;
+      list.appendChild(div);
+    }
+
+    function removeExpenseRow(icon) {
+      icon.parentElement.remove();
+    }
+
+    function saveProjectCosts(orderId) {
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const i = comms.findIndex(x => x.id === orderId);
+      if (i === -1) return;
+
+      const rows = document.querySelectorAll('.expense-row');
+      const items = [];
+      rows.forEach(row => {
+        items.push({
+          desc: row.querySelector('.desc-input').value,
+          cat: row.querySelector('.cat-select').value,
+          amt: parseFloat(row.querySelector('.amt-input').value) || 0
+        });
+      });
+
+      comms[i].financialItems = items;
+      localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
+      openFinanceModal(orderId); // Refresh totals
+    }
+
+    function zoomImage(src) {
+      document.getElementById('zoomedImg').src = src;
+      document.getElementById('imageZoom').classList.add('open');
+    }
+
+    function openSpecModal(orderId) {
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const order = comms.find(x => x.id === orderId);
+      if (!order) return;
+
+      const content = document.getElementById('specContent');
+      let specHTML = `
+        <h2 style="font-family:'Playfair Display', serif; margin-bottom:1.5rem;">Order Specifications</h2>
+        <div style="display:flex; gap:2rem; margin-bottom:2rem; background:var(--bg-base); padding:1.5rem; border-radius:16px;">
+          <img src="${order.previewImage}" onclick="zoomImage('${order.previewImage}')" style="width:200px; height:200px; object-fit:contain; background:#fff; border-radius:12px; border:1px solid var(--border); cursor:zoom-in;" title="Click to Expand" />
+          <div style="flex:1;">
+            <h3 style="margin-bottom:0.5rem;">${order.description || 'Custom Build'}</h3>
+            <p style="color:var(--text-muted); font-size:0.9rem;">Customer: <b>${order.customerName}</b></p>
+            <p style="color:var(--text-muted); font-size:0.8rem; margin-top:0.2rem;">Ordered: <b>${new Date(order.id).toLocaleDateString()} ${new Date(order.id).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</b></p>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-top:0.4rem;">Price: <b style="color:var(--primary);">₱${(order.price || 0).toLocaleString()}</b></p>
+            <div style="margin-top:1rem;">
+               <span class="badge badge-info">${order.status || 'Pending'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      let parsed = null;
+      try { parsed = order.cadState ? JSON.parse(order.cadState) : null; } catch(e){}
+
+      if (parsed && parsed.items && parsed.items.length) {
+        const item = parsed.items[0];
+        const gs = item.globalScale || {x:1,y:1,z:1};
+        const dims = item.dims || {};
+        const materials = item.materials || {};
+        const parts = Object.keys(dims);
+
+        specHTML += `
+          <h4 style="margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;">Dimension & Material Specifications</h4>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Scale: ${Math.round(gs.x*100)}% / ${Math.round(gs.y*100)}% / ${Math.round(gs.z*100)}%</p>
+          <table class="spec-table">
+            <thead>
+              <tr>
+                <th>Component Part</th>
+                <th>Material Used</th>
+                <th>Width (cm)</th>
+                <th>Height (cm)</th>
+                <th>Depth (cm)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${parts.map(part => {
+                const d = dims[part] || {w:0,h:0,d:0};
+                return `
+                  <tr>
+                    <td><b>${part}</b></td>
+                    <td><span class="mat-tag">${materials[part] || 'Standard Wood'}</span></td>
+                    <td>${(d.w * gs.x).toFixed(0)}</td>
+                    <td>${(d.h * gs.y).toFixed(0)}</td>
+                    <td>${(d.d * gs.z).toFixed(0)}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+
+        if (item.config) {
+          const configItems = [];
+          Object.keys(item.config).forEach(k => {
+            const val = item.config[k];
+            if (val === true) configItems.push(`${k.replace('has', '')}: Yes`);
+            else if (typeof val === 'string') configItems.push(`${k}: ${val}`);
+            else if (typeof val === 'number') configItems.push(`${k}: ${val}`);
+          });
+          
+          if (configItems.length) {
+            specHTML += `
+              <div style="margin-top:1.5rem; padding:1rem; background:#eef2ff; color:#4338ca; border-radius:12px; font-size:0.85rem;">
+                <i class="fas fa-cogs"></i> <b>Design Features:</b> ${configItems.join(' &nbsp;|&nbsp; ')}
+              </div>
+            `;
+          }
+        }
+      } else {
+        specHTML += `<div style="text-align:center; padding:3rem; color:var(--text-light);">No detailed specification data found for this order.</div>`;
+      }
+
+      content.innerHTML = specHTML;
+      document.getElementById('specModal').classList.add('open');
+    }
+
+    function closeSpecModal(e) {
+      document.getElementById('specModal').classList.remove('open');
+    }
+
+    function logoutShop() { sessionStorage.clear(); window.location.href = 'shop_login.html'; }
+
+    window.onload = () => {
+      const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
+      if (settings.dpRate) currentDpRate = settings.dpRate;
+      loadCommissions();
+      setInterval(loadCommissions, 3000);
+
+      // BroadcastChannel for instant sync
+      try {
+        const bc = new BroadcastChannel('furnicraft_updates');
+        bc.onmessage = (ev) => {
+          const { type } = ev.data || {};
+          if (type === 'order' || type === 'chat') {
+            loadCommissions();
+          }
+        };
+      } catch(e) {}
+    };
+  </script>
+</body>
+</html>

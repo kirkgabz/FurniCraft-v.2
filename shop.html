@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Select Furniture Workshop - FurniCraft</title>
+  <title>Select Furniture Shop - FurniCraft</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -455,6 +455,112 @@
     .review-bubble strong {
       color: var(--text-main);
     }
+
+    /* Terms and Conditions Modal */
+    .tc-modal-scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(42, 27, 20, 0.45);
+      backdrop-filter: blur(8px);
+      z-index: 5000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .tc-modal-scrim.open { display: flex; }
+    
+    .tc-modal {
+      background: #fff;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 24px;
+      box-shadow: 0 30px 60px rgba(42, 27, 20, 0.2);
+      overflow: hidden;
+      animation: modalSlideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @keyframes modalSlideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .tc-head {
+      padding: 1.5rem 2rem;
+      background: #F8F5F2;
+      border-bottom: 1px solid rgba(178, 106, 56, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .tc-head h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      color: var(--text-main);
+    }
+    .tc-head i { color: var(--accent-color); font-size: 1.2rem; }
+
+    .tc-body {
+      padding: 2rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .tc-body h3 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    .tc-list {
+      list-style: none;
+    }
+    .tc-list li {
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 12px;
+      font-size: 0.95rem;
+    }
+    .tc-list li i {
+      color: #10b981;
+      margin-top: 4px;
+      font-size: 0.85rem;
+    }
+    .tc-list b { color: var(--text-main); }
+
+    .tc-foot {
+      padding: 1.5rem 2rem;
+      background: #F8F5F2;
+      border-top: 1px solid rgba(178, 106, 56, 0.1);
+      display: flex;
+      gap: 12px;
+    }
+    .tc-btn-cancel {
+      flex: 1;
+      background: transparent;
+      border: 1px solid rgba(178, 106, 56, 0.3);
+      padding: 12px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .tc-btn-cancel:hover { background: #fff; color: var(--accent-hover); }
+    
+    .tc-btn-agree {
+      flex: 2;
+      background: var(--accent-color);
+      border: none;
+      padding: 12px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(178, 106, 56, 0.2);
+      transition: all 0.2s;
+    }
+    .tc-btn-agree:hover { background: var(--accent-hover); transform: translateY(-2px); }
   </style>
 </head>
 
@@ -488,7 +594,7 @@
     <div class="search-filter-wrapper">
       <div class="search-container">
         <i class="fas fa-search search-icon"></i>
-        <input type="text" id="searchInput" class="search-input" placeholder="Search nationwide shops by name...">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search furniture shops by name...">
       </div>
       <button id="nearMeBtn" class="filter-btn">
         <i class="fas fa-location-crosshairs"></i> Find Near Me
@@ -589,7 +695,7 @@
           </div>
         </div>
         <div class="select-btn">
-          <button onclick="selectShop(2,'MariLou Furniture')">Select Workshop</button>
+          <button onclick="selectShop(2,'MariLou Furniture')">Select Furniture Shop</button>
         </div>
       </div>
 
@@ -615,7 +721,7 @@
           </div>
         </div>
         <div class="select-btn">
-          <button onclick="selectShop(8,'Cebu Rattan Innovations')">Select Workshop</button>
+          <button onclick="selectShop(8,'Cebu Rattan Innovations')">Select Furniture Shop</button>
         </div>
       </div>
 
@@ -641,7 +747,7 @@
           </div>
         </div>
         <div class="select-btn">
-          <button onclick="selectShop(3,'Manalo Upholstery Makers')">Select Workshop</button>
+          <button onclick="selectShop(3,'Manalo Upholstery Makers')">Select Furniture Shop</button>
         </div>
       </div>
 
@@ -667,7 +773,7 @@
           </div>
         </div>
         <div class="select-btn">
-          <button onclick="selectShop(9,'Manila Modern Metals')">Select Workshop</button>
+          <button onclick="selectShop(9,'Manila Modern Metals')">Select Furniture Shop</button>
         </div>
       </div>
 
@@ -693,7 +799,7 @@
           </div>
         </div>
         <div class="select-btn">
-          <button onclick="selectShop(4,'Sta. Lourdes Cabinetry')">Select Workshop</button>
+          <button onclick="selectShop(4,'Sta. Lourdes Cabinetry')">Select Furniture Shop</button>
         </div>
       </div>
 
@@ -719,7 +825,7 @@
           </div>
         </div>
         <div class="select-btn">
-          <button onclick="selectShop(10,'Davao Hardwood Masters')">Select Workshop</button>
+          <button onclick="selectShop(10,'Davao Hardwood Masters')">Select Furniture Shop</button>
         </div>
       </div>
 
@@ -745,7 +851,7 @@
           </div>
         </div>
         <div class="select-btn">
-          <button onclick="selectShop(6,'Bancao-Bancao Epoxy Crafters')">Select Workshop</button>
+          <button onclick="selectShop(6,'Bancao-Bancao Epoxy Crafters')">Select Furniture Shop</button>
         </div>
       </div>
 
@@ -771,18 +877,52 @@
           </div>
         </div>
         <div class="select-btn">
-          <button onclick="selectShop(11,'Baguio Pine Crafters')">Select Workshop</button>
+          <button onclick="selectShop(11,'Baguio Pine Crafters')">Select Furniture Shop</button>
         </div>
       </div>
 
       <div id="noResults" class="no-results">
         <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px; color: #D3CDC9;"></i><br>
-        No workshops found matching your search.
+        No furniture shops found matching your search.
       </div>
 
     </div>
 
   </main>
+
+    <div class="tc-modal-scrim" id="tcModal">
+      <div class="tc-modal">
+        <div class="tc-head">
+          <i class="fas fa-file-contract"></i>
+          <h2>Shop Policies</h2>
+        </div>
+        <div class="tc-body">
+          <h3>Terms and Conditions</h3>
+          <ul class="tc-list">
+            <li>
+              <i class="fas fa-check-circle"></i>
+              <span>Agreement to <b>Turn Around Time Period (Deadline)</b> as discussed for each order.</span>
+            </li>
+            <li>
+              <i class="fas fa-check-circle"></i>
+              <span><b>1 Year Warranty</b> covering manufacturing defects (e.g., loose weaving, brace detachments).</span>
+            </li>
+            <li>
+              <i class="fas fa-check-circle"></i>
+              <span><b>Free Delivery</b> within the city limits only.</span>
+            </li>
+            <li>
+              <i class="fas fa-check-circle"></i>
+              <span><b>50% Down Payment</b> is required to confirm and initiate the production of your design.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="tc-foot">
+          <button class="tc-btn-cancel" onclick="closeTC()">Cancel</button>
+          <button class="tc-btn-agree" id="agreeBtn">Agree & Continue</button>
+        </div>
+      </div>
+    </div>
 
   <script>
     function skipShopSelection() {
@@ -793,6 +933,26 @@
     }
 
     function selectShop(id, name) {
+      if (name.includes("AFMB Valeza Rattan")) {
+        showTC(id, name);
+        return;
+      }
+      finalizeSelection(id, name);
+    }
+
+    function showTC(id, name) {
+      const modal = document.getElementById('tcModal');
+      const agreeBtn = document.getElementById('agreeBtn');
+      modal.classList.add('open');
+      agreeBtn.onclick = () => {
+        finalizeSelection(id, name);
+      };
+    }
+    function closeTC() {
+      document.getElementById('tcModal').classList.remove('open');
+    }
+
+    function finalizeSelection(id, name) {
       const cards = document.querySelectorAll('.shop-card');
       let materials = [];
       cards.forEach(card => {
@@ -958,13 +1118,22 @@
             for (let i = 0; i < 5; i++) {
               starsHTML += `<i class="fas fa-star" style="color: ${i < rval ? '#f59e0b' : '#cbd5e1'}"></i>`;
             }
+            
+            const dateStr = r.date ? new Date(r.date).toLocaleDateString() : 'Recently';
+            const isVerified = r.id ? '<span style="color:#10b981; font-size:0.7rem; margin-left:5px;"><i class="fas fa-check-circle"></i> Verified</span>' : '';
+
             containerDiv.innerHTML += `
-                        <div class="review-bubble">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                                <strong>${r.customerName}</strong>
+                        <div class="review-bubble" style="border-left: 3px solid var(--accent-color); padding: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.7);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                <div style="display:flex; flex-direction:column;">
+                                    <strong style="font-size:0.85rem;">${r.customerName}${isVerified}</strong>
+                                    <span style="font-size:0.65rem; color:var(--text-muted);">${dateStr}</span>
+                                </div>
                                 <div class="stars" style="margin:0;">${starsHTML}</div>
                             </div>
-                            ${r.reviewText ? r.reviewText : '<span style="font-style:italic;">No comment provided.</span>'}
+                            <div style="line-height:1.4; color:var(--text-main); font-size:0.85rem; margin-top:6px; font-style: italic;">
+                                ${r.reviewText ? `"${r.reviewText}"` : '<span style="opacity:0.5;">No written comment.</span>'}
+                            </div>
                         </div>
                     `;
           });

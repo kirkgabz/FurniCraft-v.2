@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Reviews - FurniCraft</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --bg-base: #F9F7F4;
+      --accent-primary: #8B5A2B;
+      --accent-hover: #724921;
+      --text-dark: #1F1915;
+      --text-muted: #6B5B53;
+      --border-light: rgba(139, 90, 43, 0.1);
+      --primary-soft: rgba(139, 90, 43, 0.08);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius-lg: 32px;
+      --radius-md: 16px;
+      --shadow-sm: 0 4px 15px rgba(44, 30, 22, 0.03);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-base); color: var(--text-dark); min-height: 100vh; display: flex; }
+
+    /* --- SIDEBAR --- */
+    .sidebar { width: 280px; background: #ffffff; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid var(--border-light); display: flex; flex-direction: column; z-index: 1100; padding: 1.5rem 0; }
+    .sidebar-brand { padding: 0 2rem 2rem; display: flex; align-items: center; gap: 1rem; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.4rem; color: var(--text-dark); }
+    .sidebar-brand img { height: 32px; width: auto; }
+    .sidebar-menu { flex: 1; padding: 0 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .menu-item { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; border-radius: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
+    .menu-item:hover { background: var(--bg-base); color: var(--accent-primary); }
+    .menu-item.active { background: var(--primary-soft); color: var(--accent-primary); }
+    .menu-badge { margin-left: auto; background: var(--accent-primary); color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+    .sidebar-footer { padding: 1.5rem; border-top: 1px solid var(--border-light); }
+
+    /* --- MAIN --- */
+    .main-wrapper { flex: 1; margin-left: 280px; padding: 2rem 3rem; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--text-dark); }
+
+    .reviews-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .stat-card { background: #fff; padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); text-align: center; }
+    .stat-card h3 { font-size: 2rem; color: var(--accent-primary); margin-bottom: 0.3rem; }
+    .stat-card p { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .reviews-list { display: flex; flex-direction: column; gap: 1.5rem; }
+    .review-item { background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 1.8rem; box-shadow: var(--shadow-sm); }
+    .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .customer-info { display: flex; align-items: center; gap: 1rem; }
+    .customer-avatar { width: 45px; height: 45px; background: var(--primary-soft); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-primary); font-weight: 700; }
+    .customer-name { font-weight: 700; font-size: 1rem; }
+    .review-date { font-size: 0.8rem; color: var(--text-muted); }
+    .star-rating { color: var(--warning); font-size: 0.9rem; }
+    .review-text { color: var(--text-dark); line-height: 1.6; font-size: 0.95rem; }
+
+    .empty-state { text-align: center; padding: 5rem; color: var(--text-muted); font-style: italic; }
+
+    .btn { padding: 0.6rem 1.2rem; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: 0.2s; border: none; }
+    .btn-outline { background: white; border: 1px solid var(--border-light); color: var(--text-dark); }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="../images/FurniCraft Logo without name.png" alt="FurniCraft">
+      FurniCraft
+    </div>
+    <nav class="sidebar-menu">
+      <a href="shop_dashboard.html" class="menu-item">
+        <i class="fas fa-th-large"></i> Dashboard
+      </a>
+      <a href="shop_orders.html" class="menu-item">
+        <i class="fas fa-shopping-bag"></i> Orders & Progress
+        <span class="menu-badge" id="orderBadge">0</span>
+      </a>
+      <a href="../shop_studio.html" class="menu-item">
+        <i class="fas fa-wand-magic-sparkles"></i> Build a Design Template
+      </a>
+      <a href="shop_messages.html" class="menu-item">
+        <i class="fas fa-comments"></i> Live Chat
+      </a>
+      <a href="shop_reviews.html" class="menu-item active">
+        <i class="fas fa-star"></i> Customer Reviews
+      </a>
+      <a href="../templates.html" class="menu-item">
+        <i class="fas fa-images"></i> Template Gallery
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="javascript:logoutShop()" class="menu-item" style="color: var(--danger);">
+        <i class="fas fa-sign-out-alt"></i> Sign Out
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-wrapper">
+    <header>
+      <h1 class="page-title">Customer Reviews</h1>
+      <button class="btn btn-outline" onclick="loadReviews()"><i class="fas fa-sync"></i> Refresh</button>
+    </header>
+
+    <div class="reviews-stats">
+      <div class="stat-card">
+        <h3 id="avgRating">0.0</h3>
+        <p>Average Rating</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="totalReviews">0</h3>
+        <p>Total Reviews</p>
+      </div>
+    </div>
+
+    <div id="reviewsList" class="reviews-list">
+      <!-- Reviews will be loaded here -->
+    </div>
+  </main>
+
+  <script>
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') window.location.href = 'shop_login.html';
+    const managedShopId = sessionStorage.getItem('managedShopId') || sessionStorage.getItem('selectedShopId') || "1";
+
+    const dummyReviews = [
+      { id: 101, customerName: "Maria S.", rating: 5, reviewText: "Incredible craftsmanship. The joints are flawless!", date: "2024-03-15T08:00:00Z" },
+      { id: 102, customerName: "John D.", rating: 5, reviewText: "Highly professional and delivered exactly what I designed.", date: "2024-03-10T09:30:00Z" },
+      { id: 103, customerName: "Elena V.", rating: 4, reviewText: "Great quality overall. Very sturdy materials.", date: "2024-02-28T14:20:00Z" },
+      { id: 104, customerName: "Carlos R.", rating: 5, reviewText: "I'm amazed at the detail in the finish. Highly recommended!", date: "2024-02-20T11:15:00Z" }
+    ];
+
+    function loadReviews() {
+      const reviewsKey = `shopReviews_${managedShopId}`;
+      const realReviews = JSON.parse(localStorage.getItem(reviewsKey) || '[]');
+      const container = document.getElementById('reviewsList');
+      
+      // Combine with dummy reviews for consistency with public shop.html view
+      const reviews = [...realReviews, ...dummyReviews];
+      
+      if (reviews.length === 0) {
+        container.innerHTML = '<div class="empty-state">No reviews received yet.</div>';
+        document.getElementById('avgRating').textContent = '0.0';
+        document.getElementById('totalReviews').textContent = '0';
+        return;
+      }
+
+      // Stats
+      let total = 0;
+      reviews.forEach(r => total += r.rating);
+      const avg = (total / reviews.length).toFixed(1);
+      document.getElementById('avgRating').textContent = avg;
+      document.getElementById('totalReviews').textContent = reviews.length;
+
+      // Sort by newest
+      reviews.sort((a,b) => b.id - a.id);
+
+      container.innerHTML = reviews.map(r => `
+        <div class="review-item">
+          <div class="review-header">
+            <div class="customer-info">
+              <div class="customer-avatar">${r.customerName ? r.customerName.charAt(0).toUpperCase() : 'C'}</div>
+              <div>
+                <div class="customer-name">${r.customerName || 'Anonymous Customer'}</div>
+                <div class="review-date">${new Date(r.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+              </div>
+            </div>
+            <div class="star-rating">
+              ${renderStars(r.rating)}
+            </div>
+          </div>
+          <div class="review-text">
+            ${r.reviewText || '<span style="color:var(--text-light); font-style:italic;">No written feedback provided.</span>'}
+          </div>
+        </div>
+      `).join('');
+
+      // Update badge
+      const commsKey = `projectProposals_shop_${managedShopId}`;
+      const comms = JSON.parse(localStorage.getItem(commsKey) || '[]');
+      document.getElementById('orderBadge').textContent = comms.filter(x => x.status !== 'completed' && x.status !== 'declined').length;
+    }
+
+    function renderStars(rating) {
+      let stars = '';
+      for (let i = 1; i <= 5; i++) {
+        if (i <= rating) stars += '<i class="fas fa-star"></i>';
+        else stars += '<i class="far fa-star"></i>';
+      }
+      return stars;
+    }
+
+    function logoutShop() { sessionStorage.clear(); window.location.href = 'shop_login.html'; }
+
+    window.onload = loadReviews;
+  </script>
+</body>
+</html>

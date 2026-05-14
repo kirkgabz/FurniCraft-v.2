@@ -325,6 +325,30 @@ function goToExport(){
           globalScale: activeTemplate.scale || {x:1, y:1, z:1},
           selections: activeTemplate.selections || {}
       };
+
+      // Calculate Real-World Total Dimensions (for accurate export summaries)
+      const d = activeTemplate.dims || {};
+      let tw = 0, th = 0, td_ = 0;
+      let displayDims = JSON.parse(JSON.stringify(d)); // Clone original dims
+
+      if (activeTemplate.type === 'table') {
+          tw = (d.Top?.w || 160); th = (d.Legs?.h || 78) + (d.Top?.h || 8); td_ = (d.Top?.d || 160);
+          if(displayDims.Top) displayDims.Top.h = th; // Top part often represents the whole surface height in some views
+      } else if (activeTemplate.type === 'chair' || activeTemplate.type === 'stool') {
+          tw = (d.Seat?.w || 50); th = (d.Legs?.h || 46) + (d.Seat?.h || 6) + (d.Back?.h || 38); td_ = (d.Seat?.d || 50);
+          if(displayDims.Seat) displayDims.Seat.h = th; 
+      } else if (activeTemplate.type === 'sofa') {
+          tw = (d.Frame?.w || 200); th = (d.Frame?.h || 42) * 2; td_ = (d.Frame?.d || 90);
+          if(displayDims.Frame) displayDims.Frame.h = th;
+      } else if (activeTemplate.type === 'bed') {
+          tw = Math.max(d.Frame?.w || 160, d.Headboard?.w || 160); th = (d.Legs?.h || 18) + (d.Frame?.h || 30) + (d.Headboard?.h || 100); td_ = (d.Frame?.d || 210) + (d.Headboard?.d || 10);
+          if(displayDims.Frame) { displayDims.Frame.h = th; displayDims.Frame.d = td_; }
+      } else if (activeTemplate.type === 'cabinet' || activeTemplate.type === 'bookshelf') {
+          tw = (d.Body?.w || 100) + 2; th = (d.Body?.h || 200) + 5; td_ = (d.Body?.d || 60) + 2;
+          if(displayDims.Body) { displayDims.Body.w = tw; displayDims.Body.h = th; displayDims.Body.d = td_; }
+      }
+      itemData.totalDimensions = { w: tw, h: th, d: td_ };
+      itemData.displayDims = displayDims;
   }
 
   // 2. Ensure Materials Map and Analysis Scores are accurate
@@ -364,7 +388,8 @@ function goToExport(){
       } catch(e) { return ''; }
   }
 
-  // 4. Capture EXACT current viewport
+  // 4. Sync and Capture EXACT current viewport
+  syncViewportState();
   try {
       let canvas = null;
       let targetRenderer = null;
@@ -1054,13 +1079,13 @@ function resetCamera(){if(!camera)return;camera.position.set(12,8,16);if(control
 function addDimLabel(start,end,text,offset){
   if(!showDimensions)return;
   const o=offset||new THREE.Vector3(),p1=start.clone().add(o),p2=end.clone().add(o);
-  dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),new THREE.LineBasicMaterial({color:0xaaaaaa,transparent:true,opacity:.4})));
+  dimGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.8})));
   const cv=document.createElement('canvas');cv.width=512;cv.height=128;
   const ctx=cv.getContext('2d');ctx.fillStyle='rgba(0,0,0,0)';ctx.fillRect(0,0,512,128);
-  ctx.font='Bold 56px Segoe UI';ctx.fillStyle='#dddddd';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=5;ctx.fillText(text,256,64);
+  ctx.font='Bold 72px Segoe UI';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=6;ctx.fillText(text,256,64);
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false}));
-  sp.position.copy(p1).lerp(p2,0.5);sp.scale.set(1.0,0.25,1);dimGroup.add(sp);
+  sp.position.copy(p1).lerp(p2,0.5);sp.scale.set(2.0,0.5,1);dimGroup.add(sp);
 }
 
 /* ═══ 3D SCENE BUILD ═══ */
@@ -1172,7 +1197,21 @@ function build3DScene(){
       const lx=top.w/2-leg.w/2,lz=top.d/2-leg.d/2;
       [[-lx,-lz],[-lx,lz],[lx,-lz],[lx,lz]].forEach(([x,z])=>addM('Legs',legGeo,lHex,lCarv,x,leg.h/2,z));
     }
-    if(showDimensions){const gs=t.scale;addDimLabel(new THREE.Vector3(-top.w/2,0,top.d/2),new THREE.Vector3(top.w/2,0,top.d/2),Math.round(t.dims.Top.w*(gs.x||1))+'cm W',new THREE.Vector3(0,-.15,.5));addDimLabel(new THREE.Vector3(-top.w/2-.5,0,0),new THREE.Vector3(-top.w/2-.5,leg.h+top.h,0),Math.round((t.dims.Legs.h+t.dims.Top.h)*(gs.y||1))+'cm H',new THREE.Vector3(0,0,0));}
+    if(showDimensions){
+      const gs=t.scale||{x:1,y:1,z:1};
+      addDimLabel(
+        new THREE.Vector3(-top.w/2 * gs.x, 0, top.d/2 * gs.z),
+        new THREE.Vector3(top.w/2 * gs.x, 0, top.d/2 * gs.z),
+        Math.round(t.dims.Top.w*(gs.x||1))+'cm W',
+        new THREE.Vector3(0,-.15,.5)
+      );
+      addDimLabel(
+        new THREE.Vector3((-top.w/2-0.5) * gs.x, 0, 0),
+        new THREE.Vector3((-top.w/2-0.5) * gs.x, (leg.h+top.h) * gs.y, 0),
+        Math.round((t.dims.Legs.h+t.dims.Top.h)*(gs.y||1))+'cm H',
+        new THREE.Vector3(0,0,0)
+      );
+    }
   }
 
   else if(type==='chair'||type==='stool'){
@@ -1204,7 +1243,21 @@ function build3DScene(){
     [[-legOffX,-legOffZ],[-legOffX,legOffZ],[legOffX,-legOffZ],[legOffX,legOffZ]]
       .forEach(([x,z])=>addM('Legs', lGeo, hexF('Legs'), carvF('Legs'), x, l.h/2, z));
 
-    if(showDimensions){const gs=t.scale;addDimLabel(new THREE.Vector3(-s.w/2,0,s.d/2),new THREE.Vector3(s.w/2,0,s.d/2),Math.round(t.dims.Seat.w*(gs.x||1))+'cm W',new THREE.Vector3(0,-.15,.4));addDimLabel(new THREE.Vector3(-s.w/2-.4,0,0),new THREE.Vector3(-s.w/2-.4,l.h+s.h+b.h,0),Math.round((t.dims.Legs.h+t.dims.Seat.h+t.dims.Back.h)*(gs.y||1))+'cm H',new THREE.Vector3(0,0,0));}
+    if(showDimensions){
+      const gs=t.scale||{x:1,y:1,z:1};
+      addDimLabel(
+        new THREE.Vector3(-s.w/2 * gs.x, 0, s.d/2 * gs.z),
+        new THREE.Vector3(s.w/2 * gs.x, 0, s.d/2 * gs.z),
+        Math.round((t.dims.Seat.w||50)*(gs.x||1))+'cm W',
+        new THREE.Vector3(0,-.15,.6)
+      );
+      addDimLabel(
+        new THREE.Vector3((-s.w/2-0.6) * gs.x, 0, 0),
+        new THREE.Vector3((-s.w/2-0.6) * gs.x, (l.h+s.h+b.h) * gs.y, 0),
+        Math.round(((t.dims.Legs.h+t.dims.Seat.h+t.dims.Back.h)||100)*(gs.y||1))+'cm H',
+        new THREE.Vector3(0,0,0)
+      );
+    }
   }
 
   else if(type==='sofa'){
@@ -1255,7 +1308,22 @@ function build3DScene(){
     const lGeo2=new THREE.CylinderGeometry(.055,.07,.16,8);
     [[-f.w*.44,-f.d*.44],[f.w*.44,-f.d*.44],[-f.w*.44,f.d*.44],[f.w*.44,f.d*.44]].forEach(([lx,lz])=>addM('Frame',lGeo2,fHex,'none',lx,.08,lz));
 
-    if(showDimensions){const gs=t.scale;addDimLabel(new THREE.Vector3(-f.w/2,0,f.d/2),new THREE.Vector3(f.w/2,0,f.d/2),Math.round(t.dims.Frame.w*(gs.x||1))+'cm W',new THREE.Vector3(0,-.15,.5));addDimLabel(new THREE.Vector3(-f.w/2-.5,0,0),new THREE.Vector3(-f.w/2-.5,f.h,0),Math.round(t.dims.Frame.h*(gs.y||1))+'cm H',new THREE.Vector3(0,0,0));}
+    if(showDimensions){
+      const gs=t.scale||{x:1,y:1,z:1};
+      addDimLabel(
+        new THREE.Vector3(-f.w/2 * gs.x, 0, f.d/2 * gs.z),
+        new THREE.Vector3(f.w/2 * gs.x, 0, f.d/2 * gs.z),
+        Math.round((t.dims.Frame.w||200)*(gs.x||1))+'cm W',
+        new THREE.Vector3(0,-.15,.5)
+      );
+      // Total height for sofa is baseH + backH (which is f.h * 2 in this simplified model)
+      addDimLabel(
+        new THREE.Vector3(-f.w/2 * gs.x-.5, 0, 0),
+        new THREE.Vector3(-f.w/2 * gs.x-.5, (f.h * 2) * gs.y, 0),
+        Math.round((t.dims.Frame.h*2||84)*(gs.y||1))+'cm H',
+        new THREE.Vector3(0,0,0)
+      );
+    }
   }
 
   else if(type==='bed'){
@@ -1294,7 +1362,27 @@ function build3DScene(){
       addM('Headboard',new THREE.BoxGeometry(hW,hH,hT),hHex,carvF('Headboard'),0,headY,headZ);
       addM('Headboard',new THREE.BoxGeometry(hW+.1,.05,hT+.08),hHex,'none',0,headY+hH/2,headZ);
     }
-    if(showDimensions){const gs=t.scale;addDimLabel(new THREE.Vector3(-fr.w/2,0,fr.d/2),new THREE.Vector3(fr.w/2,0,fr.d/2),Math.round(t.dims.Frame.w*(gs.x||1))+'cm W',new THREE.Vector3(0,-.2,.6));addDimLabel(new THREE.Vector3(fr.w/2+.5,0,-fr.d/2),new THREE.Vector3(fr.w/2+.5,0,fr.d/2),Math.round(t.dims.Frame.d*(gs.z||1))+'cm L',new THREE.Vector3(0,-.2,0));addDimLabel(new THREE.Vector3(-fr.w/2-.6,0,0),new THREE.Vector3(-fr.w/2-.6,mattY+mattH,0),Math.round((mattY+mattH)*SF*(gs.y||1))+'cm H',new THREE.Vector3(0,0,0));}
+    if(showDimensions){
+      const gs=t.scale||{x:1,y:1,z:1};
+      addDimLabel(
+        new THREE.Vector3(-fr.w/2 * gs.x, 0, fr.d/2 * gs.z),
+        new THREE.Vector3(fr.w/2 * gs.x, 0, fr.d/2 * gs.z),
+        Math.round((t.dims.Frame.w||160)*(gs.x||1))+'cm W',
+        new THREE.Vector3(0,-.2,.8)
+      );
+      addDimLabel(
+        new THREE.Vector3(fr.w/2 * gs.x+.8, 0, -fr.d/2 * gs.z),
+        new THREE.Vector3(fr.w/2 * gs.x+.8, 0, fr.d/2 * gs.z),
+        Math.round((t.dims.Frame.d||200)*(gs.z||1))+'cm L',
+        new THREE.Vector3(0,-.2,0)
+      );
+      addDimLabel(
+        new THREE.Vector3(-fr.w/2 * gs.x-0.8, 0, 0),
+        new THREE.Vector3(-fr.w/2 * gs.x-0.8, (legH+fr.h+hH) * gs.y, 0),
+        Math.round(((t.dims.Legs.h+t.dims.Frame.h+t.dims.Headboard.h)||120)*(gs.y||1))+'cm H',
+        new THREE.Vector3(0,0,0)
+      );
+    }
   }
 
   else if(type==='cabinet'||type==='bookshelf'){
@@ -1363,7 +1451,21 @@ function build3DScene(){
     rightDoorGroup.rotation.y = doorOpenAngle;
     currentGroup.add(rightDoorGroup);
 
-    if(showDimensions){const gs=t.scale;addDimLabel(new THREE.Vector3(-bd.w/2,0,bd.d/2),new THREE.Vector3(bd.w/2,0,bd.d/2),Math.round(t.dims.Body.w*(gs.x||1))+'cm W',new THREE.Vector3(0,-.15,.5));addDimLabel(new THREE.Vector3(-bd.w/2-.5,0,0),new THREE.Vector3(-bd.w/2-.5,bd.h,0),Math.round(t.dims.Body.h*(gs.y||1))+'cm H',new THREE.Vector3(0,0,0));}
+    if(showDimensions){
+      const gs=t.scale||{x:1,y:1,z:1};
+      addDimLabel(
+        new THREE.Vector3(-bd.w/2 * gs.x, 0, bd.d/2 * gs.z),
+        new THREE.Vector3(bd.w/2 * gs.x, 0, bd.d/2 * gs.z),
+        Math.round((t.dims.Body.w||100)*(gs.x||1))+'cm W',
+        new THREE.Vector3(0,-.15,.5)
+      );
+      addDimLabel(
+        new THREE.Vector3((-bd.w/2-0.5) * gs.x, 0, 0),
+        new THREE.Vector3((-bd.w/2-0.5) * gs.x, bd.h * gs.y, 0),
+        Math.round(((t.dims.Body.h||180))*(gs.y||1))+'cm H',
+        new THREE.Vector3(0,0,0)
+      );
+    }
   }
 
   const gs=activeTemplate.scale;

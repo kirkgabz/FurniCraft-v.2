@@ -493,6 +493,8 @@
       };
       proposals.push(newProposal);
       localStorage.setItem(proposalsKey, JSON.stringify(proposals));
+      // Notify shop dashboard instantly via BroadcastChannel
+      try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'order' }); } catch(e) {}
       projectModal.style.display = 'none';
       alert('Project proposal sent. Waiting for shop approval.');
       loadProjectStatus();
@@ -579,14 +581,17 @@
       messages.push({
         id: Date.now(),
         sender: 'user',
+        customerName: userName || 'Anonymous',
         text: message,
         timestamp: new Date().toISOString(),
+        read: false,
         file: null
       });
 
       localStorage.setItem(messagesKey, JSON.stringify(messages));
       input.value = '';
       loadMessages();
+      try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'chat' }); } catch(e) {}
 
       // Simulate shop response after 2-5 seconds
       setTimeout(() => {
@@ -664,8 +669,10 @@
       messages.push({
         id: Date.now(),
         sender: 'shop',
+        customerName: userName || 'Anonymous',
         text: randomResponse,
         timestamp: new Date().toISOString(),
+        read: true,
         file: null
       });
 
@@ -686,8 +693,10 @@
         messages.push({
           id: Date.now(),
           sender: 'user',
+          customerName: userName || 'Anonymous',
           text: null,
           timestamp: new Date().toISOString(),
+          read: false,
           file: {
             name: file.name,
             type: file.type,
@@ -698,6 +707,7 @@
         localStorage.setItem(messagesKey, JSON.stringify(messages));
         loadMessages();
         e.target.value = ''; // Reset file input
+        try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'chat' }); } catch(e) {}
       };
       reader.readAsDataURL(file);
     });

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop Messages - FurniCraft</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --bg-base: #F9F7F4;
+      --bg-glass: rgba(255, 255, 255, 0.6);
+      --accent-primary: #8B5A2B;
+      --accent-hover: #724921;
+      --accent-glow: rgba(139, 90, 43, 0.25);
+      --text-dark: #1F1915;
+      --text-muted: #6B5B53;
+      --border-light: rgba(139, 90, 43, 0.1);
+      
+      --bg-main: var(--bg-base);
+      --bg-side: #ffffff;
+      --card-bg: #ffffff;
+      --text-main: var(--text-dark);
+      --text-light: #94a3b8;
+
+      --primary: var(--accent-primary);
+      --primary-soft: rgba(139, 90, 43, 0.08);
+      --accent: #c9a84c;
+      --accent-soft: rgba(201, 168, 76, 0.1);
+
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+
+      --border: var(--border-light);
+      --radius-lg: 32px;
+      --radius-md: 16px;
+      --shadow-sm: 0 4px 15px rgba(44, 30, 22, 0.03);
+      --shadow-md: 0 10px 30px rgba(44, 30, 22, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-dark);
+      min-height: 100vh;
+      line-height: 1.6;
+      display: flex;
+    }
+
+    /* --- SIDEBAR --- */
+    .sidebar {
+      width: 280px;
+      background: #ffffff;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 1100;
+      padding: 1.5rem 0;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-brand { display: none; }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 0 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .menu-item:hover {
+      background: var(--bg-base);
+      color: var(--primary);
+    }
+
+    .menu-item.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .menu-badge {
+      margin-left: auto;
+      background: var(--primary);
+      color: white;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .sidebar-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* --- MAIN --- */
+    .main-wrapper {
+      flex: 1;
+      margin-left: 280px;
+      padding: 2rem 3rem;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--text-dark);
+    }
+
+    .section-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      height: calc(100vh - 180px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 2rem;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .threads-panel {
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding-right: 1rem;
+    }
+
+    .thread-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .thread-item {
+      padding: 1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .thread-item:hover { background: #f8fafc; }
+    .thread-item.active { background: var(--primary-soft); border-color: var(--border-light); }
+
+    .chat-main {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .chat-messages {
+      flex: 1;
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 1.5rem;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .msg {
+      max-width: 70%;
+      padding: 1rem;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      position: relative;
+    }
+
+    .msg.user { align-self: flex-start; background: #ffffff; border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg.shop { align-self: flex-end; background: var(--primary); color: #ffffff; border-bottom-right-radius: 4px; }
+
+    .chat-input-area {
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .btn {
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: 0.2s;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-dark); }
+    .btn-danger { background: #fff; border: 1px solid #fee2e2; color: var(--danger); }
+  </style>
+</head>
+
+<body>
+  <aside class="sidebar">
+    <a href="shop_dashboard.html" class="sidebar-brand" style="text-decoration:none; color:inherit;">
+      <img src="../images/FurniCraft Logo without name.png" alt="FurniCraft Logo">
+      FurniCraft
+    </a>
+    <nav class="sidebar-menu">
+      <a href="shop_dashboard.html" class="menu-item">
+        <i class="fas fa-th-large"></i> Dashboard
+      </a>
+      <a href="shop_orders.html" class="menu-item">
+        <i class="fas fa-shopping-bag"></i> Orders & Progress
+        <span class="menu-badge" id="orderBadge">0</span>
+      </a>
+      <a href="../shop_studio.html" class="menu-item">
+        <i class="fas fa-wand-magic-sparkles"></i> Build a Design Template
+      </a>
+      <a href="shop_messages.html" class="menu-item active">
+        <i class="fas fa-comments"></i> Live Chat
+      </a>
+      <a href="shop_reviews.html" class="menu-item">
+        <i class="fas fa-star"></i> Customer Reviews
+      </a>
+      <a href="../templates.html" class="menu-item">
+        <i class="fas fa-images"></i> Template Gallery
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="javascript:logoutShop()" class="menu-item" style="color: var(--danger);">
+        <i class="fas fa-sign-out-alt"></i> Sign Out
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-wrapper">
+    <div class="header">
+      <h1 class="page-title">Live Chat</h1>
+      <div id="activeCustomerTitle" style="font-weight: 700; color: var(--primary); background: var(--primary-soft); padding: 0.5rem 1.2rem; border-radius: 100px; font-size: 0.9rem;">No customer selected</div>
+    </div>
+
+    <div class="section-card">
+      <div class="chat-layout">
+        <div class="threads-panel">
+          <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.8rem; display: flex; align-items: center; justify-content: space-between;">
+            <span>Customers</span>
+            <span id="activeChatCount" style="color: var(--primary); font-size: 0.7rem; background: var(--primary-soft); padding: 2px 8px; border-radius: 6px;">0</span>
+          </div>
+          <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem; align-items: center;">
+            <div style="position: relative; flex: 1;">
+              <i class="fas fa-user-tag" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 0.8rem;"></i>
+              <input type="text" id="customerSearch" placeholder="Search customer name..." style="padding-left: 2.5rem; font-size: 0.9rem; border-radius: 14px;" oninput="refreshChatThreads()">
+            </div>
+            <button class="btn btn-outline" style="padding: 0.8rem; height: 44px; width: 44px; justify-content: center; border-radius: 14px;" onclick="refreshChatThreads()" title="Refresh Threads"><i class="fas fa-sync"></i></button>
+            <button class="btn btn-danger" style="padding: 0.8rem; height: 44px; width: 44px; justify-content: center; border-radius: 14px;" onclick="openReportModal()" title="Report Customer"><i class="fas fa-flag"></i></button>
+          </div>
+          <div class="thread-list" id="threadList"></div>
+        </div>
+
+        <div class="chat-main">
+          <div id="messagesBox" class="chat-messages">
+            <div style="text-align:center; padding:4rem; color:var(--text-light);">Select a customer to start chatting</div>
+          </div>
+          <div class="chat-input-area">
+            <input id="replyInput" type="text" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendReply()">
+            <button class="btn btn-primary" onclick="sendReply()"><i class="fas fa-paper-plane"></i> Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Report Modal (simplified for now) -->
+  <script>
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') window.location.href = 'shop_login.html';
+    const managedShopId = sessionStorage.getItem('selectedShopId') || 1;
+    let activeCustomer = '';
+
+    function getCommissionsKey() { return `projectProposals_shop_${managedShopId}`; }
+    function getMessagesKey() { return `chatMessages_shop_${managedShopId}`; }
+
+    function refreshChatThreads() {
+      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const searchTerm = document.getElementById('customerSearch').value.toLowerCase();
+      
+      const allCustomers = [...new Set([...msgs.map(m => m.customerName), ...comms.map(c => c.customerName)])]
+        .filter(Boolean)
+        .filter(c => c.toLowerCase().includes(searchTerm));
+      
+      const list = document.getElementById('threadList');
+      list.innerHTML = allCustomers.map(c => {
+        const unreadCount = msgs.filter(m => m.customerName === c && m.sender === 'user' && !m.read).length;
+        return `
+          <div class="thread-item ${activeCustomer === c ? 'active' : ''}" onclick="selectThread('${c}')" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:700;">${c}</div>
+              <div style="font-size:0.7rem; color:var(--text-muted);">Active Conversation</div>
+            </div>
+            ${unreadCount > 0 ? `<span style="background:var(--danger); color:white; font-size:0.65rem; font-weight:800; padding:2px 6px; border-radius:10px;">${unreadCount}</span>` : ''}
+          </div>
+        `;
+      }).join('') || `<p style="text-align:center; padding:1rem; font-size:0.8rem; color:var(--text-light);">${searchTerm ? 'No results found.' : 'No active customers.'}</p>`;
+      
+      document.getElementById('activeChatCount').textContent = allCustomers.length;
+      document.getElementById('orderBadge').textContent = comms.filter(x => x.status !== 'completed' && x.status !== 'declined').length;
+    }
+
+    function selectThread(name) {
+      activeCustomer = name;
+      document.getElementById('activeCustomerTitle').textContent = `Chatting with: ${name}`;
+      
+      // Mark as read
+      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      let changed = false;
+      msgs.forEach(m => {
+        if (m.customerName === name && m.sender === 'user' && !m.read) {
+          m.read = true;
+          changed = true;
+        }
+      });
+      if (changed) {
+        localStorage.setItem(getMessagesKey(), JSON.stringify(msgs));
+        try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'chat' }); } catch(e) {}
+      }
+
+      refreshChatThreads();
+      loadMessages();
+    }
+
+    function loadMessages() {
+      if (!activeCustomer) return;
+      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      
+      // Mark as read if thread is open
+      let changed = false;
+      msgs.forEach(m => {
+        if (m.customerName === activeCustomer && m.sender === 'user' && !m.read) {
+          m.read = true;
+          changed = true;
+        }
+      });
+      if (changed) {
+        localStorage.setItem(getMessagesKey(), JSON.stringify(msgs));
+        // Note: we don't broadcast here to avoid infinite loops if other tabs also mark as read
+      }
+
+      const box = document.getElementById('messagesBox');
+      const active = msgs.filter(m => m.customerName === activeCustomer);
+      
+      box.innerHTML = active.map(m => `
+        <div class="msg ${m.sender === 'shop' ? 'shop' : 'user'}">
+          ${m.text || (m.file ? `<img src="${m.file.dataUrl}" style="max-width:100%; border-radius:10px;" />` : '')}
+          <div style="font-size:0.6rem; opacity:0.6; margin-top:4px;">${m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</div>
+        </div>
+      `).join('');
+      
+      if (!active.length) box.innerHTML = `<p style="text-align:center; padding:4rem; color:var(--text-light); font-size:0.9rem;">No message history with ${activeCustomer}.</p>`;
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function sendReply() {
+      const inp = document.getElementById('replyInput');
+      const txt = inp.value.trim();
+      if (!txt || !activeCustomer) return;
+      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      msgs.push({ sender: 'shop', customerName: activeCustomer, text: txt, timestamp: new Date().toISOString(), read: true });
+      localStorage.setItem(getMessagesKey(), JSON.stringify(msgs));
+      try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'chat' }); } catch(e) {}
+      inp.value = '';
+      loadMessages();
+    }
+
+    function openReportModal() { 
+      if(!activeCustomer) return alert('Select a customer to report');
+      alert('Report feature coming soon for ' + activeCustomer); 
+    }
+
+    function logoutShop() { sessionStorage.clear(); window.location.href = 'shop_login.html'; }
+
+    window.onload = () => {
+      refreshChatThreads();
+      setInterval(() => { refreshChatThreads(); loadMessages(); }, 3000);
+
+      // BroadcastChannel for instant sync
+      try {
+        const bc = new BroadcastChannel('furnicraft_updates');
+        bc.onmessage = (ev) => {
+          const { type } = ev.data || {};
+          if (type === 'chat' || type === 'order') {
+            refreshChatThreads();
+            loadMessages();
+          }
+        };
+      } catch(e) {}
+    };
+  </script>
+</body>
+</html>

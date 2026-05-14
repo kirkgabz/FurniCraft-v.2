@@ -254,23 +254,22 @@
     /* ─── Grid ─── */
     .grid {
       display: grid;
-      grid-template-columns: 1.25fr 1fr 1fr;
-      gap: 2rem;
+      grid-template-columns: 1fr 1fr 1fr;
+      column-gap: 2.2rem;
+      row-gap: 0;
       animation: fadeUp .9s ease both;
     }
 
-    .orders-col {
-      display: flex;
-      flex-direction: column;
-      gap: 1.4rem;
-    }
-
-    .col-title {
+    .col-header {
       font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       color: var(--accent2);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      margin-bottom: .4rem;
+      grid-row: 1;
     }
 
     /* ─── Cards ─── */
@@ -278,7 +277,7 @@
       background: rgba(255, 255, 255, .88);
       backdrop-filter: blur(10px);
       border-radius: var(--radius);
-      padding: 1.6rem;
+      padding: 1.8rem;
       box-shadow: var(--shadow);
       border: 1px solid var(--border);
       transition: transform .3s, box-shadow .3s;
@@ -529,8 +528,8 @@
     /* ─── Action cards ─── */
     .action-card {
       background: rgba(255, 255, 255, .92);
-      border-radius: 22px;
-      padding: 2.2rem 1.8rem;
+      border-radius: var(--radius);
+      padding: 1.8rem;
       text-align: center;
       box-shadow: var(--shadow);
       border: 1px solid var(--border);
@@ -539,9 +538,7 @@
       align-items: center;
       transition: all .4s cubic-bezier(.2, .8, .2, 1);
       cursor: pointer;
-      min-height: 420px;
-      height: fit-content;
-      align-self: start;
+      min-height: 400px;
     }
 
     .action-card:hover {
@@ -551,15 +548,15 @@
     }
 
     .action-icon {
-      width: 80px;
-      height: 80px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      margin-bottom: 1.6rem;
+      margin-bottom: 1.2rem;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
+      font-size: 1.5rem;
       color: #fff;
       box-shadow: 0 10px 22px rgba(178, 106, 56, .28);
       transition: transform .4s cubic-bezier(.2, .8, .2, 1);
@@ -797,6 +794,41 @@
       color: var(--muted);
       margin-top: 2px;
     }
+
+    /* Spec Modal Styling */
+    .spec-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; color: var(--text); }
+    .spec-table th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: var(--muted); text-transform: uppercase; font-size: 0.75rem; font-weight: 700; }
+    .spec-table td { padding: 12px; border-bottom: 1px solid var(--border); }
+    .mat-tag { background: var(--accent-pale); color: var(--accent); padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; }
+    
+    .spec-header { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; background: var(--bg2); padding: 1.5rem; border-radius: var(--radius); }
+    .spec-image { width: 160px; height: 160px; object-fit: contain; background: #fff; border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: zoom-in; }
+    
+    .btn-specs {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 18px;
+      font-size: .78rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-specs:hover {
+      background: var(--accent-pale);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Image Zoom Overlay */
+    .image-zoom-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 5000; cursor: zoom-out; }
+    .image-zoom-overlay.open { display: flex; }
+    .image-zoom-overlay img { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 12px; }
 
     .tx-price {
       font-weight: 700;
@@ -1323,7 +1355,7 @@
     <div class="nav-links">
       <a href="craft.html" class="nav-item"><i class="fas fa-tools"></i> Craft a Furniture</a>
       <a href="export_area.html" class="nav-item"><i class="fas fa-file-export"></i> Export Area</a>
-      <a href="shop.html" class="nav-item"><i class="fas fa-store"></i> Select a Workshop</a>
+      <a href="shop.html" class="nav-item"><i class="fas fa-store"></i> Select a Furniture Shop</a>
       <a href="#" class="nav-item" id="navTemplates" onclick="navToTemplates(event)"><i class="fas fa-images"></i> <span
           id="navTemplatesLabel">Pre-made Templates</span></a>
       <a href="createshop.html" class="nav-item"><i class="fas fa-hammer"></i> Create a Shop</a>
@@ -1342,16 +1374,17 @@
     </div>
 
     <div class="grid">
+      <!-- HEADERS ROW -->
+      <h2 class="col-header" style="grid-column: 1;">Your Orders</h2>
+      <h2 class="col-header" style="grid-column: 2;">Quick Actions</h2>
+      <h2 class="col-header" style="grid-column: 3;">Design Gallery</h2>
 
-      <!-- ORDERS COLUMN -->
-      <div class="orders-col">
-        <h2 class="col-title">Your Orders</h2>
-
+      <!-- COLUMN 1: ORDERS (grid-row: 2) -->
+      <div class="orders-col" style="grid-column: 1; grid-row: 2; display:flex; flex-direction:column; gap:1.4rem;">
         <!-- Current / Pending -->
         <div class="card">
           <div class="card-head">
-            <h3><i class="fas fa-box-open"></i> Current Orders <span class="badge-count" id="pendingCount"
-                style="display:none"></span></h3>
+            <h3><i class="fas fa-box-open"></i> Current Orders <span class="badge-count" id="pendingCount" style="display:none"></span></h3>
           </div>
           <div class="card-content">
             <div id="currentOrders">
@@ -1364,40 +1397,38 @@
         <!-- Transaction History -->
         <div class="card">
           <div class="card-head">
-            <h3><i class="fas fa-receipt"></i> Transactions <span class="badge-count" id="txCount"
-                style="display:none"></span></h3>
-            <button class="btn-clear" id="clearBtn" style="display:none" onclick="clearHistory()">
-              <i class="fas fa-trash-alt"></i> Clear
-            </button>
+            <h3><i class="fas fa-receipt"></i> Transactions <span class="badge-count" id="txCount" style="display:none"></span></h3>
+            <button class="btn-clear" id="clearBtn" style="display:none" onclick="clearHistory()"><i class="fas fa-trash-alt"></i> Clear</button>
           </div>
           <div id="txHistory">
             <div class="empty">No previous transactions.</div>
           </div>
-
-          <!-- VIEW ALL button -->
           <button class="btn-view-all" id="viewAllBtn" style="display:none" onclick="openTxModal()">
             <i class="fas fa-table-list"></i> View All Transactions
           </button>
         </div>
       </div>
 
-      <!-- Craft card -->
-      <div class="action-card" onclick="location.href='craft.html'">
-        <div class="action-icon"><i class="fas fa-tools"></i></div>
-        <h2>Craft a Furniture</h2>
-        <p>Customize and create your own furniture designs from scratch with our 3D builder.</p>
-        <button class="action-btn">Start Crafting</button>
+      <!-- COLUMN 2: CRAFT (grid-row: 2) -->
+      <div style="grid-column: 2; grid-row: 2;">
+        <div class="action-card" onclick="location.href='craft.html'">
+          <div class="action-icon"><i class="fas fa-tools"></i></div>
+          <h2>Craft a Furniture</h2>
+          <p>Customize and create your own furniture designs from scratch with our 3D builder.</p>
+          <button class="action-btn">Start Crafting</button>
+        </div>
       </div>
 
-      <!-- Shop Templates card — dynamic, disabled if no shop selected -->
-      <div class="action-card" id="templateCard" onclick="goToTemplates()">
-        <div class="action-icon" id="templateIcon"><i class="fas fa-store"></i></div>
-        <h2 id="templateTitle">View Templates</h2>
-        <p id="templateDesc">Select a workshop in Shop Selection to browse that shop's pre-made 3D furniture designs.
-        </p>
-        <button class="action-btn" id="templateBtn">Browse Templates</button>
-        <div class="no-shop-notice" id="noShopNotice">
-          <i class="fas fa-lock"></i> Select a shop first
+      <!-- COLUMN 3: TEMPLATES (grid-row: 2) -->
+      <div style="grid-column: 3; grid-row: 2;">
+        <div class="action-card" id="templateCard" onclick="goToTemplates()">
+          <div class="action-icon" id="templateIcon"><i class="fas fa-store"></i></div>
+          <h2 id="templateTitle">View Templates</h2>
+          <p id="templateDesc">Select a furniture shop in Shop Selection to browse that shop's pre-made 3D furniture designs.</p>
+          <button class="action-btn" id="templateBtn">Browse Templates</button>
+          <div class="no-shop-notice" id="noShopNotice">
+            <i class="fas fa-lock"></i> Select a shop first
+          </div>
         </div>
       </div>
 
@@ -1453,6 +1484,28 @@
   <!-- ══════════════════════════════════════
      LIVE CHAT MODAL  (mirrors export_area)
 ══════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════
+     SPECIFICATIONS MODAL
+  ══════════════════════════════════════ -->
+  <div class="modal-scrim" id="specModalScrim" onclick="closeSpecModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2><i class="fas fa-sliders-h"></i> Order Specifications</h2>
+        <button class="modal-close" onclick="closeSpecModal()"><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" id="specContent">
+        <!-- Content injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Zoom Overlay -->
+  <div id="imageZoom" class="image-zoom-overlay" onclick="this.classList.remove('open')">
+    <i class="fas fa-times" style="position:absolute; top:2rem; right:2rem; color:white; font-size:2rem; cursor:pointer;" onclick="document.getElementById('imageZoom').classList.remove('open')"></i>
+    <img id="zoomedImg" src="" alt="Zoomed View">
+  </div>
+
+
   <div class="chat-scrim" id="chatScrim" onclick="closeChatOnScrim(event)">
     <div class="chat-panel" onclick="event.stopPropagation()">
       <div class="chat-panel-head">
@@ -1503,6 +1556,16 @@
     </div>
   </div>
 
+  <!-- Real-time Update Toast -->
+  <div id="updateToast" style="display:none; position:fixed; bottom:20px; right:20px; background:#1e293b; color:white; padding:15px 25px; border-radius:12px; z-index:11000; box-shadow:0 10px 30px rgba(0,0,0,0.3); align-items:center; gap:15px; border-left:4px solid #10b981; animation: slideup 0.3s ease-out;">
+    <div style="background:#10b981; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-hammer"></i></div>
+    <div>
+      <div style="font-weight:700; font-size:0.95rem;">Workshop Update!</div>
+      <div style="font-size:0.8rem; opacity:0.8;" id="toastMsg">The shop sent a new photo of your build.</div>
+    </div>
+    <i class="fas fa-times" style="cursor:pointer; opacity:0.5;" onclick="this.parentElement.style.display='none'"></i>
+  </div>
+
   <script>
     /* ══════════════════════════════════════
        CONSTANTS — must match export_area.html
@@ -1511,6 +1574,43 @@
     const SHOP_NAME = sessionStorage.getItem('selectedShopName') || 'AFMB Valeza Rattan Furniture and Fixtures';
     const COMM_KEY = `projectProposals_shop_${SHOP_ID}`;
     const CHAT_KEY = `chatMessages_shop_${SHOP_ID}`;
+
+    /* ── sync logic ── */
+    try {
+      const channel = new BroadcastChannel('furnicraft_updates');
+      channel.onmessage = (e) => {
+        if (e.data.type === 'order' || e.data.type === 'order_update') {
+          // If update is specifically for THIS customer
+          const myName = getCustName();
+          if (e.data.type === 'order_update' && e.data.customerName === myName) {
+            showUpdateToast(e.data.orderId, e.data.note);
+          }
+          renderTransactions();
+          updateStats();
+        }
+        if (e.data.type === 'chat') {
+          loadChat();
+          updateFabBadge();
+        }
+      };
+    } catch (e) {}
+
+    function showUpdateToast(orderId, noteText) {
+      const toast = document.getElementById('updateToast');
+      const msg = document.getElementById('toastMsg');
+      if (msg && noteText) msg.textContent = noteText;
+      
+      toast.style.display = 'flex';
+      // Auto hide after 8s
+      setTimeout(() => { toast.style.display = 'none'; }, 8000);
+      
+      // Optionally play a subtle sound or flash the "Transactions" card
+      const txCard = document.querySelector('.card:has(#txHistory)');
+      if(txCard) {
+        txCard.style.outline = '2px solid #10b981';
+        setTimeout(() => txCard.style.outline = 'none', 3000);
+      }
+    }
 
     /* ── helpers ── */
     function fmtDate(iso) {
@@ -1540,6 +1640,11 @@
 
     /* ── customer identity (mirrors export_area's getCustName logic) ── */
     function getCustName() {
+      const email = localStorage.getItem('currentUserEmail');
+      const name = localStorage.getItem('currentUserName');
+      if (name) return name;
+      if (email) return email.split('@')[0];
+      
       const expId = sessionStorage.getItem('currentExportId') || 'exp_unknown';
       return 'Client (' + expId.substring(0, 6) + ')';
     }
@@ -1558,6 +1663,7 @@
         const proposals = JSON.parse(localStorage.getItem(COMM_KEY) || '[]');
         proposals.forEach(p => {
           rows.push({
+            ...p,
             id: p.id,
             name: p.description || 'Custom Design',
             shop: SHOP_NAME,
@@ -1577,6 +1683,7 @@
           try {
             const o = JSON.parse(localStorage.getItem(k));
             rows.push({
+              ...o,
               id: k,
               name: o.projectName || 'Custom Furniture',
               shop: o.shopName || 'Unknown Shop',
@@ -1692,13 +1799,16 @@
 
     function txRow(tx, isDraft) {
       const st = isDraft ? 'draft' : (tx.status || 'pending').toLowerCase();
+      const isClickableStatus = ['pending', 'approved', 'payment_verifying', 'in_progress', 'payment_received'].includes(st);
+      
       const pill = isDraft
         ? '<span class="pill pill-pending">DRAFT</span>'
-        : `<span class="pill ${pillClass(st)}">${pillLabel(st)}</span>`;
+        : `<span class="pill ${pillClass(st)}" ${isClickableStatus ? `style="cursor:pointer;" onclick="goToOrder('${tx.id}', '${tx.exportId || ''}')"` : ''}>${pillLabel(st)}</span>`;
+      
       const btn = isDraft
         ? `<button class="continue-btn" onclick="location.href='craft.html'">CONTINUE</button>`
-        : (st === 'pending' || st === 'approved'
-          ? `<button class="continue-btn" onclick="location.href='export_area.html'">VIEW</button>`
+        : (isClickableStatus
+          ? `<button class="continue-btn" onclick="goToOrder('${tx.id}', '${tx.exportId || ''}')">VIEW</button>`
           : '');
 
       return `<div class="tx-row">
@@ -1707,9 +1817,19 @@
       <small><i class="fas fa-store"></i> ${tx.shop || '—'}</small>
       ${tx.price ? `<small><i class="fas fa-tag"></i> ${money(tx.price)}</small>` : ''}
       ${tx.date ? `<small><i class="fas fa-calendar-alt"></i> ${fmtDate(tx.date)}</small>` : ''}
+      <div style="margin-top:8px; display:flex; gap:8px;">
+        <button class="btn-specs" onclick="openSpecModal('${tx.id}')"><i class="fas fa-sliders-h"></i> Specs</button>
+      </div>
     </div>
     <div class="tx-right">${pill}${btn}</div>
   </div>`;
+    }
+
+    function goToOrder(id, exportId) {
+      if (exportId) {
+        sessionStorage.setItem('currentExportId', exportId);
+      }
+      location.href = 'export_area.html';
     }
 
     /* ══════════════════════════════════════
@@ -1796,11 +1916,133 @@
       <td class="tx-ref">${tx.ref || '—'}</td>
       <td class="tx-date">${fmtDate(tx.date)}<br><span style="font-size:.75rem;color:var(--muted);">${fmtTime(tx.date)}</span></td>
       <td>
-        ${st === 'completed' || st === 'declined' ? ''
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn-specs" onclick="openSpecModal('${tx.id}')"><i class="fas fa-sliders-h"></i> Specs</button>
+          ${st === 'completed' || st === 'declined' ? ''
             : `<button class="continue-btn" onclick="location.href='export_area.html'">View</button>`}
+        </div>
       </td>
     </tr>`;
       }).join('');
+    }
+
+    /* ══════════════════════════════════════
+       SPECIFICATIONS MODAL LOGIC
+    ══════════════════════════════════════ */
+    function openSpecModal(orderId) {
+      const all = getAllTx();
+      const order = all.find(x => String(x.id) === String(orderId));
+      if (!order) return;
+
+      const content = document.getElementById('specContent');
+      let specHTML = `
+        <div class="spec-header">
+          ${order.previewImage ? `<img src="${order.previewImage}" onclick="zoomImage('${order.previewImage}')" class="spec-image" title="Click to Expand" />` : ''}
+          <div style="flex:1;">
+            <h3 style="font-family:'Playfair Display', serif; margin-bottom:0.5rem; font-size:1.5rem;">${order.projectName || order.description || 'Custom Build'}</h3>
+            <p style="color:var(--muted); font-size:0.9rem;">Shop: <b>${order.shopName || order.shop || '—'}</b></p>
+            <p style="color:var(--muted); font-size:0.8rem; margin-top:0.2rem;">Ordered: <b>${fmtDate(order.date)} ${fmtTime(order.date)}</b></p>
+            <p style="color:var(--muted); font-size:0.9rem; margin-top:0.4rem;">Price: <b style="color:var(--accent);">${money(order.price || order.estimated)}</b></p>
+            <div style="margin-top:1rem;">
+               <span class="pill ${pillClass(order.status || 'pending')}">${pillLabel(order.status || 'Pending')}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      let parsed = null;
+      try { parsed = order.cadState ? (typeof order.cadState === 'string' ? JSON.parse(order.cadState) : order.cadState) : null; } catch(e){}
+
+      if (parsed && parsed.items && parsed.items.length) {
+        const item = parsed.items[0];
+        const gs = item.globalScale || {x:1,y:1,z:1};
+        const dims = item.dims || {};
+        const materials = item.materials || {};
+        const parts = Object.keys(dims);
+
+        specHTML += `
+          <h4 style="margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem; font-family:'Playfair Display', serif; font-size:1.2rem;">Dimension & Material Specifications</h4>
+          <p style="font-size:0.8rem; color:var(--muted); margin-bottom:1rem;">Scale: ${Math.round(gs.x*100)}% / ${Math.round(gs.y*100)}% / ${Math.round(gs.z*100)}%</p>
+          <div style="overflow-x:auto;">
+            <table class="spec-table">
+              <thead>
+                <tr>
+                  <th>Component Part</th>
+                  <th>Material Used</th>
+                  <th>Width (cm)</th>
+                  <th>Height (cm)</th>
+                  <th>Depth (cm)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${parts.map(part => {
+                  const d = dims[part] || {w:0,h:0,d:0};
+                  return `
+                    <tr>
+                      <td><b>${part}</b></td>
+                      <td><span class="mat-tag">${materials[part] || 'Standard Wood'}</span></td>
+                      <td>${(d.w * gs.x).toFixed(0)}</td>
+                      <td>${(d.h * gs.y).toFixed(0)}</td>
+                      <td>${(d.d * gs.z).toFixed(0)}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        if (item.config) {
+          const configItems = [];
+          Object.keys(item.config).forEach(k => {
+            const val = item.config[k];
+            if (val === true) configItems.push(`${k.replace('has', '')}: Yes`);
+            else if (typeof val === 'string') configItems.push(`${k}: ${val}`);
+            else if (typeof val === 'number') configItems.push(`${k}: ${val}`);
+          });
+          
+          if (configItems.length) {
+            specHTML += `
+              <div style="margin-top:1.5rem; padding:1.2rem; background:rgba(178,106,56,0.05); color:#8B5A2B; border-radius:12px; font-size:0.85rem; border: 1px solid rgba(178,106,56,0.1);">
+                <i class="fas fa-cogs"></i> <b>Design Features:</b> ${configItems.join(' &nbsp;|&nbsp; ')}
+              </div>
+            `;
+          }
+        }
+
+        // Build Progress Gallery
+        if (order.progressUpdates && order.progressUpdates.length) {
+          specHTML += `
+            <h4 style="margin-top:2.5rem; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem; font-family:'Playfair Display', serif; font-size:1.2rem;">Build Progress & Photos</h4>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:15px; margin-top:1rem;">
+              ${order.progressUpdates.slice().reverse().map(upd => `
+                <div style="background:#f8f5f2; border-radius:12px; overflow:hidden; border:1px solid rgba(0,0,0,0.05);">
+                  ${upd.image ? `<img src="${upd.image}" onclick="zoomImage('${upd.image}')" style="width:100%; height:150px; object-fit:cover; cursor:zoom-in;" />` : ''}
+                  <div style="padding:10px;">
+                    <p style="font-size:0.85rem; line-height:1.4; margin-bottom:5px;">${upd.note}</p>
+                    <div style="font-size:0.7rem; color:var(--muted);">${new Date(upd.timestamp).toLocaleDateString()} at ${new Date(upd.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+      } else {
+        specHTML += `<div style="text-align:center; padding:3rem; color:var(--muted); font-style:italic;">No detailed specification data found for this order.</div>`;
+      }
+
+      content.innerHTML = specHTML;
+      document.getElementById('specModalScrim').classList.add('open');
+    }
+
+    function closeSpecModal(e) {
+      if (!e || e.target === document.getElementById('specModalScrim') || (e.currentTarget && e.currentTarget.classList.contains('modal-close')))
+        document.getElementById('specModalScrim').classList.remove('open');
+    }
+
+    function zoomImage(src) {
+      document.getElementById('zoomedImg').src = src;
+      document.getElementById('imageZoom').classList.add('open');
     }
 
     /* ══════════════════════════════════════
@@ -1888,6 +2130,8 @@
       msgs.push({ id: Date.now(), sender: 'user', customerName: getCustName(), text: question, timestamp: new Date().toISOString() });
       localStorage.setItem(CHAT_KEY, JSON.stringify(msgs));
       
+      try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'chat' }); } catch(e) {}
+
       // Automated Answer with follow-up
       setTimeout(() => {
         const followUp = answer + " Is there anything else from the options below that you'd like to inquire about?";
@@ -1896,6 +2140,7 @@
         const msgsAfter = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
         msgsAfter.push({ id: Date.now(), sender: 'shop', customerName: getCustName(), text: followUp, timestamp: new Date().toISOString() });
         localStorage.setItem(CHAT_KEY, JSON.stringify(msgsAfter));
+        try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'chat' }); } catch(e) {}
       }, 600);
     }
 
@@ -1910,6 +2155,8 @@
 
       appendChat('user', msg);
       inp.value = '';
+      
+      try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'chat' }); } catch(e) {}
 
       // Trigger Chatbot Response
       setTimeout(() => chatbotResponse(msg), 800);
@@ -1922,8 +2169,8 @@
 
       if (input.includes("furniture") || input.includes("design") || input.includes("canvas")) {
         reply = `You can canvas all our available designs in the 'Pre-made Templates' section of your dashboard, or use our 3D builder to start a fresh custom craft for ${shopName} to evaluate.`;
-      } else if (input.includes("material") || input.includes("wood") || input.includes("finish")) {
-        reply = `We specialize in premium local hardwoods like Mahogany, Acacia, and Narra. Each piece is treated for durability and finished to your preference (Matte, Gloss, or Natural Oil).`;
+      } else if (input.includes("material") || input.includes("wood") || input.includes("finish") || input.includes("rattan")) {
+        reply = `As AFMB Valeza Rattan specialists, we primarily work with high-quality, sustainable Rattan and woven materials. We also use premium wood for structural frames to ensure your furniture lasts for generations.`;
       } else if (input.includes("price") || input.includes("cost") || input.includes("budget")) {
         reply = `Once you finalize a design in the 3D builder and 'Send to Shop', our manager will provide a precise quotation based on your selected dimensions and wood type.`;
       } else if (input.includes("hello") || input.includes("hi") || input.includes("hey")) {
@@ -1937,10 +2184,12 @@
       const finalReply = reply + " Would you like to check our wood types or get a quote next?";
       appendChat('shop', finalReply);
 
-      // Save bot reply to history properly
       const msgsAfter = JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
       msgsAfter.push({ id: Date.now(), sender: 'shop', customerName: getCustName(), text: finalReply, timestamp: new Date().toISOString() });
       localStorage.setItem(CHAT_KEY, JSON.stringify(msgsAfter));
+
+      // Broadcast bot reply to other tabs
+      try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'chat' }); } catch(e) {}
     }
 
     /* Badge logic — show unread shop messages */
@@ -2016,7 +2265,7 @@
         if (existing) existing.remove();
 
         title.textContent = 'Pre-made Templates';
-        desc.textContent = 'Choose a verified workshop in Shop Selection to unlock and browse that shop\'s exclusive 3D furniture designs.';
+        desc.textContent = 'Choose a verified furniture shop in Shop Selection to unlock and browse that shop\'s exclusive 3D furniture designs.';
         btn.textContent = 'Browse Templates';
         btn.disabled = true;
         notice.style.display = 'flex';
@@ -2033,7 +2282,7 @@
       e.preventDefault();
       const shopName = sessionStorage.getItem('selectedShopName');
       if (!shopName) {
-        alert('Please select a workshop first from Shop Selection.');
+        alert('Please select a furniture shop first from Shop Selection.');
         closeNav();
         return;
       }

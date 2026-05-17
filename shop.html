@@ -894,27 +894,12 @@
       <div class="tc-modal">
         <div class="tc-head">
           <i class="fas fa-file-contract"></i>
-          <h2>Shop Policies</h2>
+          <h2 id="tcShopName">Shop Policies</h2>
         </div>
         <div class="tc-body">
-          <h3>Terms and Conditions</h3>
-          <ul class="tc-list">
-            <li>
-              <i class="fas fa-check-circle"></i>
-              <span>Agreement to <b>Turn Around Time Period (Deadline)</b> as discussed for each order.</span>
-            </li>
-            <li>
-              <i class="fas fa-check-circle"></i>
-              <span><b>1 Year Warranty</b> covering manufacturing defects (e.g., loose weaving, brace detachments).</span>
-            </li>
-            <li>
-              <i class="fas fa-check-circle"></i>
-              <span><b>Free Delivery</b> within the city limits only.</span>
-            </li>
-            <li>
-              <i class="fas fa-check-circle"></i>
-              <span><b>50% Down Payment</b> is required to confirm and initiate the production of your design.</span>
-            </li>
+          <h3 id="tcTitle">Terms and Conditions</h3>
+          <ul class="tc-list" id="tcList">
+            <!-- Dynamic items here -->
           </ul>
         </div>
         <div class="tc-foot">
@@ -932,17 +917,95 @@
       window.location.href = "main.html";
     }
 
+    const shopPolicies = {
+      1: [
+        "Agreement to <b>30-45 Day Lead Time</b> for solid wood and rattan production.",
+        "<b>1 Year Limited Warranty</b> on wood joints and structural integrity.",
+        "<b>Free Delivery</b> within Puerto Princesa city limits.",
+        "<b>50% Down Payment</b> required to commence artisan crafting."
+      ],
+      2: [
+        "Lead time of <b>3-4 Weeks</b> for hand-woven tropical pieces.",
+        "<b>6-Month Warranty</b> on rattan weaving and bamboo frames.",
+        "Delivery available with <b>Standard Shipping Rates</b> across Palawan.",
+        "<b>60% Down Payment</b> required for custom resort-style orders."
+      ],
+      3: [
+        "Standard production time of <b>14-21 Days</b> for upholstered sofas.",
+        "<b>1 Year Warranty</b> on foam density and frame construction.",
+        "<b>White Glove Delivery</b> and assembly included for city residents.",
+        "<b>40% Down Payment</b> to secure fabric materials and schedule."
+      ],
+      4: [
+        "Modular cabinetry requires <b>25-35 Days</b> for precision milling.",
+        "<b>2 Year Warranty</b> on all hinges, sliders, and laminate finishes.",
+        "<b>Installation Fee</b> applied for on-site kitchen/closet fitting.",
+        "<b>50% Down Payment</b> required before material procurement."
+      ],
+      6: [
+        "Epoxy curing and finishing requires a strict <b>40-Day Period</b>.",
+        "<b>3 Year Warranty</b> against resin delamination or yellowing.",
+        "<b>Insured Freight Shipping</b> required for heavy resin slabs.",
+        "<b>70% Down Payment</b> due to high cost of imported resin materials."
+      ],
+      7: [
+        "Ornate hand-carving requires <b>60-90 Days</b> of dedicated labor.",
+        "<b>Lifetime Warranty</b> on authentic Kamagong and Narra carvings.",
+        "<b>Hand-Carried Delivery</b> only to ensure protection of details.",
+        "<b>50% Non-Refundable Deposit</b> for bespoke classical designs."
+      ],
+      8: [
+        "Modern rattan export grade takes <b>30-40 Days</b> for processing.",
+        "<b>1 Year Warranty</b> on both steel frames and rattan weaving.",
+        "<b>Worldwide Shipping</b> available (Freight costs calculated later).",
+        "<b>50% Down Payment</b> required for international-grade orders."
+      ],
+      9: [
+        "Industrial metal fabrication lead time is <b>14-25 Days</b>.",
+        "<b>5 Year Anti-Rust Warranty</b> on all black iron and steel frames.",
+        "<b>Installation Support</b> provided for built-in industrial fixtures.",
+        "<b>40% Down Payment</b> to secure raw metal and glass stock."
+      ],
+      10: [
+        "Large hardwood slabs require <b>45-60 Days</b> for final curing.",
+        "<b>2 Year Warranty</b> against wood warping or natural splitting.",
+        "<b>Heavy Load Delivery</b> (Trucking) service required for solid slabs.",
+        "<b>50% Down Payment</b> for heritage Mindanao Ironwood pieces."
+      ],
+      11: [
+        "Rustic pine furniture production time is <b>15-20 Days</b>.",
+        "<b>1 Year Warranty</b> on wood treatment and rustic finishes.",
+        "<b>Baguio-Wide Delivery</b> or pickup from Session Road workshop.",
+        "<b>30% Down Payment</b> to initiate cabin-style furniture crafting."
+      ],
+      default: [
+        "Standard <b>30-Day Turnaround</b> for custom furniture orders.",
+        "<b>1 Year Structural Warranty</b> covering defects in workmanship.",
+        "<b>Local Pickup</b> available; shipping calculated at checkout.",
+        "<b>50% Down Payment</b> required to initiate production."
+      ]
+    };
+
     function selectShop(id, name) {
-      if (name.includes("AFMB Valeza Rattan")) {
-        showTC(id, name);
-        return;
-      }
-      finalizeSelection(id, name);
+      showTC(id, name);
     }
 
     function showTC(id, name) {
       const modal = document.getElementById('tcModal');
       const agreeBtn = document.getElementById('agreeBtn');
+      const tcList = document.getElementById('tcList');
+      const tcShopName = document.getElementById('tcShopName');
+      
+      tcShopName.innerText = name;
+      tcList.innerHTML = "";
+      
+      const policies = shopPolicies[id] || shopPolicies.default;
+      policies.forEach(policy => {
+        const li = document.createElement('li');
+        li.innerHTML = `<i class="fas fa-check-circle"></i> <span>${policy}</span>`;
+        tcList.appendChild(li);
+      });
+
       modal.classList.add('open');
       agreeBtn.onclick = () => {
         finalizeSelection(id, name);

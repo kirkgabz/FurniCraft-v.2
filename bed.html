@@ -1564,8 +1564,7 @@
        NAVIGATION
     ═══════════════════════════════════════════════ */
     function goBack() {
-      const isShop = sessionStorage.getItem('craftMode') === 'shop';
-      window.location.href = isShop ? 'shop_dashboard.html' : 'main.html';
+      window.history.back();
     }
 
     function goToCraft() {
@@ -1658,6 +1657,21 @@
       glass_clear: { name: 'Glass Clear', icon: '🔲', hex: '#a8d8ea', dura: 70, qual: 95, price: 5.0, rec: false, note: 'Tempered glass top. Modern look.' },
       brushed_steel: { name: 'Brushed Steel', icon: '🔩', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
     };
+
+    // Sync shop-defined prices if available
+    (function syncMaterialPrices() {
+      const shopId = sessionStorage.getItem('managedShopId') || sessionStorage.getItem('selectedShopId');
+      if (!shopId) return;
+      const savedPrices = JSON.parse(localStorage.getItem(`shop_material_prices_${shopId}`) || '{}');
+      for (const key in materialDB) {
+        const matName = materialDB[key].name;
+        if (savedPrices[matName] && typeof savedPrices[matName] === 'object') {
+          materialDB[key].price = savedPrices[matName].price;
+        } else if (savedPrices[matName] && typeof savedPrices[matName] === 'number') {
+          materialDB[key].price = savedPrices[matName];
+        }
+      }
+    })();
 
     const bedParts = ['Headboard', 'Footboard', 'Frame', 'Platform', 'Legs'];
 
@@ -1758,7 +1772,25 @@
       } catch (e) { appState.items = []; }
 
       const shouldAdd = sessionStorage.getItem('addNew');
-      if (shouldAdd === 'true') {
+      const modState = sessionStorage.getItem('cadState');
+
+      if (modState) {
+          try {
+              const parsed = JSON.parse(modState);
+              if (parsed && parsed.items && parsed.items.length > 0) {
+                  const modItem = parsed.items[0].raw || parsed.items[0];
+                  // Ensure it's the right type
+                  if (modItem.type === PAGE_TYPE || !modItem.type) {
+                      modItem.type = PAGE_TYPE;
+                      // Replace items with this one for modification focus
+                      appState.items = [modItem];
+                      appState.activeItemId = modItem.id;
+                      // We don't remove cadState yet in case of refresh, 
+                      // but we mark it as 'loaded' in a way or just leave it.
+                  }
+              }
+          } catch(e) { console.error("Mod load failed", e); }
+      } else if (shouldAdd === 'true') {
         createNewBed(false, 'plain');
         sessionStorage.removeItem('addNew');
       } else if (appState.items.length === 0) {
@@ -2229,7 +2261,9 @@
                     analysis: { 
                       durability: parseInt(durabilityText)||90, 
                       quality: parseInt(qualityText)||90 
-                    } 
+                    },
+                    // Full state for re-editing
+                    raw: activeItem 
                   }] 
                 })
               };

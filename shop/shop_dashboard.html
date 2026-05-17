@@ -691,6 +691,19 @@
     .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.4); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 2rem; }
     .modal-box { background: white; border-radius: 32px; width: 100%; max-width: 500px; padding: 2.5rem; box-shadow: var(--shadow-md); }
 
+    /* Material Modal Specifics */
+    .material-input-row { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem; border-bottom: 1px solid var(--border); }
+    .material-input-row:last-child { border-bottom: none; }
+    .material-input-row label { font-size: 0.85rem; font-weight: 600; color: var(--text-dark); }
+    .material-input-wrapper { display: flex; align-items: center; gap: 8px; width: 130px; }
+    .material-input-wrapper span { font-size: 0.9rem; color: var(--text-muted); font-weight: 700; }
+    .unit-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+
+    .modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #fff; }
+    .modal-close { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
+    .modal-close:hover { background: var(--danger); color: white; }
+    .modal-body { padding: 1.5rem; }
+
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   </style>
@@ -738,6 +751,19 @@
               style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border); font-weight: 700; font-size: 0.85rem;"
               oninput="updateDpRate(this.value)">
           </div>
+        </div>
+
+        <!-- Shop Validity Section -->
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+          <label style="display:block; font-size:0.65rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">
+            Shop Validity (AITR)
+          </label>
+          <div id="validityStatus" style="font-size:0.75rem; margin-bottom:0.5rem; font-weight:600; color: var(--text-main);">
+            <i class="fas fa-hourglass-start"></i> Loading...
+          </div>
+          <button class="btn btn-outline" style="width:100%; font-size:0.75rem; justify-content: center; padding: 0.5rem;" onclick="openRenewalModal()">
+            <i class="fas fa-file-invoice-dollar"></i> Renew Validity
+          </button>
         </div>
       </div>
 
@@ -1288,6 +1314,239 @@
     function changeThread() {
       activeCustomer = document.getElementById('customerThreadSelect').value;
       loadMessages();
+    }    function refreshChatThreads() {
+      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      // Minimal logic to keep badges updated if needed
+      const badge = document.getElementById('orderBadge');
+      if (badge) badge.textContent = comms.filter(x => x.status !== 'completed' && x.status !== 'declined').length;
+    }
+
+    function loadReviews() {
+      const reviews = JSON.parse(localStorage.getItem(`shopReviews_${managedShopId}`) || '[]');
+      const container = document.getElementById('reviewsContent');
+      if (!container) return;
+      if (reviews.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding: 2rem; color:var(--text-light);">No customer reviews yet.</p>';
+        return;
+      }
+      container.innerHTML = '';
+      reviews.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'review-item';
+        div.style.background = 'var(--bg-light)';
+        div.style.padding = '1rem';
+        div.style.borderRadius = '8px';
+        div.style.marginBottom = '1rem';
+        let starsHTML = '';
+        for (let i = 0; i < 5; i++) { starsHTML += `<i class="fas fa-star" style="color: ${i < r.rating ? '#f59e0b' : '#cbd5e1'}; font-size: 0.8rem;"></i>`; }
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h5 style="font-size: 0.9rem;">${r.customerName}</h5>
+            <span style="font-size:0.7rem; color:var(--text-light);">${new Date(r.date).toLocaleDateString()}</span>
+          </div>
+          <div style="margin: 0.3rem 0;">${starsHTML}</div>
+          ${r.reviewText ? `<p style="font-size: 0.85rem; color: var(--text-muted);">${r.reviewText}</p>` : `<p style="font-size: 0.85rem; color: var(--text-light); font-style:italic;">No comment.</p>`}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // --- ANIMATED STAT COUNTER ---
+    function animateStat(id, newVal, isPrice = false) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const oldRaw = parseFloat(el.getAttribute('data-val') || '0');
+      if (oldRaw === newVal) return; // No change, skip animation
+      el.setAttribute('data-val', newVal);
+      const duration = 500;
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min((now - start) / duration, 1);
+        const eased = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+        const current = oldRaw + (newVal - oldRaw) * eased;
+        if (isPrice) {
+          el.textContent = '₱' + current.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else {
+          el.textContent = Math.round(current);
+        }
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+
+    function submitPermit() {
+      const link = document.getElementById('permitLinkInput').value.trim();
+      if (!link) return alert('Link required.');
+      let permits = JSON.parse(localStorage.getItem(getPermitsKey()) || '[]');
+      const existingIdx = permits.findIndex(p => p.id === managedShopId);
+      const newPermit = {
+        id: managedShopId,
+        shopName: username,
+        owner: 'Shop Partner',
+        docType: 'DTI Registration & Permit',
+        docLink: link,
+        status: 'pending',
+        date: new Date().toISOString().split('T')[0]
+      };
+      if (existingIdx !== -1) permits[existingIdx] = newPermit;
+      else permits.push(newPermit);
+      localStorage.setItem(getPermitsKey(), JSON.stringify(permits));
+      closePermitModal();
+      loadPermitStatus();
+    }
+
+    function updateDpRate(val) {
+      currentDpRate = parseInt(val, 10) || 20;
+      if (document.getElementById('dpRateInput')) document.getElementById('dpRateInput').value = currentDpRate;
+      if (document.getElementById('dpText')) document.getElementById('dpText').textContent = `DP: ${currentDpRate}% Required`;
+      localStorage.setItem(getSettingsKey(), JSON.stringify({ dpRate: currentDpRate }));
+    }
+
+    function loadCommissions() {
+      const commissions = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const container = document.getElementById('recentOrdersPreview');
+      if (!container) return;
+      
+      const filteredCommissions = commissions.slice().reverse();
+      const totalPages = Math.ceil(filteredCommissions.length / ordersPerPage);
+      if (orderPage > totalPages && totalPages > 0) orderPage = totalPages;
+
+      const startIndex = (orderPage - 1) * ordersPerPage;
+      const paginated = filteredCommissions.slice(startIndex, startIndex + ordersPerPage);
+
+      if (filteredCommissions.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:4rem; color:var(--text-light);">No orders yet.</div>';
+        return;
+      }
+
+      container.innerHTML = paginated.map(c => {
+        const st = c.status || 'pending';
+        let badgeClass = 'badge-pending';
+        let badgeText = 'Pending';
+        if (st === 'approved') { badgeClass = 'badge-info'; badgeText = 'Ask Payment'; }
+        if (st === 'payment_received' || st === 'payment_verifying') { badgeClass = 'badge-warning'; badgeText = 'Review Pay'; }
+        if (st === 'in_progress') { badgeClass = 'badge-success'; badgeText = 'In Build'; }
+        if (st === 'completed') { badgeClass = 'badge-success'; badgeText = 'Finished'; }
+        if (st === 'declined') { badgeClass = 'badge-danger'; badgeText = 'Declined'; }
+
+        const duration = c.duration || 14;
+        const deadlineDate = new Date(c.id + (duration * 24 * 60 * 60 * 1000)).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        return `
+          <div class="commission-item" style="cursor: pointer;" onclick="window.location.href='shop_orders.html'">
+            <div style="display:flex; align-items:center; gap: 1.2rem;">
+              ${c.previewImage ? `<img src="${c.previewImage}" style="width:64px; height:64px; border-radius:12px; object-fit:contain; background:#fff; border:1px solid var(--border);" />` : ''}
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                  <h4 style="font-size: 1rem;">${c.description || 'Custom Build'}</h4>
+                  <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <button class="btn btn-outline" style="padding:0.25rem 0.6rem; font-size:0.7rem; border-radius:8px; display:flex; align-items:center; gap:4px;" onclick="event.stopPropagation(); window.location.href='shop_messages.html'">
+                      <i class="fas fa-comment-dots"></i> Message
+                    </button>
+                    <span class="badge ${badgeClass}">${badgeText}</span>
+                  </div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem;">
+                  <div style="display:flex; gap:1rem; align-items:center;">
+                    <span><i class="fas fa-user"></i> ${c.customerName}</span>
+                    <span><i class="fas fa-peso-sign"></i> ₱${(c.price || 0).toLocaleString()}</span>
+                  </div>
+                  <div style="font-size:0.7rem; font-weight:700; color:var(--primary);"><i class="fas fa-calendar-alt"></i> Due: ${deadlineDate}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      renderPagination(totalPages);
+      const badge = document.getElementById('orderBadge');
+      if (badge) badge.textContent = commissions.filter(x => x.status !== 'completed' && x.status !== 'declined').length;
+      
+      renderPriorityDeadline(commissions);
+    }
+
+    function renderPriorityDeadline(commissions) {
+      const active = commissions.filter(c => ['in_progress', 'payment_received', 'approved', 'payment_verifying'].includes(c.status));
+      const card = document.getElementById('priorityOrderCard');
+      const container = document.getElementById('priorityOrderContent');
+      if (!active.length) { card.style.display = 'none'; return; }
+
+      // Calculate deadlines and find the nearest
+      active.forEach(c => {
+        const duration = c.duration || 14;
+        c.deadlineMs = c.id + (duration * 24 * 60 * 60 * 1000);
+      });
+      active.sort((a,b) => a.deadlineMs - b.deadlineMs);
+      const urgent = active[0];
+      const now = Date.now();
+      const daysLeft = Math.ceil((urgent.deadlineMs - now) / (1000 * 60 * 60 * 24));
+      const deadlineDate = new Date(urgent.deadlineMs).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+      card.style.display = 'block';
+      container.innerHTML = `
+        <div style="display:flex; gap:1.2rem; align-items:center;">
+          <img src="${urgent.previewImage}" style="width:80px; height:80px; border-radius:12px; object-fit:contain; background:#f8fafc; border:1px solid var(--border);" />
+          <div style="flex:1;">
+            <h4 style="font-size:1.1rem; margin-bottom:4px;">${urgent.description}</h4>
+            <p style="font-size:0.85rem; color:var(--text-muted);"><i class="fas fa-user"></i> ${urgent.customerName}</p>
+            <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
+              <span class="badge badge-danger" style="font-size:0.75rem;">Due in ${daysLeft} days</span>
+              <span style="font-weight:700; color:var(--danger); font-size:0.9rem;">${deadlineDate}</span>
+            </div>
+          </div>
+        </div>
+        <a href="shop_orders.html" class="btn btn-primary" style="width:100%; margin-top:1.5rem; text-align:center; display:block;">View Order Board</a>
+      `;
+    }
+
+    function renderPagination(totalPages) {
+      const container = document.getElementById('ordersPagination');
+      if (!container) return;
+      container.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = `btn ${i === orderPage ? 'btn-primary' : 'btn-outline'}`;
+        btn.style.padding = '0.3rem 0.7rem';
+        btn.style.fontSize = '0.8rem';
+        btn.textContent = i;
+        btn.onclick = () => { orderPage = i; loadCommissions(); };
+        container.appendChild(btn);
+      }
+    }
+
+    function loadMessages() {
+      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      const box = document.getElementById('messagesBox');
+      if (!box || !activeCustomer) return;
+      const active = msgs.filter(m => m.customerName === activeCustomer);
+      box.innerHTML = active.map(m => `
+        <div class="msg ${m.sender === 'shop' ? 'shop' : 'user'}">
+          ${m.text}
+          <div style="font-size:0.6rem; opacity:0.6; margin-top:4px;">${m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</div>
+        </div>
+      `).join('');
+      if (!active.length) box.innerHTML = `<p style="text-align:center; padding-top:2rem; color:var(--text-light); font-size:0.8rem;">No messages with ${activeCustomer}.</p>`;
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function sendReply() {
+      const inp = document.getElementById('replyInput');
+      const txt = inp.value.trim();
+      if (!txt || !activeCustomer) return;
+      const msgs = JSON.parse(localStorage.getItem(getMessagesKey()) || '[]');
+      msgs.push({ sender: 'shop', customerName: activeCustomer, text: txt, timestamp: new Date().toISOString() });
+      localStorage.setItem(getMessagesKey(), JSON.stringify(msgs));
+      inp.value = '';
+      loadMessages();
+    }
+
+    function changeThread() {
+      activeCustomer = document.getElementById('customerThreadSelect').value;
+      loadMessages();
     }
 
     function refreshChatThreads() {
@@ -1315,7 +1574,7 @@
           el.textContent = '₱' + current.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         } else {
           el.textContent = Math.round(current);
-        }
+            }
         if (t < 1) requestAnimationFrame(step);
       };
       requestAnimationFrame(step);
@@ -1327,9 +1586,14 @@
         const msgsKey = getMessagesKey();
         const tmplKey = 'shop_templates_global';
 
-        const c = JSON.parse(localStorage.getItem(commsKey) || '[]');
-        const m = JSON.parse(localStorage.getItem(msgsKey) || '[]');
-        const t = JSON.parse(localStorage.getItem(tmplKey) || '[]');
+        let c = JSON.parse(localStorage.getItem(commsKey) || '[]');
+        if (!Array.isArray(c)) c = [];
+        
+        let m = JSON.parse(localStorage.getItem(msgsKey) || '[]');
+        if (!Array.isArray(m)) m = [];
+        
+        let t = JSON.parse(localStorage.getItem(tmplKey) || '[]');
+        if (!Array.isArray(t)) t = [];
         
         console.log(`[Dashboard Debug] Key: ${commsKey}, Orders found: ${c.length}`);
 
@@ -1339,6 +1603,7 @@
         const expiryTime = 7 * 24 * 60 * 60 * 1000;
         
         c.forEach(order => {
+          if (!order) return;
           if ((order.status === 'pending' || !order.status) && order.id) {
             const age = now - order.id;
             if (age > expiryTime) {
@@ -1356,24 +1621,23 @@
         }
 
         // Stats Calculations
-        // Total Orders = Active work that is already accepted/paid
-        const totalOrders = c.filter(x => {
-          const st = (x.status || 'pending').toLowerCase();
-          return st !== 'pending' && st !== 'declined' && st !== 'completed';
-        }).length;
+        // Total Orders = All orders for this shop (matching admin logic)
+        const totalOrders = c.length;
 
         // Pending = count of orders in the "pending" stage (matching shop_orders.html)
         const pendingCount = c.filter(x => {
+          if(!x) return false;
           const st = (x.status || 'pending').toLowerCase();
           return st === 'pending';
         }).length;
         console.log(`[Dashboard Debug] Final Pending Count: ${pendingCount}`);
 
         // Chat = Number of UNREAD messages from users
-        const unreadChats = m.filter(msg => msg.sender === 'user' && !msg.read).length;
+        const unreadChats = m.filter(msg => msg && msg.sender === 'user' && !msg.read).length;
 
         // Designs: filter global templates to only those belonging to this shop
         const shopDesigns = t.filter(tmpl => {
+          if(!tmpl) return false;
           const sId = tmpl.shopId || tmpl.managedShopId || tmpl.shop;
           return sId !== undefined && String(sId) === String(managedShopId);
         });
@@ -1388,7 +1652,7 @@
         // Update sidebar badges
         const orderBadge = document.getElementById('orderBadge');
         if (orderBadge) {
-          const activeWork = c.filter(x => x.status !== 'completed' && x.status !== 'declined').length;
+          const activeWork = c.filter(x => x && x.status !== 'completed' && x.status !== 'declined').length;
           orderBadge.textContent = activeWork;
         }
 
@@ -1408,7 +1672,9 @@
         // App Fees calculation (0.5% of total order value for ALL orders)
         let totalRevenue = 0;
         c.forEach(o => {
-          const price = parseFloat(o.price) || 0;
+          if (!o) return;
+          const priceStr = String(o.price || o.budget || '0').replace(/[^0-9.-]+/g, "");
+          const price = parseFloat(priceStr) || 0;
           totalRevenue += price;
         });
         
@@ -1493,6 +1759,228 @@
           };
         } catch(e) { /* BroadcastChannel not supported */ }
       };
+
+      // --- MATERIAL PRICING LOGIC ---
+      const shopMaterialsMap = {
+        1: ["Narra", "Ipil", "Dao", "Guijo", "Apitong", "Kamagong", "Molave", "Mahogany", "Tanguile", "Yakal", "Walnut", "Teak", "Maple", "Oak", "Pine", "Rubber Wood", "Bamboo", "Glass", "Epoxy Resin", "Rattan"],
+        2: ["Rattan", "Capiz Shell", "Bamboo"],
+        3: ["Walnut", "Leather", "Fine Linen"],
+        4: ["Maple", "Marine Plywood", "Aged Brass"],
+        6: ["Epoxy Resin", "Terrazzo", "Walnut"],
+        7: ["Narra", "Kamagong", "Dao", "Aged Brass"],
+        8: ["Teak", "Rattan", "Brushed Steel"],
+        9: ["Black Iron", "Glass Clear", "Brushed Steel"],
+        10: ["Yakal", "Guijo", "Molave"],
+        11: ["Pine", "Maple", "Varnish"]
+      };
+
+      const materialBaselines = {
+        "Narra": 4.2, "Ipil": 4.8, "Dao": 4.5, "Guijo": 4.1, "Apitong": 3.6,
+        "Kamagong": 5.5, "Molave": 4.0, "Mahogany": 2.8, "Tanguile": 2.2, "Yakal": 3.1,
+        "Rattan": 1.8, "Capiz Shell": 5.2, "Oak": 2.5, "Pine": 1.4, "Rubber Wood": 1.6,
+        "Bamboo": 1.2, "Walnut": 6.2, "Teak": 7.5, "Maple": 3.8, "Epoxy Resin": 4.5,
+        "Terrazzo": 5.8, "Black Iron": 3.2, "Aged Brass": 6.8, "Marble White": 8.0,
+        "Marble Black": 9.0, "Glass Clear": 5.0, "Brushed Steel": 3.5, "Glass": 5.0
+      };
+
+      function openMaterialModal() {
+        const modal = document.getElementById('materialModal');
+        const list = document.getElementById('materialList');
+        list.innerHTML = "";
+        
+        const shopId = managedShopId || 1;
+        const materials = shopMaterialsMap[shopId] || shopMaterialsMap[1];
+        const savedPrices = JSON.parse(localStorage.getItem(`shop_material_prices_${shopId}`) || '{}');
+
+        materials.forEach(mat => {
+          const savedData = savedPrices[mat];
+          let price = "";
+          
+          if (savedData !== undefined) {
+            price = (typeof savedData === 'object') ? savedData.price : savedData;
+          } else if (materialBaselines[mat] !== undefined) {
+            // Use baseline as default if no custom price saved
+            price = materialBaselines[mat];
+          }
+
+          const row = document.createElement('div');
+          row.className = 'material-input-row';
+          row.innerHTML = `
+            <label>${mat}</label>
+            <div class="material-input-wrapper">
+              <span>₱</span>
+              <input type="number" class="mat-price-input" data-mat="${mat}" value="${price}" step="0.01" placeholder="0.00" style="padding: 0.4rem; font-size: 0.8rem; flex:1;">
+              <span class="unit-label">/ cm</span>
+            </div>
+          `;
+          list.appendChild(row);
+        });
+
+        modal.style.display = 'flex';
+      }
+
+      function closeMaterialModal() {
+        document.getElementById('materialModal').style.display = 'none';
+      }
+
+      function saveMaterialPrices() {
+        const shopId = managedShopId || 1;
+        const priceInputs = document.querySelectorAll('.mat-price-input');
+        const prices = {};
+        
+        priceInputs.forEach((inp) => {
+          const mat = inp.getAttribute('data-mat');
+          const val = parseFloat(inp.value);
+          if (!isNaN(val)) {
+            prices[mat] = { price: val, unit: 'cm' };
+          }
+        });
+        localStorage.setItem(`shop_material_prices_${shopId}`, JSON.stringify(prices));
+        closeMaterialModal();
+        alert("Prices saved successfully!");
+      }
+
+      // --- SHOP VALIDITY LOGIC ---
+      function updateValidityDisplay() {
+        const validityKey = `shop_validity_${managedShopId}`;
+        const validityData = JSON.parse(localStorage.getItem(validityKey) || 'null');
+        const display = document.getElementById('validityStatus');
+        
+        // If no data, set a default 1-year from registration or now
+        if (!validityData) {
+          const defaultExpiry = new Date();
+          defaultExpiry.setFullYear(defaultExpiry.getFullYear() + 1);
+          localStorage.setItem(validityKey, JSON.stringify({ expiryDate: defaultExpiry.toISOString(), status: 'verified' }));
+          updateValidityDisplay();
+          return;
+        }
+
+        const now = new Date();
+        const expiry = new Date(validityData.expiryDate);
+        const diffTime = expiry - now;
+        
+        if (diffTime <= 0) {
+          display.innerHTML = '<span style="color:var(--danger)"><i class="fas fa-exclamation-circle"></i> License Expired</span>';
+          return;
+        }
+
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const months = Math.floor(diffDays / 30);
+        const days = diffDays % 30;
+
+        let statusHtml = '';
+        if (months > 0) statusHtml += `${months}m `;
+        statusHtml += `${days}d remaining`;
+
+        const color = diffDays < 30 ? 'var(--danger)' : (diffDays < 90 ? 'var(--warning)' : 'var(--success)');
+        display.innerHTML = `<span style="color:${color}"><i class="fas fa-calendar-check"></i> ${statusHtml}</span>`;
+      }
+
+      function openRenewalModal() { document.getElementById('renewalModal').style.display = 'flex'; }
+      function closeRenewalModal() { document.getElementById('renewalModal').style.display = 'none'; }
+
+      function handleFileChange(input) {
+        if (input.files && input.files[0]) {
+          document.getElementById('fileNameDisplay').textContent = input.files[0].name;
+        }
+      }
+
+      function submitRenewal(e) {
+        e.preventDefault();
+        const fileInput = document.getElementById('aitrFile');
+        if (!fileInput.files || !fileInput.files[0]) {
+          alert("Please upload your AITR document.");
+          return;
+        }
+
+        const shopName = sessionStorage.getItem('selectedShopName') || "Furniture Workshop";
+        const tinVal = document.getElementById('tinInput')?.value || 'N/A';
+        const request = {
+          tin: tinVal,
+          id: Date.now(),
+          shopId: managedShopId,
+          shopName: shopName,
+          fileName: fileInput.files[0].name,
+          submittedAt: new Date().toISOString(),
+          status: 'pending'
+        };
+
+        // Save to global renewal requests for Admin
+        let requests = JSON.parse(localStorage.getItem('shop_renewal_requests') || '[]');
+        requests.push(request);
+        localStorage.setItem('shop_renewal_requests', JSON.stringify(requests));
+
+        // Add a notification for the shop owner
+        addNotification("Renewal Submitted", "Your AITR renewal request has been sent to admin for verification.", "info");
+
+        closeRenewalModal();
+        alert("Renewal request submitted successfully! Admin will review your document within 2-3 business days.");
+      }
+
+      // Initialize Validity on load
+      window.addEventListener('DOMContentLoaded', () => {
+        updateValidityDisplay();
+        // Polling for validity updates every minute
+        setInterval(updateValidityDisplay, 60000);
+      });
   </script>
+
+  <!-- Material Pricing Modal -->
+  <div class="modal-overlay" id="materialModal" onclick="if(event.target===this)closeMaterialModal()">
+    <div class="modal-box" style="max-width: 450px;">
+      <div class="modal-header">
+        <h2 style="font-size: 1.25rem;"><i class="fas fa-tags" style="color:var(--primary);"></i> Material Pricing</h2>
+        <button class="modal-close" onclick="closeMaterialModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Set your shop's unit prices for materials. These will be used for auto-calculating custom order estimates.</p>
+        <div id="materialList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+          <!-- Dynamic -->
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="closeMaterialModal()">Cancel</button>
+          <button class="btn btn-primary" style="flex: 1.5; justify-content: center;" onclick="saveMaterialPrices()">Save Price List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Renewal Modal -->
+  <div class="modal-overlay" id="renewalModal" onclick="if(event.target===this)closeRenewalModal()">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2 style="font-size: 1.25rem;">Renew Validity</h2>
+        <button class="modal-close" onclick="closeRenewalModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <div style="background: var(--primary-soft); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid var(--primary);">
+          <p style="font-size: 0.85rem; color: var(--text-dark); line-height: 1.5;">
+            To maintain your active status on FurniCraft, shops must provide a valid Annual Income Tax Return (AITR) or BIR Form 1701/1702 for the current fiscal year.
+          </p>
+        </div>
+        
+        <form id="renewalForm" onsubmit="submitRenewal(event)">
+          <div class="control-group" style="margin-bottom: 1.5rem;">
+            <label style="display:block; font-weight:700; font-size:0.85rem; margin-bottom:0.5rem;">Upload AITR Document (PDF/JPG)</label>
+            <div style="border: 2px dashed var(--border); padding: 2rem; border-radius: 12px; text-align: center; cursor: pointer;" onclick="document.getElementById('aitrFile').click()">
+              <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 0.5rem;"></i>
+              <p id="fileNameDisplay" style="font-size: 0.8rem; color: var(--text-muted);">Click to browse or drag and drop</p>
+              <input type="file" id="aitrFile" hidden onchange="handleFileChange(this)">
+            </div>
+          </div>
+          
+          <div class="control-group" style="margin-bottom: 1.5rem;">
+            <label style="display:block; font-weight:700; font-size:0.85rem; margin-bottom:0.5rem;">Tax Identification Number (TIN)</label>
+            <input type="text" id="tinInput" placeholder="000-000-000-000" style="width:100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border);" required>
+          </div>
+
+          <div style="display: flex; gap: 1rem;">
+            <button type="button" class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="closeRenewalModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex: 1.5; justify-content: center;">Submit for Review</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

@@ -435,11 +435,11 @@
     <div class="alert alert-error hidden" id="loginAlert"><i class="fas fa-circle-exclamation"></i><span id="loginAlertMsg"></span></div>
 
     <div class="field">
-      <label>Gmail Address</label>
+      <label>Email Address</label>
       <i class="fas fa-envelope field-icon"></i>
       <input type="email" id="loginEmail" placeholder="yourname@gmail.com" autocomplete="email"
-             oninput="validateGmail(this,'loginEmailHint')" onblur="validateGmail(this,'loginEmailHint')">
-      <span class="gmail-badge">GMAIL</span>
+             oninput="validateEmail(this,'loginEmailHint')" onblur="validateEmail(this,'loginEmailHint')">
+      <span class="gmail-badge">EMAIL</span>
     </div>
     <div class="hint" id="loginEmailHint"></div>
 
@@ -484,11 +484,11 @@
     <div class="hint" id="nameHint"></div>
 
     <div class="field" style="margin-top:.9rem;">
-      <label>Gmail Address</label>
+      <label>Email Address</label>
       <i class="fas fa-envelope field-icon"></i>
       <input type="email" id="signupEmail" placeholder="yourname@gmail.com" autocomplete="email"
-             oninput="validateGmail(this,'signupEmailHint')" onblur="validateGmail(this,'signupEmailHint')">
-      <span class="gmail-badge">GMAIL</span>
+             oninput="validateEmail(this,'signupEmailHint')" onblur="validateEmail(this,'signupEmailHint')">
+      <span class="gmail-badge">EMAIL</span>
     </div>
     <div class="hint" id="signupEmailHint"></div>
 
@@ -604,7 +604,7 @@
   <div class="panel" id="panelOtp">
     <div class="otp-label">
       <div style="font-size:2.2rem;margin-bottom:.4rem;">📧</div>
-      <h3>Check Your Gmail</h3>
+      <h3>Check Your Email</h3>
       <p>We sent a 6-digit code to<br><strong id="otpTarget" style="color:var(--wood);">—</strong></p>
       <p style="margin-top:6px;font-size:.78rem;color:var(--text-muted);">
         <i class="fas fa-shield-halved" style="color:var(--wood);margin-right:3px;"></i>
@@ -676,19 +676,19 @@
       </div>
 
       <div class="tos-section">
-        <h3><i class="fab fa-google"></i> 2. Gmail Authentication Requirement</h3>
+        <h3><i class="fab fa-google"></i> 2. Email Authentication Requirement</h3>
         <p>FurniCraft exclusively accepts <strong>@gmail.com</strong> addresses for account registration and authentication. This policy:</p>
         <ul>
           <li>Ensures deliverability of security codes and system notifications</li>
           <li>Reduces fraudulent account creation</li>
           <li>Is enforced at the technical level — no exceptions are made</li>
         </ul>
-        <p>You are responsible for maintaining access to the Gmail address linked to your account.</p>
+        <p>You are responsible for maintaining access to the Email address linked to your account.</p>
       </div>
 
       <div class="tos-section">
         <h3><i class="fas fa-shield-halved"></i> 3. Account Security &amp; OTP</h3>
-        <p>FurniCraft uses one-time passwords (OTP) sent to your Gmail as a second layer of verification. You agree to:</p>
+        <p>FurniCraft uses one-time passwords (OTP) sent to your Email as a second layer of verification. You agree to:</p>
         <ul>
           <li>Never share your OTP with anyone, including FurniCraft staff</li>
           <li>Report suspicious login attempts immediately to support</li>
@@ -716,7 +716,7 @@
 
       <div class="tos-section">
         <h3><i class="fas fa-database"></i> 6. Data &amp; Privacy</h3>
-        <p>We collect your name, Gmail address, and usage data to provide and improve our services. We do <strong>not</strong> sell your personal data to third parties. Your Gmail address is used solely for:</p>
+        <p>We collect your name, Email address, and usage data to provide and improve our services. We do <strong>not</strong> sell your personal data to third parties. Your Email address is used solely for:</p>
         <ul>
           <li>Authentication and security verification</li>
           <li>Order confirmations and status updates</li>
@@ -796,10 +796,10 @@ function switchTab(tab){
   }
 }
 
-/* ─── Gmail validation ─── */
-function isGmail(email){ return /^[a-zA-Z0-9._%+\-]+@gmail\.com$/i.test(email.trim()); }
+/* ─── Email validation ─── */
+function isEmail(email){ return /^[a-zA-Z0-9._%+\-]+@gmail\.com$/i.test(email.trim()); }
 
-function validateGmail(input, hintId){
+function validateEmail(input, hintId){
   const val = input.value.trim();
   const hint = document.getElementById(hintId);
   if(!val){ input.className=''; hint.textContent=''; hint.className='hint'; return false; }
@@ -813,7 +813,7 @@ function validateGmail(input, hintId){
     hint.className='hint error'; return false;
   }
   input.className='valid';
-  hint.innerHTML='<i class="fas fa-check-circle"></i> Valid Gmail address.';
+  hint.innerHTML='<i class="fas fa-check-circle"></i> Valid Email address.';
   hint.className='hint success'; return true;
 }
 
@@ -999,7 +999,7 @@ function handleLogin(){
   const pass=document.getElementById('loginPass').value;
   hideAlert('loginAlert');
 
-  if(!isGmail(email)){ showAlert('loginAlert','loginAlertMsg','Please enter a valid @gmail.com address.'); return; }
+  if(!isEmail(email)){ showAlert('loginAlert','loginAlertMsg','Please enter a valid @gmail.com address.'); return; }
   if(pass.length<8){ showAlert('loginAlert','loginAlertMsg','Password must be at least 8 characters.'); return; }
 
   currentEmail=email; currentMode='login';
@@ -1015,7 +1015,7 @@ function handleSignup(){
   hideAlert('signupAlert');
 
   if(name.length<2){ showAlert('signupAlert','signupAlertMsg','Please enter your full name.'); return; }
-  if(!isGmail(email)){ showAlert('signupAlert','signupAlertMsg','Please enter a valid @gmail.com address.'); return; }
+  if(!isEmail(email)){ showAlert('signupAlert','signupAlertMsg','Please enter a valid @gmail.com address.'); return; }
   if(pass.length<8){ showAlert('signupAlert','signupAlertMsg','Password must be at least 8 characters.'); return; }
   if(pass!==passC){ showAlert('signupAlert','signupAlertMsg','Passwords do not match.'); return; }
   if(!document.getElementById('signupIdUpload').files.length){ showAlert('signupAlert','signupAlertMsg','Please upload a valid ID.'); return; }
@@ -1187,7 +1187,7 @@ function backToForm(){
 function showForgot(e){
   e.preventDefault();
   const email=document.getElementById('loginEmail').value.trim();
-  if(!isGmail(email)){ showAlert('loginAlert','loginAlertMsg','Enter your Gmail address above first.'); return; }
+  if(!isEmail(email)){ showAlert('loginAlert','loginAlertMsg','Enter your Email address above first.'); return; }
   currentEmail=email; currentMode='login';
   triggerOtp(email);
 }

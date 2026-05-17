@@ -17,7 +17,7 @@
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:"Segoe UI",Tahoma,sans-serif;background:var(--bg-dark);color:var(--text-main);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
     header{height:45px;background:var(--bg-header);display:flex;align-items:center;padding:0 1rem;border-bottom:1px solid var(--border);justify-content:space-between;flex-shrink:0;}
-    .brand{font-weight:600;color:white;display:flex;align-items:center;gap:8px;}
+    .brand{font-weight:600;color:white;display:flex;align-items:center;gap:8px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .brand i{color:var(--accent);}
     .header-controls{display:flex;align-items:center;gap:8px;}
     .btn-export{background:var(--accent)!important;color:white!important;padding:5px 12px;border-radius:4px;font-weight:600;transition:.2s;display:flex;align-items:center;gap:6px;cursor:pointer;border:none;font-size:.9rem;}
@@ -168,7 +168,7 @@
 <body>
 
 <header>
-  <div class="brand">
+  <div class="brand" id="brand-text">
     <img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft Studio &mdash; Pre-Made Templates
   </div>
   <div class="header-controls">
@@ -709,6 +709,14 @@ function syncSliders(){
 
 /* ═══ INIT ═══ */
 window.onload=function(){
+  // Load shop name from session
+  const shopName = sessionStorage.getItem("selectedShopName") || "Global Artisan Network";
+  document.title = `FurniCraft CAD - ${shopName} Templates`;
+  const brandText = document.getElementById('brand-text');
+  if(brandText) {
+    brandText.innerHTML = `<img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft Studio &mdash; ${shopName}`;
+  }
+
   // Load custom shop designs
   try {
     const shopTemplates = JSON.parse(localStorage.getItem('shop_templates_global') || '[]');

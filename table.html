@@ -3863,8 +3863,7 @@
 
 
     function goBack() {
-      const isShop = sessionStorage.getItem('craftMode') === 'shop';
-      window.location.href = isShop ? 'shop_dashboard.html' : 'main.html';
+      window.history.back();
     }
 
 
@@ -4139,6 +4138,21 @@ nameEl.textContent = prevName;
       brushed_steel: { name: 'Brushed Steel', icon: '🔩', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
 
     };
+
+    // Sync shop-defined prices if available
+    (function syncMaterialPrices() {
+      const shopId = sessionStorage.getItem('managedShopId') || sessionStorage.getItem('selectedShopId');
+      if (!shopId) return;
+      const savedPrices = JSON.parse(localStorage.getItem(`shop_material_prices_${shopId}`) || '{}');
+      for (const key in materialDB) {
+        const matName = materialDB[key].name;
+        if (savedPrices[matName] && typeof savedPrices[matName] === 'object') {
+          materialDB[key].price = savedPrices[matName].price;
+        } else if (savedPrices[matName] && typeof savedPrices[matName] === 'number') {
+          materialDB[key].price = savedPrices[matName];
+        }
+      }
+    })();
 
 
 
@@ -4987,7 +5001,8 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState
                     analysis: { 
                       durability: parseInt(durabilityText)||90, 
                       quality: parseInt(qualityText)||90 
-                    } 
+                    },
+                    raw: activeItem 
                   }] 
                 })
               };

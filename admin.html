@@ -903,6 +903,9 @@
             <button class="action-btn" onclick="shopAnalytics()">
               <i class="fas fa-chart-line"></i> Sales Metrics
             </button>
+            <button class="action-btn" onclick="manageRenewals()">
+              <i class="fas fa-file-invoice-dollar"></i> Validity Renewals (AITR)
+            </button>
             <button class="action-btn" onclick="viewAllTransactions()" style="grid-column: span 2;">
               <i class="fas fa-receipt"></i> Global Order Transactions
             </button>
@@ -1406,15 +1409,88 @@
                     </div>` : ''}
                     
                     ${designPreview}
-                    
-                    <div style="margin-top: 2rem; display:flex; gap:10px;">
-                        <button class="btn btn-secondary" style="flex:1;" onclick="viewAllTransactions()"><i class="fas fa-arrow-left"></i> Back to Transactions</button>
+                          <div style="margin-top: 2rem; display:flex; gap:10px;">
+                        <button class="btn btn-primary" onclick="closeModal()">Close Details</button>
                     </div>
                 </div>
             `);
         } else {
-            alert('Transaction details not found or expired.');
+            alert('Transaction data not found or moved.');
         }
+    };
+
+    // --- SHOP LICENSE RENEWAL MANAGEMENT ---
+    window.manageRenewals = function() {
+        const requests = JSON.parse(localStorage.getItem('shop_renewal_requests') || '[]');
+        
+        let rows = requests.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:3rem;">No pending renewal requests.</td></tr>' : 
+        requests.map(r => `
+            <tr>
+                <td><strong>#${r.shopId}</strong></td>
+                <td>${r.shopName}<br><small class="text-muted">TIN: ${r.tin || 'N/A'}</small></td>
+                <td><a href="#" class="doc-link" onclick="event.preventDefault(); alert('Opening AITR Document: ${r.fileName}');"><i class="fas fa-file-pdf"></i> ${r.fileName}</a></td>
+                <td><span class="text-muted" style="font-size:0.85rem;">${new Date(r.submittedAt).toLocaleDateString()}</span></td>
+                <td>
+                    ${r.status === 'pending' ? `
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-sm btn-success" onclick="approveRenewal(${r.id})">Approve</button>
+                        <button class="btn btn-sm btn-danger" onclick="rejectRenewal(${r.id})">Reject</button>
+                    </div>` : `<span class="status-badge ${r.status === 'approved' ? 'success' : 'danger'}">${r.status.toUpperCase()}</span>`}
+                </td>
+            </tr>
+        `).reverse().join('');
+
+        openModal(`<i class="fas fa-file-invoice-dollar"></i> Shop Validity Renewals (AITR)`, `
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Shop ID</th>
+                            <th>Shop Name</th>
+                            <th>AITR Document</th>
+                            <th>Submitted At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `);
+    };
+
+    window.approveRenewal = function(requestId) {
+        let requests = JSON.parse(localStorage.getItem('shop_renewal_requests') || '[]');
+        const reqIndex = requests.findIndex(r => r.id === requestId);
+        if (reqIndex === -1) return;
+
+        if(!confirm("Are you sure you want to approve this AITR renewal? This will extend the shop license for 1 year.")) return;
+
+        const req = requests[reqIndex];
+        req.status = 'approved';
+        localStorage.setItem('shop_renewal_requests', JSON.stringify(requests));
+
+        // Update the shop's validity
+        const validityKey = `shop_validity_${req.shopId}`;
+        const newExpiry = new Date();
+        newExpiry.setFullYear(newExpiry.getFullYear() + 1); // Valid for 1 year from approval
+        localStorage.setItem(validityKey, JSON.stringify({ expiryDate: newExpiry.toISOString(), status: 'verified' }));
+
+        alert("Shop license for " + req.shopName + " has been successfully renewed for 1 year.");
+        manageRenewals(); // Refresh
+    };
+
+    window.rejectRenewal = function(requestId) {
+        let requests = JSON.parse(localStorage.getItem('shop_renewal_requests') || '[]');
+        const reqIndex = requests.findIndex(r => r.id === requestId);
+        if (reqIndex === -1) return;
+
+        if(!confirm("Reject this renewal request? The shop will be notified to resubmit correct documentation.")) return;
+
+        requests[reqIndex].status = 'rejected';
+        localStorage.setItem('shop_renewal_requests', JSON.stringify(requests));
+
+        alert("Renewal request rejected.");
+        manageRenewals(); // Refresh
     };
 
     function platformFeedback() {

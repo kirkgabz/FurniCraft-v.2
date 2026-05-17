@@ -1318,6 +1318,7 @@
   <!-- ─── Header ─── -->
   <header>
     <div class="header-left">
+      <button class="menu-btn" onclick="history.back()" title="Go Back"><i class="fas fa-arrow-left"></i></button>
       <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
       <div class="logo"><img src="images/FurniCraft Logo without name.png" alt="FurniCraft Logo" style="height: 1.3em; width: auto; object-fit: contain; margin-right: 8px; vertical-align: middle; position: relative; bottom: 2px;">FurniCraft</div>
     </div>
@@ -1811,18 +1812,42 @@
           ? `<button class="continue-btn" onclick="goToOrder('${tx.id}', '${tx.exportId || ''}')">VIEW</button>`
           : '');
 
-      return `<div class="tx-row">
+      let modBtn = '';
+      if (tx.acceptedAt && !tx.modifyRequest) {
+          const acceptedTime = new Date(tx.acceptedAt).getTime();
+          const now = Date.now();
+          const diffDays = (now - acceptedTime) / (1000 * 60 * 60 * 24);
+          if (diffDays <= 3 && ['approved', 'payment_received', 'payment_verifying', 'in_progress'].includes(st)) {
+              modBtn = `<button class="btn-specs" style="background:rgba(178,106,56,0.08); color:var(--accent); border-color:var(--accent);" onclick="modifyOrderFromDash('${tx.id}', '${tx.furnitureType || 'bed'}', '${tx.cadState ? 'hasState' : ''}')"><i class="fas fa-wand-magic-sparkles"></i> Modify</button>`;
+          }
+      }
+
+      return `<div class="tx-row" ${tx.modifyRequest ? 'style="border-left: 3px solid var(--accent);"' : ''}>
     <div class="tx-info">
-      <b>${tx.name}</b>
+      <b>${tx.name} ${tx.modifyRequest ? '<span style="font-size:0.6rem; background:var(--accent); color:#fff; padding:2px 6px; border-radius:4px; margin-left:5px;">UPDATE PENDING</span>' : ''}</b>
       <small><i class="fas fa-store"></i> ${tx.shop || '—'}</small>
       ${tx.price ? `<small><i class="fas fa-tag"></i> ${money(tx.price)}</small>` : ''}
       ${tx.date ? `<small><i class="fas fa-calendar-alt"></i> ${fmtDate(tx.date)}</small>` : ''}
       <div style="margin-top:8px; display:flex; gap:8px;">
         <button class="btn-specs" onclick="openSpecModal('${tx.id}')"><i class="fas fa-sliders-h"></i> Specs</button>
+        ${modBtn}
       </div>
     </div>
     <div class="tx-right">${pill}${btn}</div>
   </div>`;
+    }
+
+    function modifyOrderFromDash(orderId, type, hasState) {
+        if (!confirm("This will take you back to the design tool to tweak your order. Continue?")) return;
+        
+        const all = getAllTx();
+        const order = all.find(x => String(x.id) === String(orderId));
+        if (!order) return;
+        
+        sessionStorage.setItem('modifyingOrderId', order.id);
+        if (order.cadState) sessionStorage.setItem('cadState', typeof order.cadState === 'string' ? order.cadState : JSON.stringify(order.cadState));
+        
+        location.href = (type || 'bed').toLowerCase() + '.html';
     }
 
     function goToOrder(id, exportId) {
@@ -2486,6 +2511,17 @@
       setInterval(renderDashboard, 3000);   // poll for updates from export_area
       setInterval(checkUnread, 4000);    // poll chat badge
       setInterval(loadNotifs, 5000);     // poll notifications hub
+
+      // Real-time update listener
+      try {
+        const bc = new BroadcastChannel('furnicraft_updates');
+        bc.onmessage = (ev) => {
+          if (ev.data && (ev.data.type === 'order' || ev.data.type === 'order_update')) {
+            renderDashboard();
+            loadNotifs();
+          }
+        };
+      } catch(e) {}
     });
 
     document.getElementById('chatInput').addEventListener('keydown', e => {

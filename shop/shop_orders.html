@@ -149,6 +149,12 @@
     .image-zoom-overlay.open { display: flex; }
     .image-zoom-overlay img { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 12px; }
 
+    @keyframes pulseRed {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
     @media (max-width: 768px) {
       .sidebar { transform: translateX(-100%); }
       .main-wrapper { margin-left: 0; padding: 1.5rem; }
@@ -240,6 +246,49 @@
     </div>
   </div>
 
+  <!-- Deadline Adjustment Modal -->
+  <div id="deadlineModal" class="modal-overlay" onclick="closeDeadlineModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width: 400px;">
+      <i class="fas fa-times close-modal" onclick="closeDeadlineModal()"></i>
+      <h2 style="font-family:'Playfair Display', serif; margin-bottom:1rem;"><i class="fas fa-calendar-alt"></i> Set Target Date</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Select the expected completion date for this project.</p>
+      
+      <div class="control-group" style="margin-bottom: 1.5rem;">
+        <label>Target Completion Date</label>
+        <input type="date" id="targetDateInput" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; font-family:inherit; outline:none; background:#fff;">
+      </div>
+
+      <input type="hidden" id="deadlineOrderId">
+      <input type="hidden" id="deadlineNextStatus">
+      <button class="btn btn-primary" style="width:100%; padding:1rem;" onclick="submitDeadlineUpdate()"><i class="fas fa-check"></i> Confirm Target Date</button>
+    </div>
+  </div>
+
+  <!-- Modification View Modal -->
+  <div id="modifyModal" class="modal-overlay" onclick="closeModifyModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width: 600px;">
+      <i class="fas fa-times close-modal" onclick="closeModifyModal()"></i>
+      <h2 style="font-family:'Playfair Display', serif; margin-bottom:1rem;"><i class="fas fa-wand-magic-sparkles"></i> Review Design Modification</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">The customer has updated their design. Review the changes and set additional charges if necessary.</p>
+      
+      <div id="modifyContent" style="background:#f8f5f2; padding:1.2rem; border-radius:12px; margin-bottom:1.5rem; border:1px solid var(--border);">
+          <!-- Dynamic Content -->
+      </div>
+
+      <div class="control-group" style="margin-bottom: 1.5rem;">
+        <label>Additional Charges (₱)</label>
+        <input type="number" id="modAdditionalCharge" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px;" placeholder="0.00" value="0">
+        <p style="font-size:0.65rem; color:var(--text-muted); margin-top:5px;">This will be added to the total balance. Leave 0 if no extra charge.</p>
+      </div>
+
+      <input type="hidden" id="modOrderId">
+      <div style="display:flex; gap:10px;">
+          <button class="btn btn-outline" style="flex:1;" onclick="closeModifyModal()">Cancel</button>
+          <button class="btn btn-primary" style="flex:2;" onclick="approveModification()">Accept Changes & Update Price</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     if (sessionStorage.getItem('isLoggedIn') !== 'true') window.location.href = 'shop_login.html';
     const managedShopId = String(sessionStorage.getItem('managedShopId') || sessionStorage.getItem('selectedShopId') || "1");
@@ -250,9 +299,6 @@
     }
     
     let currentDpRate = 20;
-    let orderPage = 1;
-    const ordersPerPage = 6;
-
     const orderStages = [
       { key: 'pending', title: 'Pending Review', icon: 'fa-hourglass-half', statuses: ['pending'], empty: 'No new proposals.', color: 'var(--warning)' },
       { key: 'approved', title: 'Accept / Pay', icon: 'fa-file-invoice-dollar', statuses: ['approved'], empty: 'No orders awaiting pay.', color: 'var(--primary)' },
@@ -261,6 +307,9 @@
       { key: 'completed', title: 'Finished', icon: 'fa-circle-check', statuses: ['completed'], empty: 'No finished orders.', color: '#059669' },
       { key: 'declined', title: 'Declined', icon: 'fa-ban', statuses: ['declined'], empty: 'No declined orders.', color: 'var(--danger)' }
     ];
+
+    const stagePages = { pending: 1, approved: 1, payment: 1, in_progress: 1, completed: 1, declined: 1 };
+    const itemsPerStage = 2;
 
     function getCommissionsKey() { return `projectProposals_shop_${managedShopId}`; }
     function getSettingsKey() { return `shop_settings_${managedShopId}`; }
@@ -301,161 +350,37 @@
             <span class="order-stage-count" id="order-count-${stage.key}">0</span>
           </div>
           <div class="order-stage-list" id="order-list-${stage.key}"></div>
+          <div class="stage-pagination" id="pagination-${stage.key}" style="display:flex; justify-content:center; gap:8px; padding:1rem; margin-top:auto; border-top:1px solid rgba(0,0,0,0.03);"></div>
         `;
         board.appendChild(section);
         stageLists[stage.key] = section.querySelector('.order-stage-list');
       });
 
-      const filteredCommissions = commissions.slice().reverse();
-      const totalPages = Math.ceil(filteredCommissions.length / ordersPerPage);
-      if (orderPage > totalPages && totalPages > 0) orderPage = totalPages;
-
-      const startIndex = (orderPage - 1) * ordersPerPage;
-      const paginatedCommissions = filteredCommissions.slice(startIndex, startIndex + ordersPerPage);
-
-      paginatedCommissions.forEach((c) => {
-        const st = c.status || 'pending';
-        const price = c.price || 0;
-        const prog = c.progressValue || 10;
-        
-        let badgeClass = 'badge-pending';
-        let badgeText = 'Pending';
-        if (st === 'approved') { badgeClass = 'badge-info'; badgeText = 'Ask Payment'; }
-        if (st === 'payment_received' || st === 'payment_verifying') { badgeClass = 'badge-warning'; badgeText = 'Review Pay'; }
-        if (st === 'in_progress') { badgeClass = 'badge-success'; badgeText = 'In Build'; }
-        if (st === 'completed') { badgeClass = 'badge-success'; badgeText = 'Finished'; }
-        if (st === 'declined') { badgeClass = 'badge-danger'; badgeText = 'Declined'; }
-
-        const div = document.createElement('div');
-        div.className = 'commission-item';
-        div.style.marginBottom = '1.5rem';
-        
-        const now = Date.now();
-        const durationDays = c.duration || 14;
-        const deadlineTime = c.id + (durationDays * 24 * 60 * 60 * 1000);
-        const deadlineDate = new Date(deadlineTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        
-        // Calculate remaining time for pending approvals (7 day window)
-        const expiryTime = 7 * 24 * 60 * 60 * 1000;
-        const timeLeft = expiryTime - (now - c.id);
-        const daysToApprove = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
-
-        const paid = parseFloat(c.paidDpAmount) || 0;
-        const balance = price - paid;
-
-        div.innerHTML = `
-          <!-- Card Header: Status & Deadline -->
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.03); padding-bottom: 0.6rem;">
-            <span class="badge ${badgeClass}">${badgeText}</span>
-            <div style="text-align:right;">
-              <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Target Completion</div>
-              <div style="font-size:0.85rem; font-weight:700; color:var(--text-dark);">${deadlineDate}</div>
-            </div>
-          </div>
-
-          <!-- Card Body: Image & Info -->
-          <div style="display:flex; gap: 1rem; align-items: flex-start;">
-            ${c.previewImage ? `
-              <div style="position:relative; width:80px; height:80px; flex-shrink:0;">
-                <img src="${c.previewImage}" onclick="zoomImage('${c.previewImage}')" 
-                  style="width:100%; height:100%; border-radius:12px; object-fit:contain; background:#fff; border:1px solid var(--border); cursor: zoom-in;" />
-                <div style="position:absolute; bottom:-5px; right:-5px; background:var(--primary); color:white; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.6rem; border:2px solid #fff;">
-                  <i class="fas fa-search-plus"></i>
-                </div>
-              </div>
-            ` : ''}
-            <div style="flex:1;">
-              <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-dark); line-height: 1.2;">${c.description || 'Custom Build Project'}</h4>
-              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem;">
-                <i class="fas fa-user-circle"></i> <b>${c.customerName}</b>
-              </p>
-              
-              <div style="display:flex; gap: 8px; margin-top: 0.8rem;">
-                <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem; display:flex; align-items:center; gap:5px;" onclick="openSpecModal(${c.id})">
-                  <i class="fas fa-sliders-h"></i> Full Specs
-                </button>
-                <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem; display:flex; align-items:center; gap:5px;" onclick="openFinanceModal(${c.id})">
-                  <i class="fas fa-chart-line"></i> Financials
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Financial Summary Section -->
-          <div style="margin-top: 1rem; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center;">
-            <div style="border-right: 1px solid var(--border);">
-              <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Total Price</div>
-              <div style="font-size:0.85rem; font-weight:700; color:var(--text-dark);">₱${price.toLocaleString()}</div>
-            </div>
-            <div style="border-right: 1px solid var(--border);">
-              <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Paid DP</div>
-              <div style="font-size:0.85rem; font-weight:700; color:var(--success);">₱${paid.toLocaleString()}</div>
-            </div>
-            <div>
-              <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Balance</div>
-              <div style="font-size:0.85rem; font-weight:700; color:var(--primary);">₱${balance.toLocaleString()}</div>
-            </div>
-          </div>
-
-          ${c.referenceNumber ? `
-            <div style="margin-top:0.8rem; padding:0.6rem 0.8rem; background:rgba(16, 185, 129, 0.05); border-radius:10px; border-left:3px solid var(--success); display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Payment Ref</div>
-                <div style="font-family:monospace; font-weight:700; font-size:0.8rem; color:var(--text-dark);">${c.referenceNumber}</div>
-              </div>
-              <i class="fas fa-check-circle" style="color:var(--success); opacity:0.5;"></i>
-            </div>
-          ` : ''}
-
-          ${st === 'pending' && daysToApprove <= 3 ? `
-            <div style="margin-top:0.8rem; padding:0.6rem; background:rgba(239, 68, 68, 0.05); border-radius:8px; display:flex; align-items:center; gap:8px; color:var(--danger); font-size:0.75rem; font-weight:700;">
-              <i class="fas fa-exclamation-triangle"></i> Expires in ${daysToApprove} days
-            </div>
-          ` : ''}
-
-          <div class="quick-actions" style="display:flex; gap:8px; margin-top:1rem;">
-            ${st === 'pending' ? `
-              <button class="action-btn primary" onclick="updateCommissionStatus(${c.id}, 'approved')"><i class="fas fa-check"></i> Approve</button>
-              <button class="action-btn danger" onclick="updateCommissionStatus(${c.id}, 'declined')"><i class="fas fa-times"></i> Decline</button>
-            ` : ''}
-            
-            ${st === 'approved' ? `
-              <button class="action-btn primary" onclick="updateCommissionStatus(${c.id}, 'payment_received')"><i class="fas fa-receipt"></i> Mark Paid</button>
-              <button class="action-btn" onclick="updateCommissionStatus(${c.id}, 'declined')">Cancel</button>
-            ` : ''}
-
-            ${(st === 'payment_received' || st === 'payment_verifying') ? `
-              <button class="action-btn primary" onclick="updateCommissionStatus(${c.id}, 'in_progress')"><i class="fas fa-hammer"></i> Start Build</button>
-            ` : ''}
-
-            ${st === 'in_progress' ? `
-              <div style="display:flex; flex-direction:column; gap:8px;">
-                <button class="action-btn primary" onclick="openProgressUpdateModal(${c.id})">
-                  <i class="fas fa-camera"></i> Send Note and Image Update
-                </button>
-                <button class="action-btn success" style="background:#059669; color:white; border:none;" onclick="updateCommissionStatus(${c.id}, 'completed')">
-                  <i class="fas fa-check-double"></i> Mark as Finished
-                </button>
-              </div>
-            ` : ''}
-          </div>
-        `;
-        const stage = orderStages.find(group => group.statuses.includes(st)) || orderStages[0];
-        stageLists[stage.key].appendChild(div);
-      });
-
       orderStages.forEach(stage => {
         const list = stageLists[stage.key];
-        const count = commissions.filter(o => {
-          const st = (o.status || 'pending').toLowerCase();
-          return stage.statuses.includes(st);
-        }).length;
+        const stageOrders = commissions.filter(o => stage.statuses.includes((o.status || 'pending').toLowerCase())).reverse();
+        
+        // Update Count
         const countEl = document.getElementById(`order-count-${stage.key}`);
-        if (countEl) countEl.textContent = count;
-        if (list.innerHTML === '') list.innerHTML = `<div class="order-empty">${stage.empty}</div>`;
+        if (countEl) countEl.textContent = stageOrders.length;
+
+        // Paginate stage orders
+        const totalPages = Math.ceil(stageOrders.length / itemsPerStage);
+        if (stagePages[stage.key] > totalPages && totalPages > 0) stagePages[stage.key] = totalPages;
+        
+        const start = (stagePages[stage.key] - 1) * itemsPerStage;
+        const paginated = stageOrders.slice(start, start + itemsPerStage);
+
+        if (paginated.length === 0) {
+          list.innerHTML = `<div class="order-empty">${stage.empty}</div>`;
+        } else {
+          list.innerHTML = paginated.map(c => renderOrderCard(c)).join('');
+        }
+
+        // Render stage pagination
+        renderStagePagination(stage.key, totalPages);
       });
       
-      renderPagination(totalPages);
       document.getElementById('orderBadge').textContent = commissions.filter(x => x.status !== 'completed' && x.status !== 'declined').length;
       
       // Update Chat Badge
@@ -468,26 +393,187 @@
       }
     }
 
-    function renderPagination(totalPages) {
-      const container = document.getElementById('ordersPagination');
+    function renderStagePagination(stageKey, totalPages) {
+      const container = document.getElementById(`pagination-${stageKey}`);
       if (!container) return;
       container.innerHTML = '';
       if (totalPages <= 1) return;
 
       for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement('button');
-        btn.className = `btn ${i === orderPage ? 'btn-primary' : 'btn-outline'}`;
-        btn.style.padding = '0.4rem 0.8rem';
+        btn.className = `btn ${i === stagePages[stageKey] ? 'btn-primary' : 'btn-outline'}`;
+        btn.style.padding = '0.3rem 0.6rem';
+        btn.style.fontSize = '0.7rem';
         btn.textContent = i;
-        btn.onclick = () => { orderPage = i; loadCommissions(); };
+        btn.onclick = () => { stagePages[stageKey] = i; loadCommissions(); };
         container.appendChild(btn);
       }
+    }
+
+    function renderOrderCard(c) {
+        const st = (c.status || 'pending').toLowerCase();
+        const price = c.price || 0;
+        
+        let badgeClass = 'badge-pending';
+        let badgeText = 'Pending';
+        if (st === 'approved') { badgeClass = 'badge-info'; badgeText = 'Ask Payment'; }
+        if (st === 'payment_received' || st === 'payment_verifying') { badgeClass = 'badge-warning'; badgeText = 'Start to Build'; }
+        if (st === 'in_progress') { badgeClass = 'badge-success'; badgeText = 'In Build'; }
+        if (st === 'completed') { badgeClass = 'badge-success'; badgeText = 'Finished'; }
+        if (st === 'declined') { badgeClass = 'badge-danger'; badgeText = 'Declined'; }
+
+        const now = Date.now();
+        const durationDays = c.duration || 14;
+        const deadlineTime = (c.submittedAt ? new Date(c.submittedAt).getTime() : c.id) + (durationDays * 24 * 60 * 60 * 1000);
+        const deadlineDate = new Date(deadlineTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        const expiryTime = 7 * 24 * 60 * 60 * 1000;
+        const timeLeft = expiryTime - (now - c.id);
+        const daysToApprove = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
+
+        const paid = parseFloat(c.paidDpAmount) || 0;
+        const balance = price - paid;
+
+        return `
+          <div class="commission-item" style="margin-bottom: 1rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.03); padding-bottom: 0.6rem;">
+              <span class="badge ${badgeClass}">${badgeText}</span>
+              <div style="text-align:right;">
+                <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">Target Completion</div>
+                <div style="font-size:0.8rem; font-weight:700; color:var(--text-dark);">${deadlineDate}</div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap: 1rem; align-items: flex-start;">
+              ${c.previewImage ? `
+                <div style="position:relative; width:60px; height:60px; flex-shrink:0;">
+                  <img src="${c.previewImage}" onclick="zoomImage('${c.previewImage}')" 
+                    style="width:100%; height:100%; border-radius:10px; object-fit:contain; background:#fff; border:1px solid var(--border); cursor: zoom-in;" />
+                </div>
+              ` : ''}
+              <div style="flex:1;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-dark); line-height: 1.2;">${c.description || 'Custom Build Project'}</h4>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 0.3rem;">
+                  <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">
+                    <i class="fas fa-user-circle"></i> <b>${c.customerName}</b>
+                  </p>
+                  <button class="btn btn-outline" style="padding:0.2rem 0.5rem; font-size:0.65rem; border-radius:6px; display:flex; align-items:center; gap:4px;" onclick="event.stopPropagation(); window.location.href='shop_messages.html'">
+                    <i class="fas fa-comment-dots"></i> Message
+                  </button>
+                </div>
+                ${c.referenceNumber ? `
+                <div style="margin-top: 5px; font-size: 0.65rem; background: #f0fdf4; color: #166534; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items:center; gap:5px; border: 1px solid #bbf7d0;">
+                  <i class="fas fa-receipt"></i> Ref: <b style="font-family:monospace;">${c.referenceNumber}</b>
+                </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <div style="margin-top: 0.8rem; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center;">
+              <div>
+                <div style="font-size:0.5rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Price</div>
+                <div style="font-size:0.75rem; font-weight:700;">₱${price.toLocaleString()}</div>
+              </div>
+              <div style="border-left: 1px solid var(--border); border-right: 1px solid var(--border);">
+                <div style="font-size:0.5rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Paid</div>
+                <div style="font-size:0.75rem; font-weight:700; color:var(--success);">₱${paid.toLocaleString()}</div>
+              </div>
+              <div>
+                <div style="font-size:0.5rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Balance</div>
+                <div style="font-size:0.75rem; font-weight:700; color:var(--primary);">₱${balance.toLocaleString()}</div>
+              </div>
+            </div>
+
+            ${c.modifyRequest ? `
+            <div style="margin-top:0.8rem; padding:0.8rem; background:rgba(139, 90, 43, 0.08); border-radius:12px; border:1px dashed var(--primary); display:flex; align-items:center; gap:10px; position:relative;">
+                <div style="position:absolute; top:-5px; right:-5px; width:12px; height:12px; background:var(--danger); border-radius:50%; box-shadow:0 0 10px var(--danger); animation: pulseRed 2s infinite;"></div>
+                <div style="background:var(--primary); color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8rem;">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:0.65rem; font-weight:800; color:var(--primary); text-transform:uppercase;">Modification Sent</div>
+                    <div style="font-size:0.75rem; font-weight:600; color:var(--text-dark);">Customer tweaked the design</div>
+                </div>
+                <button class="btn btn-primary" style="padding:4px 12px; font-size:0.65rem;" onclick="viewModification(${c.id})">REVIEW</button>
+            </div>
+            ` : ''}
+
+            <div style="display:flex; gap: 8px; margin-top: 0.8rem;">
+              <button class="btn btn-outline" style="flex:1; padding: 4px; font-size: 0.7rem; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="openSpecModal(${c.id})">
+                <i class="fas fa-sliders-h"></i> Specs
+              </button>
+              <button class="btn btn-outline" style="flex:1; padding: 4px; font-size: 0.7rem; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="openFinanceModal(${c.id})">
+                <i class="fas fa-chart-line"></i> Costs
+              </button>
+            </div>
+
+            <div class="quick-actions" style="display:flex; flex-direction:column; gap:6px; margin-top:0.8rem;">
+              ${st === 'pending' ? `
+                <div style="display:flex; gap:6px;">
+                  <button class="action-btn primary" style="flex:1;" onclick="updateCommissionStatus(${c.id}, 'approved')"><i class="fas fa-check"></i> Approve</button>
+                  <button class="action-btn danger" style="flex:1;" onclick="updateCommissionStatus(${c.id}, 'declined')"><i class="fas fa-times"></i> Decline</button>
+                </div>
+              ` : ''}
+              
+              ${st === 'approved' ? `
+                <button class="action-btn primary" onclick="updateCommissionStatus(${c.id}, 'payment_received')"><i class="fas fa-receipt"></i> Mark Paid</button>
+              ` : ''}
+
+              ${(st === 'payment_received' || st === 'payment_verifying') ? `
+                <button class="action-btn primary" onclick="updateCommissionStatus(${c.id}, 'in_progress')"><i class="fas fa-hammer"></i> Start Build</button>
+              ` : ''}
+
+              ${st === 'in_progress' ? `
+                <button class="action-btn primary" onclick="openProgressUpdateModal(${c.id})"><i class="fas fa-camera"></i> Update Client</button>
+                <div style="display:flex; gap:6px;">
+                  <button class="action-btn success" style="flex:1;" onclick="updateCommissionStatus(${c.id}, 'completed')"><i class="fas fa-check-double"></i> Finish</button>
+                  <button class="action-btn" style="flex:1;" onclick="openDeadlineModal(${c.id})"><i class="fas fa-calendar-plus"></i> Reschedule</button>
+                </div>
+                ${(c.financialItems || []).some(f => f.type === 'charge' && f.paid === 'verifying') ? `
+                  <button class="action-btn warning" style="margin-top:6px; background:#f59e0b; color:#fff;" onclick="confirmModPayment(${c.id})">
+                    <i class="fas fa-check-circle"></i> Confirm Mod Payment (${(c.financialItems || []).find(f => f.paid === 'verifying').ref || '?'})
+                  </button>
+                ` : ''}
+              ` : ''}
+            </div>
+          </div>
+        `;
+    }
+
+    function confirmModPayment(id) {
+        const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+        const idx = comms.findIndex(o => o.id === id);
+        if (idx !== -1) {
+            const c = comms[idx];
+            const modCharge = (c.financialItems || []).find(f => f.type === 'charge' && f.paid === 'verifying');
+            if (modCharge) {
+                modCharge.paid = true;
+                c.paidDpAmount = (parseFloat(c.paidDpAmount) || 0) + modCharge.amount;
+                sendUserNotification(c.customerName, `Modification payment confirmed! Thank you.`, "payment", c.id);
+                localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
+                try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'order' }); } catch(e) {}
+                loadCommissions();
+            }
+        }
+    }
+
+    function renderPagination(totalPages) {
+      // Replaced by per-stage pagination
     }
 
     function updateCommissionStatus(id, st) {
       const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
       const i = comms.findIndex(x => x.id === id);
       if (i !== -1) {
+        if (st === 'approved') {
+          openDeadlineModal(id, 'approved');
+          return;
+        }
+
+        if (st === 'approved' && !comms[i].acceptedAt) {
+            comms[i].acceptedAt = new Date().toISOString();
+        }
+
         if ((st === 'payment_received' || st === 'payment_verifying' || st === 'in_progress') && !comms[i].referenceNumber) {
            let ref = prompt("Reference Number (Optional):");
            comms[i].referenceNumber = ref || "Manual/OTC";
@@ -499,6 +585,52 @@
         loadCommissions();
       }
     }
+    
+    window.openDeadlineModal = function(id, nextStatus = null) {
+      document.getElementById('deadlineOrderId').value = id;
+      document.getElementById('deadlineNextStatus').value = nextStatus || '';
+      
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const order = comms.find(x => x.id === id);
+      if (order) {
+        const duration = order.duration || 14;
+        const targetDate = new Date(order.id + (duration * 86400000));
+        document.getElementById('targetDateInput').value = targetDate.toISOString().split('T')[0];
+      }
+      document.getElementById('deadlineModal').classList.add('open');
+    };
+
+    window.closeDeadlineModal = function(e) {
+      document.getElementById('deadlineModal').classList.remove('open');
+    };
+
+    window.submitDeadlineUpdate = function() {
+      const id = parseInt(document.getElementById('deadlineOrderId').value);
+      const nextStatus = document.getElementById('deadlineNextStatus').value;
+      const dateVal = document.getElementById('targetDateInput').value;
+      
+      if (!dateVal) { alert("Please select a valid date."); return; }
+      
+      const targetDate = new Date(dateVal);
+      const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+      const i = comms.findIndex(x => x.id === id);
+      
+      if (i !== -1) {
+        const diffMs = targetDate.getTime() - comms[i].id;
+        comms[i].duration = Math.max(1, Math.ceil(diffMs / 86400000));
+        
+        if (nextStatus) comms[i].status = nextStatus;
+        if (nextStatus === 'approved' && !comms[i].acceptedAt) {
+            comms[i].acceptedAt = new Date().toISOString();
+        }
+        
+        localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
+        try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'order' }); } catch(e) {}
+        
+        closeDeadlineModal();
+        loadCommissions();
+      }
+    };
 
     function openProgressUpdateModal(id) {
       document.getElementById('progOrderId').value = id;
@@ -770,6 +902,83 @@
     }
 
     function logoutShop() { sessionStorage.clear(); window.location.href = 'shop_login.html'; }
+
+    function viewModification(id) {
+        const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+        const c = comms.find(o => o.id === id);
+        if (!c || !c.modifyRequest) return;
+        
+        const req = c.modifyRequest;
+        document.getElementById('modOrderId').value = id;
+        document.getElementById('modAdditionalCharge').value = 0;
+        
+        document.getElementById('modifyContent').innerHTML = `
+            <div style="display:flex; gap:1.2rem; align-items:flex-start;">
+                <div style="flex:1; text-align:center;">
+                    <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; margin-bottom:5px;">Original Design</div>
+                    <img src="${c.previewImage}" style="width:100%; border-radius:8px; background:#fff; border:1px solid var(--border);" />
+                </div>
+                <div style="display:flex; align-items:center; height:100px; color:var(--text-muted);"><i class="fas fa-arrow-right"></i></div>
+                <div style="flex:1; text-align:center;">
+                    <div style="font-size:0.6rem; color:var(--primary); text-transform:uppercase; font-weight:800; margin-bottom:5px;">New Modification</div>
+                    <img src="${req.newPreviewImage || c.previewImage}" style="width:100%; border-radius:8px; background:#fff; border:1px solid var(--primary);" />
+                </div>
+            </div>
+            <div style="margin-top:1.2rem; padding-top:1.2rem; border-top:1px solid rgba(0,0,0,0.05);">
+                <div style="font-size:0.8rem; color:var(--text-dark); margin-bottom:0.4rem;"><b>Customer Message:</b> Tweak in design requested.</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${req.newDescription}</div>
+            </div>
+        `;
+        
+        document.getElementById('modifyModal').classList.add('open');
+    }
+    
+    function closeModifyModal(e) {
+        if (!e || e.target.id === 'modifyModal' || e.target.classList.contains('close-modal') || e.target.tagName === 'BUTTON')
+            document.getElementById('modifyModal').classList.remove('open');
+    }
+    
+    function approveModification() {
+        const id = Number(document.getElementById('modOrderId').value);
+        const extra = parseFloat(document.getElementById('modAdditionalCharge').value) || 0;
+        
+        const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
+        const idx = comms.findIndex(o => o.id === id);
+        if (idx === -1) return;
+        
+        const c = comms[idx];
+        const req = c.modifyRequest;
+        
+        // Apply Changes
+        c.cadState = req.newCadState;
+        c.description = req.newDescription;
+        c.previewImage = req.newPreviewImage || c.previewImage;
+        c.price = (parseFloat(c.price) || 0) + extra;
+        
+        // Add financial item if extra charge
+        if (extra > 0) {
+            if (!c.financialItems) c.financialItems = [];
+            c.financialItems.push({
+                id: Date.now(),
+                label: "Modification Additional Charge",
+                amount: extra,
+                type: 'charge'
+            });
+        }
+        
+        // Reset modification state
+        delete c.modifyRequest;
+        
+        localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
+        
+        // Notify Customer
+        sendUserNotification(c.customerName, `Shop accepted your design modification. ${extra > 0 ? `Additional charge of ₱${extra.toLocaleString()} applied.` : ''}`, "order_update", c.id);
+        
+        try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'order' }); } catch(e) {}
+        
+        closeModifyModal();
+        loadCommissions();
+    }
 
     window.onload = () => {
       const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');

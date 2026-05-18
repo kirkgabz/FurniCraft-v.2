@@ -1735,6 +1735,21 @@
       brushed_steel: { name: 'Brushed Steel', icon: '🔨', hex: '#8a8a8a', dura: 92, qual: 88, price: 3.5, rec: false, note: 'Industrial legs/frame material.' }
     };
 
+    // Sync shop-defined prices if available
+    (function syncMaterialPrices() {
+      const shopId = sessionStorage.getItem('managedShopId') || sessionStorage.getItem('selectedShopId');
+      if (!shopId) return;
+      const savedPrices = JSON.parse(localStorage.getItem(`shop_material_prices_${shopId}`) || '{}');
+      for (const key in materialDB) {
+        const matName = materialDB[key].name;
+        if (savedPrices[matName] && typeof savedPrices[matName] === 'object') {
+          materialDB[key].price = savedPrices[matName].price;
+        } else if (savedPrices[matName] && typeof savedPrices[matName] === 'number') {
+          materialDB[key].price = savedPrices[matName];
+        }
+      }
+    })();
+
     const assetsDB = {
       chair: { name: 'Dining Chair', basePrice: 500, parts: ['Seat', 'Back', 'Legs', 'Armrests'] },
       rocking_chair: { name: 'Rocking Chair', basePrice: 650, parts: ['Seat', 'Back', 'Legs', 'Runners', 'Armrests', 'Headrest'] }

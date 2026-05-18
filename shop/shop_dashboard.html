@@ -753,6 +753,13 @@
           </div>
         </div>
 
+        <!-- Material Pricing Section -->
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+          <button class="btn btn-outline" style="width:100%; font-size:0.75rem; justify-content: center; padding: 0.5rem;" onclick="openMaterialModal()">
+            <i class="fas fa-tags"></i> Set Material Price
+          </button>
+        </div>
+
         <!-- Shop Validity Section -->
         <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
           <label style="display:block; font-size:0.65rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">
@@ -1439,7 +1446,10 @@
               ${c.previewImage ? `<img src="${c.previewImage}" style="width:64px; height:64px; border-radius:12px; object-fit:contain; background:#fff; border:1px solid var(--border);" />` : ''}
               <div style="flex:1;">
                 <div style="display:flex; justify-content:space-between; align-items:start;">
-                  <h4 style="font-size: 1rem;">${c.description || 'Custom Build'}</h4>
+                  <h4 style="font-size: 1rem;">
+                    ${c.description || 'Custom Build'}
+                    ${c.quantity && c.quantity > 1 ? `<span style="background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 5px;">Qty: ${c.quantity}</span>` : ''}
+                  </h4>
                   <div style="display:flex; gap:0.5rem; align-items:center;">
                     <button class="btn btn-outline" style="padding:0.25rem 0.6rem; font-size:0.7rem; border-radius:8px; display:flex; align-items:center; gap:4px;" onclick="event.stopPropagation(); window.location.href='shop_messages.html'">
                       <i class="fas fa-comment-dots"></i> Message
@@ -1489,7 +1499,10 @@
         <div style="display:flex; gap:1.2rem; align-items:center;">
           <img src="${urgent.previewImage}" style="width:80px; height:80px; border-radius:12px; object-fit:contain; background:#f8fafc; border:1px solid var(--border);" />
           <div style="flex:1;">
-            <h4 style="font-size:1.1rem; margin-bottom:4px;">${urgent.description}</h4>
+            <h4 style="font-size:1.1rem; margin-bottom:4px;">
+              ${urgent.description}
+              ${urgent.quantity && urgent.quantity > 1 ? `<span style="background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 5px;">Qty: ${urgent.quantity}</span>` : ''}
+            </h4>
             <p style="font-size:0.85rem; color:var(--text-muted);"><i class="fas fa-user"></i> ${urgent.customerName}</p>
             <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
               <span class="badge badge-danger" style="font-size:0.75rem;">Due in ${daysLeft} days</span>
@@ -1674,7 +1687,7 @@
         c.forEach(o => {
           if (!o) return;
           const priceStr = String(o.price || o.budget || '0').replace(/[^0-9.-]+/g, "");
-          const price = parseFloat(priceStr) || 0;
+          const price = parseFloat(priceStr) || 0;
           totalRevenue += price;
         });
         
@@ -1823,6 +1836,125 @@
         document.getElementById('materialModal').style.display = 'none';
       }
 
+      function showCustomNotification(message) {
+        // Create dynamic premium styles if not already present
+        if (!document.getElementById('custom-toast-style')) {
+          const style = document.createElement('style');
+          style.id = 'custom-toast-style';
+          style.innerHTML = `
+            .custom-toast-container {
+              position: fixed;
+              top: 30px;
+              right: 30px;
+              z-index: 99999;
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+              pointer-events: none;
+            }
+            .custom-toast {
+              background: rgba(20, 20, 22, 0.95);
+              backdrop-filter: blur(12px);
+              -webkit-backdrop-filter: blur(12px);
+              border: 1px solid rgba(46, 204, 113, 0.4);
+              box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(46, 204, 113, 0.15);
+              color: #ffffff;
+              padding: 16px 24px;
+              border-radius: 12px;
+              font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+              font-size: 0.95rem;
+              display: flex;
+              align-items: center;
+              gap: 14px;
+              min-width: 340px;
+              max-width: 480px;
+              transform: translateY(-20px) scale(0.95);
+              opacity: 0;
+              transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+              pointer-events: auto;
+            }
+            .custom-toast.show {
+              transform: translateY(0) scale(1);
+              opacity: 1;
+            }
+            .custom-toast-icon {
+              font-size: 1.4rem;
+              color: #2ecc71;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              animation: toastPulse 2s infinite;
+            }
+            .custom-toast-message {
+              flex: 1;
+              font-weight: 500;
+              line-height: 1.5;
+            }
+            .custom-toast-close {
+              background: none;
+              border: none;
+              color: #888;
+              cursor: pointer;
+              font-size: 1.3rem;
+              line-height: 1;
+              padding: 0 4px;
+              transition: color 0.2s, transform 0.2s;
+            }
+            .custom-toast-close:hover {
+              color: #ffffff;
+              transform: scale(1.15);
+            }
+            @keyframes toastPulse {
+              0% { transform: scale(1); opacity: 1; }
+              50% { transform: scale(1.1); opacity: 0.8; }
+              100% { transform: scale(1); opacity: 1; }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
+        // Generate or fetch container
+        let container = document.querySelector('.custom-toast-container');
+        if (!container) {
+          container = document.createElement('div');
+          container.className = 'custom-toast-container';
+          document.body.appendChild(container);
+        }
+
+        // Build notification toast HTML
+        const toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        toast.innerHTML = `
+          <div class="custom-toast-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="custom-toast-message">${message}</div>
+          <button class="custom-toast-close">&times;</button>
+        `;
+
+        container.appendChild(toast);
+
+        // Animate in
+        setTimeout(() => {
+          toast.classList.add('show');
+        }, 20);
+
+        // Dismiss sequence
+        const dismissToast = () => {
+          toast.classList.remove('show');
+          toast.style.transform = 'translateY(-20px) scale(0.9)';
+          toast.style.opacity = '0';
+          setTimeout(() => {
+            toast.remove();
+          }, 400);
+        };
+
+        toast.querySelector('.custom-toast-close').addEventListener('click', dismissToast);
+
+        // Auto dismiss after 4 seconds
+        setTimeout(dismissToast, 4000);
+      }
+
       function saveMaterialPrices() {
         const shopId = managedShopId || 1;
         const priceInputs = document.querySelectorAll('.mat-price-input');
@@ -1837,7 +1969,7 @@
         });
         localStorage.setItem(`shop_material_prices_${shopId}`, JSON.stringify(prices));
         closeMaterialModal();
-        alert("Prices saved successfully!");
+        showCustomNotification("Material prices saved successfully! Changes are instantly synced with all 3D Builders.");
       }
 
       // --- SHOP VALIDITY LOGIC ---
@@ -1892,25 +2024,30 @@
           alert("Please upload your AITR document.");
           return;
         }
-
         const shopName = sessionStorage.getItem('selectedShopName') || "Furniture Workshop";
         const tinVal = document.getElementById('tinInput')?.value || 'N/A';
         const request = {
-          tin: tinVal,
-          id: Date.now(),
-          shopId: managedShopId,
+          id: 'REQ-' + Math.floor(1000 + Math.random()*9000),
+          shopId: managedShopId || 1,
           shopName: shopName,
+          type: 'AITR Renewal',
+          tin: tinVal,
           fileName: fileInput.files[0].name,
-          submittedAt: new Date().toISOString(),
-          status: 'pending'
+          date: new Date().toISOString(),
+          status: 'Pending'
         };
 
-        // Save to global renewal requests for Admin
-        let requests = JSON.parse(localStorage.getItem('shop_renewal_requests') || '[]');
-        requests.push(request);
-        localStorage.setItem('shop_renewal_requests', JSON.stringify(requests));
+        const existing = JSON.parse(localStorage.getItem('admin_requests') || '[]');
+        existing.push(request);
+        localStorage.setItem('admin_requests', JSON.stringify(existing));
 
-        // Add a notification for the shop owner
+        // Update local validity status to pending review
+        const validityKey = `shop_validity_${managedShopId}`;
+        const currentVal = JSON.parse(localStorage.getItem(validityKey) || '{}');
+        currentVal.status = 'pending_renewal';
+        localStorage.setItem(validityKey, JSON.stringify(currentVal));
+
+        updateValidityDisplay();
         addNotification("Renewal Submitted", "Your AITR renewal request has been sent to admin for verification.", "info");
 
         closeRenewalModal();

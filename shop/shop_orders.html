@@ -55,7 +55,35 @@
     .menu-item:hover { background: var(--bg-base); color: var(--primary); }
     .menu-item.active { background: var(--primary-soft); color: var(--primary); }
     .menu-badge { margin-left: auto; background: var(--primary); color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
-    .sidebar-footer { padding: 1.5rem; border-top: 1px solid var(--border); }
+    .sidebar-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .shop-status-card {
+      background: var(--bg-base);
+      border-radius: 16px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    /* Material Modal Specifics */
+    .material-input-row { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem; border-bottom: 1px solid var(--border); }
+    .material-input-row:last-child { border-bottom: none; }
+    .material-input-row label { font-size: 0.85rem; font-weight: 600; color: var(--text-dark); }
+    .material-input-wrapper { display: flex; align-items: center; gap: 8px; width: 130px; }
+    .material-input-wrapper span { font-size: 0.9rem; color: var(--text-muted); font-weight: 700; }
+    .unit-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+
+    .modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #fff; }
+    .modal-close { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
+    .modal-close:hover { background: var(--danger); color: white; }
+    .modal-body { padding: 1.5rem; }
 
     /* --- MAIN --- */
     .main-wrapper { flex: 1; margin-left: 280px; padding: 2rem 3rem; }
@@ -190,9 +218,46 @@
       </a>
     </nav>
     <div class="sidebar-footer">
-      <a href="javascript:logoutShop()" class="menu-item" style="color: var(--danger);">
+      <div class="shop-status-card">
+        <div style="padding-top: 0.4rem;">
+          <label style="display:block; font-size:0.65rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">
+            Downpayment Rate (%)
+          </label>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <input type="number" id="dpRateInput" value="20" min="1" max="100" 
+              style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border); font-weight: 700; font-size: 0.85rem;"
+              oninput="updateDpRate(this.value)">
+          </div>
+        </div>
+
+        <!-- Material Pricing Section -->
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+          <button class="btn btn-outline" style="width:100%; font-size:0.75rem; justify-content: center; padding: 0.5rem;" onclick="openMaterialModal()">
+            <i class="fas fa-tags"></i> Set Material Price
+          </button>
+        </div>
+
+        <!-- Shop Validity Section -->
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+          <label style="display:block; font-size:0.65rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">
+            Shop Validity (AITR)
+          </label>
+          <div id="validityStatus" style="font-size:0.75rem; margin-bottom:0.5rem; font-weight:600; color: var(--text-main);">
+            <i class="fas fa-hourglass-start"></i> Loading...
+          </div>
+          <button class="btn btn-outline" style="width:100%; font-size:0.75rem; justify-content: center; padding: 0.5rem;" onclick="openRenewalModal()">
+            <i class="fas fa-file-invoice-dollar"></i> Renew Validity
+          </button>
+        </div>
+      </div>
+
+      <a href="javascript:logoutShop()" class="menu-item" style="color: var(--danger); margin-top: 0.5rem;">
         <i class="fas fa-sign-out-alt"></i> Sign Out
       </a>
+      <div style="margin-top: auto; padding: 1rem; border-top: 1px solid var(--border); font-size: 0.7rem; color: var(--text-muted); opacity: 0.5;">
+        <p>Active Shop ID: <span id="debugShopId">...</span></p>
+        <p>Sync: Active</p>
+      </div>
     </div>
   </aside>
 
@@ -281,10 +346,73 @@
         <p style="font-size:0.65rem; color:var(--text-muted); margin-top:5px;">This will be added to the total balance. Leave 0 if no extra charge.</p>
       </div>
 
+      <div class="control-group" style="margin-bottom: 1.5rem;">
+        <label>Response / Feedback Note to Customer</label>
+        <textarea id="modShopNote" style="width:100%; height:80px; padding:12px; border:1px solid var(--border); border-radius:12px; font-family:inherit; outline:none; resize:none;" placeholder="e.g. We have accepted your modifications! The new dimensions are perfectly fine."></textarea>
+      </div>
+
       <input type="hidden" id="modOrderId">
       <div style="display:flex; gap:10px;">
           <button class="btn btn-outline" style="flex:1;" onclick="closeModifyModal()">Cancel</button>
           <button class="btn btn-primary" style="flex:2;" onclick="approveModification()">Accept Changes & Update Price</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Material Pricing Modal -->
+  <div class="modal-overlay" id="materialModal" onclick="if(event.target===this)closeMaterialModal()">
+    <div class="modal-box" style="max-width: 450px;">
+      <div class="modal-header">
+        <h2 style="font-size: 1.25rem;"><i class="fas fa-tags" style="color:var(--primary);"></i> Material Pricing</h2>
+        <button class="modal-close" onclick="closeMaterialModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Set your shop's unit prices for materials. These will be used for auto-calculating custom order estimates.</p>
+        <div id="materialList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+          <!-- Dynamic -->
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="closeMaterialModal()">Cancel</button>
+          <button class="btn btn-primary" style="flex: 1.5; justify-content: center;" onclick="saveMaterialPrices()">Save Price List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Renewal Modal -->
+  <div class="modal-overlay" id="renewalModal" onclick="if(event.target===this)closeRenewalModal()">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2 style="font-size: 1.25rem;">Renew Validity</h2>
+        <button class="modal-close" onclick="closeRenewalModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <div style="background: var(--primary-soft); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid var(--primary);">
+          <p style="font-size: 0.85rem; color: var(--text-dark); line-height: 1.5;">
+            To maintain your active status on FurniCraft, shops must provide a valid Annual Income Tax Return (AITR) or BIR Form 1701/1702 for the current fiscal year.
+          </p>
+        </div>
+        
+        <form id="renewalForm" onsubmit="submitRenewal(event)">
+          <div class="control-group" style="margin-bottom: 1.5rem;">
+            <label style="display:block; font-weight:700; font-size:0.85rem; margin-bottom:0.5rem;">Upload AITR Document (PDF/JPG)</label>
+            <div style="border: 2px dashed var(--border); padding: 2rem; border-radius: 12px; text-align: center; cursor: pointer;" onclick="document.getElementById('aitrFile').click()">
+              <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 0.5rem;"></i>
+              <p id="fileNameDisplay" style="font-size: 0.8rem; color: var(--text-muted);">Click to browse or drag and drop</p>
+              <input type="file" id="aitrFile" hidden onchange="handleFileChange(this)">
+            </div>
+          </div>
+          
+          <div class="control-group" style="margin-bottom: 1.5rem;">
+            <label style="display:block; font-weight:700; font-size:0.85rem; margin-bottom:0.5rem;">Tax Identification Number (TIN)</label>
+            <input type="text" id="tinInput" placeholder="000-000-000-000" style="width:100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border);" required>
+          </div>
+
+          <div style="display: flex; gap: 1rem;">
+            <button type="button" class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="closeRenewalModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex: 1.5; justify-content: center;">Submit for Review</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -452,7 +580,10 @@
                 </div>
               ` : ''}
               <div style="flex:1;">
-                <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-dark); line-height: 1.2;">${c.description || 'Custom Build Project'}</h4>
+                <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-dark); line-height: 1.2;">
+                  ${c.description || 'Custom Build Project'}
+                  ${c.quantity && c.quantity > 1 ? `<span style="background: rgba(139, 90, 43, 0.1); color: var(--accent-primary); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 5px;">Qty: ${c.quantity}</span>` : ''}
+                </h4>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 0.3rem;">
                   <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">
                     <i class="fas fa-user-circle"></i> <b>${c.customerName}</b>
@@ -530,14 +661,28 @@
                   <button class="action-btn" style="flex:1;" onclick="openDeadlineModal(${c.id})"><i class="fas fa-calendar-plus"></i> Reschedule</button>
                 </div>
                 ${(c.financialItems || []).some(f => f.type === 'charge' && f.paid === 'verifying') ? `
-                  <button class="action-btn warning" style="margin-top:6px; background:#f59e0b; color:#fff;" onclick="confirmModPayment(${c.id})">
-                    <i class="fas fa-check-circle"></i> Confirm Mod Payment (${(c.financialItems || []).find(f => f.paid === 'verifying').ref || '?'})
+                  <button class="action-btn warning" style="margin-top:6px; background:#f59e0b; color:#fff; transition: all 0.3s ease;" onclick="handleConfirmModPayment(this, ${c.id})">
+                    <i class="fas fa-check-circle"></i> Confirm Modification Payment (${(c.financialItems || []).find(f => f.paid === 'verifying').ref || '?'})
+                  </button>
+                ` : (c.financialItems || []).some(f => f.type === 'charge' && f.paid === true) ? `
+                  <button class="action-btn success" style="margin-top:6px; background:#10b981; color:#fff; cursor:default; pointer-events:none;" disabled>
+                    <i class="fas fa-check-circle"></i> Modification Payment Confirmed
                   </button>
                 ` : ''}
               ` : ''}
             </div>
           </div>
         `;
+    }
+
+    function handleConfirmModPayment(btn, id) {
+        btn.style.background = '#10b981';
+        btn.style.borderColor = '#10b981';
+        btn.style.pointerEvents = 'none';
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmed';
+        setTimeout(() => {
+            confirmModPayment(id);
+        }, 800);
     }
 
     function confirmModPayment(id) {
@@ -911,6 +1056,7 @@
         const req = c.modifyRequest;
         document.getElementById('modOrderId').value = id;
         document.getElementById('modAdditionalCharge').value = 0;
+        if (document.getElementById('modShopNote')) document.getElementById('modShopNote').value = '';
         
         document.getElementById('modifyContent').innerHTML = `
             <div style="display:flex; gap:1.2rem; align-items:flex-start;">
@@ -941,6 +1087,7 @@
     function approveModification() {
         const id = Number(document.getElementById('modOrderId').value);
         const extra = parseFloat(document.getElementById('modAdditionalCharge').value) || 0;
+        const noteText = document.getElementById('modShopNote').value.trim();
         
         const comms = JSON.parse(localStorage.getItem(getCommissionsKey()) || '[]');
         const idx = comms.findIndex(o => o.id === id);
@@ -950,10 +1097,16 @@
         const req = c.modifyRequest;
         
         // Apply Changes
+        c.exportId = req.newExportId || c.exportId;
         c.cadState = req.newCadState;
         c.description = req.newDescription;
         c.previewImage = req.newPreviewImage || c.previewImage;
         c.price = (parseFloat(c.price) || 0) + extra;
+        
+        // Save shop's note and extra charge to show in export_area
+        c.lastModificationNote = noteText || "Your design changes have been successfully integrated into your build.";
+        c.lastModificationCharge = extra;
+        c.lastModificationTimestamp = new Date().toISOString();
         
         // Add financial item if extra charge
         if (extra > 0) {
@@ -972,7 +1125,10 @@
         localStorage.setItem(getCommissionsKey(), JSON.stringify(comms));
         
         // Notify Customer
-        sendUserNotification(c.customerName, `Shop accepted your design modification. ${extra > 0 ? `Additional charge of ₱${extra.toLocaleString()} applied.` : ''}`, "order_update", c.id);
+        let userNotifMsg = `Shop accepted your design modification.`;
+        if (extra > 0) userNotifMsg += ` Additional charge of ₱${extra.toLocaleString()} applied.`;
+        if (noteText) userNotifMsg += ` Note: "${noteText}"`;
+        sendUserNotification(c.customerName, userNotifMsg, "order_update", c.id);
         
         try { new BroadcastChannel('furnicraft_updates').postMessage({ type: 'order' }); } catch(e) {}
         
@@ -984,6 +1140,7 @@
       const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
       if (settings.dpRate) currentDpRate = settings.dpRate;
       loadCommissions();
+      initSidebarWidget();
       setInterval(loadCommissions, 3000);
 
       // BroadcastChannel for instant sync
@@ -993,10 +1150,222 @@
           const { type } = ev.data || {};
           if (type === 'order' || type === 'chat') {
             loadCommissions();
+            updateValidityDisplay();
           }
         };
       } catch(e) {}
     };
+
+    // --- SIDEBAR WIDGET LOGIC ---
+    function updateDpRate(val) {
+      currentDpRate = parseInt(val, 10) || 20;
+      const dpInput = document.getElementById('dpRateInput');
+      if (dpInput) dpInput.value = currentDpRate;
+      const dpText = document.getElementById('dpText');
+      if (dpText) dpText.textContent = `DP: ${currentDpRate}% Required`;
+      localStorage.setItem(getSettingsKey(), JSON.stringify({ dpRate: currentDpRate }));
+    }
+
+    function addNotification(title, text, type) {
+      let notifs = JSON.parse(localStorage.getItem(`shop_notifs_${managedShopId}`) || '[]');
+      notifs.unshift({
+        id: Date.now(),
+        title,
+        text,
+        type,
+        time: new Date().toISOString(),
+        read: false
+      });
+      localStorage.setItem(`shop_notifs_${managedShopId}`, JSON.stringify(notifs.slice(0, 50)));
+    }
+
+    // --- MATERIAL PRICING LOGIC ---
+    const shopMaterialsMap = {
+      1: ["Narra", "Ipil", "Dao", "Guijo", "Apitong", "Kamagong", "Molave", "Mahogany", "Tanguile", "Yakal", "Walnut", "Teak", "Maple", "Oak", "Pine", "Rubber Wood", "Bamboo", "Glass", "Epoxy Resin", "Rattan"],
+      2: ["Rattan", "Capiz Shell", "Bamboo"],
+      3: ["Walnut", "Leather", "Fine Linen"],
+      4: ["Maple", "Marine Plywood", "Aged Brass"],
+      6: ["Epoxy Resin", "Terrazzo", "Walnut"],
+      7: ["Narra", "Kamagong", "Dao", "Aged Brass"],
+      8: ["Teak", "Rattan", "Brushed Steel"],
+      9: ["Black Iron", "Glass Clear", "Brushed Steel"],
+      10: ["Yakal", "Guijo", "Molave"],
+      11: ["Pine", "Maple", "Varnish"]
+    };
+
+    const materialBaselines = {
+      "Narra": 4.2, "Ipil": 4.8, "Dao": 4.5, "Guijo": 4.1, "Apitong": 3.6,
+      "Kamagong": 5.5, "Molave": 4.0, "Mahogany": 2.8, "Tanguile": 2.2, "Yakal": 3.1,
+      "Rattan": 1.8, "Capiz Shell": 5.2, "Oak": 2.5, "Pine": 1.4, "Rubber Wood": 1.6,
+      "Bamboo": 1.2, "Walnut": 6.2, "Teak": 7.5, "Maple": 3.8, "Epoxy Resin": 4.5,
+      "Terrazzo": 5.8, "Black Iron": 3.2, "Aged Brass": 6.8, "Marble White": 8.0,
+      "Marble Black": 9.0, "Glass Clear": 5.0, "Brushed Steel": 3.5, "Glass": 5.0
+    };
+
+    function openMaterialModal() {
+      const modal = document.getElementById('materialModal');
+      const list = document.getElementById('materialList');
+      if (!modal || !list) return;
+      list.innerHTML = "";
+      
+      const shopId = managedShopId || 1;
+      const materials = shopMaterialsMap[shopId] || shopMaterialsMap[1];
+      const savedPrices = JSON.parse(localStorage.getItem(`shop_material_prices_${shopId}`) || '{}');
+
+      materials.forEach(mat => {
+        const savedData = savedPrices[mat];
+        let price = "";
+        
+        if (savedData !== undefined) {
+          price = (typeof savedData === 'object') ? savedData.price : savedData;
+        } else if (materialBaselines[mat] !== undefined) {
+          price = materialBaselines[mat];
+        }
+
+        const row = document.createElement('div');
+        row.className = 'material-input-row';
+        row.innerHTML = `
+          <label>${mat}</label>
+          <div class="material-input-wrapper">
+            <span>₱</span>
+            <input type="number" class="mat-price-input" data-mat="${mat}" value="${price}" step="0.01" placeholder="0.00" style="padding: 0.4rem; font-size: 0.8rem; flex:1;">
+            <span class="unit-label">/ cm</span>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+
+      modal.style.display = 'flex';
+    }
+
+    function closeMaterialModal() {
+      const modal = document.getElementById('materialModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function saveMaterialPrices() {
+      const shopId = managedShopId || 1;
+      const priceInputs = document.querySelectorAll('.mat-price-input');
+      const prices = {};
+      
+      priceInputs.forEach((inp) => {
+        const mat = inp.getAttribute('data-mat');
+        const val = parseFloat(inp.value);
+        if (!isNaN(val)) {
+          prices[mat] = { price: val, unit: 'cm' };
+        }
+      });
+      localStorage.setItem(`shop_material_prices_${shopId}`, JSON.stringify(prices));
+      closeMaterialModal();
+      alert("Material prices saved successfully! Changes are instantly synced with all 3D Builders.");
+    }
+
+    // --- SHOP VALIDITY LOGIC ---
+    function updateValidityDisplay() {
+      const validityKey = `shop_validity_${managedShopId}`;
+      const validityData = JSON.parse(localStorage.getItem(validityKey) || 'null');
+      const display = document.getElementById('validityStatus');
+      if (!display) return;
+      
+      if (!validityData) {
+        const defaultExpiry = new Date();
+        defaultExpiry.setFullYear(defaultExpiry.getFullYear() + 1);
+        localStorage.setItem(validityKey, JSON.stringify({ expiryDate: defaultExpiry.toISOString(), status: 'verified' }));
+        updateValidityDisplay();
+        return;
+      }
+
+      const now = new Date();
+      const expiry = new Date(validityData.expiryDate);
+      const diffTime = expiry - now;
+      
+      if (diffTime <= 0) {
+        display.innerHTML = '<span style="color:var(--danger)"><i class="fas fa-exclamation-circle"></i> License Expired</span>';
+        return;
+      }
+
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const months = Math.floor(diffDays / 30);
+      const days = diffDays % 30;
+
+      let statusHtml = '';
+      if (months > 0) statusHtml += `${months}m `;
+      statusHtml += `${days}d remaining`;
+
+      const color = diffDays < 30 ? 'var(--danger)' : (diffDays < 90 ? 'var(--warning)' : 'var(--success)');
+      display.innerHTML = `<span style="color:${color}"><i class="fas fa-calendar-check"></i> ${statusHtml}</span>`;
+    }
+
+    function openRenewalModal() { 
+      const modal = document.getElementById('renewalModal');
+      if (modal) modal.style.display = 'flex'; 
+    }
+    
+    function closeRenewalModal() { 
+      const modal = document.getElementById('renewalModal');
+      if (modal) modal.style.display = 'none'; 
+    }
+
+    function handleFileChange(input) {
+      if (input.files && input.files[0]) {
+        const display = document.getElementById('fileNameDisplay');
+        if (display) display.textContent = input.files[0].name;
+      }
+    }
+
+    function submitRenewal(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('aitrFile');
+      if (!fileInput.files || !fileInput.files[0]) {
+        alert("Please upload your AITR document.");
+        return;
+      }
+      const shopName = sessionStorage.getItem('selectedShopName') || "Furniture Workshop";
+      const tinVal = document.getElementById('tinInput')?.value || 'N/A';
+      const request = {
+        id: 'REQ-' + Math.floor(1000 + Math.random()*9000),
+        shopId: managedShopId || 1,
+        shopName: shopName,
+        type: 'AITR Renewal',
+        tin: tinVal,
+        fileName: fileInput.files[0].name,
+        date: new Date().toISOString(),
+        status: 'Pending'
+      };
+
+      const existing = JSON.parse(localStorage.getItem('admin_requests') || '[]');
+      existing.push(request);
+      localStorage.setItem('admin_requests', JSON.stringify(existing));
+
+      const validityKey = `shop_validity_${managedShopId}`;
+      const currentVal = JSON.parse(localStorage.getItem(validityKey) || '{}');
+      currentVal.status = 'pending_renewal';
+      localStorage.setItem(validityKey, JSON.stringify(currentVal));
+
+      updateValidityDisplay();
+      addNotification("Renewal Submitted", "Your AITR renewal request has been sent to admin for verification.", "info");
+
+      closeRenewalModal();
+      alert("Renewal request submitted successfully! Admin will review your document within 2-3 business days.");
+    }
+
+    function initSidebarWidget() {
+      // Set active shop debug display
+      const debugShop = document.getElementById('debugShopId');
+      if (debugShop) debugShop.textContent = managedShopId;
+
+      // Load settings
+      const settings = JSON.parse(localStorage.getItem(getSettingsKey()) || '{}');
+      if (settings.dpRate) {
+        currentDpRate = settings.dpRate;
+        updateDpRate(currentDpRate);
+      } else {
+        updateDpRate(20);
+      }
+
+      updateValidityDisplay();
+      setInterval(updateValidityDisplay, 60000);
+    }
   </script>
 </body>
 </html>

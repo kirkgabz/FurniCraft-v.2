@@ -1258,6 +1258,21 @@ const materialDB = {
 
 };
 
+// Sync shop-defined prices if available
+(function syncMaterialPrices() {
+  const shopId = sessionStorage.getItem('managedShopId') || sessionStorage.getItem('selectedShopId');
+  if (!shopId) return;
+  const savedPrices = JSON.parse(localStorage.getItem(`shop_material_prices_${shopId}`) || '{}');
+  for (const key in materialDB) {
+    const matName = materialDB[key].name;
+    if (savedPrices[matName] && typeof savedPrices[matName] === 'object') {
+      materialDB[key].price = savedPrices[matName].price;
+    } else if (savedPrices[matName] && typeof savedPrices[matName] === 'number') {
+      materialDB[key].price = savedPrices[matName];
+    }
+  }
+})();
+
 
 
 const assetsDB = { desk:{ name:'Office Desk', basePrice:1400, parts:['Desktop','Legs','Storage'] } };

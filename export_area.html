@@ -429,9 +429,21 @@
         <div class="status-badge st-pending" id="statusPill">Pending</div>
         <div class="status-note" id="statusNote">No order created yet.</div>
         
+        <div id="modificationFeedbackWrap" style="display:none; margin-top: 1rem; padding: 1.2rem; border-radius: 16px; text-align: left;"></div>
+        
         <div id="progressContainer" class="progress-container">
             <h4 style="font-family:'Playfair Display', serif; font-size:1.1rem; margin-bottom:1rem;"><i class="fas fa-hammer"></i> Live Build Progress</h4>
             <div id="progGallery" class="prog-gallery"></div>
+        </div>
+
+        <!-- Quantity Selector Panel -->
+        <div id="quantitySelectorWrap" style="margin-bottom: 1.5rem; text-align: left; display: block;">
+            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Order Quantity</label>
+            <div style="display: flex; align-items: center; border: 1px solid rgba(139, 90, 43, 0.2); border-radius: 12px; overflow: hidden; background: #fff;">
+                <button onclick="changeQty(-1)" style="border: none; background: rgba(139, 90, 43, 0.05); color: var(--accent-primary); width: 45px; height: 45px; font-size: 1.2rem; cursor: pointer; transition: 0.2s; font-weight: bold;" onmouseover="this.style.background='rgba(139, 90, 43, 0.1)'" onmouseout="this.style.background='rgba(139, 90, 43, 0.05)'">-</button>
+                <input type="number" id="orderQtyInput" value="1" min="1" max="100" style="flex: 1; border: none; text-align: center; font-size: 1.1rem; font-weight: 700; color: var(--text-dark); outline: none; height: 45px; -moz-appearance: textfield;" oninput="updateQtyPrice()">
+                <button onclick="changeQty(1)" style="border: none; background: rgba(139, 90, 43, 0.05); color: var(--accent-primary); width: 45px; height: 45px; font-size: 1.2rem; cursor: pointer; transition: 0.2s; font-weight: bold;" onmouseover="this.style.background='rgba(139, 90, 43, 0.1)'" onmouseout="this.style.background='rgba(139, 90, 43, 0.05)'">+</button>
+            </div>
         </div>
 
         <button id="btnPlaceOrder" class="btn btn-primary" onclick="placeOrder()"><i class="fas fa-paper-plane"></i> Place Order</button>
@@ -530,6 +542,7 @@
     const activeShopName = sessionStorage.getItem('selectedShopName') || "AFMB Valeza Rattan Furniture and Fixtures";
     let exportDraft = null;
     let activeItem = null;
+    let baseUnitPrice = 0;
 
     function getCustName() {
       const email = localStorage.getItem('currentUserEmail');
@@ -537,8 +550,15 @@
       if (name) return name;
       if (email) return email.split('@')[0];
       
+      let guestName = sessionStorage.getItem('guestUserName');
+      if (guestName) return guestName;
+      
       const expId = exportDraft?.exportId || sessionStorage.getItem('currentExportId') || 'exp_unknown';
-      return 'Client (' + expId.substring(0,6) + ')';
+      guestName = 'Client (' + expId.substring(0,6) + ')';
+      if (expId !== 'exp_unknown') {
+          sessionStorage.setItem('guestUserName', guestName);
+      }
+      return guestName;
     }
 
     function moneySafe(txt){
@@ -555,28 +575,57 @@
       const drafts = JSON.parse(localStorage.getItem('exportDrafts') || '[]');
       exportDraft = drafts.find(d => d.exportId === currentExportId) || drafts[0] || null;
 
+      // Check if there is an active order that contains this draft ID or modify request ID
+      const commissions = JSON.parse(localStorage.getItem(`projectProposals_shop_${activeShopId}`) || '[]');
+      const myOrder = commissions.find(c => 
+          c.customerName === getCustName() && 
+          (c.exportId === exportDraft?.exportId || c.modifyRequest?.newExportId === exportDraft?.exportId)
+      );
+
+      let priceText = exportDraft?.estimatedPriceText;
+      let cadStateStr = exportDraft?.cadState || sessionStorage.getItem('cadState') || '';
+      let previewUrl = exportDraft?.previewDataUrl;
+      let projNameText = exportDraft?.projectName || 'Custom Design';
+      let projTypeText = exportDraft?.furnitureType || 'Furniture Piece';
+
+      baseUnitPrice = parseFloat((priceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
+
+      if (myOrder) {
+          priceText = '₱' + (myOrder.price || 0).toLocaleString('en-US');
+          cadStateStr = myOrder.cadState;
+          previewUrl = myOrder.previewImage;
+          if (myOrder.description) {
+              const match = myOrder.description.match(/Design:\s*(.*?)\s*\((.*?)\)/);
+              if (match) {
+                  projNameText = match[1];
+                  projTypeText = match[2];
+              } else {
+                  projNameText = myOrder.description;
+              }
+          }
+      }
+
       // Update Top Texts
       const email = localStorage.getItem('currentUserEmail');
       document.getElementById('customerNameLabel').innerText = getCustName();
       document.getElementById('clientExportEmailLabel').innerText = email ? email : ('ID: ' + (exportDraft?.exportId || '—').substring(0,6));
       
-      document.getElementById('projName').innerText = exportDraft?.projectName || 'Custom Design';
-      document.getElementById('projType').innerText = exportDraft?.furnitureType || 'Furniture Piece';
-      document.getElementById('projPrice').innerText = moneySafe(exportDraft?.estimatedPriceText);
+      document.getElementById('projName').innerText = projNameText;
+      document.getElementById('projType').innerText = projTypeText;
+      document.getElementById('projPrice').innerText = moneySafe(priceText);
 
       // --- 3D VISUALIZATION SNAPSHOT ---
       const previewBox = document.getElementById('previewBox');
       previewBox.innerHTML = '';
-      if (exportDraft?.previewDataUrl) {
+      if (previewUrl) {
         const img = document.createElement('img'); 
-        img.src = exportDraft.previewDataUrl; 
+        img.src = previewUrl; 
         previewBox.appendChild(img);
       } else {
         previewBox.innerHTML = '<div class="preview-fallback"><i class="fas fa-camera" style="font-size: 2rem; margin-bottom: 10px;"></i><br>Preview not captured.<br/>(Ensure your Builder exports a canvas image)</div>';
       }
 
       // --- PROCESS DATA ---
-      const cadStateStr = exportDraft?.cadState || sessionStorage.getItem('cadState') || '';
       let parsed = null;
       try { parsed = cadStateStr ? JSON.parse(cadStateStr) : null; } catch(e){}
 
@@ -802,7 +851,10 @@
       if (modId) {
           myOrder = commissions.find(c => String(c.id) === String(modId));
       } else {
-          myOrder = commissions.find(c => c.customerName === getCustName() && c.exportId === exportDraft?.exportId);
+          myOrder = commissions.find(c => 
+              c.customerName === getCustName() && 
+              (c.exportId === exportDraft?.exportId || c.modifyRequest?.newExportId === exportDraft?.exportId)
+          );
       }
 
       const btnPlaceOrder = document.getElementById('btnPlaceOrder');
@@ -810,13 +862,65 @@
       const progressContainer = document.getElementById('progressContainer');
       const modifyTimerWrap = document.getElementById('modifyTimerWrap');
       const btnModify = document.getElementById('btnModifyOrder');
+      const qtySelectorWrap = document.getElementById('quantitySelectorWrap');
 
       if (myOrder) {
-        // Button label update if in mod mode
-        if (sessionStorage.getItem('modifyingOrderId')) {
-            if (btnPlaceOrder) btnPlaceOrder.innerHTML = '<i class="fas fa-check-double"></i> Send Modification Request';
+          if (qtySelectorWrap) {
+              qtySelectorWrap.innerHTML = `
+                  <div style="background: rgba(139, 90, 43, 0.05); border: 1px solid rgba(139, 90, 43, 0.1); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                      <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Ordered Quantity:</span>
+                      <strong style="font-size: 1.2rem; color: var(--accent-primary);">${myOrder.quantity || 1} Pcs</strong>
+                  </div>
+              `;
+          }
+      } else {
+          if (qtySelectorWrap) {
+              qtySelectorWrap.innerHTML = `
+                  <label style="display: block; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Order Quantity</label>
+                  <div style="display: flex; align-items: center; border: 1px solid rgba(139, 90, 43, 0.2); border-radius: 12px; overflow: hidden; background: #fff; margin-bottom: 1.5rem;">
+                      <button onclick="changeQty(-1)" style="border: none; background: rgba(139, 90, 43, 0.05); color: var(--accent-primary); width: 45px; height: 45px; font-size: 1.2rem; cursor: pointer; transition: 0.2s; font-weight: bold;" onmouseover="this.style.background='rgba(139, 90, 43, 0.1)'" onmouseout="this.style.background='rgba(139, 90, 43, 0.05)'">-</button>
+                      <input type="number" id="orderQtyInput" value="1" min="1" max="100" style="flex: 1; border: none; text-align: center; font-size: 1.1rem; font-weight: 700; color: var(--text-dark); outline: none; height: 45px; -moz-appearance: textfield;" oninput="updateQtyPrice()">
+                      <button onclick="changeQty(1)" style="border: none; background: rgba(139, 90, 43, 0.05); color: var(--accent-primary); width: 45px; height: 45px; font-size: 1.2rem; cursor: pointer; transition: 0.2s; font-weight: bold;" onmouseover="this.style.background='rgba(139, 90, 43, 0.1)'" onmouseout="this.style.background='rgba(139, 90, 43, 0.05)'">+</button>
+                  </div>
+              `;
+          }
+      }
+
+      if (myOrder) {
+        // Reset default button state
+        if (btnPlaceOrder) {
+            btnPlaceOrder.disabled = false;
+            btnPlaceOrder.style.background = '';
+            btnPlaceOrder.style.color = '';
+            btnPlaceOrder.style.cursor = '';
+            btnPlaceOrder.style.boxShadow = '';
+            btnPlaceOrder.style.pointerEvents = '';
+            btnPlaceOrder.style.transform = '';
+        }
+
+        // Button label and color update if modification is sent vs drafting vs standard
+        if (myOrder.modifyRequest) {
+            if (btnPlaceOrder) {
+                btnPlaceOrder.innerHTML = '<i class="fas fa-check-circle"></i> Modification Request Been Sent';
+                btnPlaceOrder.style.display = 'flex';
+                btnPlaceOrder.style.background = '#10b981'; // Green color for success
+                btnPlaceOrder.style.color = '#ffffff';
+                btnPlaceOrder.style.cursor = 'not-allowed';
+                btnPlaceOrder.style.boxShadow = 'none';
+                btnPlaceOrder.style.pointerEvents = 'none';
+                btnPlaceOrder.style.transform = 'none';
+                btnPlaceOrder.disabled = true;
+            }
+        } else if (sessionStorage.getItem('modifyingOrderId')) {
+            if (btnPlaceOrder) {
+                btnPlaceOrder.innerHTML = '<i class="fas fa-check-double"></i> Send Modification Request';
+                btnPlaceOrder.style.display = 'flex';
+            }
         } else {
-            if (btnPlaceOrder) btnPlaceOrder.innerHTML = '<i class="fas fa-paper-plane"></i> Place Order';
+            if (btnPlaceOrder) {
+                btnPlaceOrder.innerHTML = '<i class="fas fa-paper-plane"></i> Place Order';
+                btnPlaceOrder.style.display = 'none';
+            }
         }
 
         const st = myOrder.status; 
@@ -825,55 +929,73 @@
         
         progressContainer.style.display = 'none';
         btnPayDp.style.display = 'none';
-        btnPlaceOrder.style.display = sessionStorage.getItem('modifyingOrderId') ? 'flex' : 'none';
         if (document.getElementById('btnRate')) document.getElementById('btnRate').style.display = 'none';
 
-        if (st === 'approved') {
-          note = "Design approved! Please pay the downpayment to start the build.";
-          uiStatus = 'approved';
-          btnPayDp.style.display = 'flex';
+        const unpaidModCharge = (myOrder.financialItems || []).find(f => f.type === 'charge' && !f.paid && f.paid !== 'verifying');
+        const verifyingModCharge = (myOrder.financialItems || []).find(f => f.type === 'charge' && f.paid === 'verifying');
+
+        if (myOrder.modifyRequest) {
+            note = "Modification request sent! Waiting for the shop to review your changes.";
+            uiStatus = 'pending';
+        } else if (unpaidModCharge) {
+            note = "Modification accepted! Please pay the additional charge of ₱" + unpaidModCharge.amount.toLocaleString() + " to proceed.";
+            uiStatus = 'approved';
+            btnPayDp.style.display = 'flex';
+            btnPayDp.innerHTML = '<i class="fas fa-receipt"></i> Pay Modification Charge';
+        } else if (verifyingModCharge) {
+            note = "Modification payment proof received. We are verifying your transaction...";
+            uiStatus = 'progress';
+            btnPayDp.style.display = 'none';
+        } else {
+            if (st === 'approved') {
+                note = "Design approved! Please pay the downpayment to start the build.";
+                uiStatus = 'approved';
+                btnPayDp.style.display = 'flex';
+                btnPayDp.innerHTML = '<i class="fas fa-wallet"></i> Pay Downpayment';
+            }
+            else if (st === 'payment_verifying') {
+              note = "Payment proof received. We are verifying your transaction...";
+              uiStatus = 'progress';
+            }
+            else if (st === 'payment_received') {
+              note = "Payment verified! Your project is now in our production queue.";
+              uiStatus = 'success';
+            }
+            else if (st === 'in_progress') {
+              note = "Your project is currently being built in our workshop!";
+              uiStatus = 'progress';
+            }
         }
-        else if (st === 'payment_verifying') {
-          note = "Payment proof received. We are verifying your transaction...";
-          uiStatus = 'progress';
-        }
-        else if (st === 'payment_received') {
-          note = "Payment verified! Your project is now in our production queue.";
-          uiStatus = 'success';
-        }
-        else if (st === 'in_progress') {
-          note = "Your project is currently being built in our workshop!";
-          uiStatus = 'progress';
-          progressContainer.style.display = 'block';
-          
-          // Show payment button if there's an unpaid modification charge
-          const hasUnpaidMod = (myOrder.financialItems || []).some(f => f.type === 'charge' && !f.paid);
-          if (hasUnpaidMod) {
-              btnPayDp.style.display = 'flex';
-              btnPayDp.innerHTML = '<i class="fas fa-receipt"></i> Pay Modification Charge';
-              note = "Modification accepted! Please pay the additional charge to proceed.";
-          }
-          
-          // Render Progress Updates (Notes & Images)
-          const gallery = document.getElementById('progGallery');
-          gallery.innerHTML = '';
-          if (myOrder.progressUpdates && myOrder.progressUpdates.length) {
-              myOrder.progressUpdates.slice().reverse().forEach(upd => {
-                  const div = document.createElement('div');
-                  div.className = 'prog-update-item';
-                  div.innerHTML = `
-                      ${upd.image ? `<img src="${upd.image}" class="prog-update-img" onclick="zoomImg('${upd.image}')" />` : ''}
-                      <div class="prog-note"><b>Update:</b> ${upd.note}</div>
-                      <div class="prog-update-meta">
-                        <span>${new Date(upd.timestamp).toLocaleDateString()}</span>
-                        <span>${new Date(upd.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-                      </div>
-                  `;
-                  gallery.appendChild(div);
-              });
-          } else {
-              gallery.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:1rem; border:2px dashed var(--border-light); border-radius:12px;">Build is starting! Check back later for photos.</div>';
-          }
+
+        // Always render build progress gallery if status is in progress, regardless of modification payment state
+        if (st === 'in_progress') {
+            progressContainer.style.display = 'block';
+            
+            const gallery = document.getElementById('progGallery');
+            gallery.innerHTML = '';
+            if (myOrder.progressUpdates && myOrder.progressUpdates.length) {
+                // If there are no pending modification payment actions, reflect the latest update in the status note!
+                if (!myOrder.modifyRequest && !unpaidModCharge && !verifyingModCharge) {
+                    const latest = myOrder.progressUpdates[myOrder.progressUpdates.length - 1];
+                    note = `Workshop Update: "${latest.note}"`;
+                }
+                
+                myOrder.progressUpdates.slice().reverse().forEach(upd => {
+                    const div = document.createElement('div');
+                    div.className = 'prog-update-item';
+                    div.innerHTML = `
+                        ${upd.image ? `<img src="${upd.image}" class="prog-update-img" onclick="zoomImg('${upd.image}')" />` : ''}
+                        <div class="prog-note"><b>Update:</b> ${upd.note}</div>
+                        <div class="prog-update-meta">
+                          <span>${new Date(upd.timestamp).toLocaleDateString()}</span>
+                          <span>${new Date(upd.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                        </div>
+                    `;
+                    gallery.appendChild(div);
+                });
+            } else {
+                gallery.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:1rem; border:2px dashed var(--border-light); border-radius:12px;">Build is starting! Check back later for photos.</div>';
+            }
         }
         else if (st === 'completed') {
           note = "Build complete! It's ready for delivery/pickup.";
@@ -945,13 +1067,45 @@
 
 
         // --- MODIFICATION WINDOW LOGIC ---
-        if (myOrder.acceptedAt) {
+        const unpaidMod = (myOrder.financialItems || []).find(f => f.type === 'charge' && !f.paid && f.paid !== 'verifying');
+        const verifyingMod = (myOrder.financialItems || []).find(f => f.type === 'charge' && f.paid === 'verifying');
+        const paidMod = (myOrder.financialItems || []).find(f => f.type === 'charge' && f.paid === true);
+        const hasModificationHistory = myOrder.modifyRequest || unpaidMod || verifyingMod || paidMod;
+
+        if (hasModificationHistory) {
+            modifyTimerWrap.style.display = 'block';
+            if (myOrder.modifyRequest) {
+                modifyTimerWrap.innerHTML = `
+                    <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:1px; margin-bottom:8px;">Modification Window</div>
+                    <div style="font-size:1.4rem; font-weight:700; color:#ef4444;">Modification Order Sent</div>
+                    <p style="font-size:0.7rem; color:var(--text-muted); margin-top:6px; line-height:1.4;">Wait for the shop to confirm.</p>
+                `;
+            } else if (unpaidMod) {
+                modifyTimerWrap.innerHTML = `
+                    <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:1px; margin-bottom:8px;">Modification Window</div>
+                    <div style="font-size:1.4rem; font-weight:700; color:#f59e0b;">Modification Order Sent</div>
+                    <p style="font-size:0.7rem; color:var(--text-muted); margin-top:6px; line-height:1.4;">Approved! Additional charge payment pending.</p>
+                `;
+            } else if (verifyingMod) {
+                modifyTimerWrap.innerHTML = `
+                    <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:1px; margin-bottom:8px;">Modification Window</div>
+                    <div style="font-size:1.4rem; font-weight:700; color:#3b82f6;">Modification Order Sent</div>
+                    <p style="font-size:0.7rem; color:var(--text-muted); margin-top:6px; line-height:1.4;">Payment proof submitted. Verifying...</p>
+                `;
+            } else if (paidMod) {
+                modifyTimerWrap.innerHTML = `
+                    <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:1px; margin-bottom:8px;">Modification Window</div>
+                    <div style="font-size:1.4rem; font-weight:700; color:#10b981;">Modification Order Sent</div>
+                    <p style="font-size:0.7rem; color:var(--text-muted); margin-top:6px; line-height:1.4;">Your custom design modification is active and in progress.</p>
+                `;
+            }
+        } else if (myOrder.acceptedAt) {
             const acceptedTime = new Date(myOrder.acceptedAt).getTime();
             const now = Date.now();
             const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
             const diff = (acceptedTime + threeDaysMs) - now;
             
-            if (diff > 0 && !myOrder.modifyRequest && (st === 'approved' || st === 'payment_received' || st === 'payment_verifying' || st === 'in_progress')) {
+            if (diff > 0 && (st === 'approved' || st === 'payment_received' || st === 'payment_verifying' || st === 'in_progress')) {
                 modifyTimerWrap.style.display = 'block';
                 startModifyTimer(acceptedTime + threeDaysMs);
             } else {
@@ -961,22 +1115,72 @@
             modifyTimerWrap.style.display = 'none';
         }
 
-        if (myOrder.modifyRequest) {
-            modifyTimerWrap.style.display = 'block';
-            modifyTimerWrap.innerHTML = `
-                <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:1px; margin-bottom:8px;">Modification Window</div>
-                <div style="font-size:1.4rem; font-weight:700; color:#ef4444;">Modified Order</div>
-                <p style="font-size:0.7rem; color:var(--text-muted); margin-top:6px; line-height:1.4;">Wait for the shop to confirm.</p>
-            `;
+        // Render Shop Response Note / Feedback on accepted modifications
+        const feedbackWrap = document.getElementById('modificationFeedbackWrap');
+        if (feedbackWrap) {
+            if (myOrder.lastModificationNote) {
+                feedbackWrap.style.display = 'block';
+                feedbackWrap.style.background = 'rgba(16, 185, 129, 0.06)';
+                feedbackWrap.style.border = '1px solid rgba(16, 185, 129, 0.15)';
+                
+                const chargeText = myOrder.lastModificationCharge > 0 
+                    ? `<div style="margin-top: 8px; font-size: 0.85rem; color: #059669;"><b>Additional Charge:</b> ₱${myOrder.lastModificationCharge.toLocaleString()}</div>`
+                    : '';
+                
+                feedbackWrap.innerHTML = `
+                    <div style="font-size:0.6rem; color:#059669; text-transform:uppercase; font-weight:800; letter-spacing:1px; margin-bottom:8px;">
+                        <i class="fas fa-check-circle"></i> Design Modification Accepted
+                    </div>
+                    <div style="font-size:0.85rem; color:var(--text-dark); line-height:1.5;">
+                        "${myOrder.lastModificationNote}"
+                    </div>
+                    ${chargeText}
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px; font-style: italic;">
+                        Updated on ${new Date(myOrder.lastModificationTimestamp || myOrder.id).toLocaleDateString()} at ${new Date(myOrder.lastModificationTimestamp || myOrder.id).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                `;
+            } else {
+                feedbackWrap.style.display = 'none';
+            }
         }
 
         setStatus(uiStatus, note);
       } else {
+        const feedbackWrap = document.getElementById('modificationFeedbackWrap');
+        if (feedbackWrap) feedbackWrap.style.display = 'none';
+        
         if (btnPlaceOrder) btnPlaceOrder.style.display = 'flex'; 
         if (btnPayDp) btnPayDp.style.display = 'none'; 
         if (progressContainer) progressContainer.style.display = 'none';
         setStatus('pending', 'No order created yet. Submit to shop for review.');
       }
+    }
+
+    function setStatus(type, text) {
+        const pill = document.getElementById('statusPill');
+        const noteEl = document.getElementById('statusNote');
+        if (!pill || !noteEl) return;
+        
+        pill.className = 'status-badge';
+        
+        if (type === 'pending') {
+            pill.classList.add('st-pending');
+            pill.innerText = 'Pending';
+        } else if (type === 'approved') {
+            pill.classList.add('st-progress');
+            pill.innerText = 'Approved';
+        } else if (type === 'progress') {
+            pill.classList.add('st-progress');
+            pill.innerText = 'Building';
+        } else if (type === 'success') {
+            pill.classList.add('st-success');
+            pill.innerText = 'Completed';
+        } else if (type === 'cancelled') {
+            pill.classList.add('st-cancelled');
+            pill.innerText = 'Declined';
+        }
+        
+        noteEl.innerText = text;
     }
 
     let modTimerInterval = null;
@@ -1001,6 +1205,25 @@
         update();
         modTimerInterval = setInterval(update, 1000);
     }
+
+    window.changeQty = function(amt) {
+        const input = document.getElementById('orderQtyInput');
+        if (!input) return;
+        let val = (parseInt(input.value) || 1) + amt;
+        if (val < 1) val = 1;
+        if (val > 100) val = 100;
+        input.value = val;
+        updateQtyPrice();
+    };
+
+    window.updateQtyPrice = function() {
+        const input = document.getElementById('orderQtyInput');
+        if (!input) return;
+        let qty = parseInt(input.value) || 1;
+        if (qty < 1) qty = 1;
+        let total = baseUnitPrice * qty;
+        document.getElementById('projPrice').innerText = '₱' + total.toLocaleString('en-US');
+    };
 
     function modifyCurrentOrder() {
         const commissions = JSON.parse(localStorage.getItem(getDashCommissionsKey()) || '[]');
@@ -1046,6 +1269,7 @@
                   newDescription: desc,
                   newPrice: numericPrice,
                   newPreviewImage: exportDraft?.previewDataUrl,
+                  newExportId: exportDraft?.exportId, // Track the customized draft export ID
                   requestedAt: new Date().toISOString()
               };
               localStorage.setItem(modKey, JSON.stringify(modComms));
@@ -1061,6 +1285,10 @@
       // NEW ORDER
       if (commissions.find(c => c.exportId === exportDraft?.exportId)) { alert("You have already placed this precise order!"); return; }
       
+      const qtyInput = document.getElementById('orderQtyInput');
+      const qty = qtyInput ? (parseInt(qtyInput.value) || 1) : 1;
+      const totalPrice = baseUnitPrice * qty;
+      
       commissions.push({
         id: Date.now(), 
         customerName: getCustName(),
@@ -1068,10 +1296,14 @@
         previewImage: exportDraft?.previewDataUrl,
         description: desc,
         cadState: cadState,
-        duration: 14, price: numericPrice, status: 'pending', submittedAt: new Date().toISOString()
+        duration: 14, 
+        price: totalPrice, 
+        quantity: qty,
+        status: 'pending', 
+        submittedAt: new Date().toISOString()
       });
       localStorage.setItem(getDashCommissionsKey(), JSON.stringify(commissions));
-      sendUserNotification(getCustName(), `Your order for "${desc}" has been submitted for shop review.`, "status");
+      sendUserNotification(getCustName(), `Your order for "${desc}" (Qty: ${qty}) has been submitted for shop review.`, "status");
       
       loadOrderStatus(); 
       if (sessionStorage.getItem('modifyingOrderId')) {
@@ -1103,16 +1335,13 @@
       let amountToPay = 0;
       let label = "Downpayment Amount";
       
-      if (myOrder && myOrder.status === 'in_progress') {
-          // Check for modification charge
-          const modCharge = (myOrder.financialItems || []).find(f => f.type === 'charge' && !f.paid);
-          if (modCharge) {
-              amountToPay = modCharge.amount;
-              label = "Modification Charge";
-          }
+      const modCharge = myOrder ? (myOrder.financialItems || []).find(f => f.type === 'charge' && !f.paid && f.paid !== 'verifying') : null;
+      if (modCharge) {
+          amountToPay = modCharge.amount;
+          label = "Additional Charges Payment";
       } else {
-          let numericPrice = parseFloat((exportDraft?.estimatedPriceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
-          amountToPay = numericPrice * (parseInt(settings.dpRate, 10) / 100);
+          let orderPrice = myOrder ? (myOrder.price || 0) : baseUnitPrice;
+          amountToPay = orderPrice * (parseInt(settings.dpRate, 10) / 100);
       }
 
       const labelEl = document.getElementById('modalDpLabel');
@@ -1130,18 +1359,16 @@
       const index = commissions.findIndex(c => c.customerName === getCustName() && c.exportId === exportDraft?.exportId);
       if (index !== -1) {
         const order = commissions[index];
-        order.referenceNumber = refInput;
+        order.referenceNumber = refInput; // Always store referenceNumber on top level so shop owner can see it immediately!
         
-        if (order.status === 'in_progress') {
-            const modCharge = (order.financialItems || []).find(f => f.type === 'charge' && !f.paid);
-            if (modCharge) {
-                modCharge.paid = 'verifying';
-                modCharge.ref = refInput;
-            }
+        const modCharge = (order.financialItems || []).find(f => f.type === 'charge' && !f.paid && f.paid !== 'verifying');
+        if (modCharge) {
+            modCharge.paid = 'verifying';
+            modCharge.ref = refInput;
         } else {
             const settings = JSON.parse(localStorage.getItem(`shop_settings_${activeShopId}`) || '{"dpRate": 20}');
-            let numericPrice = parseFloat((exportDraft?.estimatedPriceText || '0').replace(/[^0-9.-]+/g, "")) || 0;
-            let pIdp = numericPrice * (parseInt(settings.dpRate, 10) / 100);
+            let orderPrice = order.price || baseUnitPrice;
+            let pIdp = orderPrice * (parseInt(settings.dpRate, 10) / 100);
             order.paidDpAmount = pIdp;
             order.status = 'payment_verifying';
         }
@@ -1262,6 +1489,7 @@
           channel.onmessage = (e) => {
             if (e.data.type === 'chat') loadChat();
             if (e.data.type === 'order' || e.data.type === 'order_update' || e.data.type === 'order_accepted') {
+              loadExportDraft();
               loadOrderStatus();
             }
           };

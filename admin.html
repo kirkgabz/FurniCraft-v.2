@@ -906,6 +906,9 @@
             <button class="action-btn" onclick="manageRenewals()">
               <i class="fas fa-file-invoice-dollar"></i> Validity Renewals (AITR)
             </button>
+            <button class="action-btn danger" onclick="viewShopReports()">
+              <i class="fas fa-flag"></i> Customer Reports for Shops
+            </button>
             <button class="action-btn" onclick="viewAllTransactions()" style="grid-column: span 2;">
               <i class="fas fa-receipt"></i> Global Order Transactions
             </button>
@@ -2161,17 +2164,116 @@
       }
 
       let reports = JSON.parse(localStorage.getItem('infraction_reports') || '[]');
+      let shopReports = JSON.parse(localStorage.getItem('shop_reports') || '[]');
       if(document.getElementById('totalReports')) {
-        document.getElementById('totalReports').innerText = reports.length;
+        document.getElementById('totalReports').innerText = (reports.length + shopReports.length).toString();
       }
     }
     
     window.addEventListener('storage', (e) => {
-      if (e.key === 'infraction_reports' || e.key === 'user_notifications_Admin' || e.key === 'shop_permits') {
+      if (e.key === 'infraction_reports' || e.key === 'user_notifications_Admin' || e.key === 'shop_permits' || e.key === 'shop_reports') {
         syncGlobalStats();
-        loadAdminNotifs();
+        if (typeof loadAdminNotifs === 'function') loadAdminNotifs();
       }
     });
+
+    try {
+      const bc = new BroadcastChannel('furnicraft_admin_reports');
+      bc.onmessage = (ev) => {
+        if (ev.data && ev.data.type === 'new_report') {
+          syncGlobalStats();
+        }
+      };
+    } catch(e) {}
+
+    window.viewShopReports = function() {
+      const reports = JSON.parse(localStorage.getItem('shop_reports') || '[]');
+      
+      let rows = '';
+      if (reports.length === 0) {
+        rows = `<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted);"><i class="fas fa-flag-slash" style="font-size:2rem; opacity:0.3; margin-bottom:12px; display:block;"></i>No customer shop reports submitted yet.</td></tr>`;
+      } else {
+        rows = reports.map(r => {
+          const imgProof = r.proofImage 
+            ? `<img src="${r.proofImage}" style="max-height:80px; max-width:120px; border-radius:6px; border:1px solid var(--border-color); cursor:zoom-in; object-fit:contain;" onclick="zoomReportImage('${r.proofImage}')" title="Click to zoom proof">`
+            : `<span class="text-muted" style="font-size:0.8rem; font-style:italic;">No attachment</span>`;
+          
+          return `
+            <tr>
+              <td>
+                <span style="font-weight:700; color:var(--text-main);">#${r.id || 'N/A'}</span><br>
+                <small class="text-muted">${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'N/A'}</small>
+              </td>
+              <td>
+                <span class="status-badge info" style="text-transform:none;">${r.reporter || 'Customer'}</span>
+              </td>
+              <td>
+                <strong style="color:var(--primary); font-size:0.95rem;">${r.shopName || 'AFMB Valeza Rattan'}</strong>
+              </td>
+              <td>
+                <div style="max-width:320px; font-size:0.9rem; line-height:1.4; color:var(--text-main); font-weight:500; white-space:normal; word-break:break-word;">
+                  ${r.details || 'No details provided.'}
+                </div>
+              </td>
+              <td style="text-align:center; vertical-align:middle;">
+                ${imgProof}
+              </td>
+              <td>
+                <button class="btn btn-sm btn-danger" onclick="dismissShopReport(${r.id})"><i class="fas fa-trash"></i> Dismiss</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      openModal('<i class="fas fa-flag" style="color:var(--danger)"></i> Customer Reports for Shops', `
+            <div class="table-responsive" style="margin-top: 10px;">
+                <table class="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Report Info</th>
+                        <th>Reporter</th>
+                        <th>Reported Shop</th>
+                        <th>Infraction Details</th>
+                        <th style="text-align:center;">Proof Attachment</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+      `);
+    };
+
+    window.zoomReportImage = function(src) {
+      let z = document.getElementById('reportImageZoom');
+      if (!z) {
+        z = document.createElement('div');
+        z.id = 'reportImageZoom';
+        z.style.position = 'fixed';
+        z.style.inset = '0';
+        z.style.background = 'rgba(0,0,0,0.85)';
+        z.style.zIndex = '20000';
+        z.style.display = 'flex';
+        z.style.alignItems = 'center';
+        z.style.justifyContent = 'center';
+        z.onclick = () => z.style.display = 'none';
+        z.innerHTML = `<img id="zoomedReportImg" src="" style="max-width:90%; max-height:90%; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,0.5); object-fit:contain; border:2px solid rgba(255,255,255,0.1);">`;
+        document.body.appendChild(z);
+      }
+      document.getElementById('zoomedReportImg').src = src;
+      z.style.display = 'flex';
+    };
+
+    window.dismissShopReport = function(id) {
+      if (!confirm("Are you sure you want to dismiss and clear this shop report?")) return;
+      let reports = JSON.parse(localStorage.getItem('shop_reports') || '[]');
+      reports = reports.filter(r => r.id !== id);
+      localStorage.setItem('shop_reports', JSON.stringify(reports));
+      
+      syncGlobalStats();
+      viewShopReports();
+    };
     
     function seedMockData() {
       let users = JSON.parse(localStorage.getItem('admin_users') || '[]');

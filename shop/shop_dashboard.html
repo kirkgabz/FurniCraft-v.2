@@ -1805,7 +1805,7 @@
         const materials = shopMaterialsMap[shopId] || shopMaterialsMap[1];
         const savedPrices = JSON.parse(localStorage.getItem(`shop_material_prices_${shopId}`) || '{}');
 
-        materials.forEach(mat => {
+        materials.forEach((mat, index) => {
           const savedData = savedPrices[mat];
           let price = "";
           
@@ -1818,12 +1818,23 @@
 
           const row = document.createElement('div');
           row.className = 'material-input-row';
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          row.style.justifyContent = 'space-between';
+          row.style.padding = '0.75rem 1.5rem';
+          row.style.borderBottom = '1px solid var(--border)';
+          
+          // Add vertical divider line to the first column
+          if (index % 2 === 0) {
+            row.style.borderRight = '1px solid var(--border)';
+          }
+          
           row.innerHTML = `
-            <label>${mat}</label>
-            <div class="material-input-wrapper">
-              <span>₱</span>
-              <input type="number" class="mat-price-input" data-mat="${mat}" value="${price}" step="0.01" placeholder="0.00" style="padding: 0.4rem; font-size: 0.8rem; flex:1;">
-              <span class="unit-label">/ cm</span>
+            <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-dark);">${mat}</label>
+            <div class="material-input-wrapper" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-width: 150px; justify-content: flex-end;">
+              <span style="color: var(--text-muted); font-weight: 600;">₱</span>
+              <input type="number" class="mat-price-input" data-mat="${mat}" value="${price}" step="0.01" placeholder="0.00" style="padding: 0.4rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 6px; width: 80px; text-align: right; outline: none;">
+              <span class="unit-label" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">/ cm</span>
             </div>
           `;
           list.appendChild(row);
@@ -2064,14 +2075,14 @@
 
   <!-- Material Pricing Modal -->
   <div class="modal-overlay" id="materialModal" onclick="if(event.target===this)closeMaterialModal()">
-    <div class="modal-box" style="max-width: 450px;">
+    <div class="modal-box" style="max-width: 850px; width: 90%; max-height: 90vh;">
       <div class="modal-header">
         <h2 style="font-size: 1.25rem;"><i class="fas fa-tags" style="color:var(--primary);"></i> Material Pricing</h2>
         <button class="modal-close" onclick="closeMaterialModal()">&times;</button>
       </div>
       <div class="modal-body" style="padding: 1.5rem;">
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Set your shop's unit prices for materials. These will be used for auto-calculating custom order estimates.</p>
-        <div id="materialList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+        <div id="materialList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0;">
           <!-- Dynamic -->
         </div>
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">

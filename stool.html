@@ -1638,8 +1638,10 @@ function build3DScene(){
   const isTripod=legShapeId==='tripod';
   const legH=dLeg.h;
   const yLeg=legH/2;
-  const swivelOffset = ai.hasSwivel ? 0.08 : 0;
-  const yTop=legH + swivelOffset + dSeat.h/2;
+  const swivelH = 0.08;
+  const swivelOffset = ai.hasSwivel ? swivelH : 0;
+  const seatBottom = legH + swivelOffset;
+  const yTop = seatBottom + dSeat.h/2;
   const legInset=Math.max(dLeg.w*0.5,0.06);
   const seatR=Math.min(dSeat.w/2,dSeat.d/2);
   const lx=seatR*0.62-legInset*0.5; const lz=seatR*0.62-legInset*0.5;
@@ -1657,12 +1659,11 @@ function build3DScene(){
   /* === SWIVEL MECHANISM === */
   if(ai.hasSwivel){
     const swivelR=Math.min(dSeat.w,dSeat.d)*0.25;
-    const swivelH=0.08;
     if(!isPedestal && !isTripod) {
-      addMesh('Legs',new THREE.BoxGeometry(lxR*2 + dLeg.w, 0.02, lzR*2 + dLeg.d), legHex, 'none', 0, legH - 0.01, 0);
+      addMesh('Legs',new THREE.BoxGeometry(lxR*2 + dLeg.w, 0.02, lzR*2 + dLeg.d), legHex, 'none', 0, legH, 0);
     }
     addMesh('Legs',new THREE.CylinderGeometry(swivelR,swivelR*1.1,swivelH,32),'#8a8a8a','none',0,legH+swivelH/2,0);
-    addMesh('Legs',new THREE.TorusGeometry(swivelR*0.78,swivelR*0.08,8,32),'#c0c8d0','none',0,legH+swivelH*0.9,0,Math.PI/2,0,0);
+    addMesh('Legs',new THREE.TorusGeometry(swivelR*0.78,swivelR*0.08,8,32),'#c0c8d0','none',0,legH+swivelH,0,Math.PI/2,0,0);
     addMesh('Legs',new THREE.CylinderGeometry(swivelR*0.35,swivelR*0.35,legH*0.45,20),'#8a8a8a','none',0,legH*0.77,0);
   }
 
@@ -1683,33 +1684,37 @@ function build3DScene(){
       class CabCurve extends THREE.Curve{getPoint(t){return new THREE.Vector3(Math.sin(t*Math.PI)*dLeg.w*0.4,t*legH-legH/2,0);}}
       return sg(()=>new THREE.TubeGeometry(new CabCurve(),24,dLeg.w*0.28,8,false),new THREE.CylinderGeometry(dLeg.w*0.28,dLeg.w/2,legH,8));
     }
-    if(legShapeId==='carved_leg') return new THREE.CylinderGeometry(dLeg.w/2,dLeg.w*0.65,legH*0.88,8);
+    if(legShapeId==='carved_leg') return new THREE.CylinderGeometry(dLeg.w/2,dLeg.w*0.65,legH,8);
     return new THREE.BoxGeometry(dLeg.w,legH,dLeg.d);
   };
 
   if(isPedestal){
     if(legShapeId==='single_pedestal'){
-      const colH = legH - dLeg.d*0.5;
+      const discH = dLeg.d*0.5;
+      const colH = legH - discH;
       const colR = dLeg.w*0.55;
       addMesh('Legs',new THREE.CylinderGeometry(colR*0.5,colR,colH,24),legHex,legCarv,0,colH/2,0);
-      addMesh('Legs',new THREE.CylinderGeometry(dSeat.w*0.22,dSeat.w*0.28,dLeg.d*0.5,24),legHex,legCarv,0,colH+dLeg.d*0.25,0);
+      addMesh('Legs',new THREE.CylinderGeometry(dSeat.w*0.22,dSeat.w*0.28,discH,24),legHex,legCarv,0,colH+discH/2,0);
       for(let i=0;i<4;i++){const a=(Math.PI/2)*i+Math.PI/4;const fR=dSeat.w*0.22;addMesh('Legs',new THREE.BoxGeometry(fR,legH*0.12,dLeg.d*0.45),legHex,legCarv,Math.cos(a)*fR*0.42,legH*0.06,Math.sin(a)*fR*0.42,0,a,0.18);}
     } else if(legShapeId==='tulip_pedestal'){
       const pts=[new THREE.Vector2(dLeg.w*0.2,0),new THREE.Vector2(dLeg.w*0.1,legH*0.25),new THREE.Vector2(dLeg.w*0.07,legH*0.55),new THREE.Vector2(dLeg.w*0.18,legH*0.72),new THREE.Vector2(dLeg.w*0.25,legH)];
       addMesh('Legs',new THREE.LatheGeometry(pts,24),legHex,legCarv,0,0,0);
-      addMesh('Legs',new THREE.CylinderGeometry(dSeat.w*0.2,dSeat.w*0.18,dLeg.d*0.4,24),legHex,legCarv,0,legH-dLeg.d*0.2,0);
+      const discH2 = dLeg.d*0.4;
+      addMesh('Legs',new THREE.CylinderGeometry(dSeat.w*0.2,dSeat.w*0.18,discH2,24),legHex,legCarv,0,legH-discH2/2,0);
     } else { // cross_base / 4-star
-      const colH = legH - dLeg.d*0.45;
+      const discH3 = dLeg.d*0.45;
+      const colH = legH - discH3;
       addMesh('Legs',new THREE.CylinderGeometry(dLeg.w*0.5,dLeg.w*0.55,colH,20),legHex,legCarv,0,colH/2,0);
       for(let i=0;i<4;i++){const a=(Math.PI/2)*i;const aL=dSeat.w*0.32;addMesh('Legs',new THREE.BoxGeometry(aL,dLeg.w*0.5,dLeg.w*0.5),legHex,legCarv,Math.cos(a)*aL*0.5,legH*0.05,Math.sin(a)*aL*0.5,0,a,0);}
-      addMesh('Legs',new THREE.CylinderGeometry(dSeat.w*0.18,dSeat.w*0.22,dLeg.d*0.45,20),legHex,legCarv,0,legH-dLeg.d*0.225,0);
+      addMesh('Legs',new THREE.CylinderGeometry(dSeat.w*0.18,dSeat.w*0.22,discH3,20),legHex,legCarv,0,colH+discH3/2,0);
     }
   } else if(isTripod){
     for(let i=0;i<3;i++){
       const a=(Math.PI*2/3)*i-Math.PI/6;
-      const tx=Math.cos(a)*lxR*1.1, tz=Math.sin(a)*lzR*1.1;
-      const tiltAng=0.2;
-      addMesh('Legs',new THREE.CylinderGeometry(dLeg.w*0.4,dLeg.w*0.45,legH*1.05,14),legHex,legCarv,tx*0.5,yLeg,tz*0.5,Math.cos(a+Math.PI/2)*tiltAng,0,Math.sin(a+Math.PI/2)*tiltAng);
+      const tiltAng=0.18;
+      const tLegH=legH/Math.cos(tiltAng);
+      const tx=Math.cos(a)*lxR*0.55, tz=Math.sin(a)*lzR*0.55;
+      addMesh('Legs',new THREE.CylinderGeometry(dLeg.w*0.4,dLeg.w*0.45,tLegH,14),legHex,legCarv,tx,yLeg,tz,Math.cos(a+Math.PI/2)*tiltAng,0,Math.sin(a+Math.PI/2)*tiltAng);
     }
   } else if(legShapeId==='hairpin'){
     const pinR=dLeg.w*0.08;
@@ -1782,7 +1787,7 @@ function build3DScene(){
 
   /* === BACK REST === */
   if(ai.hasBack && backShapeId!=='no_back'){
-    const yBackBase=legH+swivelOffset+dSeat.h - 0.015;
+    const yBackBase=seatBottom+dSeat.h;
     const bW=dBack.w, bH=dBack.h, bT=dBack.d;
     const backX=0;
     let backZ = -dSeat.d/2 * 0.82;
@@ -2077,19 +2082,28 @@ function buildAccessories3D(ai,dSeat,yTop,getMat,sg,grp){
   }
 
   const ai_dims=(ai.dims||{});
-  const legH=(ai_dims.Legs||{h:72}).h/S;
-  const swivelOffset = ai.hasSwivel ? 0.08 : 0;
-  const lxR=Math.max(Math.min(dSeat.w,dSeat.d)/2*0.62-0.05,0.08);
-  const yTopSurface=yTop+dSeat.h/2;
+  const dLeg=(ai_dims.Legs||{w:4,h:72,d:4});
+  const legH=dLeg.h/S;
+  const swivelH=0.08;
+  const swivelOffset = ai.hasSwivel ? swivelH : 0;
+  const seatBottom = legH + swivelOffset;
+  const seatTop = seatBottom + dSeat.h;
 
-  /* SEAT CUSHION */
+  /* Recompute leg insets to match main build */
+  const legInset=Math.max(dLeg.w/S*0.5,0.06);
+  const lx=seatR*0.62-legInset*0.5;
+  const lz=seatR*0.62-legInset*0.5;
+  const lxR=Math.max(lx,legInset);
+  const lzR=Math.max(lz,legInset);
+
+  /* SEAT CUSHION — sits flush on top of seat surface */
   const sc=ai.accessories.seat_cushion;
   if(sc&&sc.on){
     const cH=(sc.thickness||5)/S;
     const cOvh=(sc.padding||8)/(S*10);
-    const yC=yTopSurface+cH/2+0.003;
-    const legShapeId=(ai.shapes||{}).Seat||'round_seat';
-    if(legShapeId==='round_seat'||legShapeId==='oval_seat'){
+    const yC=seatTop+cH/2;
+    const seatShapeId=(ai.shapes||{}).Seat||'round_seat';
+    if(seatShapeId==='round_seat'||seatShapeId==='oval_seat'){
       accMesh(new THREE.CylinderGeometry((seatR+cOvh)*1.02,seatR+cOvh,cH,36),sc.mat,0,yC,0);
     } else {
       accMesh(new THREE.BoxGeometry(dSeat.w+cOvh*2,cH,dSeat.d+cOvh*2),sc.mat,0,yC,0);
@@ -2097,98 +2111,113 @@ function buildAccessories3D(ai,dSeat,yTop,getMat,sg,grp){
     accMesh(new THREE.TorusGeometry(seatR+cOvh-0.01,cH*0.25,8,36),sc.mat,0,yC,0,Math.PI/2,0,0);
   }
 
-  /* FOOTREST BUMPERS */
+  /* FOOTREST BUMPERS — placed on actual footrest ring */
   const fb=ai.accessories.footrest_bumpers;
   if(fb&&fb.on&&(ai.hasFootrest||ai.hasHBar)){
     const n=Math.round(fb.count||4);
     const bR=(fb.size||6)/(S*10);
     const bH=bR*1.8;
-    const fY=legH*0.38;
-    const ringR=lxR*1.05+0.02;
+    const fY=ai.hasFootrest ? legH*0.38 : legH*0.32;
+    const ringR=Math.max(lxR,lzR)*1.05+(dLeg.w/S)*0.1;
     for(let i=0;i<n;i++){
       const a=(Math.PI*2/n)*i;
       accMesh(new THREE.CylinderGeometry(bR,bR*1.1,bH,10),fb.mat,Math.cos(a)*ringR,fY,Math.sin(a)*ringR);
     }
   }
 
-  /* ARMRESTS */
+  /* ARMRESTS — posts anchor from seat edge, pad at arm height */
   const arm=ai.accessories.armrests;
   if(arm&&arm.on){
     const aL=(arm.length||20)/S;
     const aH=(arm.height||22)/S;
     const aT=(arm.thickness||4)/S;
-    const yArm=legH+swivelOffset+aH;
+    const armPadY=seatBottom+dSeat.h+aH;
+    const armPostBase=seatBottom+dSeat.h;
     const arZ=-dSeat.d*0.22;
-    [-lxR*1.05, lxR*1.05].forEach(ax=>{
-      accMesh(new THREE.BoxGeometry(aT,aT,aL),arm.mat,ax,yArm,arZ+aL*0.1);
-      accMesh(new THREE.CylinderGeometry(aT*0.35,aT*0.35,aH*0.65,10),arm.mat,ax,legH+swivelOffset+aH*0.32,arZ+aL*0.22);
+    const armX=seatR*0.92;
+    [-armX, armX].forEach(ax=>{
+      /* Arm pad (horizontal) */
+      accMesh(new THREE.BoxGeometry(aT,aT,aL),arm.mat,ax,armPadY,arZ+aL*0.1);
+      /* Arm post (vertical) — connects seat edge to arm pad */
+      const postH=armPadY-armPostBase;
+      accMesh(new THREE.CylinderGeometry(aT*0.35,aT*0.35,postH,10),arm.mat,ax,armPostBase+postH/2,arZ+aL*0.22);
     });
   }
 
-  /* CUP HOLDER */
+  /* CUP HOLDER — rim aligns with seat top surface */
   const ch=ai.accessories.cup_holder;
   if(ch&&ch.on){
     const cR=(ch.cupDia||8)/(S*2);
     const cD=(ch.holderDepth||5)/S;
     const cX=seatR+cR*1.2;
-    const cY=yTop;
-    accMesh(new THREE.CylinderGeometry(cR,cR*0.88,cD,24),ch.mat,cX,cY,0);
-    accMesh(new THREE.TorusGeometry(cR*0.9,cR*0.1,8,24),ch.mat,cX,cY+cD/2,0,Math.PI/2,0,0);
-    accMesh(new THREE.CylinderGeometry(cR*0.38,cR*0.38,cD*0.15,18),'#1c1c1c',cX,cY-cD*0.5,0);
+    const cY=seatTop;
+    accMesh(new THREE.CylinderGeometry(cR,cR*0.88,cD,24),ch.mat,cX,cY-cD/2,0);
+    accMesh(new THREE.TorusGeometry(cR*0.9,cR*0.1,8,24),ch.mat,cX,cY,0,Math.PI/2,0,0);
+    accMesh(new THREE.CylinderGeometry(cR*0.38,cR*0.38,cD*0.15,18),'#1c1c1c',cX,cY-cD,0);
   }
 
-  /* BAG HOOK */
+  /* BAG HOOK — hangs from underside of seat */
   const bh=ai.accessories.bag_hook;
   if(bh&&bh.on){
     const hR=(bh.hookSize||5)/(S*2);
     const side=bh.position>=0.5?1:-1;
     const hX=side*(seatR*0.85);
-    const hY=yTop-dSeat.h*0.4;
+    const hY=seatBottom-0.01;
     const hZ=0;
     accMesh(new THREE.BoxGeometry(hR*2,hR*0.6,hR*0.6),'#c0c8d0',hX,hY,hZ);
     accMesh(sg(()=>new THREE.TorusGeometry(hR*0.7,hR*0.18,8,16,Math.PI*1.5),null),'#c0c8d0',hX+(side*hR*0.9),hY-hR*0.65,hZ,0,Math.PI/2,0);
   }
 
-  /* ANTI-SCRATCH FEET */
+  /* ANTI-SCRATCH FEET — caps at floor level, matching main leg positions */
   const af=ai.accessories.anti_scratch_feet;
   if(af&&af.on){
     const capH=(af.capH||2)/S;
     const capR=(af.capR||3)/S;
     const legShapeId=(ai.shapes||{}).Legs||'round_post';
     const isPed=['single_pedestal','tulip_pedestal','cross_base'].includes(legShapeId);
+    const isTri=legShapeId==='tripod';
     if(isPed){
       for(let i=0;i<4;i++){
         const a=(Math.PI/2)*i+Math.PI/4;
-        const r=Math.min((ai.dims.Seat||{}).w||38,50)/(S*2)*0.24;
-        accMesh(new THREE.CylinderGeometry(capR,capR*1.12,capH,16),af.mat,Math.cos(a)*r,capH/2,Math.sin(a)*r);
+        const fR=dSeat.w*0.22;
+        accMesh(new THREE.CylinderGeometry(capR,capR*1.12,capH,16),af.mat,Math.cos(a)*fR*0.42,capH/2,Math.sin(a)*fR*0.42);
+      }
+    } else if(isTri){
+      for(let i=0;i<3;i++){
+        const a=(Math.PI*2/3)*i-Math.PI/6;
+        const tx=Math.cos(a)*lxR*0.55, tz=Math.sin(a)*lzR*0.55;
+        accMesh(new THREE.CylinderGeometry(capR,capR*1.12,capH,16),af.mat,tx,capH/2,tz);
       }
     } else {
-      [[-lxR,-lxR],[-lxR,lxR],[lxR,-lxR],[lxR,lxR]].forEach(([cx,cz])=>{
+      [[-lxR,-lzR],[-lxR,lzR],[lxR,-lzR],[lxR,lzR]].forEach(([cx,cz])=>{
         accMesh(new THREE.CylinderGeometry(capR,capR*1.1,capH,16),af.mat,cx,capH/2,cz);
       });
     }
   }
 
-  /* LUMBAR PAD */
+  /* LUMBAR PAD — centers on the back rest */
   const lp=ai.accessories.lumbar_pad;
   if(lp&&lp.on&&ai.hasBack){
     const pW=(lp.padW||22)/S;
     const pH=(lp.padH||12)/S;
     const pD=(lp.padDepth||6)/S;
-    const pZ=-(ai_dims.Seat||{d:38}).d/S*0.5-pD*0.55;
+    const dBack=(ai_dims.Back||{w:36,h:30,d:3});
+    const backZ=-(ai_dims.Seat||{d:38}).d/S*0.5*0.82;
+    const padZ=backZ+dBack.d/S/2+pD/2;
+    const padY=seatTop+dBack.h/S*0.4;
     accMesh(sg(()=>{
       const sh=new THREE.Shape(); sh.moveTo(-pW/2,-pH/2); sh.lineTo(pW/2,-pH/2); sh.lineTo(pW/2,pH/2); sh.quadraticCurveTo(0,pH*0.62,-pW/2,pH/2); sh.closePath();
       const g=new THREE.ExtrudeGeometry(sh,{depth:pD,bevelEnabled:true,bevelSize:0.008,bevelThickness:0.008,bevelSegments:2}); g.translate(0,0,-pD/2); return g;
-    },new THREE.BoxGeometry(pW,pH,pD)),lp.mat,0,legH+swivelOffset+pH*0.8,pZ);
+    },new THREE.BoxGeometry(pW,pH,pD)),lp.mat,0,padY,padZ);
   }
 
-  /* NON-SLIP BASE RING */
+  /* NON-SLIP BASE RING — sits flush on floor */
   const nb=ai.accessories.nonslip_base;
   if(nb&&nb.on){
     const rR=(nb.ringDia||28)/(S*2);
     const rT=(nb.ringThick||3)/S;
     const ringGeo=sg(()=>new THREE.TorusGeometry(rR,rT*0.5,10,52),null);
-    if(ringGeo) accMesh(ringGeo,nb.mat,0,rT*0.3,0,Math.PI/2,0,0);
+    if(ringGeo) accMesh(ringGeo,nb.mat,0,rT*0.5,0,Math.PI/2,0,0);
   }
 }
 

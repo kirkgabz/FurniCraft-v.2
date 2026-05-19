@@ -230,6 +230,20 @@
 </head>
 <body>
 
+    <!-- Registration Important Notice Modal -->
+    <div id="noticeModal" style="position: fixed; inset: 0; background: rgba(31, 25, 21, 0.6); backdrop-filter: blur(8px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background-color: #ffffff; width: 100%; max-width: 500px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 60px rgba(0,0,0,0.15); text-align: center; border: 1px solid rgba(139, 90, 43, 0.1); animation: slideup 0.3s ease-out;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(139, 90, 43, 0.1); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 20px;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 style="font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--text-dark); margin-bottom: 12px;">Important Registration Notice</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;">
+                To guarantee successful partner verification, please ensure that the <strong>Official Shop Name</strong>, <strong>Proprietor Name</strong>, and all inputted <strong>Details</strong> are exactly identical to the official permits and documents you will submit.
+            </p>
+            <button onclick="closeNoticeModal()" style="width: 100%; background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='var(--accent-hover)'" onmouseout="this.style.background='var(--accent)'">I Understand & Agree</button>
+        </div>
+    </div>
+
     <div class="container" id="formContainer">
         <div class="header">
             <h1>Furniture Shop Registration</h1>
@@ -237,6 +251,15 @@
         </div>
 
         <form class="form-body" id="registrationForm" onsubmit="handleRegistration(event)">
+            <!-- Alert Banner -->
+            <div style="background: rgba(139, 90, 43, 0.05); border-left: 4px solid var(--accent); border-radius: 8px; padding: 16px; margin-bottom: 25px; display: flex; gap: 12px; align-items: flex-start; text-align: left;">
+                <i class="fas fa-info-circle" style="color: var(--accent); font-size: 1.2rem; margin-top: 2px;"></i>
+                <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-muted);">
+                    <strong style="color: var(--text-dark); display: block; margin-bottom: 3px;">Document Consistency Reminder</strong>
+                    Please make sure your registered Shop Name and Proprietor Details match exactly what is listed inside the permits and documents you submit below.
+                </div>
+            </div>
+
             <div class="section-title">
                 <i class="fas fa-store"></i> Shop Information
             </div>
@@ -402,6 +425,13 @@
             // Show Success UI
             document.getElementById('formContainer').style.display = 'none';
             document.getElementById('successOverlay').style.display = 'flex';
+        }
+
+        function closeNoticeModal() {
+            const modal = document.getElementById('noticeModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
     </script>
 </body>
